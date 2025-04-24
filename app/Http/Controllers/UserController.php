@@ -157,6 +157,7 @@ class UserController extends Controller
 
         // Queue the email instead of sending it synchronously
         try {
+            \Log::info('Attempting to queue invitation email for user: ' . $user->email);
             Mail::to($user->email)
                 ->queue(new UserInvite(
                     $user->first_name,
@@ -165,8 +166,11 @@ class UserController extends Controller
                     $roleNames,
                     route('login')
                 ));
+            \Log::info('Successfully queued invitation email for user: ' . $user->email);
         } catch (\Exception $e) {
-            \Log::error('Failed to queue invitation email: ' . $e->getMessage());
+            \Log::error('Failed to queue invitation email for user: ' . $user->email);
+            \Log::error('Error details: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
             // Continue execution even if email queueing fails
         }
 

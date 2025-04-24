@@ -82,7 +82,7 @@
                         <!-- Company -->
                         <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                             <p class="text-sm font-medium text-gray-500 mb-1">{{ __('Company') }}</p>
-                            <p class="text-lg font-semibold text-gray-900">{{ $office->company->name ?? 'N/A' }}</p>
+                            <p class="text-lg font-semibold text-gray-900">{{ $office->company->company_name ?? 'N/A' }}</p>
                         </div>
 
                         <!-- Created At -->

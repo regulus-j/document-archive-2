@@ -68,6 +68,10 @@
                                     <div class="text-xs text-gray-400">{{ $company->company_phone }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <a href="{{ route('companies.show', $company->id) }}"
+                                        class="text-blue-600 hover:text-blue-900 mr-2 transition-colors duration-300">
+                                        View
+                                    </a>
                                     <a href="{{ route('companies.edit', $company->id) }}"
                                         class="text-indigo-600 hover:text-indigo-900 mr-2 transition-colors duration-300">
                                         Edit

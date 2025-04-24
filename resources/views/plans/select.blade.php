@@ -30,7 +30,7 @@
                 @foreach($plans ?? [] as $index => $plan)
                 <div class="relative flex flex-col rounded-2xl border border-gray-200 p-8 shadow-sm">
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-900">{{ $plan->name }}</h3>
+                        <h3 class="text-lg font-semibold text-gray-900">{{ $plan->plan_name }}</h3>
                         <div class="mt-4 flex items-baseline">
                             <span class="text-5xl font-bold tracking-tight text-gray-900" x-text="billing === 'monthly' ? 'P{{ number_format($plan->price * 100, 2) }}' : 'P{{ number_format($plan->price * 10 * 100, 2) }}'"></span>   
                             <span class="ml-1 text-sm font-semibold text-gray-500" x-text="'/' + billing"></span>
@@ -75,8 +75,8 @@
                 @endforeach
             </div>
             
-            <!-- Start Free Trial Button -->
-            @if(auth()->user()->isAdmin())
+            <!-- Start Free Trial Button commented out -->
+            {{-- @if(auth()->user()->isAdmin())
             <div class="mt-12 flex justify-center">
                 <a href="{{ route('trial.start') }}"
                 class="px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-400 rounded-md hover:from-blue-700 hover:to-blue-500 shadow-lg transform transition hover:-translate-y-0.5">
@@ -86,7 +86,7 @@
                 </svg>
                 </a>
             </div>
-            @endif
+            @endif --}}
         </div>
     </div>
 </x-app-layout>

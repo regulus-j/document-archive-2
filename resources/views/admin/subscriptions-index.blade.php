@@ -41,11 +41,11 @@
                                             <div class="flex items-center">
                                                 <div
                                                     class="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
-                                                    {{ substr($subscription->company->name ?? 'N/A', 0, 1) }}
+                                                    {{ substr($subscription->company->company_name ?? 'N/A', 0, 1) }}
                                                 </div>
                                                 <div class="ml-4">
                                                     <div class="text-sm font-medium text-gray-900">
-                                                        {{ $subscription->company->name ?? 'N/A' }}
+                                                        {{ $subscription->company->company_name ?? 'N/A' }}
                                                     </div>
                                                 </div>
                                             </div>
@@ -53,7 +53,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span
                                                 class="px-2 py-1 text-xs font-semibold leading-tight text-blue-700 bg-blue-100 rounded-full">
-                                                {{ $subscription->plan->name ?? 'N/A' }}
+                                                {{ $subscription->plan->plan_name ?? 'N/A' }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
@@ -67,10 +67,10 @@
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                            {{ $subscription->start_date->format('Y-m-d') }}
+                                            {{ is_string($subscription->start_date) ? $subscription->start_date : ($subscription->start_date ? $subscription->start_date->format('Y-m-d') : 'N/A') }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                            {{ $subscription->end_date ? $subscription->end_date->format('Y-m-d') : 'N/A' }}
+                                            {{ is_string($subscription->end_date) ? $subscription->end_date : ($subscription->end_date ? $subscription->end_date->format('Y-m-d') : 'N/A') }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span

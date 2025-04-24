@@ -221,7 +221,7 @@
                                     </x-dropdown-link>
 
                                     <!-- Check if user is company owner by checking if they have a company where they are the user_id -->
-                                    @if(App\Models\CompanyAccount::where('user_id', auth()->id())->exists())
+                                    @if(App\Models\CompanyAccount::where('user_id', auth()->id())->exists() && auth()->user()->hasRole('company-admin'))
                                         <!-- Company owner sees Company Account -->
                                         <x-dropdown-link :href="route('companies.edit', App\Models\CompanyAccount::where('user_id', auth()->id())->first())" class="hover:bg-blue-50 hover:text-blue-600">
                                             {{ __('Company Account') }}

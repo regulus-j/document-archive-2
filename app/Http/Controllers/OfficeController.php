@@ -120,6 +120,8 @@ class OfficeController extends Controller
             'name' => 'required|string|max:255',
             'parent_office_id' => 'nullable|exists:offices,id',
             'office_lead' => 'nullable|exists:users,id',
+            'users' => 'nullable|array',
+            'users.*' => 'exists:users,id',
         ]);
 
         try {
@@ -132,6 +134,16 @@ class OfficeController extends Controller
             // If an office lead is selected, ensure they're attached to this office
             if ($request->office_lead) {
                 $office->users()->syncWithoutDetaching([$request->office_lead]);
+            }
+            
+            // Sync the users to the office if users field is present
+            if ($request->has('users')) {
+                // Make sure office lead is included in the users array
+                $officeUsers = $request->users;
+                if ($request->office_lead && !in_array($request->office_lead, $officeUsers)) {
+                    $officeUsers[] = $request->office_lead;
+                }
+                $office->users()->sync($officeUsers);
             }
 
             return redirect()->route('office.index')->with('success', 'Office updated successfully.');

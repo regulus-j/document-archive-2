@@ -140,6 +140,34 @@
                             @enderror
                         </div>
 
+                        <!-- Assign Users to Office -->
+                        <div class="mb-6">
+                            <label for="users" class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ __('Assign Users to Office') }}
+                            </label>
+                            <div class="relative rounded-md shadow-sm">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                    </svg>
+                                </div>
+                                <select id="users" name="users[]" multiple
+                                    class="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('users') border-red-300 text-red-900 focus:outline-none focus:ring-red-500 focus:border-red-500 @enderror"
+                                    style="min-height: 120px;">
+                                    @foreach($users as $user)
+                                        <option value="{{ $user->id }}" {{ in_array($user->id, $office->users->pluck('id')->toArray()) ? 'selected' : '' }}>
+                                            {{ $user->first_name }} {{ $user->last_name }} ({{ $user->email }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <p class="mt-1 text-xs text-gray-500">Hold Ctrl/Cmd key to select multiple users</p>
+                            @error('users')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <!-- Action Buttons -->
                         <div class="border-t pt-6 flex justify-end space-x-3">
                             <a href="{{ route('office.index') }}"

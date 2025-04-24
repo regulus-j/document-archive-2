@@ -225,10 +225,46 @@
         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.getElementById('userSearch');
             const userItems = document.querySelectorAll('.user-item');
+            const noResultsMessage = document.createElement('div');
+            noResultsMessage.className = 'text-center py-4 text-gray-500';
+            noResultsMessage.innerHTML = 'No users match your search criteria';
+            noResultsMessage.style.display = 'none';
+            
+            // Insert the no results message after the user list
+            const usersList = document.getElementById('availableUsersList');
+            if(usersList) {
+                usersList.parentNode.appendChild(noResultsMessage);
+            }
             
             if (searchInput) {
+                // Add clear search button
+                const searchWrapper = document.createElement('div');
+                searchWrapper.className = 'relative';
+                searchInput.parentNode.insertBefore(searchWrapper, searchInput);
+                searchWrapper.appendChild(searchInput);
+                
+                const clearButton = document.createElement('button');
+                clearButton.type = 'button';
+                clearButton.className = 'absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-500';
+                clearButton.innerHTML = '<svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>';
+                clearButton.style.display = 'none';
+                searchWrapper.appendChild(clearButton);
+                
+                clearButton.addEventListener('click', function() {
+                    searchInput.value = '';
+                    searchInput.focus();
+                    filterUsers('');
+                    clearButton.style.display = 'none';
+                });
+                
                 searchInput.addEventListener('input', function() {
                     const searchTerm = this.value.toLowerCase();
+                    clearButton.style.display = searchTerm ? 'flex' : 'none';
+                    filterUsers(searchTerm);
+                });
+                
+                function filterUsers(searchTerm) {
+                    let visibleCount = 0;
                     
                     userItems.forEach(item => {
                         const userName = item.querySelector('.user-name').textContent.toLowerCase();
@@ -236,11 +272,23 @@
                         
                         if (userName.includes(searchTerm) || userEmail.includes(searchTerm)) {
                             item.style.display = '';
+                            visibleCount++;
                         } else {
                             item.style.display = 'none';
                         }
                     });
-                });
+                    
+                    // Show or hide the "no results" message
+                    if(noResultsMessage) {
+                        noResultsMessage.style.display = visibleCount === 0 ? 'block' : 'none';
+                    }
+                    
+                    // Update the count in the heading
+                    const countElement = document.querySelector('.available-users-count');
+                    if (countElement) {
+                        countElement.textContent = visibleCount;
+                    }
+                }
             }
 
             // Select all checkbox
@@ -255,6 +303,50 @@
                             checkbox.checked = isChecked;
                         }
                     });
+                });
+            }
+            
+            // Add "Select All" checkbox to the UI
+            if (!selectAllCheckbox && userCheckboxes.length > 0) {
+                const selectAllContainer = document.createElement('div');
+                selectAllContainer.className = 'flex items-center mb-3 pb-3 border-b border-gray-200';
+                
+                const newSelectAllCheckbox = document.createElement('input');
+                newSelectAllCheckbox.type = 'checkbox';
+                newSelectAllCheckbox.id = 'selectAll';
+                newSelectAllCheckbox.className = 'h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500';
+                
+                const selectAllLabel = document.createElement('label');
+                selectAllLabel.htmlFor = 'selectAll';
+                selectAllLabel.className = 'ml-3 text-sm font-medium text-gray-700';
+                selectAllLabel.textContent = 'Select all visible users';
+                
+                selectAllContainer.appendChild(newSelectAllCheckbox);
+                selectAllContainer.appendChild(selectAllLabel);
+                
+                if(usersList) {
+                    usersList.parentNode.insertBefore(selectAllContainer, usersList);
+                }
+                
+                newSelectAllCheckbox.addEventListener('change', function() {
+                    const isChecked = this.checked;
+                    userCheckboxes.forEach(checkbox => {
+                        if (checkbox.closest('.user-item').style.display !== 'none') {
+                            checkbox.checked = isChecked;
+                        }
+                    });
+                });
+            }
+            
+            // Form validation
+            const assignUsersForm = document.getElementById('assignUsersForm');
+            if(assignUsersForm) {
+                assignUsersForm.addEventListener('submit', function(e) {
+                    const checkedBoxes = document.querySelectorAll('input[name="users[]"]:checked');
+                    if(checkedBoxes.length === 0) {
+                        e.preventDefault();
+                        alert('Please select at least one user to assign.');
+                    }
                 });
             }
         });

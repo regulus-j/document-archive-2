@@ -214,9 +214,11 @@ Route::middleware('auth')->group(function () {
     Route::post('offices/{office}/add-user', [OfficeController::class, 'addUserToOffice'])->name('office.users.add');
     Route::post('offices/{office}/remove-user', [OfficeController::class, 'removeUserFromOffice'])->name('office.users.remove');
 
-    Route::get('/admin/company-dashboard', [ReportController::class, 'companyDashboard'])->name('reports.company-dashboard');
+    Route::get('/admin/company-dashboard', [ReportController::class, 'companyDashboard'])
+        ->middleware(['auth', 'role:company-admin'])
+        ->name('reports.company-dashboard');
 
-    Route::prefix('reports')->group(function () {
+    Route::prefix('reports')->middleware(['auth', 'role:company-admin'])->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/create', [ReportController::class, 'create'])->name('reports.create');
         Route::post('/', [ReportController::class, 'store'])->name('reports.store');

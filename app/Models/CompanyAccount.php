@@ -70,6 +70,14 @@ class CompanyAccount extends Model
     {
         return $this->hasMany(CompanyAddress::class, 'company_id');
     }
+    
+    /**
+     * Alias for address() relationship to maintain compatibility with existing code
+     */
+    public function addresses(): HasMany
+    {
+        return $this->address();
+    }
 
     public function latestSubscriptionByStartDate(): HasOne
     {
@@ -86,6 +94,14 @@ class CompanyAccount extends Model
     public function subscriptions(): HasMany
     {
         return $this->hasMany(CompanySubscription::class, 'company_id');
+    }
+    
+    /**
+     * Get all documents belonging to this company
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class, 'company_id');
     }
 }
 

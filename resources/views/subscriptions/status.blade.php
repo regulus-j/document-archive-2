@@ -76,7 +76,7 @@
                                                 @if($subscription->auto_renew ?? false)
                                                     <span class="text-green-600 flex items-center">
                                                         <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                                                         </svg>
                                                         Enabled
                                                     </span>
@@ -151,11 +151,11 @@
                                 <div class="space-y-4">
                                     @foreach($availablePlans as $plan)
                                         <div class="border rounded-lg p-4 hover:shadow-md transition duration-200">
-                                            <h4 class="font-semibold text-gray-800">{{ $plan->name ?? 'No name' }}</h4>
+                                            <h4 class="font-semibold text-gray-800">{{ $plan->plan_name ?? 'No name' }}</h4>
                                             <p class="text-sm text-gray-600 mt-1">
                                                 {{ $plan->description ?? 'No description available' }}
                                             </p>
-                                            <p class="mt-2 text-blue-600 font-medium">${{ number_format($plan->price ?? 0, 2) }} / {{ $plan->billing_period ?? 'month' }}</p>
+                                            <p class="mt-2 text-blue-600 font-medium">${{ number_format($plan->price ?? 0, 2) }} / {{ $plan->billing_cycle ?? 'month' }}</p>
                                             
                                             <div class="mt-3">
                                                 <form action="{{ route('subscriptions.request-upgrade') }}" method="POST">

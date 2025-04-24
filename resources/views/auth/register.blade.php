@@ -215,6 +215,132 @@
             const prevBtn = document.getElementById('prevBtn');
             const submitBtn = document.getElementById('submitBtn');
 
+            // Form validation functions
+            function validateStep(step) {
+                const stepDiv = document.getElementById(`step${step}`);
+                const requiredFields = stepDiv.querySelectorAll('input[required]');
+                let isValid = true;
+                let firstInvalidField = null;
+                
+                // Reset previous error messages
+                stepDiv.querySelectorAll('.validation-error').forEach(el => el.remove());
+                stepDiv.querySelectorAll('.border-red-500').forEach(el => {
+                    el.classList.remove('border-red-500');
+                    el.classList.add('border-gray-200');
+                });
+                
+                requiredFields.forEach(field => {
+                    const isEmail = field.type === 'email';
+                    const isPassword = field.type === 'password';
+                    
+                    // Clear previous styling
+                    field.classList.remove('border-red-500');
+                    field.classList.add('border-gray-200');
+                    
+                    // Validate based on field type
+                    if (!field.value.trim()) {
+                        isValid = false;
+                        markInvalid(field, 'This field is required');
+                        if (!firstInvalidField) firstInvalidField = field;
+                    } else if (isEmail && !isValidEmail(field.value)) {
+                        isValid = false;
+                        markInvalid(field, 'Please enter a valid email address');
+                        if (!firstInvalidField) firstInvalidField = field;
+                    } else if (isPassword && field.id === 'password' && field.value.length < 8) {
+                        isValid = false;
+                        markInvalid(field, 'Password must be at least 8 characters');
+                        if (!firstInvalidField) firstInvalidField = field;
+                    } else if (field.id === 'password_confirmation') {
+                        const passwordField = document.getElementById('password');
+                        if (passwordField && field.value !== passwordField.value) {
+                            isValid = false;
+                            markInvalid(field, 'Passwords do not match');
+                            if (!firstInvalidField) firstInvalidField = field;
+                        }
+                    } else if (field.id === 'company_phone' && !isValidPhone(field.value)) {
+                        isValid = false;
+                        markInvalid(field, 'Please enter a valid phone number');
+                        if (!firstInvalidField) firstInvalidField = field;
+                    } else if (field.id === 'zip_code' && !isValidZipCode(field.value)) {
+                        isValid = false;
+                        markInvalid(field, 'Please enter a valid ZIP/Postal code');
+                        if (!firstInvalidField) firstInvalidField = field;
+                    }
+                });
+                
+                // Focus on the first invalid field
+                if (firstInvalidField) {
+                    firstInvalidField.focus();
+                }
+                
+                return isValid;
+            }
+            
+            function markInvalid(field, message) {
+                // Add red border
+                field.classList.remove('border-gray-200');
+                field.classList.add('border-red-500');
+                
+                // Add error message
+                const errorDiv = document.createElement('p');
+                errorDiv.className = 'mt-1 text-sm text-red-600 validation-error';
+                errorDiv.textContent = message;
+                
+                if (field.nextElementSibling && field.nextElementSibling.classList.contains('validation-error')) {
+                    field.parentNode.replaceChild(errorDiv, field.nextElementSibling);
+                } else {
+                    field.insertAdjacentElement('afterend', errorDiv);
+                }
+            }
+            
+            function isValidEmail(email) {
+                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return re.test(email);
+            }
+            
+            function isValidPhone(phone) {
+                const re = /^[+]?[0-9]{8,15}$/;
+                return re.test(phone.replace(/[\s()-]/g, ''));
+            }
+            
+            function isValidZipCode(zipCode) {
+                const re = /^[0-9]{4,10}$/;
+                return re.test(zipCode.replace(/[\s-]/g, ''));
+            }
+            
+            // Live validation for all fields
+            document.querySelectorAll('input[required]').forEach(field => {
+                field.addEventListener('blur', function() {
+                    const stepDiv = this.closest('.step-content');
+                    if (stepDiv.id === 'step1' && this.id === 'password_confirmation') {
+                        const passwordField = document.getElementById('password');
+                        if (passwordField && this.value !== passwordField.value) {
+                            markInvalid(this, 'Passwords do not match');
+                        } else if (this.value.trim() === '') {
+                            markInvalid(this, 'This field is required');
+                        } else {
+                            // Remove error state if valid
+                            this.classList.remove('border-red-500');
+                            this.classList.add('border-gray-200');
+                            const errorDiv = this.nextElementSibling;
+                            if (errorDiv && errorDiv.classList.contains('validation-error')) {
+                                errorDiv.remove();
+                            }
+                        }
+                    } else if (this.value.trim() === '') {
+                        markInvalid(this, 'This field is required');
+                    } else {
+                        // Remove error state if valid
+                        this.classList.remove('border-red-500');
+                        this.classList.add('border-gray-200');
+                        const errorDiv = this.nextElementSibling;
+                        if (errorDiv && errorDiv.classList.contains('validation-error')) {
+                            errorDiv.remove();
+                        }
+                    }
+                });
+            });
+
             // Show the specified step
             function showStep(step) {
                 // Hide all steps
@@ -254,7 +380,7 @@
 
             // Handle next button click
             nextBtn.addEventListener('click', function () {
-                if (currentStep < totalSteps) {
+                if (validateStep(currentStep) && currentStep < totalSteps) {
                     currentStep++;
                     showStep(currentStep);
                 }
@@ -265,6 +391,14 @@
                 if (currentStep > 1) {
                     currentStep--;
                     showStep(currentStep);
+                }
+            });
+            
+            // Handle form submission
+            submitBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (validateStep(currentStep)) {
+                    document.getElementById('registrationForm').submit();
                 }
             });
 

@@ -34,6 +34,73 @@ class AdminDashboardController extends Controller
         $totalDocuments = Document::count();
         $activeSubscriptions = CompanySubscription::where('status', 'active')->count();
 
+        // Additional statistics for enhanced dashboard
+        $documents = Document::all();
+        $totalStorage = 0;
+        
+        // Calculate total storage by checking actual file sizes
+        foreach ($documents as $document) {
+            $docPath = $document->path ?? '';
+            if ($docPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($docPath)) {
+                $totalStorage += \Illuminate\Support\Facades\Storage::disk('public')->size($docPath);
+            }
+        }
+        
+        // Also add sizes of document attachments
+        $attachments = \App\Models\DocumentAttachment::all();
+        foreach ($attachments as $attachment) {
+            $attachPath = $attachment->path ?? '';
+            if ($attachPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($attachPath)) {
+                $totalStorage += \Illuminate\Support\Facades\Storage::disk('public')->size($attachPath);
+            }
+        }
+        
+        $formattedTotalStorage = $this->formatBytes($totalStorage);
+        $avgDocumentSize = $totalDocuments > 0 ? $this->formatBytes($totalStorage / $totalDocuments) : '0 B';
+        $totalOffices = \App\Models\Office::count();
+        $documentsCreatedThisWeek = Document::whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()])->count();
+        $pendingWorkflows = \App\Models\DocumentWorkflow::where('status', 'pending')->count();
+        $completedWorkflows = \App\Models\DocumentWorkflow::whereIn('status', ['approved', 'rejected'])->count();
+        $expiredSubscriptions = CompanySubscription::where('status', 'expired')
+            ->whereBetween('end_date', [Carbon::now()->subMonth(), Carbon::now()])
+            ->count();
+        
+        // Get most active companies based on document count
+        $mostActiveCompanies = CompanyAccount::withCount(['documents' => function($query) {
+                $query->where('created_at', '>=', Carbon::now()->subDays(30));
+            }])
+            ->withCount('employees') // Add this to get the employee count
+            ->orderByDesc('documents_count')
+            ->take(5)
+            ->get();
+            
+        // Get subscription distribution by plan
+        $subscriptionsByPlan = CompanySubscription::with('plan')
+            ->select('plan_id', DB::raw('count(*) as total'))
+            ->where('status', 'active')
+            ->groupBy('plan_id')
+            ->orderByDesc('total')
+            ->get()
+            ->map(function($subscription) {
+                return [
+                    'plan_name' => $subscription->plan ? $subscription->plan->plan_name : 'Unknown Plan',
+                    'count' => $subscription->total,
+                ];
+            });
+
+        // Calculate renewal rates without using the non-existent renewal_count column
+        // Instead, look for subscriptions that were created within the last month but have earlier start dates
+        // This suggests they're likely renewals rather than brand new subscriptions
+        $renewedSubscriptions = CompanySubscription::where('created_at', '>=', Carbon::now()->subMonth())
+            ->whereRaw('DATE(created_at) > DATE(start_date)')
+            ->count();
+            
+        $expiredLastMonth = CompanySubscription::where('status', 'expired')
+            ->whereBetween('end_date', [Carbon::now()->subMonth(), Carbon::now()])
+            ->count();
+            
+        $renewalRate = $expiredLastMonth > 0 ? round(($renewedSubscriptions / $expiredLastMonth) * 100, 1) : 0;
+
         // Calculate growth rates compared to last month
         $lastMonth = Carbon::now()->subMonth();
         
@@ -147,7 +214,17 @@ class AdminDashboardController extends Controller
             'dailyDocTarget',
             'latestCompanies',
             'monthlyStats',
-            'recentActivities'
+            'recentActivities',
+            'formattedTotalStorage',
+            'avgDocumentSize',
+            'totalOffices',
+            'documentsCreatedThisWeek',
+            'pendingWorkflows',
+            'completedWorkflows',
+            'expiredSubscriptions',
+            'mostActiveCompanies',
+            'subscriptionsByPlan',
+            'renewalRate'
         ));
     }
 
@@ -190,5 +267,21 @@ class AdminDashboardController extends Controller
             'documentsData' => $documentsData,
             'subscriptionsData' => $subscriptionsData
         ];
+    }
+
+    /**
+     * Format bytes to a human-readable format.
+     */
+    private function formatBytes($bytes, $precision = 2)
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+
+        $bytes /= (1 << (10 * $pow));
+
+        return round($bytes, $precision) . ' ' . $units[$pow];
     }
 }
