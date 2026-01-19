@@ -19,6 +19,9 @@ RUN npm run build
 # Stage 2: PHP Application
 FROM php:8.2-fpm-alpine AS production
 
+# Ensure php is in PATH for terminal access
+ENV PATH="/usr/local/bin:/usr/local/sbin:$PATH"
+
 # Install system dependencies
 RUN apk add --no-cache \
     nginx \
@@ -76,7 +79,8 @@ RUN composer dump-autoload --optimize \
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
-    && chmod -R 755 /var/www/html/bootstrap/cache
+    && chmod -R 755 /var/www/html/bootstrap/cache \
+    && mkdir -p /var/log/supervisor
 
 # Copy Nginx configuration
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
