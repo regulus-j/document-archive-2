@@ -1,0 +1,63 @@
+# Git
+.git
+.gitattributes
+.gitignore
+
+# Dependencies (will be installed during build)
+/node_modules
+/vendor
+
+# Development files
+.env
+.env.local
+.env.*.local
+.editorconfig
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Testing
+/tests
+phpunit.xml
+.phpunit.result.cache
+
+# Build artifacts
+/public/build
+/public/hot
+
+# Storage (mounted as volume)
+/storage/app/*
+!/storage/app/.gitkeep
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+
+# Documentation
+*.md
+!README.md
+PROGRESSNOTES.txt
+/REVISIONS_DOCUMENTATION*
+
+# Batch files
+*.bat
+*.sh
+
+# Docker
+docker-compose*.yml
+Dockerfile*
+
+# Misc
+*.PNG
+*.png
+*.jpg
+*.jpeg
+!public/**/*.png
+!public/**/*.jpg
+!public/**/*.jpeg
+!resources/**/*.png
+!resources/**/*.jpg
+!resources/**/*.jpeg
