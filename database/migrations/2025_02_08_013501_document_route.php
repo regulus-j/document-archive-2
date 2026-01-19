@@ -21,9 +21,10 @@ return new class extends Migration
             $table->unsignedBigInteger('recipient_id')->nullable();  // Who is supposed to take action
             $table->unsignedBigInteger('recipient_office')->nullable();
             $table->unsignedInteger('step_order');       // The order or sequence of the workflow
-            $table->enum('status', ['pending', 'received', 'approved', 'rejected'])->default('pending');
+            $table->enum('status', ['uploaded', 'pending', 'received', 'approved', 'rejected', 'returned', 'referred', 'forwarded'])->default('uploaded');
             $table->text('remarks')->nullable();         // Remarks if any during approval/rejection
             $table->timestamp('received_at')->nullable();
+            $table->boolean('is_paused')->default(false);
             $table->timestamps();
 
             //check removed

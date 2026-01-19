@@ -20,9 +20,9 @@ return new class extends Migration
 
             //company attributes
             $table->string('company_name');
-            $table->string('registered_name');
-            $table->string('company_email');
-            $table->string('company_phone');
+            $table->string('registered_name')->nullable()->default('');
+            $table->string('company_email')->nullable()->default('');
+            $table->string('company_phone')->nullable()->default('');
 
             //demographic attributes
             $table->string('industry')->nullable();

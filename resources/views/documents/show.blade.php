@@ -195,6 +195,14 @@
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
+                                @if($workflows->isEmpty())
+                                <tr>
+                                    <td colspan="4" class="px-6 py-4 text-center text-gray-500 italic">
+                                        No workflow steps found for this document.
+                                    </td>
+                                </tr>
+                                @endif
+                                    
                                 @foreach($workflows as $workflow)
                                 <tr class="hover:bg-gray-50 transition-colors">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">

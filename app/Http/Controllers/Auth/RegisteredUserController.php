@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\CompanyAccount;
 use App\Models\CompanyAddress;
 use App\Models\CompanyUser;
+use App\Models\Office;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -78,19 +79,29 @@ class RegisteredUserController extends Controller
             'company_phone' => $request->company_phone ?: '00000000000',
         ]);
 
-        $companyAddress = CompanyAddress::create([
-            'company_id' => $company->id,
-            'address' => $request->address ?: 'Default Address',
-            'city' => $request->city ?: 'Default City',
-            'state' => $request->state ?: 'Default State',
-            'zip_code' => $request->zip_code ?: '00000',
-            'country' => $request->country ?: 'Default Country',
-        ]);
+        // $companyAddress = CompanyAddress::create([
+        //     'company_id' => $company->id,
+        //     'address' => $request->address ?: 'Default Address',
+        //     'city' => $request->city ?: 'Default City',
+        //     'state' => $request->state ?: 'Default State',
+        //     'zip_code' => $request->zip_code ?? '00000',
+        //     'country' => $request->country ?: 'Default Country',
+        // ]);
 
         CompanyUser::create([
             'company_id' => $company->id,
             'user_id' => $user->id,
         ]);
+
+        // Create default "Main" office for the company
+        $mainOffice = \App\Models\Office::create([
+            'company_id' => $company->id,
+            'name' => 'Main',
+            'office_lead' => $user->id,
+        ]);
+
+        // Assign user to the Main office
+        $mainOffice->users()->attach($user->id);
 
         return redirect()->intended(route('verification.notice'))
             ->with('status', 'verification-link-sent');

@@ -10,15 +10,14 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Register any application services.
      */
-   // In AppServiceProvider or any other provider
-   public function register(): void
-   {
-       // Binding the 'has.company' key to CompanyService
-       $this->app->bind('has.company', function ($app) {
-           return new CompanyService(); // Return an instance of the service
-       });
-   }
-
+    // In AppServiceProvider or any other provider
+    public function register(): void
+    {
+        // Binding the 'has.company' key to CompanyService
+        $this->app->bind('has.company', function ($app) {
+            return new CompanyService(); // Return an instance of the service
+        });
+    }
 
     /**
      * Bootstrap any application services.
@@ -26,8 +25,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         //
-        if(config('app.env') === 'production') {
-        \URL::forceScheme('https');
-    }
+        if (config('app.env') === 'production') {
+            \URL::forceScheme('https');
+        }
     }
 }

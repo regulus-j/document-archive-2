@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('category')->nullable();
             $table->string('purpose')->nullable();
             $table->string('classification')->nullable();
-            $table->text('remarks')->nullable();
             $table->text('content')->nullable();
             $table->string('path');
             $table->softDeletes();

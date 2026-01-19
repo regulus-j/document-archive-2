@@ -1,0 +1,58 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Dependencies (installed fresh in Docker)
+/vendor
+/node_modules
+
+# Environment files (use Docker env vars instead)
+.env
+.env.*
+!.env.example
+
+# Build artifacts
+/public/build
+/public/hot
+/public/storage
+
+# Storage (mounted as volume)
+/storage/app/*
+!/storage/app/.gitignore
+/storage/framework/cache/*
+!/storage/framework/cache/.gitignore
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
+/storage/framework/views/*
+!/storage/framework/views/.gitignore
+/storage/logs/*
+!/storage/logs/.gitignore
+
+# Testing
+/tests
+/phpunit.xml
+/.phpunit.result.cache
+
+# Documentation
+*.md
+!README.md
+
+# Misc
+*.txt
+/Dependencies
+/.editorconfig
+/auto-migrate.sh
+/auto.migrateDB.bat
+/auto.serversStart.bat
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
