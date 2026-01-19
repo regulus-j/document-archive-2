@@ -230,7 +230,7 @@
                     </div>
 
                     <div class="flex flex-col items-center">
-                        <div class="g-recaptcha mb-4" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
+                        <div class="g-recaptcha mb-4" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
                         @error('g-recaptcha-response')
                         <p class="text-red-600 text-sm text-center mt-2">{{ $message }}</p>
                         @enderror
