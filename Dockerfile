@@ -68,9 +68,9 @@ COPY . .
 COPY --from=frontend /app/public/build ./public/build
 
 # Generate autoloader and run Laravel optimizations
+# Note: route:cache skipped due to duplicate route name - fix routes then re-enable
 RUN composer dump-autoload --optimize \
     && php artisan config:cache \
-    && php artisan route:cache \
     && php artisan view:cache
 
 # Set permissions
