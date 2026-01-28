@@ -13,9 +13,7 @@ class CompanyController extends Controller
 {
     public function index()
     {
-        // Get all companies.
-        $companies = CompanyAccount::all();
-
+        // Only admins can view the list of all companies
         if (auth()->user()->isAdmin()) {
             $companies = CompanyAccount::with(['subscriptions.plan', 'user'])
                 ->get()
@@ -32,7 +30,15 @@ class CompanyController extends Controller
             return view('admin.companies-index', compact('companies'));
         }
 
-        return view('companies.index', compact('companies'));
+        // Regular users should only see their own company
+        $company = auth()->user()->companies()->first();
+        
+        if (!$company) {
+            return redirect()->route('companies.create')
+                ->with('info', 'You need to create a company first.');
+        }
+        
+        return redirect()->route('companies.show', $company->id);
     }
 
     public function create()
@@ -83,7 +89,8 @@ class CompanyController extends Controller
                 'user_id' => auth()->id(),
             ]);
             
-            return redirect()->route('companies.index')->with('success', 'Company created successfully.');
+            return redirect()->route('companies.show', $company->id)
+                ->with('success', 'Company created successfully!');
         }
         return redirect()->route('companies.create')->with('success', 'Company created successfully.')->withInput();
     }
