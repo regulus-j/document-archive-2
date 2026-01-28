@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\CompanyAccount;
 use App\Models\CompanyAddress;
+use App\Models\CompanyUser;
 
 
 class CompanyController extends Controller
@@ -75,6 +76,13 @@ class CompanyController extends Controller
             CompanyAccount::create($validated);
             $company = CompanyAccount::latest()->first();
             $company->addresses()->create($addressValidated);
+            
+            // Create the company-user relationship in the pivot table
+            CompanyUser::create([
+                'company_id' => $company->id,
+                'user_id' => auth()->id(),
+            ]);
+            
             return redirect()->route('companies.index')->with('success', 'Company created successfully.');
         }
         return redirect()->route('companies.create')->with('success', 'Company created successfully.')->withInput();
