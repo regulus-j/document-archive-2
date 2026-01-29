@@ -17,12 +17,12 @@
                         <p class="text-sm text-gray-500">Update company information and settings</p>
                     </div>
                 </div>
-                <a href="{{ route('companies.index') }}"
+                <a href="{{ auth()->user()->isSuperAdmin() ? route('companies.index') : route('dashboard') }}"
                     class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
-                    Back to List
+                    {{ auth()->user()->isSuperAdmin() ? 'Back to List' : 'Back to Dashboard' }}
                 </a>
             </div>
         </div>
@@ -163,7 +163,7 @@
                             <!-- Form Actions -->
                             <div class="border-t border-gray-200 pt-6">
                                 <div class="flex items-center justify-end space-x-3">
-                                    <a href="{{ route('companies.index') }}"
+                                    <a href="{{ auth()->user()->isSuperAdmin() ? route('companies.index') : route('dashboard') }}"
                                         class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition-colors">
                                         Cancel
                                     </a>

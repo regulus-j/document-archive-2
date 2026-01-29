@@ -13,8 +13,10 @@ class CompanyController extends Controller
 {
     public function index()
     {
-        // Only admins can view the list of all companies
-        if (auth()->user()->isAdmin()) {
+        // Only super-admins can view the list of all companies
+        $this->authorize('viewAny', CompanyAccount::class);
+
+        if (auth()->user()->isSuperAdmin()) {
             $companies = CompanyAccount::with(['subscriptions.plan', 'user'])
                 ->get()
                 ->map(function ($company) {
@@ -108,11 +110,15 @@ class CompanyController extends Controller
 
     public function edit(CompanyAccount $company)
     {
+        // Authorization check - only super-admin or company owner can edit
+        $this->authorize('update', $company);
+
         // Get the authenticated user
         $authUser = auth()->guard('web')->user();
 
         // Initialize $users based on role
-        if($authUser && $authUser->isAdmin()) {
+        // Super-admin can see all users, company-admin only sees their company's employees
+        if($authUser && $authUser->isSuperAdmin()) {
             $users = User::paginate(10);
         } else {
             $users = $company->employees()->paginate(10);
@@ -149,6 +155,9 @@ class CompanyController extends Controller
 
     public function destroy(CompanyAccount $company)
     {
+        // Only super-admin can delete companies
+        $this->authorize('delete', $company);
+
         // Remove the specified company from storage.
         $company->delete();
         return redirect()->route('companies.index')->with('success', 'Company deleted successfully.');

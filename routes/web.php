@@ -116,7 +116,7 @@ Route::middleware('auth')->group(function () {
 
 
     Route::prefix('companies')->group(function () {
-        Route::get('/', [CompanyController::class, 'index'])->name('companies.index');
+        Route::get('/', [CompanyController::class, 'index'])->middleware('role:super-admin')->name('companies.index');
         Route::get('/create', [CompanyController::class, 'create'])->name('companies.create');
         Route::post('/', [CompanyController::class, 'store'])->name('companies.store');
 
