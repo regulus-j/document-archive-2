@@ -115,9 +115,15 @@
                                     {{ $office->created_at->format('M d, Y') }}
                                 </div>
                             </td>
+<<<<<<< HEAD
+                            <td class="px-6 py-4 text-right text-sm font-medium relative">
+                                <div class="relative inline-block text-left" x-data="{ open: false }">
+                                    <button @click.stop="open = !open" type="button" class="p-1 rounded-full text-gray-400 hover:text-[#0066FF] focus:outline-none">
+=======
                             <td class="px-6 py-4 text-right text-sm font-medium">
                                 <div class="relative inline-block text-left" x-data="{ open: false }">
                                     <button @click="open = !open" type="button" class="p-1 rounded-full text-gray-400 hover:text-[#0066FF] focus:outline-none">
+>>>>>>> 8f98270b7e7901b3262bb54dfd67342b9b6f2530
                                         <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
                                         </svg>

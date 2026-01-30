@@ -21,9 +21,12 @@
     <!-- Ajax -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
+<<<<<<< HEAD
+=======
     <!-- Alpine.js -->
     <script src="//unpkg.com/alpinejs" defer></script>
 
+>>>>>>> 8f98270b7e7901b3262bb54dfd67342b9b6f2530
     <!-- Alpine.js Cloak -->
     <style>
         [x-cloak] { display: none !important; }
