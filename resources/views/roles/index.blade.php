@@ -128,7 +128,9 @@
                 </div>
                 <div>
                     <p class="mb-2 text-sm font-medium text-gray-600">Total Roles</p>
-                    <p class="text-3xl font-bold text-gray-700">{{ $roles->total() }}</p>
+                    <p class="text-3xl font-bold text-gray-700">
+                        {{ $roles->filter(fn($role) => !(auth()->user()->hasRole('company-admin') && $role->name === 'super-admin'))->count() }}
+                    </p>
                 </div>
             </div>
 
@@ -144,7 +146,9 @@
                 </div>
                 <div>
                     <p class="mb-2 text-sm font-medium text-gray-600">Active Roles</p>
-                    <p class="text-3xl font-bold text-gray-700">{{ $roles->count() }}</p>
+                    <p class="text-3xl font-bold text-gray-700">
+                        {{ $roles->filter(fn($role) => !(auth()->user()->hasRole('company-admin') && $role->name === 'super-admin'))->count() }}
+                    </p>
                 </div>
             </div>
 
@@ -153,7 +157,9 @@
                 <div class="flex items-center justify-center space-x-4">
                     <div class="text-center">
                         <p class="text-sm font-medium text-gray-600">Found</p>
-                        <p class="text-3xl font-bold text-[#0066FF]">{{ $roles->total() }}</p>
+                        <p class="text-3xl font-bold text-[#0066FF]">
+                             {{ $roles->filter(fn($role) => !(auth()->user()->hasRole('company-admin') && $role->name === 'super-admin'))->count() }}
+                        </p>
                         <p class="text-sm text-gray-500">roles</p>
                     </div>
                 </div>
@@ -225,6 +231,7 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     @foreach ($roles as $key => $role)
+                    @if(!(auth()->user()->hasRole('company-admin') && $role->name === 'super-admin'))
                     <tr class="hover:bg-gray-50 transition-colors duration-150">
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ ++$i }}</td>
                         <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $role->name }}</td>
@@ -274,6 +281,7 @@
                                         <form action="{{ route('roles.destroy', $role->id) }}" method="POST" class="inline">
                                             @csrf
                                             @method('DELETE')
+                                            @if($role->name !== 'super-admin' && $role->name !== 'company-admin')
                                             <button type="button" class="group flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
                                                 @click="deleteId = '{{ $role->id }}'; showDeleteModal = true; open = false">
                                                 <svg class="mr-3 h-5 w-5 text-red-400 group-hover:text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -281,6 +289,7 @@
                                                 </svg>
                                                 {{ __('Delete') }}
                                             </button>
+                                            @endif
                                         </form>
                                         @endcan
                                     </div>
@@ -288,6 +297,7 @@
                             </div>
                         </td>
                     </tr>
+                    @endif
                     @endforeach
                 </tbody>
             </table>
