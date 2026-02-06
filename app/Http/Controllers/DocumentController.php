@@ -51,7 +51,7 @@ class DocumentController extends Controller
     {
         // Use the access service to get documents the user can view
         $query = $this->documentAccessService->getAccessibleDocuments()
-            ->with(['user.offices', 'status', 'transaction.fromOffice', 'transaction.toOffice']);
+            ->with(['user.offices', 'status', 'transaction.fromOffice', 'transaction.toOffice', 'categories']);
 
         // Get the user's company ID
         $userCompany = auth()->user()->companies()->first();
@@ -84,6 +84,37 @@ class DocumentController extends Controller
             } else {
                 $query->whereHas('status', fn($q) => $q->where('status', $status));
             }
+        }
+
+        // ── Date range filter ──
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // ── User (uploader) filter ──
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+
+        // ── Category filter ──
+        if ($request->filled('category_id')) {
+            $catId = $request->category_id;
+            $query->where(function ($q) use ($catId) {
+                $q->where('category', $catId)
+                  ->orWhereHas('categories', fn($cq) => $cq->where('document_categories.id', $catId));
+            });
+        }
+
+        // ── Team (office) filter ──
+        if ($request->filled('team_id')) {
+            $teamId = $request->team_id;
+            $query->where(function ($q) use ($teamId) {
+                $q->whereHas('user.offices', fn($oq) => $oq->where('offices.id', $teamId))
+                  ->orWhereHas('transaction', fn($tq) => $tq->where('from_office', $teamId)->orWhere('to_office', $teamId));
+            });
         }
 
         $documents = $query->latest()->paginate(5);
@@ -126,7 +157,26 @@ class DocumentController extends Controller
         // Add the selected office ID to pass to the view
         $selectedOfficeId = $request->input('office_id', 'all');
 
-        return view('documents.index', compact('documents', 'auditLogs', 'documentRecipients', 'offices', 'selectedOfficeId'));
+        // Fetch users, teams and categories for filter dropdowns
+        if ($userCompany) {
+            $filterUsers = User::whereHas('companies', fn($q) => $q->where('company_accounts.id', $userCompany->id))
+                ->orderBy('first_name')->get();
+            $filterCategories = DocumentCategory::where(function ($q) use ($userCompany) {
+                $q->where('company_id', $userCompany->id)
+                  ->orWhere('is_global', true)
+                  ->orWhereNull('company_id');
+            })->orderBy('category')->get();
+            $filterTeams = Office::where('company_id', $userCompany->id)->orderBy('name')->get();
+        } else {
+            $filterUsers = collect();
+            $filterCategories = DocumentCategory::orderBy('category')->get();
+            $filterTeams = collect();
+        }
+
+        return view('documents.index', compact(
+            'documents', 'auditLogs', 'documentRecipients', 'offices', 'selectedOfficeId',
+            'filterUsers', 'filterCategories', 'filterTeams'
+        ));
     }
 
     /**

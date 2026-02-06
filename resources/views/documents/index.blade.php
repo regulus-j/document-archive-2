@@ -272,6 +272,164 @@
                 </div>
             </div>
 
+            <!-- Filters Bar -->
+            <div class="bg-white rounded-xl border border-blue-200/80 overflow-hidden mt-3">
+                <div class="px-6 py-4 border-b border-blue-200/60 flex items-center justify-between cursor-pointer select-none" id="filterToggleHeader" onclick="toggleFilterPanel()">
+                    <div class="flex items-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        </svg>
+                        <h2 class="text-sm font-semibold text-gray-800">Advanced Filters</h2>
+                        @if(request('date_from') || request('date_to') || request('user_id') || request('category_id') || request('team_id'))
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Active</span>
+                        @endif
+                    </div>
+                    <svg id="filterChevron" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transition-transform duration-200 {{ request('date_from') || request('date_to') || request('user_id') || request('category_id') || request('team_id') ? 'rotate-180' : '' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+                <div id="filterPanel" class="{{ request('date_from') || request('date_to') || request('user_id') || request('category_id') || request('team_id') ? '' : 'hidden' }}">
+                    <form method="GET" action="{{ route('documents.index') }}" class="p-6 space-y-4">
+                        {{-- Preserve existing non-filter params --}}
+                        @if(request('office_id'))
+                            <input type="hidden" name="office_id" value="{{ request('office_id') }}">
+                        @endif
+                        @if(request('status'))
+                            <input type="hidden" name="status" value="{{ request('status') }}">
+                        @endif
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                            {{-- Date From --}}
+                            <div>
+                                <label for="date_from" class="block text-xs font-medium text-gray-600 mb-1">Date From</label>
+                                <input type="date" id="date_from" name="date_from" value="{{ request('date_from') }}"
+                                    class="w-full rounded-lg border-gray-300 shadow-sm text-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            </div>
+
+                            {{-- Date To --}}
+                            <div>
+                                <label for="date_to" class="block text-xs font-medium text-gray-600 mb-1">Date To</label>
+                                <input type="date" id="date_to" name="date_to" value="{{ request('date_to') }}"
+                                    class="w-full rounded-lg border-gray-300 shadow-sm text-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            </div>
+
+                            {{-- User (searchable) --}}
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Uploaded By</label>
+                                <input type="hidden" id="user_id" name="user_id" value="{{ request('user_id') }}">
+                                <div class="searchable-select relative" data-target="user_id">
+                                    <button type="button" class="ss-toggle w-full flex items-center justify-between rounded-lg border border-gray-300 shadow-sm text-sm px-3 py-2 bg-white text-left focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all">
+                                        <span class="ss-label truncate text-gray-700">
+                                            @if(request('user_id'))
+                                                {{ $filterUsers->firstWhere('id', request('user_id'))?->first_name }} {{ $filterUsers->firstWhere('id', request('user_id'))?->last_name }}
+                                            @else
+                                                All Users
+                                            @endif
+                                        </span>
+                                        <svg class="h-4 w-4 text-gray-400 flex-shrink-0 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    <div class="ss-dropdown hidden absolute z-50 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+                                        <div class="p-2 border-b border-gray-100">
+                                            <input type="text" class="ss-search w-full rounded-md border-gray-300 text-sm px-3 py-1.5 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50" placeholder="Search users...">
+                                        </div>
+                                        <ul class="ss-options max-h-48 overflow-y-auto py-1">
+                                            <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 transition-colors" data-value="">All Users</li>
+                                            @foreach($filterUsers as $u)
+                                                <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 transition-colors" data-value="{{ $u->id }}">{{ $u->first_name }} {{ $u->last_name }}</li>
+                                            @endforeach
+                                        </ul>
+                                        <div class="ss-empty hidden px-3 py-4 text-sm text-gray-400 text-center">No results found</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Team (searchable) --}}
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Team</label>
+                                <input type="hidden" id="team_id" name="team_id" value="{{ request('team_id') }}">
+                                <div class="searchable-select relative" data-target="team_id">
+                                    <button type="button" class="ss-toggle w-full flex items-center justify-between rounded-lg border border-gray-300 shadow-sm text-sm px-3 py-2 bg-white text-left focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all">
+                                        <span class="ss-label truncate text-gray-700">
+                                            @if(request('team_id'))
+                                                {{ $filterTeams->firstWhere('id', request('team_id'))?->name ?? 'All Teams' }}
+                                            @else
+                                                All Teams
+                                            @endif
+                                        </span>
+                                        <svg class="h-4 w-4 text-gray-400 flex-shrink-0 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    <div class="ss-dropdown hidden absolute z-50 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+                                        <div class="p-2 border-b border-gray-100">
+                                            <input type="text" class="ss-search w-full rounded-md border-gray-300 text-sm px-3 py-1.5 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50" placeholder="Search teams...">
+                                        </div>
+                                        <ul class="ss-options max-h-48 overflow-y-auto py-1">
+                                            <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 transition-colors" data-value="">All Teams</li>
+                                            @foreach($filterTeams as $team)
+                                                <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 transition-colors" data-value="{{ $team->id }}">{{ $team->name }}</li>
+                                            @endforeach
+                                        </ul>
+                                        <div class="ss-empty hidden px-3 py-4 text-sm text-gray-400 text-center">No results found</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Category (searchable) --}}
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Category</label>
+                                <input type="hidden" id="category_id" name="category_id" value="{{ request('category_id') }}">
+                                <div class="searchable-select relative" data-target="category_id">
+                                    <button type="button" class="ss-toggle w-full flex items-center justify-between rounded-lg border border-gray-300 shadow-sm text-sm px-3 py-2 bg-white text-left focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all">
+                                        <span class="ss-label truncate text-gray-700">
+                                            @if(request('category_id'))
+                                                {{ $filterCategories->firstWhere('id', request('category_id'))?->category ?? 'All Categories' }}
+                                            @else
+                                                All Categories
+                                            @endif
+                                        </span>
+                                        <svg class="h-4 w-4 text-gray-400 flex-shrink-0 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    <div class="ss-dropdown hidden absolute z-50 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+                                        <div class="p-2 border-b border-gray-100">
+                                            <input type="text" class="ss-search w-full rounded-md border-gray-300 text-sm px-3 py-1.5 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50" placeholder="Search categories...">
+                                        </div>
+                                        <ul class="ss-options max-h-48 overflow-y-auto py-1">
+                                            <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 transition-colors" data-value="">All Categories</li>
+                                            @foreach($filterCategories as $cat)
+                                                <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 transition-colors" data-value="{{ $cat->id }}">{{ $cat->category }}</li>
+                                            @endforeach
+                                        </ul>
+                                        <div class="ss-empty hidden px-3 py-4 text-sm text-gray-400 text-center">No results found</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 pt-2">
+                            <button type="submit"
+                                class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                                </svg>
+                                Apply Filters
+                            </button>
+                            <a href="{{ route('documents.index') }}"
+                                class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Clear Filters
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <!-- Document List -->
             <div class="bg-white rounded-xl overflow-visible border border-blue-200/80 transition-all duration-300 hover:border-blue-300/80 mt-3">
                     <!-- Tabbed Navigation -->
@@ -586,7 +744,7 @@
 
                 <!-- Pagination for both tabs -->
                 <div class="p-6 border-t border-gray-200">
-                    {{ $documents->appends(['tab' => request('tab', 'all')])->links() }}
+                    {{ $documents->appends(request()->query())->links() }}
                 </div>
             </div>
         </div>
@@ -596,6 +754,83 @@
     </div>
 
     <script>
+
+        // Toggle the advanced filters panel
+        function toggleFilterPanel() {
+            const panel = document.getElementById('filterPanel');
+            const chevron = document.getElementById('filterChevron');
+            panel.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+
+        // ── Searchable Select Dropdowns ──
+        document.querySelectorAll('.searchable-select').forEach(wrapper => {
+            const targetId  = wrapper.dataset.target;
+            const hidden    = document.getElementById(targetId);
+            const toggle    = wrapper.querySelector('.ss-toggle');
+            const label     = wrapper.querySelector('.ss-label');
+            const dropdown  = wrapper.querySelector('.ss-dropdown');
+            const searchInp = wrapper.querySelector('.ss-search');
+            const options   = wrapper.querySelectorAll('.ss-option');
+            const emptyMsg  = wrapper.querySelector('.ss-empty');
+
+            // Open / close
+            toggle.addEventListener('click', e => {
+                e.preventDefault();
+                // Close all other dropdowns first
+                document.querySelectorAll('.searchable-select .ss-dropdown').forEach(d => {
+                    if (d !== dropdown) d.classList.add('hidden');
+                });
+                dropdown.classList.toggle('hidden');
+                if (!dropdown.classList.contains('hidden')) {
+                    searchInp.value = '';
+                    filterOptions('');
+                    setTimeout(() => searchInp.focus(), 50);
+                }
+            });
+
+            // Select an option
+            options.forEach(opt => {
+                opt.addEventListener('click', () => {
+                    hidden.value = opt.dataset.value;
+                    label.textContent = opt.textContent.trim();
+                    dropdown.classList.add('hidden');
+                    // Highlight selected
+                    options.forEach(o => o.classList.remove('bg-blue-50', 'font-semibold'));
+                    opt.classList.add('bg-blue-50', 'font-semibold');
+                });
+            });
+
+            // Search / filter
+            searchInp.addEventListener('input', () => filterOptions(searchInp.value));
+
+            function filterOptions(term) {
+                const q = term.toLowerCase();
+                let visible = 0;
+                options.forEach(opt => {
+                    const match = opt.textContent.toLowerCase().includes(q);
+                    opt.classList.toggle('hidden', !match);
+                    if (match) visible++;
+                });
+                emptyMsg.classList.toggle('hidden', visible > 0);
+            }
+
+            // Pre-highlight already-selected value
+            if (hidden.value) {
+                options.forEach(opt => {
+                    if (opt.dataset.value === hidden.value) {
+                        opt.classList.add('bg-blue-50', 'font-semibold');
+                    }
+                });
+            }
+        });
+
+        // Close all searchable dropdowns when clicking outside
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.searchable-select')) {
+                document.querySelectorAll('.searchable-select .ss-dropdown').forEach(d => d.classList.add('hidden'));
+            }
+        });
 
         // Show contact modal for rejected documents
         function showContactModal(reviewerName, reviewerEmail) {
