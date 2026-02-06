@@ -579,12 +579,19 @@ class DocumentController extends Controller
         $currentUserCompany = auth()->user()->companies()->first();
         $originatingOfficeId = auth()->user()->offices->first()->id ?? null;
 
-        $categories = DocumentCategories::all();
+        // Use the correct model with company-based filtering
+        $categories = DocumentCategory::where(function($query) use ($currentUserCompany) {
+            $query->where('company_id', $currentUserCompany->id ?? null)
+                  ->orWhere('is_global', true)
+                  ->orWhereNull('company_id');
+        })->orderBy('category')->get();
+
+        $isCompanyAdmin = auth()->user()->hasRole('company-admin');
 
         // Get all offices from the user's company for Custom Offices selection
         $offices = Office::where('company_id', $currentUserCompany->id ?? null)->orderBy('name')->get();
 
-        return view('documents.create', compact('categories', 'originatingOfficeId', 'currentUserCompany', 'offices'));
+        return view('documents.create', compact('categories', 'originatingOfficeId', 'currentUserCompany', 'offices', 'isCompanyAdmin'));
     }
 
     /**

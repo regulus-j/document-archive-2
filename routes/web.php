@@ -252,6 +252,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/{category}/edit', [DocumentCategoryController::class, 'edit'])->name('categories.edit');
         Route::put('/{category}', [DocumentCategoryController::class, 'update'])->name('categories.update');
         Route::delete('/{category}', [DocumentCategoryController::class, 'destroy'])->name('categories.destroy');
+
+        // AJAX endpoints for inline category management on document upload page
+        Route::get('/api/list', [DocumentCategoryController::class, 'apiList'])->name('categories.api.list');
+        Route::post('/api/store', [DocumentCategoryController::class, 'apiStore'])->name('categories.api.store');
+        Route::delete('/api/{category}', [DocumentCategoryController::class, 'apiDestroy'])->name('categories.api.destroy');
     });
 
     Route::get('/admin/company-dashboard', [ReportController::class, 'companyDashboard'])->name('reports.company-dashboard');

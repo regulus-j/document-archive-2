@@ -75,21 +75,126 @@
                         <div>
                             <label for="category" class="block text-sm font-medium text-gray-700">Document Category
                                 <span class="text-red-500">*</span></label>
-                            <select name="category" id="category"
-                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                                required>
-                                <option value="">Select Document Category</option>
-                                @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" {{ old('category') == $category->id ? 'selected' : '' }}>
-                                        {{ $category->category }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <div class="flex items-center gap-2 mt-1">
+                                <select name="category" id="category"
+                                    class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                                    required>
+                                    <option value="">Select Document Category</option>
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category->id }}" {{ old('category') == $category->id ? 'selected' : '' }}>
+                                            {{ $category->category }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                @if(isset($isCompanyAdmin) && $isCompanyAdmin)
+                                <button type="button" id="openCategoryManagerBtn"
+                                    title="Manage Categories"
+                                    class="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-lg border-2 border-blue-500 text-blue-600 bg-blue-50 hover:bg-blue-100 hover:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </button>
+                                @endif
+                            </div>
                         </div>
 
 
 
                     </div>
+
+                    {{-- ═══════ Category Manager Modal (company-admin only) ═══════ --}}
+                    @if(isset($isCompanyAdmin) && $isCompanyAdmin)
+                    <div id="categoryManagerOverlay"
+                         class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
+                        <div id="categoryManagerCard"
+                             class="relative w-full max-w-lg mx-4 bg-white rounded-2xl shadow-2xl border border-blue-200/80 overflow-hidden transform transition-all duration-300 scale-95 opacity-0 flex flex-col"
+                             style="max-height: 85vh;">
+
+                            {{-- Header --}}
+                            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between flex-shrink-0">
+                                <div class="flex items-center gap-3">
+                                    <div class="p-2 bg-white/20 rounded-lg">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-bold text-white">Manage Categories</h3>
+                                        <p class="text-xs text-blue-100">Add or remove company-specific categories</p>
+                                    </div>
+                                </div>
+                                <button type="button" id="closeCategoryManagerBtn"
+                                    class="text-white/70 hover:text-white hover:bg-white/20 rounded-lg p-1 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            {{-- Add Category Form --}}
+                            <div class="px-6 pt-5 pb-4 border-b border-gray-100 flex-shrink-0">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Add New Category</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="newCategoryInput"
+                                        placeholder="Enter category name..."
+                                        maxlength="255"
+                                        class="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-sm">
+                                    <button type="button" id="addCategoryBtn"
+                                        class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        Add
+                                    </button>
+                                </div>
+                                <div id="categoryFormError" class="hidden mt-2 text-sm text-red-600"></div>
+                            </div>
+
+                            {{-- Categories Table --}}
+                            <div class="flex-1 overflow-y-auto px-6 py-4" style="min-height: 0;">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h4 class="text-sm font-semibold text-gray-700">All Categories</h4>
+                                    <span id="categoryCount" class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full"></span>
+                                </div>
+
+                                {{-- Loading spinner --}}
+                                <div id="categoryTableLoading" class="flex justify-center py-8">
+                                    <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </div>
+
+                                {{-- Table --}}
+                                <div id="categoryTableWrapper" class="hidden">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50 sticky top-0">
+                                            <tr>
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category Name</th>
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="categoryTableBody" class="bg-white divide-y divide-gray-200">
+                                        </tbody>
+                                    </table>
+                                    <div id="categoryEmptyState" class="hidden text-center py-6 text-sm text-gray-500">
+                                        No categories found. Add one above!
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Footer --}}
+                            <div class="px-6 py-3 bg-gray-50 border-t border-gray-100 flex justify-end flex-shrink-0">
+                                <button type="button" id="closeCategoryManagerFooterBtn"
+                                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                                    Done
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
 
                     <!-- Routing Section -->
                     <div class="border-t border-gray-200 pt-6">
@@ -539,5 +644,187 @@
         attachmentsInput.dispatchEvent(new Event('change'));
     }
     </script>
+
+    {{-- ═══════ Category Manager Script (company-admin only) ═══════ --}}
+    @if(isset($isCompanyAdmin) && $isCompanyAdmin)
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const overlay       = document.getElementById('categoryManagerOverlay');
+        const card          = document.getElementById('categoryManagerCard');
+        const openBtn       = document.getElementById('openCategoryManagerBtn');
+        const closeBtns     = [document.getElementById('closeCategoryManagerBtn'),
+                               document.getElementById('closeCategoryManagerFooterBtn')];
+        const input         = document.getElementById('newCategoryInput');
+        const addBtn        = document.getElementById('addCategoryBtn');
+        const formError     = document.getElementById('categoryFormError');
+        const tableLoading  = document.getElementById('categoryTableLoading');
+        const tableWrapper  = document.getElementById('categoryTableWrapper');
+        const tableBody     = document.getElementById('categoryTableBody');
+        const emptyState    = document.getElementById('categoryEmptyState');
+        const countBadge    = document.getElementById('categoryCount');
+        const categorySelect= document.getElementById('category');
+
+        const API_LIST    = "{{ route('categories.api.list') }}";
+        const API_STORE   = "{{ route('categories.api.store') }}";
+        const API_DESTROY = "{{ url('categories/api') }}";
+        const CSRF        = "{{ csrf_token() }}";
+
+        // ── Open modal ──
+        openBtn.addEventListener('click', () => {
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            setTimeout(() => { card.classList.remove('scale-95', 'opacity-0'); card.classList.add('scale-100', 'opacity-100'); }, 20);
+            loadCategories();
+            input.focus();
+        });
+
+        // ── Close modal ──
+        function closeModal() {
+            card.classList.remove('scale-100', 'opacity-100');
+            card.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => { overlay.classList.add('hidden'); overlay.classList.remove('flex'); }, 300);
+        }
+        closeBtns.forEach(btn => btn.addEventListener('click', closeModal));
+        overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+
+        // ── Load categories via AJAX ──
+        async function loadCategories() {
+            tableLoading.classList.remove('hidden');
+            tableWrapper.classList.add('hidden');
+            formError.classList.add('hidden');
+
+            try {
+                const res = await fetch(API_LIST, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+                const data = await res.json();
+                renderTable(data.categories || []);
+            } catch (err) {
+                tableLoading.classList.add('hidden');
+                tableWrapper.classList.remove('hidden');
+                emptyState.textContent = 'Failed to load categories.';
+                emptyState.classList.remove('hidden');
+            }
+        }
+
+        // ── Render table rows ──
+        function renderTable(categories) {
+            tableLoading.classList.add('hidden');
+            tableWrapper.classList.remove('hidden');
+            tableBody.innerHTML = '';
+            countBadge.textContent = categories.length + ' total';
+
+            if (categories.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            categories.forEach(cat => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition-colors';
+                tr.innerHTML = `
+                    <td class="px-4 py-3 text-sm text-gray-800 font-medium">${escHtml(cat.category)}</td>
+                    <td class="px-4 py-3">
+                        ${cat.is_global
+                            ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Global</span>'
+                            : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Company</span>'}
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                        ${cat.can_delete
+                            ? `<button type="button" data-id="${cat.id}" class="delete-cat-btn inline-flex items-center text-red-500 hover:text-red-700 text-xs font-medium transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                    Delete
+                               </button>`
+                            : '<span class="text-xs text-gray-400">—</span>'}
+                    </td>`;
+                tableBody.appendChild(tr);
+            });
+
+            // Attach delete handlers
+            tableBody.querySelectorAll('.delete-cat-btn').forEach(btn => {
+                btn.addEventListener('click', () => deleteCategory(btn.dataset.id));
+            });
+
+            // Also refresh the main select dropdown
+            refreshDropdown(categories);
+        }
+
+        // ── Add category ──
+        addBtn.addEventListener('click', addCategory);
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addCategory(); } });
+
+        async function addCategory() {
+            const name = input.value.trim();
+            if (!name) { showFormError('Please enter a category name.'); return; }
+
+            addBtn.disabled = true;
+            formError.classList.add('hidden');
+
+            try {
+                const res = await fetch(API_STORE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF, 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({ category: name }),
+                });
+                const data = await res.json();
+                if (!res.ok) { showFormError(data.error || data.message || 'Failed to add category.'); addBtn.disabled = false; return; }
+
+                input.value = '';
+                addBtn.disabled = false;
+                showPopup(data.message || 'Category added!', 'success');
+                loadCategories();
+            } catch (err) {
+                showFormError('Network error. Please try again.');
+                addBtn.disabled = false;
+            }
+        }
+
+        // ── Delete category ──
+        async function deleteCategory(id) {
+            if (!confirm('Are you sure you want to delete this category?')) return;
+
+            try {
+                const res = await fetch(`${API_DESTROY}/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF, 'X-Requested-With': 'XMLHttpRequest' },
+                });
+                const data = await res.json();
+                if (!res.ok) { showPopup(data.error || 'Failed to delete.', 'error'); return; }
+
+                showPopup(data.message || 'Category deleted.', 'success');
+                loadCategories();
+            } catch (err) {
+                showPopup('Network error. Please try again.', 'error');
+            }
+        }
+
+        // ── Refresh the main <select> dropdown ──
+        function refreshDropdown(categories) {
+            const selectedVal = categorySelect.value;
+            categorySelect.innerHTML = '<option value="">Select Document Category</option>';
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = cat.category;
+                if (String(cat.id) === String(selectedVal)) opt.selected = true;
+                categorySelect.appendChild(opt);
+            });
+        }
+
+        // ── Helpers ──
+        function showFormError(msg) {
+            formError.textContent = msg;
+            formError.classList.remove('hidden');
+        }
+
+        function escHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+    });
+    </script>
+    @endif
 
 @endsection

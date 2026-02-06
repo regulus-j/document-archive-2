@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DocumentCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\JsonResponse;
 
 class DocumentCategoryController extends Controller
 {
@@ -163,5 +164,103 @@ class DocumentCategoryController extends Controller
 
         return redirect()->route('categories.index')
             ->with('success', 'Category deleted successfully.');
+    }
+
+    // ─── AJAX endpoints for inline category management on upload page ───
+
+    /**
+     * Return all categories for the current user's company as JSON.
+     */
+    public function apiList(): JsonResponse
+    {
+        $company = Auth::user()->companies()->first();
+
+        if (!$company) {
+            return response()->json(['error' => 'No company found.'], 403);
+        }
+
+        $categories = DocumentCategory::where(function ($query) use ($company) {
+            $query->where('company_id', $company->id)
+                  ->orWhere('is_global', true)
+                  ->orWhereNull('company_id');
+        })->orderBy('category')->get()->map(function ($cat) use ($company) {
+            return [
+                'id'         => $cat->id,
+                'category'   => $cat->category,
+                'is_global'  => $cat->is_global || is_null($cat->company_id),
+                'can_delete' => !$cat->is_global && $cat->company_id === $company->id,
+            ];
+        });
+
+        return response()->json(['categories' => $categories]);
+    }
+
+    /**
+     * Store a new company-specific category via AJAX.
+     */
+    public function apiStore(Request $request): JsonResponse
+    {
+        $request->validate([
+            'category' => 'required|string|max:255',
+        ]);
+
+        $company = Auth::user()->companies()->first();
+
+        if (!$company) {
+            return response()->json(['error' => 'No company found.'], 403);
+        }
+
+        // Check for duplicate
+        $exists = DocumentCategory::where('category', $request->category)
+            ->where(function ($query) use ($company) {
+                $query->where('company_id', $company->id)
+                      ->orWhere('is_global', true)
+                      ->orWhereNull('company_id');
+            })->exists();
+
+        if ($exists) {
+            return response()->json(['error' => 'A category with this name already exists.'], 422);
+        }
+
+        $category = DocumentCategory::create([
+            'category'   => $request->category,
+            'company_id' => $company->id,
+            'is_global'  => false,
+        ]);
+
+        return response()->json([
+            'message'  => 'Category created successfully.',
+            'category' => [
+                'id'         => $category->id,
+                'category'   => $category->category,
+                'is_global'  => false,
+                'can_delete' => true,
+            ],
+        ], 201);
+    }
+
+    /**
+     * Delete a company-specific category via AJAX.
+     */
+    public function apiDestroy(string $id): JsonResponse
+    {
+        $company = Auth::user()->companies()->first();
+        $category = DocumentCategory::find($id);
+
+        if (!$category) {
+            return response()->json(['error' => 'Category not found.'], 404);
+        }
+
+        if ($category->is_global || ($category->company_id && $category->company_id !== $company->id)) {
+            return response()->json(['error' => 'You cannot delete this category.'], 403);
+        }
+
+        if ($category->documents()->count() > 0) {
+            return response()->json(['error' => 'Cannot delete category that is in use by documents.'], 422);
+        }
+
+        $category->delete();
+
+        return response()->json(['message' => 'Category deleted successfully.']);
     }
 }
