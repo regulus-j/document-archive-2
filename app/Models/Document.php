@@ -20,6 +20,7 @@ class Document extends Model
         'path',
         'storage_size',
         'category',
+        'from_office',
     ];
 
     protected $attributes = [

@@ -148,6 +148,7 @@
                                         <x-dropdown-link :href="route('users.index')" class="hover:bg-blue-50 hover:text-blue-600">{{ __('Users') }}</x-dropdown-link>
                                         <x-dropdown-link :href="route('roles.index')" class="hover:bg-blue-50 hover:text-blue-600">{{ __('Roles') }}</x-dropdown-link>
                                         <x-dropdown-link :href="route('office.index')" class="hover:bg-blue-50 hover:text-blue-600">{{ __('Teams') }}</x-dropdown-link>
+                                        <x-dropdown-link :href="route('categories.index')" class="hover:bg-blue-50 hover:text-blue-600">{{ __('Document Categories') }}</x-dropdown-link>
                                     @endif
                                 </x-slot>
                             </x-dropdown>

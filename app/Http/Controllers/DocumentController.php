@@ -327,6 +327,7 @@ class DocumentController extends Controller
                 'classification' => $request->classification,
                 'category' => $request->category ?? null,
                 'path' => $filePath,
+                'from_office' => $request->from_office,
             ]);
             Log::info('Document created', ['document_id' => $document->id]);
 

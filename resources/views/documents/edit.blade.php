@@ -168,16 +168,16 @@
                     </h3>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- From Office -->
+                        <!-- From Team -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">From Office</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">From Team</label>
                             <div class="p-2 bg-gray-50 rounded-lg border border-gray-200">
                                 <p class="text-gray-800">{{ auth()->user()->offices->first()->name ?? 'N/A' }}</p>
                             </div>
                             <input type="hidden" name="from_office" value="{{ auth()->user()->offices->first()->id }}">
                         </div>
 
-                        <!-- To Office / Recipient Status -->
+                        <!-- To Team / Recipient Status -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Document Recipients</label>
                             <div class="p-2 bg-gray-50 rounded-lg border border-gray-200">

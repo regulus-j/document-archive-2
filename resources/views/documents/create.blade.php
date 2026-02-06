@@ -102,20 +102,35 @@
                             Routing Information
                         </h3>
 
-                        <!-- Originating Office -->
+                        <!-- Originating Team -->
                         <div class="space-y-2 mb-4">
                             <label for="from_office" class="block text-sm font-medium text-gray-700">Originating
-                                Office</label>
+                                Team</label>
                             @php
-                                $userOffice = auth()->user()->offices->first();
+                                $userOffices = auth()->user()->offices;
                             @endphp
-                            <input type="text" id="from_office"
-                                value="{{ $userOffice ? $userOffice->name : 'No Office Assigned' }}"
-                                class="w-full rounded-lg border-gray-300 bg-gray-100 cursor-not-allowed" readonly>
-                            @if($userOffice)
-                                <input type="hidden" name="from_office" value="{{ $userOffice->id }}">
+                            @if($userOffices->count() > 1)
+                                {{-- User belongs to multiple teams - show dropdown --}}
+                                <select name="from_office" id="from_office" required
+                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all">
+                                    @foreach($userOffices as $office)
+                                        <option value="{{ $office->id }}" {{ old('from_office', $originatingOfficeId) == $office->id ? 'selected' : '' }}>
+                                            {{ $office->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            @elseif($userOffices->count() == 1)
+                                {{-- User belongs to only one team - show read-only with hidden input --}}
+                                <input type="text" id="from_office_display"
+                                    value="{{ $userOffices->first()->name }}"
+                                    class="w-full rounded-lg border-gray-300 bg-gray-100 cursor-not-allowed" readonly>
+                                <input type="hidden" name="from_office" value="{{ $userOffices->first()->id }}">
                             @else
-                                <p class="text-red-500 text-sm mt-1">Please contact your administrator to be assigned to an office.</p>
+                                {{-- User has no team assigned --}}
+                                <input type="text" id="from_office_display"
+                                    value="No Team Assigned"
+                                    class="w-full rounded-lg border-gray-300 bg-gray-100 cursor-not-allowed" readonly>
+                                <p class="text-red-500 text-sm mt-1">Please contact your administrator to be assigned to a team.</p>
                             @endif
                         </div>
 

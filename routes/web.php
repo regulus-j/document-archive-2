@@ -4,6 +4,7 @@ use App\Http\Controllers\BackupController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentWorkflowController;
+use App\Http\Controllers\DocumentCategoryController;
 use App\Http\Controllers\OfficeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
@@ -242,6 +243,16 @@ Route::middleware('auth')->group(function () {
     Route::post('offices/{office}/update-users', [OfficeController::class, 'updateAssignedUsers'])->name('office.users.update');
     Route::post('offices/{office}/add-user', [OfficeController::class, 'addUserToOffice'])->name('office.users.add');
     Route::post('offices/{office}/remove-user', [OfficeController::class, 'removeUserFromOffice'])->name('office.users.remove');
+
+    // Document Categories (Purpose) Management - company-admin only
+    Route::middleware(['role:company-admin'])->prefix('categories')->group(function () {
+        Route::get('/', [DocumentCategoryController::class, 'index'])->name('categories.index');
+        Route::get('/create', [DocumentCategoryController::class, 'create'])->name('categories.create');
+        Route::post('/', [DocumentCategoryController::class, 'store'])->name('categories.store');
+        Route::get('/{category}/edit', [DocumentCategoryController::class, 'edit'])->name('categories.edit');
+        Route::put('/{category}', [DocumentCategoryController::class, 'update'])->name('categories.update');
+        Route::delete('/{category}', [DocumentCategoryController::class, 'destroy'])->name('categories.destroy');
+    });
 
     Route::get('/admin/company-dashboard', [ReportController::class, 'companyDashboard'])->name('reports.company-dashboard');
 

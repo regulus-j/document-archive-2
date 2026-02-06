@@ -112,7 +112,7 @@
         </div>
 
         <!-- Step 2: Organization Information -->
-        <div class="step-content space-y-4 hidden" id="step2">
+        <div class="step-content space-y-4 hidden" id="step2" x-data="{ showAddress: true }">
             <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
                 <h2 class="text-xl font-semibold mb-6 text-gray-800 flex items-center">
                     <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -156,45 +156,80 @@
                         <x-input-error :messages="$errors->get('company_phone')" class="mt-2" />
                     </div>
 
-                    <div class="md:col-span-2">
-                        <x-input-label for="address" :value="__('Address')" class="text-gray-700" />
-                        <x-text-input id="address"
-                            class="mt-2 block w-full p-3 rounded-md border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring focus:ring-blue-200 transition duration-150"
-                            type="text" name="address" :value="old('address')" required placeholder="complete street address" />
-                        <x-input-error :messages="$errors->get('address')" class="mt-2" />
+                    <!-- Address Toggle -->
+                    <div class="md:col-span-2 mt-2">
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <div>
+                                    <span class="text-gray-700 font-medium">{{ __('Add Company Address') }}</span>
+                                    <p class="text-sm text-gray-500">{{ __('Include your business address details') }}</p>
+                                </div>
+                            </div>
+                            <div class="relative">
+                                <input type="hidden" name="include_address" :value="showAddress ? '1' : '0'">
+                                <button type="button"
+                                    @click="showAddress = !showAddress"
+                                    :class="showAddress ? 'bg-blue-500' : 'bg-gray-300'"
+                                    class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                    role="switch"
+                                    :aria-checked="showAddress">
+                                    <span
+                                        :class="showAddress ? 'translate-x-5' : 'translate-x-0'"
+                                        class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out">
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
-                    <div>
-                        <x-input-label for="city" :value="__('City')" class="text-gray-700" />
-                        <x-text-input id="city"
-                            class="mt-2 block w-full p-3 rounded-md border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring focus:ring-blue-200 transition duration-150"
-                            type="text" name="city" :value="old('city')" required placeholder="Enter city name" />
-                        <x-input-error :messages="$errors->get('city')" class="mt-2" />
-                    </div>
+                    <!-- Address Fields (Conditional) -->
+                    <template x-if="showAddress">
+                        <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                            <div class="md:col-span-2">
+                                <x-input-label for="address" :value="__('Address')" class="text-gray-700" />
+                                <x-text-input id="address"
+                                    class="mt-2 block w-full p-3 rounded-md border-gray-200 bg-white focus:border-blue-500 focus:ring focus:ring-blue-200 transition duration-150"
+                                    type="text" name="address" :value="old('address')" placeholder="complete street address" />
+                                <x-input-error :messages="$errors->get('address')" class="mt-2" />
+                            </div>
 
-                    <div>
-                        <x-input-label for="state" :value="__('State/Province')" class="text-gray-700" />
-                        <x-text-input id="state"
-                            class="mt-2 block w-full p-3 rounded-md border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring focus:ring-blue-200 transition duration-150"
-                            type="text" name="state" :value="old('state')" required placeholder="state or province" />
-                        <x-input-error :messages="$errors->get('state')" class="mt-2" />
-                    </div>
+                            <div>
+                                <x-input-label for="city" :value="__('City')" class="text-gray-700" />
+                                <x-text-input id="city"
+                                    class="mt-2 block w-full p-3 rounded-md border-gray-200 bg-white focus:border-blue-500 focus:ring focus:ring-blue-200 transition duration-150"
+                                    type="text" name="city" :value="old('city')" placeholder="Enter city name" />
+                                <x-input-error :messages="$errors->get('city')" class="mt-2" />
+                            </div>
 
-                    <div>
-                        <x-input-label for="zip_code" :value="__('ZIP/Postal Code')" class="text-gray-700" />
-                        <x-text-input id="zip_code"
-                            class="mt-2 block w-full p-3 rounded-md border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring focus:ring-blue-200 transition duration-150"
-                            type="text" name="zip_code" :value="old('zip_code')" required placeholder="postal code" />
-                        <x-input-error :messages="$errors->get('zip_code')" class="mt-2" />
-                    </div>
+                            <div>
+                                <x-input-label for="state" :value="__('State/Province')" class="text-gray-700" />
+                                <x-text-input id="state"
+                                    class="mt-2 block w-full p-3 rounded-md border-gray-200 bg-white focus:border-blue-500 focus:ring focus:ring-blue-200 transition duration-150"
+                                    type="text" name="state" :value="old('state')" placeholder="state or province" />
+                                <x-input-error :messages="$errors->get('state')" class="mt-2" />
+                            </div>
 
-                    <div>
-                        <x-input-label for="country" :value="__('Country')" class="text-gray-700" />
-                        <x-text-input id="country"
-                            class="mt-2 block w-full p-3 rounded-md border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring focus:ring-blue-200 transition duration-150"
-                            type="text" name="country" :value="old('country')" required placeholder="country name" />
-                        <x-input-error :messages="$errors->get('country')" class="mt-2" />
-                    </div>
+                            <div>
+                                <x-input-label for="zip_code" :value="__('ZIP/Postal Code')" class="text-gray-700" />
+                                <x-text-input id="zip_code"
+                                    class="mt-2 block w-full p-3 rounded-md border-gray-200 bg-white focus:border-blue-500 focus:ring focus:ring-blue-200 transition duration-150"
+                                    type="text" name="zip_code" :value="old('zip_code')" placeholder="postal code" />
+                                <x-input-error :messages="$errors->get('zip_code')" class="mt-2" />
+                            </div>
+
+                            <div>
+                                <x-input-label for="country" :value="__('Country')" class="text-gray-700" />
+                                <x-text-input id="country"
+                                    class="mt-2 block w-full p-3 rounded-md border-gray-200 bg-white focus:border-blue-500 focus:ring focus:ring-blue-200 transition duration-150"
+                                    type="text" name="country" :value="old('country')" placeholder="country name" />
+                                <x-input-error :messages="$errors->get('country')" class="mt-2" />
+                            </div>
+                        </div>
+                    </template>
                 </div>
             </div>
         </div>

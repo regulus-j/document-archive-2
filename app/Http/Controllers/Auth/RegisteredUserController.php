@@ -81,17 +81,20 @@ class RegisteredUserController extends Controller
             'company_name' => $request->company_name,
             'registered_name' => $registeredName,
             'company_email' => $companyEmail,
-            'company_phone' => '00000000000', // Set default phone number directly
+            'company_phone' => $request->company_phone ?: '00000000000',
         ]);
 
-        $companyAddress = CompanyAddress::create([
-            'company_id' => $company->id,
-            'address' => $request->address ?: 'Default Address',
-            'city' => $request->city ?: 'Default City',
-            'state' => $request->state ?: 'Default State',
-            'zip_code' => $request->zip_code ?: '00000',
-            'country' => $request->country ?: 'Default Country',
-        ]);
+        // Only create company address if the toggle is enabled and address fields are provided
+        if ($request->include_address === '1' && $request->filled('address')) {
+            CompanyAddress::create([
+                'company_id' => $company->id,
+                'address' => $request->address,
+                'city' => $request->city ?: '',
+                'state' => $request->state ?: '',
+                'zip_code' => $request->zip_code ?: '',
+                'country' => $request->country ?: '',
+            ]);
+        }
 
         CompanyUser::create([
             'company_id' => $company->id,
