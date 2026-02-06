@@ -21,10 +21,16 @@ use App\Http\Controllers\UserManualController;
 use App\Http\Controllers\UserManagedController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\NotificationController;
+use App\Models\Plan;
 
 
 Route::get('/', function () {
-    return view('welcome');
+    $plans = Plan::where('is_active', true)
+        ->with('features')
+        ->orderBy('price', 'asc')
+        ->get();
+    
+    return view('welcome', compact('plans'));
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');

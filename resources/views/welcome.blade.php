@@ -170,7 +170,7 @@
     </section>
 
     <!-- Pricing Section -->
-    <section id="pricing" class="py-20 bg-blue-50" x-data="{ plan: 'yearly' }">
+    <section id="pricing" class="py-20 bg-blue-50" x-data="{ billingCycle: 'yearly', currentIndex: 0 }">
         <div class="container mx-auto px-6">
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-bold mb-4 text-blue-900">Plan & Pricing</h2>
@@ -182,166 +182,70 @@
                 <div class="inline-flex border-2 border-blue-500 rounded-md overflow-hidden">
                     <button 
                         class="py-2 px-6 focus:outline-none text-base font-medium" 
-                        :class="{ 'bg-blue-600 text-white': plan === 'monthly', 'text-blue-700': plan !== 'monthly' }" 
-                        @click="plan = 'monthly'">
+                        :class="{ 'bg-blue-600 text-white': billingCycle === 'monthly', 'text-blue-700': billingCycle !== 'monthly' }" 
+                        @click="billingCycle = 'monthly'">
                         Monthly
                     </button>
                     <button 
                         class="py-2 px-6 focus:outline-none text-base font-medium" 
-                        :class="{ 'bg-blue-600 text-white': plan === 'yearly', 'text-blue-700': plan !== 'yearly' }" 
-                        @click="plan = 'yearly'">
+                        :class="{ 'bg-blue-600 text-white': billingCycle === 'yearly', 'text-blue-700': billingCycle !== 'yearly' }" 
+                        @click="billingCycle = 'yearly'">
                         Yearly
                     </button>
                 </div>
             </div>
 
-            <!-- Pricing Cards in a Row -->
-            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                <!-- Basic Plan -->
-                <div class="bg-white rounded-xl shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
-                    <div class="p-8 border-b border-gray-100 relative">
-                        <span class="bg-blue-600 text-white px-3 py-1 text-xs absolute right-0 top-0 rounded-bl font-semibold">Popular</span>
-                        <h3 class="text-sm font-medium text-blue-500 uppercase tracking-wider mb-1">Basic</h3>
-                        <div class="flex items-end">
-                            <span x-show="plan === 'yearly'" class="text-4xl font-bold text-blue-900">P 24,000</span>
-                            <span x-show="plan === 'monthly'" class="text-4xl font-bold text-blue-900" style="display: none;">P 2,200</span>
-                            <span class="text-lg ml-1 text-blue-600 mb-1" x-text="plan === 'monthly' ? '/month' : '/year'"></span>
+            @if(isset($plans) && $plans->count() > 0)
+            <!-- Pricing Cards Carousel -->
+            <div class="relative max-w-6xl mx-auto">
+                <div class="grid md:grid-cols-3 gap-8">
+                    @foreach($plans as $index => $planItem)
+                    <!-- {{ $planItem->plan_name }} Plan -->
+                    <div class="bg-white rounded-xl shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+                        <div class="p-8 border-b border-gray-100 {{ $index === 0 ? 'relative' : '' }}">
+                            @if($index === 0)
+                            <span class="bg-blue-600 text-white px-3 py-1 text-xs absolute right-0 top-0 rounded-bl font-semibold">Popular</span>
+                            @endif
+                            <h3 class="text-sm font-medium text-blue-500 uppercase tracking-wider mb-1">{{ $planItem->plan_name }}</h3>
+                            <div class="flex items-end">
+                                <span class="text-4xl font-bold text-blue-900">
+                                    ₱ <span x-text="billingCycle === 'yearly' ? '{{ number_format($planItem->price * 10, 0) }}' : '{{ number_format($planItem->price, 0) }}'"></span>
+                                </span>
+                                <span class="text-lg ml-1 text-blue-600 mb-1" x-text="billingCycle === 'monthly' ? '/month' : '/year'"></span>
+                            </div>
+                            <p class="text-blue-700 mt-2">{{ $planItem->description ?? 'Best for your needs' }}</p>
                         </div>
-                        <p class="text-blue-700 mt-2">Best for professionals.</p>
-                    </div>
-                    <div class="p-8">
-                        <ul class="space-y-4">
-                            <li class="flex items-start">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="text-blue-700">Up to 5 users</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="text-blue-700">10 GB of storage</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="text-blue-700">Max 10 file uploads per month</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="text-blue-700">Archive up to 10 documents</span>
-                            </li>
-                        </ul>
-                        <a href="#" class="mt-8 block w-full bg-blue-600 text-white text-center py-3 rounded-md hover:bg-blue-700 transition-colors font-medium">
-                            Start Now
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Premium Plan -->
-                <div class="bg-white rounded-xl shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
-                    <div class="p-8 border-b border-gray-100">
-                        <h3 class="text-sm font-medium text-blue-500 uppercase tracking-wider mb-1">Premium</h3>
-                        <div class="flex items-end">
-                            <span x-show="plan === 'yearly'" class="text-4xl font-bold text-blue-900">P 38,000</span>
-                            <span x-show="plan === 'monthly'" class="text-4xl font-bold text-blue-900" style="display: none;">P 3,500</span>
-                            <span class="text-lg ml-1 text-blue-600 mb-1" x-text="plan === 'monthly' ? '/month' : '/year'"></span>
+                        <div class="p-8">
+                            <ul class="space-y-4">
+                                @forelse($planItem->features as $feature)
+                                <li class="flex items-start">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span class="text-blue-700">{{ $feature->name }}</span>
+                                </li>
+                                @empty
+                                <li class="flex items-start">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span class="text-blue-700">All essential features included</span>
+                                </li>
+                                @endforelse
+                            </ul>
+                            <a href="{{ route('plans.register', $planItem->id) }}" class="mt-8 block w-full bg-blue-600 text-white text-center py-3 rounded-md hover:bg-blue-700 transition-colors font-medium">
+                                Start Now
+                            </a>
                         </div>
-                        <p class="text-blue-700 mt-2">Perfect for special projects.</p>
                     </div>
-                    <div class="p-8">
-                        <ul class="space-y-4">
-                            <li class="flex items-start">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="text-blue-700">Up to 20 users</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="text-blue-700">50 GB of storage</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="text-blue-700">Max 30 file uploads</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="text-blue-700">Archive up to 15 documents</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="text-blue-700">Customizable user roles</span>
-                            </li>
-                        </ul>
-                        <a href="#" class="mt-8 block w-full bg-blue-600 text-white text-center py-3 rounded-md hover:bg-blue-700 transition-colors font-medium">
-                            Start Now
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Business Plan -->
-                <div class="bg-white rounded-xl shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
-                    <div class="p-8 border-b border-gray-100">
-                        <h3 class="text-sm font-medium text-blue-500 uppercase tracking-wider mb-1">Business</h3>
-                        <div class="flex items-end">
-                            <span x-show="plan === 'yearly'" class="text-4xl font-bold text-blue-900">P 90,000</span>
-                            <span x-show="plan === 'monthly'" class="text-4xl font-bold text-blue-900" style="display: none;">P 8,500</span>
-                            <span class="text-lg ml-1 text-blue-600 mb-1" x-text="plan === 'monthly' ? '/month' : '/year'"></span>
-                        </div>
-                        <p class="text-blue-700 mt-2">Ideal for Businesses</p>
-                    </div>
-                    <div class="p-8">
-                        <ul class="space-y-4">
-                            <li class="flex items-start">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="text-blue-700">Unlimited users</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="text-blue-700">Unlimited storage</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="text-blue-700">Full document tracking</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="text-blue-700">Max 50 file uploads</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="text-blue-700">Advanced reporting</span>
-                            </li>
-                        </ul>
-                        <a href="#" class="mt-8 block w-full bg-blue-600 text-white text-center py-3 rounded-md hover:bg-blue-700 transition-colors font-medium">
-                            Start Now
-                        </a>
-                    </div>
+                    @endforeach
                 </div>
             </div>
+            @else
+            <div class="text-center py-12">
+                <p class="text-blue-700 text-lg">No plans available at the moment. Please check back later.</p>
+            </div>
+            @endif
         </div>
     </section>
 
