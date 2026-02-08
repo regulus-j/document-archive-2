@@ -54,7 +54,7 @@ class ProfileController extends Controller
         $user->password_set = true;
         $user->save();
 
-        return Redirect::route('dashboard')->with('status', 'password-set');
+        return back()->with('status', 'password-set');
     }
 
     /**
