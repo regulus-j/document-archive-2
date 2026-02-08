@@ -170,7 +170,7 @@
     </section>
 
     <!-- Pricing Section -->
-    <section id="pricing" class="py-20 bg-blue-50" x-data="{ billingCycle: 'yearly', currentIndex: 0 }">
+    <section id="pricing" class="py-20 bg-blue-50" x-data="{ billingCycle: 'monthly' }">
         <div class="container mx-auto px-6">
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-bold mb-4 text-blue-900">Plan & Pricing</h2>
@@ -178,7 +178,7 @@
                     Choose the plan that fits your needs.
                 </p>
                 
-                <!-- Toggle Buttons -->
+                <!-- Billing Toggle -->
                 <div class="inline-flex border-2 border-blue-500 rounded-md overflow-hidden">
                     <button 
                         class="py-2 px-6 focus:outline-none text-base font-medium" 
@@ -195,45 +195,87 @@
                 </div>
             </div>
 
-            @if(isset($plans) && $plans->count() > 0)
-            <!-- Pricing Cards Carousel -->
-            <div class="relative max-w-6xl mx-auto">
-                <div class="grid md:grid-cols-3 gap-8">
-                    @foreach($plans as $index => $planItem)
-                    <!-- {{ $planItem->plan_name }} Plan -->
+                                @if(isset($plans) && $plans->count() > 0)
+            <!-- Pricing Cards -->
+            <div class="relative max-w-7xl mx-auto px-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Free Tier -->
+                    <div class="bg-white rounded-xl shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+                        <div class="p-8 border-b border-gray-100">
+                            <h3 class="text-sm font-medium text-blue-500 uppercase tracking-wider mb-1">Free Tier</h3>
+                            <div class="flex items-end">
+                                <span class="text-4xl font-bold text-blue-900">
+                                    ₱0
+                                </span>
+                                <span class="text-lg ml-1 text-blue-600 mb-1">/month</span>
+                            </div>
+                            <p class="text-blue-700 mt-2">Basic features with limited functionality.</p>
+                        </div>
+                        <div class="p-8">
+                            <ul class="space-y-4">
+                                <li class="flex items-start">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span class="text-blue-700">3 Users</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span class="text-blue-700">1 Team</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span class="text-blue-700">500 MB Storage</span>
+                                </li>
+                            </ul>
+                            <a href="{{ route('register') }}" class="mt-8 block w-full bg-blue-600 text-white text-center py-3 rounded-md hover:bg-blue-700 transition-colors font-medium">
+                                Start Now
+                            </a>
+                        </div>
+                    </div>
+
+                    @foreach($plans ?? [] as $index => $plan)
+                    <!-- {{ $plan->name }} Plan -->
                     <div class="bg-white rounded-xl shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
                         <div class="p-8 border-b border-gray-100 {{ $index === 0 ? 'relative' : '' }}">
                             @if($index === 0)
                             <span class="bg-blue-600 text-white px-3 py-1 text-xs absolute right-0 top-0 rounded-bl font-semibold">Popular</span>
                             @endif
-                            <h3 class="text-sm font-medium text-blue-500 uppercase tracking-wider mb-1">{{ $planItem->plan_name }}</h3>
+                            <h3 class="text-sm font-medium text-blue-500 uppercase tracking-wider mb-1">
+                                    @if($index === 0)
+                                        Basic Plan
+                                    @elseif($index === 1)
+                                        Standard Plan
+                                    @else
+                                        Premium Plan
+                                    @endif
+                                </h3>
                             <div class="flex items-end">
                                 <span class="text-4xl font-bold text-blue-900">
-                                    ₱ <span x-text="billingCycle === 'yearly' ? '{{ number_format($planItem->price * 10, 0) }}' : '{{ number_format($planItem->price, 0) }}'"></span>
+                                    ₱ <span x-text="billingCycle === 'yearly' ? '{{ number_format($plan->price * 10 *100) }}' : '{{ number_format($plan->price * 100) }}'"></span>
                                 </span>
                                 <span class="text-lg ml-1 text-blue-600 mb-1" x-text="billingCycle === 'monthly' ? '/month' : '/year'"></span>
                             </div>
-                            <p class="text-blue-700 mt-2">{{ $planItem->description ?? 'Best for your needs' }}</p>
+                            <p class="text-blue-700 mt-2">{{ $plan->description ?? 'Best for your needs' }}</p>
                         </div>
                         <div class="p-8">
                             <ul class="space-y-4">
-                                @forelse($planItem->features as $feature)
+                                @foreach($plan->getEnabledFeatures() as $feature)
                                 <li class="flex items-start">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                     </svg>
                                     <span class="text-blue-700">{{ $feature->name }}</span>
                                 </li>
-                                @empty
-                                <li class="flex items-start">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    <span class="text-blue-700">All essential features included</span>
-                                </li>
-                                @endforelse
+                                @endforeach
                             </ul>
-                            <a href="{{ route('plans.register', $planItem->id) }}" class="mt-8 block w-full bg-blue-600 text-white text-center py-3 rounded-md hover:bg-blue-700 transition-colors font-medium">
+                            <a 
+                                x-bind:href="'{{ route('payment.generate', ['plan' => $plan->id]) }}' + '/' + billingCycle"
+                                class="mt-8 block w-full bg-blue-600 text-white text-center py-3 rounded-md hover:bg-blue-700 transition-colors font-medium">
                                 Start Now
                             </a>
                         </div>
