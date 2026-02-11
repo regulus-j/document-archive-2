@@ -1,0 +1,24 @@
+.env
+.env.*
+.git
+.gitignore
+.gitattributes
+.editorconfig
+node_modules
+storage/*.key
+auth.json
+.phpunit.result.cache
+.phpactor.json
+Homestead.json
+Homestead.yaml
+ngrok.exe
+ngrok.yaml
+*.log
+# Vendor directory is built inside the container, not copied from host
+vendor
+/.idea
+/.vscode
+/.fleet
+/.zed
+README.md
+PROGRESSNOTES.txt
