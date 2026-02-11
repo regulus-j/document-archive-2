@@ -25,14 +25,21 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
+# Copy composer files first
+COPY composer.json composer.lock /var/www/html/
+
+# Install application dependencies
+RUN composer install --no-dev --no-scripts --optimize-autoloader
+
 # Copy existing application directory contents
 COPY . /var/www/html
 
-# Install application dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Run composer scripts
+RUN composer dump-autoload --optimize
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Copy and set permissions for entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
@@ -52,6 +59,9 @@ RUN a2enconf laravel
 
 # Expose port 80
 EXPOSE 80
+
+# Set entrypoint
+ENTRYPOINT ["docker-entrypoint.sh"]
 
 # Start Apache
 CMD ["apache2-foreground"]
