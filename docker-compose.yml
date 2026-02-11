@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # Laravel Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: document_archive_app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:80"
+    environment:
+      - APP_ENV=${APP_ENV:-production}
+      - APP_DEBUG=${APP_DEBUG:-false}
+      - APP_KEY=${APP_KEY}
+      - APP_URL=${APP_URL:-http://localhost:8080}
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-document_archive}
+      - DB_USERNAME=${DB_USERNAME:-document_archive}
+      - DB_PASSWORD=${DB_PASSWORD:-secret}
+      - CACHE_DRIVER=${CACHE_DRIVER:-file}
+      - SESSION_DRIVER=${SESSION_DRIVER:-file}
+      - QUEUE_CONNECTION=${QUEUE_CONNECTION:-sync}
+      - MAIL_MAILER=${MAIL_MAILER:-log}
+    volumes:
+      - app_storage:/var/www/html/storage/app
+      - app_logs:/var/www/html/storage/logs
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - document_archive_network
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: document_archive_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootsecret}
+      MYSQL_DATABASE: ${DB_DATABASE:-document_archive}
+      MYSQL_USER: ${DB_USERNAME:-document_archive}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-rootsecret}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - document_archive_network
+
+  # phpMyAdmin (optional, for development)
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: document_archive_phpmyadmin
+    restart: unless-stopped
+    profiles:
+      - dev
+    ports:
+      - "${PMA_PORT:-8081}:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: ${DB_USERNAME:-document_archive}
+      PMA_PASSWORD: ${DB_PASSWORD:-secret}
+    depends_on:
+      - mysql
+    networks:
+      - document_archive_network
+
+volumes:
+  mysql_data:
+    driver: local
+  app_storage:
+    driver: local
+  app_logs:
+    driver: local
+
+networks:
+  document_archive_network:
+    driver: bridge
