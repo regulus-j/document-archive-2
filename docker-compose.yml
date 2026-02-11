@@ -13,7 +13,7 @@ services:
       mysql:
         condition: service_healthy
     volumes:
-      - storage:/var/www/html/storage
+      - storage:/var/www/html/storage/app
     networks:
       - doc-archive-network
     restart: unless-stopped
