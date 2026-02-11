@@ -26,7 +26,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 
 # Copy composer files first
-COPY composer.json composer.lock /var/www/html/
+COPY composer.json composer.loc[k] /var/www/html/
 
 # Install application dependencies (without dev dependencies)
 RUN composer install --no-dev --optimize-autoloader

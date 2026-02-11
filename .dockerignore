@@ -16,7 +16,6 @@ ngrok.yaml
 *.log
 # Vendor directory is built inside the container, not copied from host
 vendor
-/tests
 /.idea
 /.vscode
 /.fleet
