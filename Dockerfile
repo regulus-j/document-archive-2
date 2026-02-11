@@ -28,14 +28,11 @@ WORKDIR /var/www/html
 # Copy composer files first
 COPY composer.json composer.lock /var/www/html/
 
-# Install application dependencies
-RUN composer install --no-dev --no-scripts --optimize-autoloader
+# Install application dependencies (without dev dependencies)
+RUN composer install --no-dev --optimize-autoloader
 
 # Copy existing application directory contents
 COPY . /var/www/html
-
-# Run composer scripts
-RUN composer dump-autoload --optimize
 
 # Copy and set permissions for entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/
