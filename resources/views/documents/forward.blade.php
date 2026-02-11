@@ -306,33 +306,79 @@
                                     Document Purpose and Timing
                                 </h3>
 
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <!-- Purpose Selection -->
-                                    <div>
-                                        <label class="block text-xs font-medium text-gray-600 mb-1.5">Purpose</label>
-                                        <select name="purpose_batch[0]"
-                                            class="w-full rounded-lg border-gray-200 text-sm text-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                            required>
-                                            <option value="">Select Purpose</option>
-                                            <option value="appropriate_action">Appropriate Action (Approval Required)
-                                            </option>
-                                            <option value="dissemination">Dissemination of Information</option>
-                                            <option value="for_comment">For Comment</option>
-                                        </select>
-                                    </div>
+                                <div class="space-y-4">
 
-                                    <!-- Urgency Selection -->
-                                    <div>
-                                        <label class="block text-xs font-medium text-gray-600 mb-1.5">Urgency Level</label>
-                                        <select name="urgency_batch[0]"
-                                            class="w-full rounded-lg border-gray-200 text-sm text-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                                            <option value="">Select Urgency (Optional)</option>
-                                            <option value="low" class="text-blue-600">Low</option>
-                                            <option value="medium" class="text-yellow-600">Medium</option>
-                                            <option value="high" class="text-orange-600">High</option>
-                                            <option value="critical" class="text-red-600">Critical</option>
-                                        </select>
-                                    </div>
+                              <!-- Purpose Selection -->
+<div>
+    <label class="block text-xs font-medium text-gray-600 mb-2">Purpose</label>
+    <div class="flex gap-4" x-data="{ selectedPurpose: '{{ old('purpose_batch.0') }}' }">
+        <label class="flex-1 flex items-start p-3 border-2 rounded-lg border-gray-200 cursor-pointer hover:bg-gray-50 transition-all"
+               :class="selectedPurpose === 'appropriate_action' ? 'border-blue-500 bg-blue-50' : ''">
+            <input type="radio" name="purpose_batch[0]" value="appropriate_action" 
+                   class="mt-6 mr-3" x-model="selectedPurpose" required>
+            <div class="flex flex-col items-center space-y-2 min-h-[80px] justify-center flex-1">
+                <div class="flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="text-center px-2">
+                    <p class="text-sm font-medium text-gray-800">Appropriate Action</p>
+                    <p class="text-xs text-gray-500 mt-1 line-clamp-3">Document can be approve, reject, reroute, return, or forward</p>
+                </div>
+            </div>
+        </label>
+        
+        <label class="flex-1 flex items-start p-3 border-2 rounded-lg border-gray-200 cursor-pointer hover:bg-gray-50 transition-all"
+               :class="selectedPurpose === 'dissemination' ? 'border-blue-500 bg-blue-50' : ''">
+            <input type="radio" name="purpose_batch[0]" value="dissemination" 
+                   class="mt-6 mr-3" x-model="selectedPurpose">
+            <div class="flex flex-col items-center space-y-2 min-h-[80px] justify-center flex-1">
+                <div class="flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m9.032 4.026a9.001 9.001 0 01-7.432 0m9.032-4.026A9.001 9.001 0 0112 3c-4.474 0-8.268 3.12-9.032 7.326m0 4.026A9.001 9.001 0 0012 21c4.474 0 8.268-3.12 9.032-7.326" />
+                    </svg>
+                </div>
+                <div class="text-center px-2">
+                    <p class="text-sm font-medium text-gray-800">Disseminating of Information</p>
+                    <p class="text-xs text-gray-500 mt-1">For information sharing</p>
+                </div>
+            </div>
+        </label>
+        
+        <label class="flex-1 flex items-start p-3 border-2 rounded-lg border-gray-200 cursor-pointer hover:bg-gray-50 transition-all"
+               :class="selectedPurpose === 'for_comment' ? 'border-blue-500 bg-blue-50' : ''">
+            <input type="radio" name="purpose_batch[0]" value="for_comment" 
+                   class="mt-6 mr-3" x-model="selectedPurpose">
+            <div class="flex flex-col items-center space-y-2 min-h-[80px] justify-center flex-1">
+                <div class="flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                    </svg>
+                </div>
+                <div class="text-center px-2">
+                    <p class="text-sm font-medium text-gray-800">Comment</p>
+                    <p class="text-xs text-gray-500 mt-1">A feedback required to add remarks</p>
+                </div>
+            </div>
+        </label>
+    </div>
+</div>
+    <!-- Urgency Selection -->
+    <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1.5">Urgency Level</label>
+        <select name="urgency_batch[0]"
+            class="w-full rounded-lg border-gray-200 text-sm text-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            <option value="">Select Urgency (Optional)</option>
+            <option value="low" class="text-blue-600">Low</option>
+            <option value="medium" class="text-yellow-600">Medium</option>
+            <option value="high" class="text-orange-600">High</option>
+            <option value="critical" class="text-red-600">Critical</option>
+        </select>
+    </div>
+</div>
+        
+    
 
                                     <!-- Due Date Selection -->
                                     <div class="md:col-span-2">
