@@ -32,9 +32,17 @@ class DatabaseSeeder extends Seeder
             DocumentCategories::class,      // Create document categories
         ]);
 
-        // Ensure any remaining users without roles get the basic user role
+        // Ensure any remaining users without roles get the basic user role for their company
         User::whereDoesntHave('roles')->get()->each(function ($user) {
-            $user->assignRole('user');
+            $company = $user->companies()->first();
+            if ($company) {
+                $userRole = \App\Models\Role::where('name', 'user')
+                    ->where('company_id', $company->id)
+                    ->first();
+                if ($userRole) {
+                    $user->assignRole($userRole);
+                }
+            }
         });
 
         // Only handle edge case where a company-admin somehow doesn't have a company
@@ -45,6 +53,7 @@ class DatabaseSeeder extends Seeder
 
         foreach ($companyAdmins as $admin) {
             // Create a company for the admin if they don't have one
+            // This triggers auto-creation of company-specific default roles
             $company = CompanyAccount::create([
                 'user_id' => $admin->id,
                 'company_name' => 'Company of ' . $admin->first_name . ' ' . $admin->last_name,
@@ -54,6 +63,14 @@ class DatabaseSeeder extends Seeder
                 'industry' => 'Other',
                 'company_size' => 'Small'
             ]);
+
+            // Assign the company-specific company-admin role
+            $companyAdminRole = \App\Models\Role::where('name', 'company-admin')
+                ->where('company_id', $company->id)
+                ->first();
+            if ($companyAdminRole) {
+                $admin->syncRoles([$companyAdminRole]);
+            }
 
             // Create company user relationship
             DB::table('company_users')->insert([

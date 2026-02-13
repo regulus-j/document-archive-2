@@ -59,9 +59,6 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        // Assigned role as company admin to newly registered company
-        $user->assignRole('company-admin');
-
         event(new Registered($user));
 
         Auth::login($user);
@@ -76,6 +73,7 @@ class RegisteredUserController extends Controller
         $companyEmail = $request->company_email ?: $request->email;
 
         // Company registration with required fields
+        // This triggers auto-creation of default roles (company-admin, user) for the company
         $company = CompanyAccount::create([
             'user_id' => auth()->id(),
             'company_name' => $request->company_name,
@@ -83,6 +81,14 @@ class RegisteredUserController extends Controller
             'company_email' => $companyEmail,
             'company_phone' => $request->company_phone ?: '00000000000',
         ]);
+
+        // Assign the company-specific company-admin role
+        $companyAdminRole = \App\Models\Role::where('name', 'company-admin')
+            ->where('company_id', $company->id)
+            ->first();
+        if ($companyAdminRole) {
+            $user->assignRole($companyAdminRole);
+        }
 
         // Only create company address if the toggle is enabled and address fields are provided
         if ($request->include_address === '1' && $request->filled('address')) {

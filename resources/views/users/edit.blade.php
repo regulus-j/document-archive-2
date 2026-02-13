@@ -103,7 +103,7 @@
                                     class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
                                     multiple size="4">
                                     @foreach ($roles as $value => $label)
-                                        <option value="{{ $value }}" {{ in_array($value, $userRoles) ? 'selected' : '' }}
+                                        <option value="{{ $value }}" {{ array_key_exists($value, $userRoles) ? 'selected' : '' }}
                                             class="py-2 px-3 hover:bg-blue-50 transition-colors">
                                             {{ $label }}</option>
                                     @endforeach

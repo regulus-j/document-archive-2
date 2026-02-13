@@ -85,6 +85,15 @@ class CompanyController extends Controller
             $company = CompanyAccount::latest()->first();
             $company->addresses()->create($addressValidated);
             
+            // Assign the company-specific company-admin role to the company owner
+            $companyOwner = \App\Models\User::find($validated['user_id'] ?? auth()->id());
+            $companyAdminRole = \App\Models\Role::where('name', 'company-admin')
+                ->where('company_id', $company->id)
+                ->first();
+            if ($companyAdminRole && $companyOwner) {
+                $companyOwner->assignRole($companyAdminRole);
+            }
+
             // Create the company-user relationship in the pivot table
             CompanyUser::create([
                 'company_id' => $company->id,

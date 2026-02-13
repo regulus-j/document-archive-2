@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
 class UserController extends Controller
@@ -46,9 +46,11 @@ class UserController extends Controller
         if ($authUser->hasRole('super-admin')) {
             $roles = Role::all();
         } elseif ($authUser->hasRole('company-admin')) {
-            $roles = Role::where('name', '!=', 'super-admin')->get();
+            $company = $authUser->companies()->first();
+            $roles = $company ? Role::companyOnly($company->id)->get() : collect();
         } else {
-            $roles = Role::where('name', 'user')->get();
+            $company = $authUser->companies()->first();
+            $roles = $company ? Role::where('name', 'user')->where('company_id', $company->id)->get() : collect();
         }
 
         // Super-admin: see all users
@@ -97,9 +99,11 @@ class UserController extends Controller
         if ($authUser->hasRole('super-admin')) {
             $roles = Role::all();
         } elseif ($authUser->hasRole('company-admin')) {
-            $roles = Role::where('name', '!=', 'super-admin')->get();
+            $company = $authUser->companies()->first();
+            $roles = $company ? Role::companyOnly($company->id)->get() : collect();
         } else {
-            $roles = Role::where('name', 'user')->get();
+            $company = $authUser->companies()->first();
+            $roles = $company ? Role::where('name', 'user')->where('company_id', $company->id)->get() : collect();
         }
 
         // Fetch teams for filter
@@ -170,10 +174,13 @@ class UserController extends Controller
         // Filter roles based on user permissions
         if (auth()->user()->hasRole('super-admin')) {
             // Super admins can see all roles
-            $roles = Role::pluck('name', 'name')->all();
+            $roles = Role::pluck('name', 'id')->all();
         } else {
-            // Others can't see the super-admin role
-            $roles = Role::where('name', '!=', 'super-admin')->pluck('name', 'name')->all();
+            // Others see only their company's roles
+            $company = auth()->user()->companies()->first();
+            $roles = $company
+                ? Role::companyOnly($company->id)->pluck('name', 'id')->all()
+                : [];
         }
 
         $company = auth()->user()->companies()->first();
@@ -228,7 +235,10 @@ class UserController extends Controller
         // Attach multiple offices
         $user->offices()->attach($request->offices);
 
-        $user->assignRole($request->input('roles'));
+        // Assign roles by ID to ensure company-specific roles are used
+        $roleIds = $request->input('roles');
+        $roleModels = Role::whereIn('id', $roleIds)->get();
+        $user->syncRoles($roleModels);
 
         $roleNames = $user->roles->pluck('name')->implode(', ');
 
@@ -314,7 +324,7 @@ class UserController extends Controller
 
         // Super admin can edit all users
         if ($authUser->hasRole('super-admin')) {
-            $roles = Role::pluck('name', 'name')->all();
+            $roles = Role::pluck('name', 'id')->all();
         } elseif ($authUser->isCompanyAdmin()) {
             // Company admin checks
             $company = $authUser->companies()->first();
@@ -327,17 +337,20 @@ class UserController extends Controller
                 abort(403, 'You can only edit users from your company.');
             }
 
-            // Company admins can't see super-admin role
-            $roles = Role::where('name', '!=', 'super-admin')->pluck('name', 'name')->all();
+            // Company admins see only their company's roles
+            $roles = Role::companyOnly($company->id)->pluck('name', 'id')->all();
         } else {
             // Regular users can only edit themselves
             if ($user->id !== $authUser->id) {
                 abort(403, 'You can only edit your own profile.');
             }
-            $roles = Role::where('name', 'user')->pluck('name', 'name')->all();
+            $company = $authUser->companies()->first();
+            $roles = $company
+                ? Role::where('name', 'user')->where('company_id', $company->id)->pluck('name', 'id')->all()
+                : [];
         }
 
-        $userRoles = $user->roles->pluck('name', 'name')->all();
+        $userRoles = $user->roles->pluck('name', 'id')->all();
 
         // Get offices from user's company only
         $company = $authUser->companies()->first();
@@ -387,8 +400,10 @@ class UserController extends Controller
             $user->save();
         }
 
-        // Sync roles
-        $user->syncRoles($request->input('roles'));
+        // Sync roles by ID to ensure company-specific roles are used
+        $roleIds = $request->input('roles');
+        $roleModels = Role::whereIn('id', $roleIds)->get();
+        $user->syncRoles($roleModels);
 
         // Ensure company association is maintained
         $companyId = $request->input('companies');

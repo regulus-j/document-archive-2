@@ -20,6 +20,17 @@ class CompanyAccount extends Model
         'company_phone',
     ];
 
+    /**
+     * Boot the model.
+     * Auto-create default roles when a new company is created.
+     */
+    protected static function booted(): void
+    {
+        static::created(function (CompanyAccount $company) {
+            Role::createDefaultRolesForCompany($company->id);
+        });
+    }
+
     // Custom validation rules
     public static function rules($userId = null)
     {
@@ -65,6 +76,14 @@ class CompanyAccount extends Model
     public function offices()
     {
         return $this->hasMany(Office::class, 'company_id');
+    }
+
+    /**
+     * Get the roles that belong to this company.
+     */
+    public function roles(): HasMany
+    {
+        return $this->hasMany(Role::class, 'company_id');
     }
 
     //company address
