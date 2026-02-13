@@ -273,7 +273,7 @@
             </div>
 
             <!-- Filters Bar -->
-            <div class="bg-white rounded-xl border border-blue-200/80 overflow-hidden mt-3">
+            <div class="bg-white rounded-xl border border-blue-200/80 overflow-visible mt-3">
                 <div class="px-6 py-4 border-b border-blue-200/60 flex items-center justify-between cursor-pointer select-none" id="filterToggleHeader" onclick="toggleFilterPanel()">
                     <div class="flex items-center space-x-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">

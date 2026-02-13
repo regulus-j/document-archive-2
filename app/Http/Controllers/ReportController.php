@@ -46,8 +46,10 @@ class ReportController extends Controller
             });
 
         $reports = $query->latest('generated_at')->paginate(10);
-        $users = User::all();
 
+        // Pick up any generated report data from session (from the generate action)
+        $data = session('generated_data');
+        $reportType = session('generated_report_type');
 
         // Analytics
 
@@ -102,12 +104,15 @@ class ReportController extends Controller
             )
             ->count();
 
+        // Get company first so we can scope all queries
+        $company = CompanyAccount::where('user_id', auth()->id())->first();
+
         $documentsUploaded = Document::whereBetween('created_at', [$startDate, $endDate])
+            ->when($company, fn($q) => $q->where('company_id', $company->id))
             ->when($userId, fn($q) => $q->where('uploader', $userId))
             ->count();
 
         // Get collections for dropdowns
-        $company = CompanyAccount::where('user_id', auth()->id())->first();
         if (!$company) {
             \Log::warning('No company found for user: ' . auth()->id());
             // Handle the case where no company exists
@@ -132,7 +137,9 @@ class ReportController extends Controller
             'users',
             'offices',
             'displayType',
-            'monthlyData'));
+            'monthlyData',
+            'data',
+            'reportType'));
     }
 
     public function show(Report $report)
@@ -193,92 +200,18 @@ class ReportController extends Controller
      * @param Request $request
      * @return View|Response
      */
-    public function analytics(Request $request)  // Remove the ": View" return type declaration
+    public function analytics(Request $request)
     {
-        $startDate = $request->input('start_date') ?: now()->subMonth()->format('Y-m-d');
-        $endDate = $request->input('end_date') ?: now()->format('Y-m-d');
-        $userId = $request->input('user_id');
-        $officeId = $request->input('office_id');
-        $displayType = $request->input('display_type', 'table'); // Default to table view
-
+        // Handle PDF export directly
+        $displayType = $request->input('display_type', 'table');
         if ($displayType === 'pdf') {
-            return $this->exportAnalyticsToPdf($startDate, $endDate, $userId, $officeId);
+            $startDate = $request->input('start_date') ?: now()->subMonth()->format('Y-m-d');
+            $endDate = $request->input('end_date') ?: now()->format('Y-m-d');
+            return $this->exportAnalyticsToPdf($startDate, $endDate, $request->input('user_id'), $request->input('office_id'));
         }
 
-        $averageTimeToReceiveMinutes = DocumentWorkflow::selectRaw('AVG(TIMESTAMPDIFF(MINUTE, created_at, received_at)) as avg_time')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->whereNotNull('received_at') // Ensure received_at is not null
-            ->when($userId, fn($q) => $q->where('recipient_id', $userId))
-            ->when($officeId, fn($q) =>
-                $q->whereHas('recipient.offices', fn($o) =>
-                    $o->where('offices.id', $officeId)
-                )
-            )
-            ->value('avg_time') ?? 0;
-
-        $averageTimeToReviewMinutes = DocumentWorkflow::selectRaw('AVG(TIMESTAMPDIFF(MINUTE, received_at, updated_at)) as avg_time')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->whereNotNull('received_at') // Ensure received_at is not null
-            ->whereNotNull('updated_at') // Ensure updated_at is not null
-            ->whereRaw('received_at <= updated_at') // Ensure received_at is before updated_at
-            ->when($userId, fn($q) => $q->where('recipient_id', $userId))
-            ->when($officeId, fn($q) =>
-                $q->whereHas('recipient.offices', fn($o) =>
-                    $o->where('offices.id', $officeId)
-                )
-            )
-            ->value('avg_time') ?? 0;
-
-        // Format time values as hours:minutes:seconds
-        $averageTimeToReceive = $this->formatTimeInMinutes($averageTimeToReceiveMinutes);
-        $averageTimeToReview = $this->formatTimeInMinutes($averageTimeToReviewMinutes);
-        
-        // For chart data, we need the raw minutes
-        $averageTimeToReceiveRaw = round($averageTimeToReceiveMinutes, 2);
-        $averageTimeToReviewRaw = round($averageTimeToReviewMinutes, 2);
-
-        $averageDocsForwarded = DocumentWorkflow::whereBetween('created_at', [$startDate, $endDate])
-            ->when($userId, fn($q) => $q->where('sender_id', $userId))
-            ->when($officeId, fn($q) =>
-                $q->whereHas('sender.offices', fn($o) =>
-                    $o->where('offices.id', $officeId)
-                )
-            )
-            ->count();
-
-        $documentsUploaded = Document::whereBetween('created_at', [$startDate, $endDate])
-            ->when($userId, fn($q) => $q->where('uploader', $userId))
-            ->count();
-
-        // Get collections for dropdowns
-        $company = CompanyAccount::where('user_id', auth()->id())->first();
-        if (!$company) {
-            \Log::warning('No company found for user: ' . auth()->id());
-            // Handle the case where no company exists
-        }
-
-        $users = $company ? $company->employees()->paginate(5) : collect();
-        $offices = $company ? Office::where('company_id', $company->id)->get() : collect();
-
-        // Get additional data for charts - monthly trends
-        $monthlyData = $this->getMonthlyAnalyticsChartData($startDate, $endDate, $userId, $officeId);
-
-        return view('reports.analytics', compact(
-            'averageTimeToReceive',
-            'averageTimeToReview',
-            'averageTimeToReceiveRaw',
-            'averageTimeToReviewRaw',
-            'averageDocsForwarded',
-            'documentsUploaded',
-            'startDate',
-            'endDate',
-            'userId',
-            'officeId',
-            'users',
-            'offices',
-            'displayType',
-            'monthlyData'
-        ));
+        // Redirect all other analytics requests to the unified index page
+        return redirect()->route('reports.index', $request->only(['start_date', 'end_date', 'user_id', 'office_id', 'display_type']));
     }
 
     /**
@@ -389,6 +322,10 @@ class ReportController extends Controller
         // Convert strings to Carbon instances
         $start = \Carbon\Carbon::parse($startDate);
         $end = \Carbon\Carbon::parse($endDate);
+
+        // Get company for scoping
+        $company = CompanyAccount::where('user_id', auth()->id())->first();
+        $companyId = $company ? $company->id : null;
         
         // Prepare data arrays
         $months = [];
@@ -440,8 +377,9 @@ class ReportController extends Controller
                 )
                 ->count();
             
-            // Documents uploaded
+            // Documents uploaded (company-scoped)
             $uploadedCount = Document::whereBetween('created_at', [$monthStart, $monthEnd])
+                ->when($companyId, fn($q) => $q->where('company_id', $companyId))
                 ->when($userId, fn($q) => $q->where('uploader', $userId))
                 ->count();
             
@@ -595,8 +533,12 @@ class ReportController extends Controller
             }
         }
 
-        // Return view with generated data
-        return view('reports.index', compact('data', 'reportType', 'startDate', 'endDate'));
+        // Redirect back to index with generated data in session
+        return redirect()->route('reports.index', [
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+        ])->with('generated_data', $data)
+          ->with('generated_report_type', $reportType);
     }
 
     /**
@@ -823,6 +765,13 @@ class ReportController extends Controller
         
         // Get document volume trends
         $documentTrends = $this->getDocumentVolumeTrends($company->id, $startDate, $endDate);
+
+        // NEW: Richer analytics data
+        $periodComparison = $this->getPeriodComparison($company->id, $startDate, $endDate);
+        $workflowCompletion = $this->getWorkflowCompletionMetrics($company->id, $startDate, $endDate);
+        $workflowBottlenecks = $this->getWorkflowBottlenecks($company->id, $startDate, $endDate);
+        $documentAging = $this->getDocumentAging($company->id);
+        $recentActivity = $this->getRecentActivity($company->id, 10);
         
         // Handle exports if requested
         if ($exportFormat === 'pdf') {
@@ -863,7 +812,12 @@ class ReportController extends Controller
             'statusDistribution',
             'documentTrends',
             'startDate',
-            'endDate'
+            'endDate',
+            'periodComparison',
+            'workflowCompletion',
+            'workflowBottlenecks',
+            'documentAging',
+            'recentActivity'
         ));
     }
     
@@ -1502,6 +1456,334 @@ class ReportController extends Controller
         return round($score, 1);
     }
     
+    /**
+     * Get workflow bottleneck analysis - identifies where documents get stuck
+     */
+    private function getWorkflowBottlenecks($companyId, $startDate, $endDate)
+    {
+        $userIds = User::whereHas('companies', function($query) use ($companyId) {
+            $query->where('company_accounts.id', $companyId);
+        })->pluck('id');
+
+        // Pending workflows grouped by recipient
+        $pendingByUser = DocumentWorkflow::whereIn('recipient_id', $userIds)
+            ->where('status', 'pending')
+            ->select('recipient_id', DB::raw('COUNT(*) as pending_count'), DB::raw('AVG(TIMESTAMPDIFF(HOUR, created_at, NOW())) as avg_wait_hours'))
+            ->groupBy('recipient_id')
+            ->orderByDesc('pending_count')
+            ->limit(10)
+            ->get()
+            ->map(function($item) {
+                $user = User::find($item->recipient_id);
+                return [
+                    'user' => $user,
+                    'pending_count' => $item->pending_count,
+                    'avg_wait_hours' => round($item->avg_wait_hours, 1),
+                    'avg_wait_formatted' => $this->formatHoursToReadable($item->avg_wait_hours),
+                ];
+            });
+
+        // Pending workflows grouped by office
+        $officeIds = Office::where('company_id', $companyId)->pluck('id');
+        $pendingByOffice = DocumentWorkflow::whereIn('recipient_office', $officeIds)
+            ->where('status', 'pending')
+            ->select('recipient_office', DB::raw('COUNT(*) as pending_count'), DB::raw('AVG(TIMESTAMPDIFF(HOUR, created_at, NOW())) as avg_wait_hours'))
+            ->groupBy('recipient_office')
+            ->orderByDesc('pending_count')
+            ->limit(10)
+            ->get()
+            ->map(function($item) {
+                $office = Office::find($item->recipient_office);
+                return [
+                    'office' => $office,
+                    'pending_count' => $item->pending_count,
+                    'avg_wait_hours' => round($item->avg_wait_hours, 1),
+                    'avg_wait_formatted' => $this->formatHoursToReadable($item->avg_wait_hours),
+                ];
+            });
+
+        // Longest pending individual workflows
+        $oldestPending = DocumentWorkflow::whereIn('sender_id', $userIds)
+            ->orWhereIn('recipient_id', $userIds)
+            ->where('status', 'pending')
+            ->orderBy('created_at', 'asc')
+            ->limit(5)
+            ->get()
+            ->map(function($wf) {
+                $hours = now()->diffInHours($wf->created_at);
+                return [
+                    'workflow' => $wf,
+                    'document' => $wf->document,
+                    'sender' => $wf->sender,
+                    'recipient' => $wf->recipient,
+                    'recipient_office' => $wf->recipientOffice,
+                    'waiting_hours' => $hours,
+                    'waiting_formatted' => $this->formatHoursToReadable($hours),
+                    'created_at' => $wf->created_at->format('M d, Y H:i'),
+                ];
+            });
+
+        return [
+            'pending_by_user' => $pendingByUser,
+            'pending_by_office' => $pendingByOffice,
+            'oldest_pending' => $oldestPending,
+            'total_pending' => DocumentWorkflow::where(function($q) use ($userIds) {
+                $q->whereIn('sender_id', $userIds)->orWhereIn('recipient_id', $userIds);
+            })->where('status', 'pending')->count(),
+        ];
+    }
+
+    /**
+     * Get document aging analysis - shows age distribution of pending documents
+     */
+    private function getDocumentAging($companyId)
+    {
+        $userIds = User::whereHas('companies', function($query) use ($companyId) {
+            $query->where('company_accounts.id', $companyId);
+        })->pluck('id');
+
+        $now = now();
+
+        // Count pending workflows in time buckets
+        $lessThan24h = DocumentWorkflow::where(function($q) use ($userIds) {
+                $q->whereIn('sender_id', $userIds)->orWhereIn('recipient_id', $userIds);
+            })
+            ->where('status', 'pending')
+            ->where('created_at', '>=', $now->copy()->subDay())
+            ->count();
+
+        $oneToThreeDays = DocumentWorkflow::where(function($q) use ($userIds) {
+                $q->whereIn('sender_id', $userIds)->orWhereIn('recipient_id', $userIds);
+            })
+            ->where('status', 'pending')
+            ->whereBetween('created_at', [$now->copy()->subDays(3), $now->copy()->subDay()])
+            ->count();
+
+        $threeToSevenDays = DocumentWorkflow::where(function($q) use ($userIds) {
+                $q->whereIn('sender_id', $userIds)->orWhereIn('recipient_id', $userIds);
+            })
+            ->where('status', 'pending')
+            ->whereBetween('created_at', [$now->copy()->subDays(7), $now->copy()->subDays(3)])
+            ->count();
+
+        $sevenToThirtyDays = DocumentWorkflow::where(function($q) use ($userIds) {
+                $q->whereIn('sender_id', $userIds)->orWhereIn('recipient_id', $userIds);
+            })
+            ->where('status', 'pending')
+            ->whereBetween('created_at', [$now->copy()->subDays(30), $now->copy()->subDays(7)])
+            ->count();
+
+        $overThirtyDays = DocumentWorkflow::where(function($q) use ($userIds) {
+                $q->whereIn('sender_id', $userIds)->orWhereIn('recipient_id', $userIds);
+            })
+            ->where('status', 'pending')
+            ->where('created_at', '<', $now->copy()->subDays(30))
+            ->count();
+
+        return [
+            'buckets' => [
+                ['label' => '< 24 hours', 'count' => $lessThan24h, 'color' => '#10B981'],
+                ['label' => '1-3 days', 'count' => $oneToThreeDays, 'color' => '#3B82F6'],
+                ['label' => '3-7 days', 'count' => $threeToSevenDays, 'color' => '#F59E0B'],
+                ['label' => '7-30 days', 'count' => $sevenToThirtyDays, 'color' => '#F97316'],
+                ['label' => '> 30 days', 'count' => $overThirtyDays, 'color' => '#EF4444'],
+            ],
+            'total_pending' => $lessThan24h + $oneToThreeDays + $threeToSevenDays + $sevenToThirtyDays + $overThirtyDays,
+            'critical_count' => $sevenToThirtyDays + $overThirtyDays,
+        ];
+    }
+
+    /**
+     * Get period-over-period comparison metrics
+     */
+    private function getPeriodComparison($companyId, $startDate, $endDate)
+    {
+        $userIds = User::whereHas('companies', function($query) use ($companyId) {
+            $query->where('company_accounts.id', $companyId);
+        })->pluck('id');
+
+        $start = Carbon::parse($startDate);
+        $end = Carbon::parse($endDate);
+        $periodDays = $start->diffInDays($end);
+
+        // Previous period
+        $prevEnd = $start->copy()->subDay();
+        $prevStart = $prevEnd->copy()->subDays($periodDays);
+
+        // Current period metrics
+        $currentDocs = Document::whereIn('uploader', $userIds)->whereBetween('created_at', [$startDate, $endDate])->count();
+        $currentWorkflows = DocumentWorkflow::whereIn('sender_id', $userIds)->whereBetween('created_at', [$startDate, $endDate])->count();
+        $currentProcessed = DocumentWorkflow::whereIn('recipient_id', $userIds)
+            ->whereIn('status', ['approved', 'rejected'])
+            ->whereBetween('created_at', [$startDate, $endDate])->count();
+        $currentAvgProcessing = DocumentWorkflow::selectRaw('AVG(TIMESTAMPDIFF(MINUTE, received_at, updated_at)) as avg_time')
+            ->whereIn('recipient_id', $userIds)
+            ->whereIn('status', ['approved', 'rejected'])
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereNotNull('received_at')->whereNotNull('updated_at')
+            ->whereRaw('received_at <= updated_at')
+            ->value('avg_time') ?? 0;
+
+        // Previous period metrics
+        $prevDocs = Document::whereIn('uploader', $userIds)->whereBetween('created_at', [$prevStart, $prevEnd])->count();
+        $prevWorkflows = DocumentWorkflow::whereIn('sender_id', $userIds)->whereBetween('created_at', [$prevStart, $prevEnd])->count();
+        $prevProcessed = DocumentWorkflow::whereIn('recipient_id', $userIds)
+            ->whereIn('status', ['approved', 'rejected'])
+            ->whereBetween('created_at', [$prevStart, $prevEnd])->count();
+        $prevAvgProcessing = DocumentWorkflow::selectRaw('AVG(TIMESTAMPDIFF(MINUTE, received_at, updated_at)) as avg_time')
+            ->whereIn('recipient_id', $userIds)
+            ->whereIn('status', ['approved', 'rejected'])
+            ->whereBetween('created_at', [$prevStart, $prevEnd])
+            ->whereNotNull('received_at')->whereNotNull('updated_at')
+            ->whereRaw('received_at <= updated_at')
+            ->value('avg_time') ?? 0;
+
+        return [
+            'documents' => [
+                'current' => $currentDocs,
+                'previous' => $prevDocs,
+                'change' => $prevDocs > 0 ? round((($currentDocs - $prevDocs) / $prevDocs) * 100, 1) : ($currentDocs > 0 ? 100 : 0),
+            ],
+            'workflows' => [
+                'current' => $currentWorkflows,
+                'previous' => $prevWorkflows,
+                'change' => $prevWorkflows > 0 ? round((($currentWorkflows - $prevWorkflows) / $prevWorkflows) * 100, 1) : ($currentWorkflows > 0 ? 100 : 0),
+            ],
+            'processed' => [
+                'current' => $currentProcessed,
+                'previous' => $prevProcessed,
+                'change' => $prevProcessed > 0 ? round((($currentProcessed - $prevProcessed) / $prevProcessed) * 100, 1) : ($currentProcessed > 0 ? 100 : 0),
+            ],
+            'avg_processing' => [
+                'current' => round($currentAvgProcessing, 1),
+                'previous' => round($prevAvgProcessing, 1),
+                'change' => $prevAvgProcessing > 0 ? round((($currentAvgProcessing - $prevAvgProcessing) / $prevAvgProcessing) * 100, 1) : 0,
+                'current_formatted' => $this->formatTimeInMinutes($currentAvgProcessing),
+                'previous_formatted' => $this->formatTimeInMinutes($prevAvgProcessing),
+            ],
+            'period_label' => $start->format('M d') . ' - ' . $end->format('M d, Y'),
+            'prev_period_label' => $prevStart->format('M d') . ' - ' . $prevEnd->format('M d, Y'),
+        ];
+    }
+
+    /**
+     * Get workflow completion rate and throughput metrics
+     */
+    private function getWorkflowCompletionMetrics($companyId, $startDate, $endDate)
+    {
+        $userIds = User::whereHas('companies', function($query) use ($companyId) {
+            $query->where('company_accounts.id', $companyId);
+        })->pluck('id');
+
+        $totalWorkflows = DocumentWorkflow::where(function($q) use ($userIds) {
+                $q->whereIn('sender_id', $userIds)->orWhereIn('recipient_id', $userIds);
+            })
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+
+        $completedWorkflows = DocumentWorkflow::where(function($q) use ($userIds) {
+                $q->whereIn('sender_id', $userIds)->orWhereIn('recipient_id', $userIds);
+            })
+            ->whereIn('status', ['approved', 'rejected', 'received'])
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+
+        $approvedWorkflows = DocumentWorkflow::whereIn('recipient_id', $userIds)
+            ->where('status', 'approved')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+
+        $rejectedWorkflows = DocumentWorkflow::whereIn('recipient_id', $userIds)
+            ->where('status', 'rejected')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+
+        $pendingWorkflows = DocumentWorkflow::where(function($q) use ($userIds) {
+                $q->whereIn('sender_id', $userIds)->orWhereIn('recipient_id', $userIds);
+            })
+            ->where('status', 'pending')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+
+        $completionRate = $totalWorkflows > 0 ? round(($completedWorkflows / $totalWorkflows) * 100, 1) : 0;
+        $approvalRate = ($approvedWorkflows + $rejectedWorkflows) > 0 
+            ? round(($approvedWorkflows / ($approvedWorkflows + $rejectedWorkflows)) * 100, 1) : 0;
+
+        // Average end-to-end turnaround (created to final status)
+        $avgTurnaround = DocumentWorkflow::selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, updated_at)) as avg_hours')
+            ->whereIn('recipient_id', $userIds)
+            ->whereIn('status', ['approved', 'rejected'])
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereRaw('created_at < updated_at')
+            ->value('avg_hours') ?? 0;
+
+        return [
+            'total' => $totalWorkflows,
+            'completed' => $completedWorkflows,
+            'approved' => $approvedWorkflows,
+            'rejected' => $rejectedWorkflows,
+            'pending' => $pendingWorkflows,
+            'completion_rate' => $completionRate,
+            'approval_rate' => $approvalRate,
+            'avg_turnaround_hours' => round($avgTurnaround, 1),
+            'avg_turnaround_formatted' => $this->formatHoursToReadable($avgTurnaround),
+        ];
+    }
+
+    /**
+     * Get recent activity feed for the company
+     */
+    private function getRecentActivity($companyId, $limit = 10)
+    {
+        $userIds = User::whereHas('companies', function($query) use ($companyId) {
+            $query->where('company_accounts.id', $companyId);
+        })->pluck('id');
+
+        $recentWorkflows = DocumentWorkflow::where(function($q) use ($userIds) {
+                $q->whereIn('sender_id', $userIds)->orWhereIn('recipient_id', $userIds);
+            })
+            ->with(['sender', 'recipient', 'document'])
+            ->orderBy('updated_at', 'desc')
+            ->limit($limit)
+            ->get()
+            ->map(function($wf) {
+                return [
+                    'type' => 'workflow',
+                    'status' => $wf->status,
+                    'document_title' => $wf->document->title ?? 'Unknown Document',
+                    'sender_name' => $wf->sender ? ($wf->sender->first_name . ' ' . $wf->sender->last_name) : 'Unknown',
+                    'recipient_name' => $wf->recipient ? ($wf->recipient->first_name . ' ' . $wf->recipient->last_name) : ($wf->recipientOffice->name ?? 'Unknown'),
+                    'timestamp' => $wf->updated_at,
+                    'time_ago' => $wf->updated_at->diffForHumans(),
+                ];
+            });
+
+        return $recentWorkflows;
+    }
+
+    /**
+     * Format hours to a human-readable format
+     */
+    private function formatHoursToReadable($hours)
+    {
+        if ($hours <= 0) return '0 hours';
+        
+        if ($hours < 1) {
+            $minutes = round($hours * 60);
+            return $minutes . ' min' . ($minutes != 1 ? 's' : '');
+        }
+        
+        if ($hours < 24) {
+            $h = floor($hours);
+            $m = round(($hours - $h) * 60);
+            return $h . 'h ' . $m . 'm';
+        }
+
+        $days = floor($hours / 24);
+        $remainingHours = round($hours - ($days * 24));
+        return $days . 'd ' . $remainingHours . 'h';
+    }
+
     /**
      * Format bytes to human-readable format
      */

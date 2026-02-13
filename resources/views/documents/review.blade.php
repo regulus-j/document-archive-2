@@ -195,9 +195,37 @@
                     </button>
                 </div>
             @endif
-        </div>
 
-            <script>
+            {{-- Fallback: if purpose is null/empty, show default actions so the user is never stuck --}}
+            @if(!$workflow->purpose)
+                <div class="inline-flex rounded-md shadow-sm">
+                    <button type="button"
+                        class="relative inline-flex items-center px-3 py-2 text-sm font-medium border border-r-0 border-green-200 text-green-700 bg-white hover:bg-green-50 rounded-l-lg transition-colors group focus:z-10 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        onclick="document.getElementById('approval-form').classList.toggle('hidden'); hideOtherForms('approval-form')">
+                        <svg class="w-4 h-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Approve
+                    </button>
+                    <button type="button"
+                        class="relative inline-flex items-center px-3 py-2 text-sm font-medium border border-r-0 border-red-200 text-red-700 bg-white hover:bg-red-50 transition-colors group focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        onclick="document.getElementById('rejection-form').classList.toggle('hidden'); hideOtherForms('rejection-form')">
+                        <svg class="w-4 h-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Reject
+                    </button>
+                    <button type="button"
+                        class="relative inline-flex items-center px-3 py-2 text-sm font-medium border border-purple-200 text-purple-700 bg-white hover:bg-purple-50 rounded-r-lg transition-colors group focus:z-10 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        onclick="document.getElementById('forward-form').classList.toggle('hidden'); hideOtherForms('forward-form')">
+                        <svg class="w-4 h-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                        Forward
+                    </button>
+                </div>
+            @endif
+        </div>
                 function hideOtherForms(currentForm) {
                     const forms = ['approval-form', 'rejection-form', 'return-form', 'forward-form', 'comment-form', 'acknowledge-form'];
                     forms.forEach(form => {

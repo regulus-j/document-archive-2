@@ -217,9 +217,12 @@ class DocumentWorkflowController extends Controller
                 $recipientId = $id;
                 $allRecipientIds[] = $recipientId;
                 
-                // Get the user's office ID as a fallback
-                $user = \App\Models\User::find($recipientId);
-                $recipientOfficeId = $user->office_id ?? 1; // Default to office ID 1 if no office is found
+                // Get the recipient user's office - use their first office, or fall back to the sender's office
+                $user = \App\Models\User::with('offices')->find($recipientId);
+                $senderOffice = auth()->user()->offices->first();
+                $recipientOfficeId = $user && $user->offices->isNotEmpty()
+                    ? $user->offices->first()->id
+                    : ($senderOffice ? $senderOffice->id : null);
                 
                 DocumentWorkflow::create([
                     'tracking_number' => $trackingNumber,
@@ -696,8 +699,11 @@ class DocumentWorkflowController extends Controller
             }
             
             // Get the user's office ID
-            $user = \App\Models\User::find($recipientId);
-            $recipientOfficeId = $user->office_id ?? null;
+            $user = \App\Models\User::with('offices')->find($recipientId);
+            $senderOffice = auth()->user()->offices->first();
+            $recipientOfficeId = $user && $user->offices->isNotEmpty()
+                ? $user->offices->first()->id
+                : ($senderOffice ? $senderOffice->id : null);
             
             DocumentWorkflow::create([
                 'tracking_number' => $trackingNumber,
@@ -709,6 +715,10 @@ class DocumentWorkflowController extends Controller
                 'remarks' => $request->remarks ?? null,
                 'status' => 'pending',
                 'received_at' => null,
+                'purpose' => $workflow->purpose,
+                'workflow_type' => $workflow->workflow_type,
+                'urgency' => $workflow->urgency,
+                'due_date' => $workflow->due_date,
             ]);
 
             // Notify the referred user
@@ -774,8 +784,11 @@ class DocumentWorkflowController extends Controller
             }
             
             // Get the user's office ID
-            $user = \App\Models\User::find($recipientId);
-            $recipientOfficeId = $user->office_id ?? null;
+            $user = \App\Models\User::with('offices')->find($recipientId);
+            $senderOffice = auth()->user()->offices->first();
+            $recipientOfficeId = $user && $user->offices->isNotEmpty()
+                ? $user->offices->first()->id
+                : ($senderOffice ? $senderOffice->id : null);
             
             DocumentWorkflow::create([
                 'tracking_number' => $trackingNumber,
@@ -787,6 +800,10 @@ class DocumentWorkflowController extends Controller
                 'remarks' => $request->remarks ?? null,
                 'status' => 'pending',
                 'received_at' => null,
+                'purpose' => $workflow->purpose,
+                'workflow_type' => $workflow->workflow_type,
+                'urgency' => $workflow->urgency,
+                'due_date' => $workflow->due_date,
             ]);
 
             // Notify the forwarded user

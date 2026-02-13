@@ -267,13 +267,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', [ReportController::class, 'create'])->name('reports.create');
         Route::post('/', [ReportController::class, 'store'])->name('reports.store');
         Route::get('/analytics', [ReportController::class, 'analytics'])->name('reports.analytics');
+        Route::post('/generate', [ReportController::class, 'generate'])->name('reports.generate');
+        Route::get('/office-dashboard', [ReportController::class, 'officeLeadDashboard'])->name('reports.office-dashboard');
+        Route::get('/office-user-dashboard', [ReportController::class, 'officeUserDashboard'])->name('reports.office-user-dashboard');
+        // Wildcard routes MUST come last to avoid catching named routes above
         Route::get('/{report}', [ReportController::class, 'show'])->name('reports.show');
         Route::get('/{report}/edit', [ReportController::class, 'edit'])->name('reports.edit');
         Route::put('/{report}', [ReportController::class, 'update'])->name('reports.update');
         Route::delete('/{report}', [ReportController::class, 'destroy'])->name('reports.destroy');
-        Route::post('/generate', [ReportController::class, 'generate'])->name('reports.generate');
-        Route::get('/office-dashboard', [ReportController::class, 'officeLeadDashboard'])->name('reports.office-dashboard');
-        Route::get('/reports/office-user-dashboard', [ReportController::class, 'officeUserDashboard'])->name('reports.office-user-dashboard');
     });
 
     Route::middleware(['auth'])->group(function () {

@@ -1,655 +1,578 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="bg-gradient-to-b from-blue-50 to-white py-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Success Message -->
+<div class="bg-gradient-to-br from-gray-50 via-white to-blue-50 min-h-screen py-8">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+
+        {{-- Success / Error Messages --}}
         @if (session('success'))
-        <div class="bg-white border-l-4 border-emerald-500 text-emerald-700 p-4 mb-6 rounded-r-lg shadow-md"
-            role="alert">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-emerald-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                        fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clip-rule="evenodd" />
-                    </svg>
+        <div class="mb-6 flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 px-5 py-4 rounded-xl shadow-sm" role="alert">
+            <svg class="w-5 h-5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <p class="text-sm font-medium">{{ session('success') }}</p>
+        </div>
+        @endif
+
+        {{-- ============================================= --}}
+        {{-- PAGE HEADER --}}
+        {{-- ============================================= --}}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">{{ __('Analytics & Reports') }}</h1>
+                        <p class="text-sm text-gray-500 mt-0.5">Analyze document workflows and generate custom reports</p>
+                    </div>
                 </div>
-                <div class="ml-3">
-                    <p class="text-sm font-medium text-emerald-800">{{ session('success') }}</p>
+                <div class="flex flex-wrap items-center gap-3">
+                    <a href="{{ route('reports.index', ['display_type' => 'pdf', 'start_date' => $startDate, 'end_date' => $endDate, 'user_id' => $userId, 'office_id' => $officeId]) }}"
+                       class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition shadow-sm">
+                        <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Export PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {{-- ============================================= --}}
+        {{-- FILTER BAR --}}
+        {{-- ============================================= --}}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+            <form action="{{ route('reports.index') }}" method="GET">
+                <div class="flex flex-wrap items-end gap-4">
+                    <div class="flex-1 min-w-[140px]">
+                        <label for="start_date" class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">{{ __('Start Date') }}</label>
+                        <input type="date" name="start_date" id="start_date" value="{{ $startDate }}" required
+                               class="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="flex-1 min-w-[140px]">
+                        <label for="end_date" class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">{{ __('End Date') }}</label>
+                        <input type="date" name="end_date" id="end_date" value="{{ $endDate }}" required
+                               class="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="flex-1 min-w-[160px]">
+                        <label for="user_id" class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">{{ __('User') }}</label>
+                        <select name="user_id" id="user_id" class="w-full select2 rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">{{ __('All Users') }}</option>
+                            @foreach($users as $user)
+                            <option value="{{ $user->id }}" {{ $userId == $user->id ? 'selected' : '' }}>{{ $user->first_name }} {{ $user->last_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="flex-1 min-w-[160px]">
+                        <label for="office_id" class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">{{ __('Office') }}</label>
+                        <select name="office_id" id="office_id" class="w-full select2 rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">{{ __('All Offices') }}</option>
+                            @foreach($offices as $office)
+                            <option value="{{ $office->id }}" {{ $officeId == $office->id ? 'selected' : '' }}>{{ $office->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">{{ __('View') }}</label>
+                        <div class="inline-flex rounded-lg border border-gray-200 overflow-hidden">
+                            <label class="flex items-center gap-1.5 px-3 py-2 text-xs font-medium cursor-pointer {{ $displayType == 'table' ? 'bg-blue-50 text-blue-700' : 'bg-white text-gray-600 hover:bg-gray-50' }}">
+                                <input type="radio" name="display_type" value="table" class="sr-only" {{ $displayType == 'table' ? 'checked' : '' }}>
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                Table
+                            </label>
+                            <label class="flex items-center gap-1.5 px-3 py-2 text-xs font-medium cursor-pointer border-l border-r border-gray-200 {{ $displayType == 'graph' ? 'bg-blue-50 text-blue-700' : 'bg-white text-gray-600 hover:bg-gray-50' }}">
+                                <input type="radio" name="display_type" value="graph" class="sr-only" {{ $displayType == 'graph' ? 'checked' : '' }}>
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                                Chart
+                            </label>
+                            <label class="flex items-center gap-1.5 px-3 py-2 text-xs font-medium cursor-pointer {{ $displayType == 'both' ? 'bg-blue-50 text-blue-700' : 'bg-white text-gray-600 hover:bg-gray-50' }}">
+                                <input type="radio" name="display_type" value="both" class="sr-only" {{ $displayType == 'both' ? 'checked' : '' }}>
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                                Both
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" id="filter-button"
+                            class="flex-shrink-0 inline-flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition shadow-sm">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                        Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        {{-- ============================================= --}}
+        {{-- KPI SUMMARY CARDS --}}
+        {{-- ============================================= --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </span>
+                    <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Time to Receive</span>
+                </div>
+                <p class="text-2xl font-bold text-gray-900">{{ $averageTimeToReceive }}</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-100">
+                        <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </span>
+                    <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Time to Review</span>
+                </div>
+                <p class="text-2xl font-bold text-gray-900">{{ $averageTimeToReview }}</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-amber-100">
+                        <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                    </span>
+                    <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Docs Forwarded</span>
+                </div>
+                <p class="text-2xl font-bold text-gray-900">{{ $averageDocsForwarded }}</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-green-100">
+                        <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                    </span>
+                    <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Docs Uploaded</span>
+                </div>
+                <p class="text-2xl font-bold text-gray-900">{{ $documentsUploaded }}</p>
+            </div>
+        </div>
+
+        {{-- ============================================= --}}
+        {{-- TABLE VIEW --}}
+        {{-- ============================================= --}}
+        @if($displayType == 'table' || $displayType == 'both')
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h3 class="text-base font-semibold text-gray-900">{{ __('Analytics Summary') }}</h3>
+                <p class="text-xs text-gray-500 mt-0.5">Key metrics for the selected period</p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="bg-gray-50 border-b border-gray-100">
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Metric') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Value') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        <tr class="hover:bg-blue-50/30 transition">
+                            <td class="px-6 py-4 text-sm font-medium text-gray-700 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+                                {{ __('Average Time to Receive') }}
+                            </td>
+                            <td class="px-6 py-4 text-sm font-semibold text-gray-900">{{ $averageTimeToReceive }}</td>
+                        </tr>
+                        <tr class="hover:bg-blue-50/30 transition">
+                            <td class="px-6 py-4 text-sm font-medium text-gray-700 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+                                {{ __('Average Time to Review') }}
+                            </td>
+                            <td class="px-6 py-4 text-sm font-semibold text-gray-900">{{ $averageTimeToReview }}</td>
+                        </tr>
+                        <tr class="hover:bg-blue-50/30 transition">
+                            <td class="px-6 py-4 text-sm font-medium text-gray-700 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                                {{ __('Documents Forwarded') }}
+                            </td>
+                            <td class="px-6 py-4 text-sm font-semibold text-gray-900">{{ $averageDocsForwarded }}</td>
+                        </tr>
+                        <tr class="hover:bg-blue-50/30 transition">
+                            <td class="px-6 py-4 text-sm font-medium text-gray-700 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-green-400"></span>
+                                {{ __('Documents Uploaded') }}
+                            </td>
+                            <td class="px-6 py-4 text-sm font-semibold text-gray-900">{{ $documentsUploaded }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        @endif
+
+        {{-- ============================================= --}}
+        {{-- CHART VIEW --}}
+        {{-- ============================================= --}}
+        @if($displayType == 'graph' || $displayType == 'both')
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h3 class="text-base font-semibold text-gray-900">{{ __('Monthly Trends') }}</h3>
+                <p class="text-xs text-gray-500 mt-0.5">Document activity over time</p>
+            </div>
+            <div class="p-6">
+                <canvas id="monthlyTrendsChart" height="100"></canvas>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-100">
+                    <h3 class="text-base font-semibold text-gray-900">{{ __('Processing Times') }}</h3>
+                    <p class="text-xs text-gray-500 mt-0.5">Average receive & review times by month</p>
+                </div>
+                <div class="p-6">
+                    <canvas id="processingTimesChart" height="220"></canvas>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-100">
+                    <h3 class="text-base font-semibold text-gray-900">{{ __('Document Distribution') }}</h3>
+                    <p class="text-xs text-gray-500 mt-0.5">Forwarded vs Uploaded breakdown</p>
+                </div>
+                <div class="p-6 flex items-center justify-center" style="min-height: 260px">
+                    <canvas id="documentStatsChart"></canvas>
                 </div>
             </div>
         </div>
         @endif
 
-        <!-- Analytics -->
-        <div class="bg-white rounded-lg p-6 border border-gray-200 mb-8">
-            <div class="sm:flex sm:items-center sm:justify-between">
-                <h2 class="text-2xl font-semibold text-gray-900 flex items-center">
-                    <svg class="h-8 w-8 text-blue-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    {{ __('Analytics') }}
-                </h2>
-                <div class="flex space-x-3 mt-4 sm:mt-0">
-                    <a href="{{ route('reports.index') }}"
-                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                        {{ __('Generate Reports') }}
-                    </a>
-
-                    <a href="{{ route('reports.analytics', ['display_type' => 'pdf', 'start_date' => $startDate, 'end_date' => $endDate, 'user_id' => $userId, 'office_id' => $officeId]) }}"
-                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        {{ __('Export to PDF') }}
-                    </a>
+        {{-- ============================================= --}}
+        {{-- REPORT GENERATOR --}}
+        {{-- ============================================= --}}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100">
+                    <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </span>
+                <div>
+                    <h3 class="text-base font-semibold text-gray-900">{{ __('Audit Report Generator') }}</h3>
+                    <p class="text-xs text-gray-500">Generate audit history reports with export options</p>
                 </div>
             </div>
-        </div>
 
-        <div class="bg-white rounded-lg p-6 border border-gray-200 mb-8">
-            <div class="mb-4">
-                <h3 class="text-xl font-semibold text-gray-900 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                    </svg>
-                    Filters
-                </h3>
-            </div>
-            <div class="p-6 bg-gray-50 rounded-lg border border-gray-100">
-                <form action="{{ route('reports.analytics') }}" method="GET" class="space-y-4">
-                    @csrf
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div>
-                            <label for="start_date" class="block text-sm font-medium text-gray-700">{{ __('Start Date') }}</label>
-                            <input type="date" name="start_date" id="start_date" value="{{ $startDate }}" required class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                        </div>
-
-                        <div>
-                            <label for="end_date" class="block text-sm font-medium text-gray-700">{{ __('End Date') }}</label>
-                            <input type="date" name="end_date" id="end_date" value="{{ $endDate }}" required class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                        </div>
-
-                        <div>
-                            <label for="user_id" class="block text-sm font-medium text-gray-700">{{ __('User') }}</label>
-                            <select name="user_id" id="user_id" class="mt-1 select2 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                <option value="">{{ __('All Users') }}</option>
-                                @foreach($users as $user)
-                                <option value="{{ $user->id }}" {{ $userId == $user->id ? 'selected' : '' }}>
-                                    {{ $user->first_name }} {{ $user->last_name }}
-                                </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <label for="office_id" class="block text-sm font-medium text-gray-700">{{ __('Office') }}</label>
-                            <select name="office_id" id="office_id" class="mt-1 select2 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                <option value="">{{ __('All Offices') }}</option>
-                                @foreach($offices as $office)
-                                <option value="{{ $office->id }}" {{ $officeId == $office->id ? 'selected' : '' }}>
-                                    {{ $office->name }}
-                                </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <label for="display_type" class="block text-sm font-medium text-gray-700">{{ __('Display Type') }}</label>
-                            <div class="mt-2 flex flex-wrap gap-3">
-                                <label class="inline-flex items-center">
-                                    <input type="radio" name="display_type" value="table" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300" {{ $displayType == 'table' ? 'checked' : '' }}>
-                                    <span class="ml-2 text-sm text-gray-700">{{ __('Table') }}</span>
-                                </label>
-                                <label class="inline-flex items-center">
-                                    <input type="radio" name="display_type" value="graph" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300" {{ $displayType == 'graph' ? 'checked' : '' }}>
-                                    <span class="ml-2 text-sm text-gray-700">{{ __('Graph') }}</span>
-                                </label>
-                                <label class="inline-flex items-center">
-                                    <input type="radio" name="display_type" value="both" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300" {{ $displayType == 'both' ? 'checked' : '' }}>
-                                    <span class="ml-2 text-sm text-gray-700">{{ __('Both') }}</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="flex items-end">
-                            <button type="submit" id="filter-button" class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                {{ __('Filter') }}
-                            </button>
-                        </div>
-
-                        <div class="flex items-end">
-                            <button type="submit" name="display_type" value="pdf"
-                                class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                <svg class="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                                {{ __('Export to PDF') }}
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-
-
-        <div class="bg-white rounded-lg p-6 border border-gray-200 mb-8">
-            <div class="mb-4">
-                <h3 class="text-xl font-semibold text-gray-900 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    {{ __('Analytics Summary') }}
-                </h3>
-            </div>
-
-                @if($displayType == 'table' || $displayType == 'both')
-                <!-- Table View -->
-                <div class="mb-8">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Metric') }}</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Value') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap font-medium">{{ __('Avg Time to Receive') }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ $averageTimeToReceive }}</td>
-                            </tr>
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap font-medium">{{ __('Avg Time to Review') }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ $averageTimeToReview }}</td>
-                            </tr>
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap font-medium">{{ __('Docs Forwarded') }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ $averageDocsForwarded }}</td>
-                            </tr>
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap font-medium">{{ __('Docs Uploaded') }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ $documentsUploaded }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                @endif
-
-                @if($displayType == 'graph' || $displayType == 'both')
-                <!-- Chart View -->
-                <div class="mt-8">
-                    <h4 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                        </svg>
-                        {{ __('Monthly Trends') }}
-                    </h4>
-                    <div class="bg-white rounded-lg border border-gray-200 p-4">
-                        <canvas id="monthlyTrendsChart" width="400" height="200"></canvas>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                    <div class="bg-white rounded-lg border border-gray-200 p-4">
-                        <h4 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            {{ __('Processing Times') }}
-                        </h4>
-                        <canvas id="processingTimesChart" width="400" height="200"></canvas>
-                    </div>
-                    <div class="bg-white rounded-lg border border-gray-200 p-4">
-                        <h4 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                            {{ __('Document Statistics') }}
-                        </h4>
-                        <canvas id="documentStatsChart" width="400" height="200"></canvas>
-                    </div>
-                </div>
-                @endif
-            </div>
-        </div>
-
-        <!-- Report Management Section -->
-        <div class="max-w-7xl mx-auto p-6">
-            <!-- Header Box -->
-            <div class="bg-white rounded-lg p-6 border border-gray-200 mb-8">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 bg-blue-100 rounded-lg p-3 mr-4">
-                        <svg class="w-6 h-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-800">{{ __('Report Management') }}</h1>
-                        <p class="text-sm text-gray-500">Generate and view custom reports</p>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- Main Content -->
-        <div class="bg-white rounded-lg border border-gray-200">
-            <div class="lg:flex">
-                <!-- Left Panel -->
-                <div class="lg:w-1/3 bg-white p-6 border-b lg:border-b-0 lg:border-r border-gray-200">
-                    <div class="mb-6">
-                        <h3 class="text-lg font-semibold text-gray-800 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            {{ __('Create a Report') }}
-                        </h3>
-                        <p class="mt-1 text-sm text-gray-500">
-                            {{ __('Create a custom report based on collected data.') }}
-                        </p>
-                    </div>
-
-                    <form action="{{ route('reports.generate') }}" method="POST" class="space-y-6">
+            <div class="lg:flex divide-y lg:divide-y-0 lg:divide-x divide-gray-100">
+                {{-- Left Panel: Form --}}
+                <div class="lg:w-[380px] flex-shrink-0 p-6">
+                    <form action="{{ route('reports.generate') }}" method="POST" class="space-y-5">
                         @csrf
-                        <div class="space-y-2">
-                            <label for="report_type" class="block text-sm font-medium text-gray-700">
-                                {{ __('Choose report type') }}
-                            </label>
-                            <select name="report_type" id="report_type" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-                                <option value="audit_history">{{ __('Audit History') }}</option>
-                                <option value="company_performance">{{ __('Company Performance') }}</option>
-                            </select>
-                            <p class="text-xs text-gray-500">Select the type of report you want to generate</p>
+                        <input type="hidden" name="report_type" value="audit_history">
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('Quick Date Range') }}</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" onclick="setDateRange('week', event)" data-preset="week"
+                                    class="date-preset-btn px-3 py-2 text-xs font-medium rounded-lg border-2 border-gray-200 bg-white text-gray-700 hover:bg-blue-50 hover:border-blue-300 transition">
+                                    Past Week
+                                </button>
+                                <button type="button" onclick="setDateRange('month', event)" data-preset="month"
+                                    class="date-preset-btn px-3 py-2 text-xs font-medium rounded-lg border-2 border-gray-200 bg-white text-gray-700 hover:bg-blue-50 hover:border-blue-300 transition">
+                                    Past Month
+                                </button>
+                                <button type="button" onclick="setDateRange('quarter', event)" data-preset="quarter"
+                                    class="date-preset-btn px-3 py-2 text-xs font-medium rounded-lg border-2 border-gray-200 bg-white text-gray-700 hover:bg-blue-50 hover:border-blue-300 transition">
+                                    Past Quarter
+                                </button>
+                                <button type="button" onclick="setDateRange('year', event)" data-preset="year"
+                                    class="date-preset-btn px-3 py-2 text-xs font-medium rounded-lg border-2 border-gray-200 bg-white text-gray-700 hover:bg-blue-50 hover:border-blue-300 transition">
+                                    Past Year
+                                </button>
+                            </div>
                         </div>
 
-                        <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">{{ __('Choose date range') }}</label>
-                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('Custom Date Range') }}</label>
+                            <div class="grid grid-cols-2 gap-3">
                                 <div>
-                                    <div class="relative">
-                                        <input type="date" name="start_date" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md" placeholder="{{ __('From') }}">
-                                    </div>
+                                    <label class="block text-xs text-gray-400 mb-1">From</label>
+                                    <input type="date" name="start_date" id="audit_start_date" class="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
                                 </div>
                                 <div>
-                                    <div class="relative">
-                                        <input type="date" name="end_date" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md" placeholder="{{ __('To') }}">
-                                    </div>
+                                    <label class="block text-xs text-gray-400 mb-1">To</label>
+                                    <input type="date" name="end_date" id="audit_end_date" class="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
                                 </div>
                             </div>
-                            <p class="text-xs text-gray-500">Select the date range for your report data</p>
                         </div>
 
-                        <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">
-                                {{ __('Export Format') }}
-                            </label>
-                            <div class="mt-4 space-y-3">
-                                <div class="relative flex items-start">
-                                    <div class="flex items-center h-5">
-                                        <input type="radio" id="export_none" name="export_format" value="none" checked
-                                            class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
-                                    </div>
-                                    <label for="export_none" class="ml-3 block text-sm font-medium text-gray-700">
-                                        <div class="flex items-center">
-                                            <svg class="w-4 h-4 mr-2 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                            </svg>
-                                            Preview Only
-                                        </div>
-                                    </label>
-                                </div>
-                                <div class="relative flex items-start">
-                                    <div class="flex items-center h-5">
-                                        <input type="radio" id="export_pdf" name="export_format" value="pdf"
-                                            class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
-                                    </div>
-                                    <label for="export_pdf" class="ml-3 block text-sm font-medium text-gray-700">
-                                        <div class="flex items-center">
-                                            <svg class="w-4 h-4 mr-2 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                                                <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/>
-                                                <path d="M4.603 14.087a.81.81 0 0 1-.438-.42c-.195-.388-.13-.776.08-1.102.198-.307.526-.568.897-.787a7.68 7.68 0 0 1 1.482-.645 19.697 19.697 0 0 0 1.062-2.227 7.269 7.269 0 0 1-.43-1.295c-.086-.4-.119-.796-.046-1.136.075-.354.274-.672.65-.823.192-.077.4-.12.602-.077a.7.7 0 0 1 .477.365c.088.164.12.356.127.538.007.188-.012.396-.047.614-.084.51-.27 1.134-.52 1.794a10.954 10.954 0 0 0 .98 1.686 5.753 5.753 0 0 1 1.334.05c.364.066.734.195.96.465.12.144.193.32.2.518.007.192-.047.382-.138.563a1.04 1.04 0 0 1-.354.416.856.856 0 0 1-.51.138c-.331-.014-.654-.196-.933-.417a5.712 5.712 0 0 1-.911-.95 11.651 11.651 0 0 0-1.997.406 11.307 11.307 0 0 1-1.02 1.51c-.292.35-.609.656-.927.787a.793.793 0 0 1-.58.029zm1.379-1.901c-.166.076-.32.15-.459.222-.328.168-.61.335-.815.534-.107.104-.189.207-.242.32-.051.112-.063.234-.019.349.027.07.091.138.19.178a.663.663 0 0 0 .292-.004c.336-.137.642-.48.912-.816.228-.28.47-.63.719-.93.239-.3.442-.555.592-.75a9.053 9.053 0 0 0-.625-.216c-.189-.061-.384-.12-.587-.166zm3.26-3.216c.135.074.2.175.198.273 0 .086-.034.16-.088.226a.602.602 0 0 1-.156.147c-.117.096-.259.16-.39.16-.144 0-.302-.053-.44-.154-.169-.123-.26-.143-.3-.148a5.01 5.01 0 0 0-.368.069 28.64 28.64 0 0 0-.83.195c-.239.572-.445 1.112-.576 1.541-.016.066-.03.126-.044.183.116-.043.223-.087.318-.128.36-.157.699-.32 1.004-.481.304-.16.577-.31.802-.44.023-.031.052-.044.083-.51.177-.037.377-.05.575-.035zm-2.36 4.49v.002z"/>
-                                            </svg>
-                                            Export as PDF
-                                        </div>
-                                    </label>
-                                </div>
-                                <div class="relative flex items-start">
-                                    <div class="flex items-center h-5">
-                                        <input type="radio" id="export_excel" name="export_format" value="excel"
-                                            class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
-                                    </div>
-                                    <label for="export_excel" class="ml-3 block text-sm font-medium text-gray-700">
-                                        <div class="flex items-center">
-                                            <svg class="w-4 h-4 mr-2 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                                                <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V9h-3.5V3z"/>
-                                                <path d="M12.021 6.828c.461-1.062.992-1.828 2.312-1.828v9.5c-2.937 0-5.5-4.666-5.5-4.666S6.25 14.5 3.312 14.5v-9.5c1.321 0 1.851.766 2.312 1.828.396.739.76 1.291 1.521 1.616-.358-.322-.6-.695-.842-1.091-.483-.974-1.096-2.353-3.303-2.353v9.5c2.361 0 4.256-1.2 5.873-3.193.438-.537.847-1.128 1.203-1.731C9.518 10.461 9.9 11.1 10.331 11.659c2.273 2.974 3.585 2.841 4.998 2.841v-9.5c-2.208 0-2.82 1.38-3.303 2.353-.242.396-.484.769-.842 1.091.761-.325 1.125-.877 1.521-1.616z"/>
-                                            </svg>
-                                            Export as Excel
-                                        </div>
-                                    </label>
-                                </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('Export Format') }}</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <label class="relative flex flex-col items-center p-3 rounded-lg border-2 cursor-pointer transition hover:bg-gray-50 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+                                    <input type="radio" name="export_format" value="none" checked class="sr-only">
+                                    <svg class="w-5 h-5 text-gray-500 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    <span class="text-xs font-medium text-gray-700">Preview</span>
+                                </label>
+                                <label class="relative flex flex-col items-center p-3 rounded-lg border-2 cursor-pointer transition hover:bg-gray-50 has-[:checked]:border-red-500 has-[:checked]:bg-red-50">
+                                    <input type="radio" name="export_format" value="pdf" class="sr-only">
+                                    <svg class="w-5 h-5 text-red-500 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                    <span class="text-xs font-medium text-gray-700">PDF</span>
+                                </label>
+                                <label class="relative flex flex-col items-center p-3 rounded-lg border-2 cursor-pointer transition hover:bg-gray-50 has-[:checked]:border-green-500 has-[:checked]:bg-green-50">
+                                    <input type="radio" name="export_format" value="excel" class="sr-only">
+                                    <svg class="w-5 h-5 text-green-500 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                    <span class="text-xs font-medium text-gray-700">Excel</span>
+                                </label>
                             </div>
-                            <p class="mt-2 text-xs text-gray-500">Choose how you want to receive the report</p>
                         </div>
 
-                        <div class="pt-6">
-                            <button type="submit" id="generate-report-btn"
-                                class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                                <svg class="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                                {{ __('Generate Report') }}
-                            </button>
-                        </div>
+                        <button type="submit" id="generate-report-btn"
+                                class="w-full inline-flex justify-center items-center px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                            <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            {{ __('Generate Report') }}
+                        </button>
                     </form>
                 </div>
 
-                <!-- Right Panel -->
-                <div class="lg:flex-1 p-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        {{ __('Generated Report Preview') }}
-                    </h3>
+                {{-- Right Panel: Preview --}}
+                <div class="flex-1 p-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <h3 class="text-sm font-semibold text-gray-700">{{ __('Report Preview') }}</h3>
+                    </div>
 
                     @if (isset($data) && $data->count())
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
+                    <div class="overflow-x-auto rounded-lg border border-gray-200">
+                        <table class="w-full">
                             <thead>
-                                <tr>
-                                    <th
-                                        class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
-                                        ID
-                                    </th>
-                                    <th
-                                        class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
-                                        Created At
-                                    </th>
-                                    <th
-                                        class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
-                                        Details
-                                    </th>
+                                <tr class="bg-gray-50 border-b border-gray-100">
+                                    <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
+                                    <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Created At</th>
+                                    <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Details</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
+                            <tbody class="divide-y divide-gray-50">
                                 @foreach ($data as $item)
-                                <tr class="hover:bg-gray-50 transition-colors">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ $item->id }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ $item->created_at }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ json_encode($item->toArray()) }}
-                                    </td>
+                                <tr class="hover:bg-blue-50/30 transition">
+                                    <td class="px-5 py-3 text-sm text-gray-600 font-medium">{{ $item->id }}</td>
+                                    <td class="px-5 py-3 text-sm text-gray-500">{{ $item->created_at->format('M d, Y H:i') }}</td>
+                                    <td class="px-5 py-3 text-sm text-gray-500 max-w-xs truncate">{{ json_encode($item->toArray()) }}</td>
                                 </tr>
                                 @endforeach
                             </tbody>
                         </table>
                     </div>
                     @else
-                    <div
-                        class="bg-gray-50 border-2 border-dashed border-blue-200 rounded-lg h-96 flex items-center justify-center">
+                    <div class="border-2 border-dashed border-gray-200 rounded-xl h-80 flex items-center justify-center">
                         <div class="text-center px-4">
-                            <svg class="mx-auto h-12 w-12 text-blue-400" xmlns="http://www.w3.org/2000/svg"
-                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900">No report generated yet</h3>
-                            <p class="mt-1 text-sm text-gray-500">
-                                {{ __('Your generated report will appear here') }}
-                            </p>
-                            <p class="mt-3 text-xs text-gray-500">
-                                Use the form on the left to generate a new report
-                            </p>
+                            <div class="mx-auto w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                                <svg class="w-7 h-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            </div>
+                            <h3 class="text-sm font-semibold text-gray-700">No report generated yet</h3>
+                            <p class="text-xs text-gray-500 mt-1">{{ __('Choose a report type and date range, then click Generate') }}</p>
                         </div>
                     </div>
                     @endif
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 @endsection
 
-@section('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const reportTypeSelect = document.getElementById('report_type');
-        const startDateInput = document.querySelector('input[name="start_date"]');
-        const endDateInput = document.querySelector('input[name="end_date"]');
-        const generateButton = document.getElementById('generate-report-btn');
-
-        // Initial validation on page load
-        validateForm();
-
-        // Add event listeners to all form inputs
-        reportTypeSelect.addEventListener('change', validateForm);
-        startDateInput.addEventListener('change', validateForm);
-        endDateInput.addEventListener('change', validateForm);
-
-        function validateForm() {
-            // Check if all required fields are filled
-            const isReportTypeSelected = reportTypeSelect.value !== '';
-            const isStartDateFilled = startDateInput.value !== '';
-            const isEndDateFilled = endDateInput.value !== '';
-
-            // Enable/disable the generate button based on validation
-            if (isReportTypeSelected && isStartDateFilled && isEndDateFilled) {
-                generateButton.disabled = false;
-                generateButton.classList.remove('opacity-50', 'cursor-not-allowed');
-            } else {
-                generateButton.disabled = true;
-                generateButton.classList.add('opacity-50', 'cursor-not-allowed');
-            }
-        }
-    });
-</script>
-<!-- Include jQuery if not already loaded -->
+@push('scripts')
+<!-- Dependencies -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- Select2 CSS & JS -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 
 <script>
-    $(document).ready(function() {
-        // Initialize Select2
-        $('#user_id, #office_id').select2({
-            placeholder: "Select an option",
-            allowClear: true,
-            width: 'resolve'
-        });
+document.addEventListener('DOMContentLoaded', function() {
+    // ===== Select2 =====
+    if (typeof $ !== 'undefined' && $.fn.select2) {
+        $('#user_id, #office_id').select2({ placeholder: "Select an option", allowClear: true, width: '100%', dropdownParent: $('body') });
+    }
 
-        // Validate form before submission
-        $('#filter-button').click(function(e) {
-            if ($('#start_date').val() === '' || $('#end_date').val() === '') {
-                e.preventDefault();
-                alert('Please select both start and end dates');
-            }
+    // ===== Display type toggle =====
+    document.querySelectorAll('input[name="display_type"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            this.closest('form').submit();
         });
+    });
 
-        @if($displayType == 'graph' || $displayType == 'both')
-        // Monthly Trends Chart
-        const monthlyTrendsCtx = document.getElementById('monthlyTrendsChart').getContext('2d');
-        const monthlyTrendsChart = new Chart(monthlyTrendsCtx, {
+    // ===== Form validation =====
+    const startDateInput = document.getElementById('audit_start_date');
+    const endDateInput = document.getElementById('audit_end_date');
+    const generateButton = document.getElementById('generate-report-btn');
+
+    function validateForm() {
+        if (!generateButton) return;
+        const start = startDateInput ? startDateInput.value : '';
+        const end = endDateInput ? endDateInput.value : '';
+        generateButton.disabled = !(start && end);
+    }
+
+    if (startDateInput) startDateInput.addEventListener('change', validateForm);
+    if (endDateInput) endDateInput.addEventListener('change', validateForm);
+    validateForm();
+
+    // ===== Date Preset Buttons =====
+    window.setDateRange = function(preset, e) {
+        const today = new Date();
+        let start = new Date();
+        switch (preset) {
+            case 'week': start.setDate(today.getDate() - 7); break;
+            case 'month': start.setMonth(today.getMonth() - 1); break;
+            case 'quarter': start.setMonth(today.getMonth() - 3); break;
+            case 'year': start.setFullYear(today.getFullYear() - 1); break;
+        }
+        if (startDateInput) startDateInput.value = start.toISOString().split('T')[0];
+        if (endDateInput) endDateInput.value = today.toISOString().split('T')[0];
+
+        // Highlight active preset button
+        document.querySelectorAll('.date-preset-btn').forEach(function(b) {
+            b.classList.remove('border-blue-500', 'bg-blue-50', 'text-blue-700');
+            b.classList.add('border-gray-200', 'text-gray-600');
+        });
+        // Find the clicked button (from event) or the matching data-preset button (programmatic)
+        var btn = e ? e.target.closest('.date-preset-btn') : document.querySelector('.date-preset-btn[data-preset="' + preset + '"]');
+        if (btn) {
+            btn.classList.remove('border-gray-200', 'text-gray-600');
+            btn.classList.add('border-blue-500', 'bg-blue-50', 'text-blue-700');
+        }
+        validateForm();
+    };
+
+    // Default to past month on load
+    setDateRange('month', null);
+
+    // ===== Chart defaults =====
+    Chart.defaults.font.family = "'Inter', 'Segoe UI', system-ui, sans-serif";
+    Chart.defaults.plugins.legend.labels.usePointStyle = true;
+    Chart.defaults.plugins.legend.labels.padding = 16;
+
+    @if($displayType == 'graph' || $displayType == 'both')
+    // ===== Monthly Trends =====
+    try {
+        var trendsCtx = document.getElementById('monthlyTrendsChart').getContext('2d');
+        var blueGrad = trendsCtx.createLinearGradient(0, 0, 0, 300);
+        blueGrad.addColorStop(0, 'rgba(59,130,246,0.25)');
+        blueGrad.addColorStop(1, 'rgba(59,130,246,0.02)');
+        var greenGrad = trendsCtx.createLinearGradient(0, 0, 0, 300);
+        greenGrad.addColorStop(0, 'rgba(16,185,129,0.25)');
+        greenGrad.addColorStop(1, 'rgba(16,185,129,0.02)');
+
+        new Chart(trendsCtx, {
             type: 'line',
             data: {
-                labels: {
-                    !!json_encode($monthlyData['months']) !!
-                },
+                labels: {!! json_encode($monthlyData['months']) !!},
                 datasets: [{
-                        label: 'Docs Forwarded',
-                        data: {
-                            !!json_encode($monthlyData['docsForwarded']) !!
-                        },
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 2,
-                        tension: 0.1
-                    },
-                    {
-                        label: 'Docs Uploaded',
-                        data: {
-                            !!json_encode($monthlyData['docsUploaded']) !!
-                        },
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 2,
-                        tension: 0.1
-                    }
-                ]
+                    label: 'Docs Forwarded',
+                    data: {!! json_encode($monthlyData['docsForwarded']) !!},
+                    backgroundColor: blueGrad,
+                    borderColor: 'rgba(59,130,246,1)',
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 6
+                }, {
+                    label: 'Docs Uploaded',
+                    data: {!! json_encode($monthlyData['docsUploaded']) !!},
+                    backgroundColor: greenGrad,
+                    borderColor: 'rgba(16,185,129,1)',
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 6
+                }]
             },
             options: {
                 responsive: true,
+                interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    title: {
-                        display: true,
-                        text: 'Monthly Document Activity'
-                    },
+                    legend: { position: 'top' },
                     tooltip: {
-                        mode: 'index',
-                        intersect: false,
+                        backgroundColor: 'rgba(15,23,42,0.9)',
+                        cornerRadius: 8,
+                        padding: 12
                     }
                 },
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Count'
-                        }
-                    }
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { color: '#94a3b8' } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
                 }
             }
         });
+    } catch(e) { console.error('Monthly trends chart error:', e); }
 
-        // Processing Times Chart
-        const processingTimesCtx = document.getElementById('processingTimesChart').getContext('2d');
-        const processingTimesChart = new Chart(processingTimesCtx, {
+    // ===== Processing Times =====
+    try {
+        new Chart(document.getElementById('processingTimesChart'), {
             type: 'bar',
             data: {
-                labels: {
-                    !!json_encode($monthlyData['months']) !!
-                },
+                labels: {!! json_encode($monthlyData['months']) !!},
                 datasets: [{
-                        label: 'Avg Time to Receive (min)',
-                        data: {
-                            !!json_encode($monthlyData['receiveTimes']) !!
-                        },
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'Avg Time to Review (min)',
-                        data: {
-                            !!json_encode($monthlyData['reviewTimes']) !!
-                        },
-                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                        borderColor: 'rgba(153, 102, 255, 1)',
-                        borderWidth: 1
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Average Processing Times'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const minutes = context.raw;
-                                if (minutes >= 60) {
-                                    const hours = Math.floor(minutes / 60);
-                                    const remainingMinutes = Math.round(minutes % 60);
-                                    return `${context.dataset.label}: ${hours}h ${remainingMinutes}m`;
-                                }
-                                return `${context.dataset.label}: ${minutes} min`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Minutes'
-                        }
-                    }
-                }
-            }
-        });
-
-        // Document Statistics Chart
-        const documentStatsCtx = document.getElementById('documentStatsChart').getContext('2d');
-        const documentStatsChart = new Chart(documentStatsCtx, {
-            type: 'pie',
-            data: {
-                labels: ['Forwarded', 'Uploaded'],
-                datasets: [{
-                    data: [{
-                        {
-                            $averageDocsForwarded
-                        }
-                    }, {
-                        {
-                            $documentsUploaded
-                        }
-                    }],
-                    backgroundColor: [
-                        'rgba(54, 162, 235, 0.6)',
-                        'rgba(75, 192, 192, 0.6)'
-                    ],
-                    borderColor: [
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(75, 192, 192, 1)'
-                    ],
-                    borderWidth: 1
+                    label: 'Avg Time to Receive (min)',
+                    data: {!! json_encode($monthlyData['receiveTimes']) !!},
+                    backgroundColor: 'rgba(239,68,68,0.15)',
+                    borderColor: 'rgba(239,68,68,1)',
+                    borderWidth: 1.5,
+                    borderRadius: 6,
+                    barPercentage: 0.6
+                }, {
+                    label: 'Avg Time to Review (min)',
+                    data: {!! json_encode($monthlyData['reviewTimes']) !!},
+                    backgroundColor: 'rgba(139,92,246,0.15)',
+                    borderColor: 'rgba(139,92,246,1)',
+                    borderWidth: 1.5,
+                    borderRadius: 6,
+                    barPercentage: 0.6
                 }]
             },
             options: {
                 responsive: true,
                 plugins: {
-                    title: {
-                        display: true,
-                        text: 'Document Distribution'
-                    },
-                    legend: {
-                        position: 'bottom',
+                    legend: { position: 'top' },
+                    tooltip: {
+                        backgroundColor: 'rgba(15,23,42,0.9)',
+                        cornerRadius: 8,
+                        padding: 12,
+                        callbacks: {
+                            label: function(ctx) {
+                                const m = ctx.raw;
+                                if (m >= 60) {
+                                    return ctx.dataset.label + ': ' + Math.floor(m/60) + 'h ' + Math.round(m%60) + 'm';
+                                }
+                                return ctx.dataset.label + ': ' + m + ' min';
+                            }
+                        }
                     }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { color: '#94a3b8' }, title: { display: true, text: 'Minutes', color: '#94a3b8' } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
                 }
             }
         });
-        @endif
-    });
+    } catch(e) { console.error('Processing times chart error:', e); }
+
+    // ===== Document Stats Doughnut =====
+    try {
+        new Chart(document.getElementById('documentStatsChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Forwarded', 'Uploaded'],
+                datasets: [{
+                    data: [{{ $averageDocsForwarded }}, {{ $documentsUploaded }}],
+                    backgroundColor: ['rgba(59,130,246,0.7)', 'rgba(16,185,129,0.7)'],
+                    borderColor: ['rgba(59,130,246,1)', 'rgba(16,185,129,1)'],
+                    borderWidth: 2,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 12, padding: 16 } }
+                }
+            }
+        });
+    } catch(e) { console.error('Document stats chart error:', e); }
+    @endif
+});
 </script>
-@endsection
+@endpush

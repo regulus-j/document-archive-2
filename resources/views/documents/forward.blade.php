@@ -202,7 +202,7 @@
                                 </div>
                                 <label class="ml-3 block text-gray-700 text-lg font-semibold">
                                     <span class="parallel-label">Recipients for Step <span class="step-order-label">1</span></span>
-                                    <span class="sequential-label hidden">Step <span class="step-order-label">1</span> - First Recipient</span>
+                                    <span class="sequential-label hidden">Step <span class="step-order-label">1</span> - <span class="step-ordinal-label">First</span> Recipient</span>
                                 </label>
                                 <!-- Sequential Flow Arrow -->
                                 <div class="sequential-arrow hidden ml-auto mr-4">
@@ -802,6 +802,13 @@
                     label.innerText = index + 1;
                 });
                 batch.querySelector('.step-order').value = index + 1;
+
+                // Update the ordinal label (First, Second, Third, etc.)
+                const ordinalLabel = batch.querySelector('.step-ordinal-label');
+                if (ordinalLabel) {
+                    const ordinals = ['First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth', 'Tenth'];
+                    ordinalLabel.innerText = ordinals[index] || ('Step ' + (index + 1));
+                }
 
                 // Update radio button names & ids for each batch
                 const recipientRadios = batch.querySelectorAll('input[type="radio"].office-radio, input[type="radio"].user-radio');
