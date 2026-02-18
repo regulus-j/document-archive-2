@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\CompanyUser;
 use App\Models\DocumentAttachment;
 use App\Models\DocumentAudit;
+use App\Models\ESignature;
 use App\Services\DocumentAccessService;
 use Illuminate\Support\Facades\Storage;
 
@@ -122,6 +123,41 @@ class DocumentWorkflowController extends Controller
         
         return null;
     }
+
+    /**
+     * Store e-signature if provided in the request (called from action methods)
+     */
+    private function handleInlineSignature(Request $request, DocumentWorkflow $workflow, string $action): void
+    {
+        if (!$request->has('signature_data') || empty($request->signature_data)) {
+            return;
+        }
+
+        $user = auth()->user();
+        $signatureData = $request->signature_data;
+        $signatureData = str_replace('data:image/png;base64,', '', $signatureData);
+        $signatureData = str_replace(' ', '+', $signatureData);
+        $imageData = base64_decode($signatureData);
+
+        $fileName = 'sig_' . $user->id . '_' . $workflow->id . '_' . time() . '.png';
+        $companyId = $workflow->document->company_id ?? 'general';
+        $signaturePath = $companyId . '/signatures/' . $fileName;
+
+        Storage::disk('public')->put($signaturePath, $imageData);
+
+        ESignature::create([
+            'document_id' => $workflow->document_id,
+            'workflow_id' => $workflow->id,
+            'user_id' => $user->id,
+            'action' => $action,
+            'signature_path' => $signaturePath,
+            'full_name' => $user->first_name . ' ' . $user->last_name,
+            'position' => $user->position ?? null,
+            'ip_address' => $request->ip(),
+            'signed_at' => now(),
+        ]);
+    }
+
     // workflow logic
     public function createWorkflow(Request $request): RedirectResponse
     {
@@ -350,6 +386,9 @@ class DocumentWorkflowController extends Controller
         $workflow = DocumentWorkflow::findOrFail($id);
         $workflow->approve();
         
+        // Store e-signature if provided
+        $this->handleInlineSignature($request, $workflow, 'approved');
+        
         // Save remarks if provided
         if ($request->has('remarks') && !empty($request->remarks)) {
             $workflow->remarks = $request->remarks;
@@ -425,6 +464,9 @@ class DocumentWorkflowController extends Controller
         $workflow->reject();
         $workflow->remarks = $request->remarks;
         $workflow->save();
+
+        // Store e-signature if provided
+        $this->handleInlineSignature($request, $workflow, 'rejected');
 
         // Log with remarks
         DocumentAudit::logDocumentAction(
@@ -545,6 +587,7 @@ class DocumentWorkflowController extends Controller
         
         $workflow = DocumentWorkflow::findOrFail($id);
         $document = $workflow->document;
+        $document->load(['attachments.uploader', 'eSignatures.user']);
         
         // Check if user can view this document based on classification
         if (!$this->documentAccessService->canViewDocument($document)) {
@@ -644,6 +687,9 @@ class DocumentWorkflowController extends Controller
         $workflow->return();
         $workflow->remarks = $request->remarks;
         $workflow->save();
+
+        // Store e-signature if provided
+        $this->handleInlineSignature($request, $workflow, 'returned');
 
         // Update document status to indicate it's returned to uploader
         $document = Document::findOrFail($workflow->document_id);
@@ -889,6 +935,9 @@ class DocumentWorkflowController extends Controller
         $workflow->received_at = now();
         $workflow->save();
         
+        // Store e-signature if provided
+        $this->handleInlineSignature($request, $workflow, 'commented');
+        
         // Handle sequential workflow progression for comments
         $nextStepActivated = $this->activateNextSequentialStep($workflow);
         
@@ -956,6 +1005,9 @@ class DocumentWorkflowController extends Controller
         }
         $workflow->received_at = now();
         $workflow->save();
+        
+        // Store e-signature if provided
+        $this->handleInlineSignature($request, $workflow, 'acknowledged');
         
         // Handle sequential workflow progression for acknowledgments
         $nextStepActivated = $this->activateNextSequentialStep($workflow);
@@ -1094,5 +1146,158 @@ class DocumentWorkflowController extends Controller
         ]);
 
         return false;
+    }
+
+    /**
+     * Preview/view a document file inline in the browser
+     */
+    public function previewDocument($id)
+    {
+        $document = Document::findOrFail($id);
+
+        if (!$this->documentAccessService->canViewDocument($document)) {
+            abort(403, 'Access denied.');
+        }
+
+        $filePath = storage_path('app/public/' . $document->path);
+
+        if (!file_exists($filePath)) {
+            abort(404, 'File not found.');
+        }
+
+        $mimeType = mime_content_type($filePath);
+
+        return response()->file($filePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . basename($document->path) . '"',
+        ]);
+    }
+
+    /**
+     * Preview/view an attachment file inline in the browser
+     */
+    public function previewAttachment($id)
+    {
+        $attachment = DocumentAttachment::findOrFail($id);
+        $document = $attachment->document;
+
+        if (!$this->documentAccessService->canViewDocument($document)) {
+            abort(403, 'Access denied.');
+        }
+
+        $filePath = storage_path('app/public/' . $attachment->path);
+
+        if (!file_exists($filePath)) {
+            abort(404, 'File not found.');
+        }
+
+        $mimeType = $attachment->mime_type ?? mime_content_type($filePath);
+
+        return response()->file($filePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $attachment->filename . '"',
+        ]);
+    }
+
+    /**
+     * Store e-signature for a workflow action
+     */
+    public function storeSignature(Request $request, $workflowId)
+    {
+        $accessCheck = $this->ensureWorkflowAccess($workflowId);
+        if ($accessCheck) return $accessCheck;
+
+        $request->validate([
+            'signature_data' => 'required|string', // base64 image data
+            'action' => 'required|in:approved,rejected,acknowledged,commented,returned',
+        ]);
+
+        $workflow = DocumentWorkflow::findOrFail($workflowId);
+        $user = auth()->user();
+
+        // Decode and store the signature image
+        $signatureData = $request->signature_data;
+        $signatureData = str_replace('data:image/png;base64,', '', $signatureData);
+        $signatureData = str_replace(' ', '+', $signatureData);
+        $imageData = base64_decode($signatureData);
+
+        $fileName = 'sig_' . $user->id . '_' . $workflow->id . '_' . time() . '.png';
+        $companyId = $workflow->document->company_id ?? 'general';
+        $signaturePath = $companyId . '/signatures/' . $fileName;
+
+        Storage::disk('public')->put($signaturePath, $imageData);
+
+        $signature = ESignature::create([
+            'document_id' => $workflow->document_id,
+            'workflow_id' => $workflow->id,
+            'user_id' => $user->id,
+            'action' => $request->action,
+            'signature_path' => $signaturePath,
+            'full_name' => $user->first_name . ' ' . $user->last_name,
+            'position' => $user->position ?? null,
+            'ip_address' => $request->ip(),
+            'signed_at' => now(),
+        ]);
+
+        DocumentAudit::logDocumentAction(
+            $workflow->document_id,
+            $user->id,
+            'signature',
+            $request->action,
+            'E-signature applied: ' . $request->action . ' by ' . $signature->full_name
+        );
+
+        return response()->json([
+            'success' => true,
+            'signature_id' => $signature->id,
+            'message' => 'Signature saved successfully.',
+        ]);
+    }
+
+    /**
+     * Upload attachment from processor during workflow review
+     */
+    public function uploadProcessorAttachment(Request $request, $workflowId)
+    {
+        $accessCheck = $this->ensureWorkflowAccess($workflowId);
+        if ($accessCheck) return $accessCheck;
+
+        $request->validate([
+            'attachments' => 'required|array',
+            'attachments.*' => 'file|mimes:jpeg,png,jpg,gif,webp,bmp,svg,pdf,doc,docx,xls,xlsx,csv|max:10240',
+        ]);
+
+        $workflow = DocumentWorkflow::findOrFail($workflowId);
+        $document = $workflow->document;
+        $user = auth()->user();
+        $companyId = $document->company_id ?? 'general';
+
+        $uploaded = [];
+        foreach ($request->file('attachments') as $file) {
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $filePath = $file->storeAs($companyId . '/attachments', $fileName, 'public');
+
+            $attachment = DocumentAttachment::create([
+                'document_id' => $document->id,
+                'filename' => $file->getClientOriginalName(),
+                'path' => $filePath,
+                'route_id' => $workflow->id,
+                'storage_size' => $file->getSize(),
+                'mime_type' => $file->getMimeType(),
+                'uploaded_by' => $user->id,
+            ]);
+
+            $uploaded[] = $attachment;
+        }
+
+        DocumentAudit::logDocumentAction(
+            $document->id,
+            $user->id,
+            'attachment',
+            'uploaded',
+            count($uploaded) . ' attachment(s) uploaded during workflow review by ' . $user->first_name . ' ' . $user->last_name
+        );
+
+        return redirect()->back()->with('success', count($uploaded) . ' attachment(s) uploaded successfully.');
     }
 }

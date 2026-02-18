@@ -2,6 +2,34 @@
 
 @push('scripts')
 <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script>
+    function openSignatureModal(imgUrl, name, position, action, date) {
+        document.getElementById('sig-modal-img').src = imgUrl;
+        document.getElementById('sig-modal-name').textContent = name;
+        document.getElementById('sig-modal-position').textContent = position || '';
+        document.getElementById('sig-modal-date').textContent = date;
+
+        var actionEl = document.getElementById('sig-modal-action');
+        actionEl.textContent = action;
+        var colors = {Approved:'green',Rejected:'red',Acknowledged:'blue',Commented:'indigo',Returned:'yellow'};
+        var c = colors[action] || 'gray';
+        actionEl.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-' + c + '-100 text-' + c + '-700';
+
+        var modal = document.getElementById('sig-modal');
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSignatureModal(e) {
+        if (e && e.target !== e.currentTarget) return;
+        document.getElementById('sig-modal').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeSignatureModal();
+    });
+</script>
 @endpush
 
 @section('content')
@@ -385,18 +413,31 @@
                     </div>
                     <!-- Attachments Card -->
                     <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                        <p class="text-sm font-medium text-gray-500 mb-1">Attachments</p>
+                        <p class="text-sm font-medium text-gray-500 mb-2">Attachments</p>
                         @if($document->attachments->isNotEmpty())
-                        <ul class="list-disc pl-4">
+                        <div class="space-y-2">
                             @foreach($document->attachments as $attachment)
-                            <li>
-                                <a href="{{ route('documents.download', $attachment->id) }}"
-                                    class="text-blue-600 hover:text-blue-800 transition-colors">
-                                    {{ $attachment->filename }}
-                                </a>
-                            </li>
+                            <div class="flex items-center justify-between">
+                                <div class="min-w-0 flex-1">
+                                    <a href="{{ route('documents.download', $attachment->id) }}"
+                                        class="text-sm text-blue-600 hover:text-blue-800 transition-colors font-medium truncate block">
+                                        {{ $attachment->filename }}
+                                    </a>
+                                    <p class="text-xs text-gray-400 mt-0.5">
+                                        @if($attachment->uploader)
+                                            <span class="text-gray-600">{{ $attachment->uploader->first_name }} {{ $attachment->uploader->last_name }}</span>
+                                            <span class="mx-1">&middot;</span>
+                                        @endif
+                                        {{ $attachment->created_at->format('M d, Y g:ia') }}
+                                        @if($attachment->storage_size)
+                                            <span class="mx-1">&middot;</span>
+                                            {{ number_format($attachment->storage_size / 1024, 1) }} KB
+                                        @endif
+                                    </p>
+                                </div>
+                            </div>
                             @endforeach
-                        </ul>
+                        </div>
                         @else
                         <p class="text-base font-medium text-gray-900">N/A</p>
                         @endif
@@ -414,79 +455,131 @@
                     <p class="text-base text-gray-600">{{ $document->description }}</p>
                 </div>
 
+                <!-- E-Signatures -->
+                <div class="bg-indigo-50/60 p-4 rounded-lg border border-indigo-200/60 transition-all duration-300 hover:border-indigo-300/80 mb-8">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center">
+                            <svg class="h-4 w-4 text-indigo-500 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                            <p class="text-sm font-medium text-indigo-900">E-Signatures</p>
+                        </div>
+                        @if($document->eSignatures->count())
+                            <span class="text-xs font-medium text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full">{{ $document->eSignatures->count() }} signature(s)</span>
+                        @endif
+                    </div>
+                    @if($document->eSignatures->count())
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        @foreach($document->eSignatures as $sig)
+                        <div class="bg-white rounded-lg border border-indigo-100 p-3 transition-all duration-300 hover:border-indigo-300 hover:shadow-sm cursor-pointer" onclick="openSignatureModal('{{ Storage::url($sig->signature_path) }}', '{{ addslashes($sig->full_name) }}', '{{ addslashes($sig->position ?? '') }}', '{{ ucfirst($sig->action) }}', '{{ $sig->signed_at->format('M d, Y g:ia') }}')">
+                            <div class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-20 h-14 rounded border border-gray-200 bg-white overflow-hidden">
+                                    <img src="{{ Storage::url($sig->signature_path) }}" alt="Signature" class="w-full h-full object-contain">
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-semibold text-gray-800">{{ $sig->full_name }}</p>
+                                    @if($sig->position)
+                                        <p class="text-xs text-gray-500">{{ $sig->position }}</p>
+                                    @endif
+                                    <div class="flex items-center gap-2 mt-1">
+                                        @php
+                                            $actionColors = ['approved'=>'green','rejected'=>'red','acknowledged'=>'blue','commented'=>'indigo','returned'=>'yellow'];
+                                            $ac = $actionColors[$sig->action] ?? 'gray';
+                                        @endphp
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $ac }}-100 text-{{ $ac }}-700">
+                                            {{ ucfirst($sig->action) }}
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-1">{{ $sig->signed_at->format('M d, Y g:ia') }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                    @else
+                    <p class="text-base font-medium text-indigo-700">No signatures yet</p>
+                    @endif
+                </div>
+
 
             </div>
+            </div>
+        </div>
+
+        <!-- Status Banners -->
+        @if($document->status === 'needs_revision')
+        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-amber-700">This document was rejected and needs revision.</p>
+                    @if(isset($workflow) && $workflow->remarks)
+                    <p class="mt-2 text-sm text-amber-700"><strong>Rejection remarks:</strong> {{ $workflow->remarks }}</p>
+                    @endif
+                    <div class="mt-4">
+                        <a href="{{ route('documents.edit', $document->id) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">Revise Document</a>
+                        <form action="{{ route('documents.cancel', $document->id) }}" method="POST" class="inline-block ml-2">@csrf
+                            <button type="submit" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Cancel Workflow</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        @if($document->status === 'returned')
+        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-amber-700">This document was returned to you for updates.</p>
+                    @php $returnedWorkflow = $document->documentWorkflow()->where('status', 'returned')->first(); @endphp
+                    @if($returnedWorkflow && $returnedWorkflow->remarks)
+                    <p class="mt-2 text-sm text-amber-700"><strong>Return remarks:</strong> {{ $returnedWorkflow->remarks }}</p>
+                    @endif
+                    <div class="mt-4">
+                        <a href="{{ route('documents.edit', $document->id) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">Update Document</a>
+                        <form action="{{ route('documents.cancel', $document->id) }}" method="POST" class="inline-block ml-2">@csrf
+                            <button type="submit" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Cancel Workflow</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+    </div>
+</div>
+
+<!-- Signature Modal -->
+<div id="sig-modal" class="fixed inset-0 z-50 hidden" onclick="closeSignatureModal(event)">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div class="relative flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <div>
+                    <h3 id="sig-modal-name" class="text-lg font-semibold text-gray-800"></h3>
+                    <p id="sig-modal-position" class="text-sm text-gray-500"></p>
+                </div>
+                <button onclick="closeSignatureModal()" class="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-6 bg-gray-50 flex items-center justify-center">
+                <img id="sig-modal-img" src="" alt="Signature" class="max-w-full max-h-64 object-contain">
+            </div>
+            <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+                <span id="sig-modal-action" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"></span>
+                <span id="sig-modal-date" class="text-xs text-gray-400"></span>
             </div>
         </div>
     </div>
 </div>
 @endsection
-
-@if($document->status === 'needs_revision')
-<div class="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6">
-    <div class="flex">
-        <div class="flex-shrink-0">
-            <svg class="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-            </svg>
-        </div>
-        <div class="ml-3">
-            <p class="text-sm text-amber-700">
-                This document was rejected and needs revision.
-            </p>
-            @if(isset($workflow) && $workflow->remarks)
-            <p class="mt-2 text-sm text-amber-700">
-                <strong>Rejection remarks:</strong> {{ $workflow->remarks }}
-            </p>
-            @endif
-            <div class="mt-4">
-                <a href="{{ route('documents.edit', $document->id) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
-                    Revise Document
-                </a>
-                <form action="{{ route('documents.cancel', $document->id) }}" method="POST" class="inline-block ml-2">
-                    @csrf
-                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                        Cancel Workflow
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-@endif
-
-@if($document->status === 'returned')
-<div class="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6">
-    <div class="flex">
-        <div class="flex-shrink-0">
-            <svg class="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-            </svg>
-        </div>
-        <div class="ml-3">
-            <p class="text-sm text-amber-700">
-                This document was returned to you for updates.
-            </p>
-            @php
-                $returnedWorkflow = $document->documentWorkflow()->where('status', 'returned')->first();
-            @endphp
-            @if($returnedWorkflow && $returnedWorkflow->remarks)
-            <p class="mt-2 text-sm text-amber-700">
-                <strong>Return remarks:</strong> {{ $returnedWorkflow->remarks }}
-            </p>
-            @endif
-            <div class="mt-4">
-                <a href="{{ route('documents.edit', $document->id) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
-                    Update Document
-                </a>
-                <form action="{{ route('documents.cancel', $document->id) }}" method="POST" class="inline-block ml-2">
-                    @csrf
-                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                        Cancel Workflow
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-@endif

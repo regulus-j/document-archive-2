@@ -889,11 +889,13 @@ class DocumentController extends Controller
             }
         }
 
-        $attachments = Document::with('attachments')->findOrFail($document->id)->attachments;
+        $attachments = Document::with('attachments.uploader')->findOrFail($document->id)->attachments;
         $auditLogs = DocumentAudit::where('document_id', $document->id)
             ->with(['user'])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
+
+        $document->load('eSignatures.user');
 
         return view('documents.show', compact('document', 'auditLogs', 'attachments', 'docRoute', 'workflows'));
     }

@@ -82,6 +82,11 @@ class Document extends Model
         return $this->hasMany(DocumentAttachment::class);
     }
 
+    public function eSignatures()
+    {
+        return $this->hasMany(ESignature::class);
+    }
+
     public function documentWorkflow()
     {
         return $this->hasMany(DocumentWorkflow::class, 'document_id');

@@ -199,7 +199,19 @@ Route::middleware('auth')->group(function () {
 
             Route::post('/review/submit/{workflow}', [DocumentWorkflowController::class, 'reviewSubmit'])
                 ->name('documents.review.submit');
+
+            Route::post('/{workflow}/signature', [DocumentWorkflowController::class, 'storeSignature'])
+                ->name('documents.storeSignature');
+
+            Route::post('/{workflow}/upload-attachment', [DocumentWorkflowController::class, 'uploadProcessorAttachment'])
+                ->name('documents.uploadProcessorAttachment');
         });
+
+        Route::get('/{id}/preview', [DocumentWorkflowController::class, 'previewDocument'])
+            ->name('documents.preview');
+
+        Route::get('/attachments/{id}/preview', [DocumentWorkflowController::class, 'previewAttachment'])
+            ->name('attachments.preview');
 
         Route::post('/{document}/forward', [DocumentWorkflowController::class, 'forwardDocumentSubmit'])
             ->name('documents.forward.submit');
