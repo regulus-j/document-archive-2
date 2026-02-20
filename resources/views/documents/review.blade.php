@@ -305,7 +305,63 @@
                     <h2 class="text-lg font-semibold text-gray-700">Available Actions</h2>
                 </div>
                 <div class="p-4">
-                    {{-- Action Buttons --}}
+
+                    @php
+                        // Determine if actions can be taken on this workflow
+                        $actionableStatuses = ['received', 'pending'];
+                        $isActionable = in_array($workflow->status, $actionableStatuses);
+                        $completedStatuses = ['approved', 'rejected', 'returned', 'acknowledged', 'commented', 'forwarded'];
+                        $isCompleted = in_array($workflow->status, $completedStatuses);
+                        $isWaiting = $workflow->status === 'waiting';
+                    @endphp
+
+                    @if($isCompleted)
+                        {{-- Show completed status banner instead of action buttons --}}
+                        <div class="flex items-center gap-3 p-4 rounded-lg border
+                            @switch($workflow->status)
+                                @case('approved') border-green-200 bg-green-50 @break
+                                @case('rejected') border-red-200 bg-red-50 @break
+                                @case('returned') border-yellow-200 bg-yellow-50 @break
+                                @case('acknowledged') border-blue-200 bg-blue-50 @break
+                                @case('commented') border-indigo-200 bg-indigo-50 @break
+                                @case('forwarded') border-purple-200 bg-purple-50 @break
+                                @default border-gray-200 bg-gray-50
+                            @endswitch
+                        ">
+                            <svg class="w-5 h-5 flex-shrink-0
+                                @switch($workflow->status)
+                                    @case('approved') text-green-600 @break
+                                    @case('rejected') text-red-600 @break
+                                    @case('returned') text-yellow-600 @break
+                                    @case('acknowledged') text-blue-600 @break
+                                    @case('commented') text-indigo-600 @break
+                                    @case('forwarded') text-purple-600 @break
+                                    @default text-gray-600
+                                @endswitch
+                            " fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <div>
+                                <p class="text-sm font-medium text-gray-800">Action already completed</p>
+                                <p class="text-xs text-gray-500 mt-0.5">This workflow has been <strong>{{ $workflow->status }}</strong>. No further actions are available.</p>
+                                @if($workflow->remarks)
+                                    <p class="text-xs text-gray-500 mt-1"><strong>Remarks:</strong> {{ $workflow->remarks }}</p>
+                                @endif
+                            </div>
+                        </div>
+                    @elseif($isWaiting)
+                        {{-- Show waiting status for sequential workflows --}}
+                        <div class="flex items-center gap-3 p-4 rounded-lg border border-amber-200 bg-amber-50">
+                            <svg class="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <div>
+                                <p class="text-sm font-medium text-amber-800">Waiting for your turn</p>
+                                <p class="text-xs text-amber-600 mt-0.5">This is a sequential workflow. Previous steps must be completed before you can take action.</p>
+                            </div>
+                        </div>
+                    @elseif($isActionable)
+                    {{-- Action Buttons - only show when workflow is actionable --}}
                     @if($workflow->purpose === 'appropriate_action')
                         <div class="inline-flex rounded-md shadow-sm flex-wrap gap-y-2">
                             <button type="button" class="relative inline-flex items-center px-3 py-2 text-sm font-medium border border-r-0 border-green-200 text-green-700 bg-white hover:bg-green-50 rounded-l-lg transition-colors" onclick="showActionForm('approval-form')">
@@ -366,7 +422,10 @@
                         </div>
                     @endif
 
-                    {{-- Action Forms --}}
+                    @endif {{-- End of @elseif($isActionable) --}}
+
+                    {{-- Action Forms - only rendered when workflow is actionable --}}
+                    @if($isActionable)
                     <div class="mt-6 space-y-4">
 
                         {{-- E-Signature Pad (shared across all actions) --}}
@@ -490,6 +549,7 @@
                             </form>
                         </div>
                     </div>
+                    @endif {{-- End of action forms isActionable --}}
                 </div>
             </div>
 
