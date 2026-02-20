@@ -201,6 +201,13 @@ class DocumentWorkflowController extends Controller
             'workflow_mode' => 'required|string|in:parallel,sequential',
         ]);
 
+        // Ensure document from_office is set to the uploader's office if missing or mismatched
+        $uploaderOffice = auth()->user()->offices->first();
+        if (!$document->from_office && $uploaderOffice) {
+            $document->from_office = $uploaderOffice->id;
+            $document->save();
+        }
+
         $document->status()->update(['status' => 'forwarded']);
 
         // Generate tracking number

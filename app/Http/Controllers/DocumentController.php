@@ -896,6 +896,7 @@ class DocumentController extends Controller
             ->paginate(15);
 
         $document->load('eSignatures.user');
+        $document->load('originatingOffice');
 
         return view('documents.show', compact('document', 'auditLogs', 'attachments', 'docRoute', 'workflows'));
     }
