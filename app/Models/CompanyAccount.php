@@ -111,14 +111,21 @@ class CompanyAccount extends Model
 
     public function userLimit()
     {
-        // Check if there is currently a subscription
-        $subscription = $this->subscriptions()->with('plan.features')->first();
+        // Check if there is currently an active subscription (use latest, not oldest)
+        $subscription = $this->subscriptions()
+            ->with('plan.features')
+            ->orderBy('start_date', 'desc')
+            ->first();
 
         if (!$subscription) {
             return 3;
         }
 
         $plan = $subscription->plan;
+        if (!$plan) {
+            return 3;
+        }
+
         // Check which user limit feature the plan has
         if ($plan->hasFeature('users-100')) {
             return 100;
@@ -131,22 +138,30 @@ class CompanyAccount extends Model
             return 3;
         }
     }
+
     public function canAddUser()
     {
-        return $this->employees->count() < $this->userLimit();
+        return $this->employees()->count() < $this->userLimit();
     }
 
     public function teamLimit()
     {
-        // Check if there is currently a subscription
-        $subscription = $this->subscriptions()->with('plan.features')->first();
+        // Check if there is currently an active subscription (use latest, not oldest)
+        $subscription = $this->subscriptions()
+            ->with('plan.features')
+            ->orderBy('start_date', 'desc')
+            ->first();
 
         if (!$subscription) {
             return 1;
         }
 
         $plan = $subscription->plan;
-        // Check which user limit feature the plan has
+        if (!$plan) {
+            return 1;
+        }
+
+        // Check which team limit feature the plan has
         if ($plan->hasFeature('users-20')) {
             return 20;
         } elseif ($plan->hasFeature('users-10')) {
@@ -154,14 +169,18 @@ class CompanyAccount extends Model
         } elseif ($plan->hasFeature('users-3')) {
             return 3;
         } else {
-            // Fallback to free tier limit if no user limit feature found
+            // Fallback to free tier limit if no team limit feature found
             return 1;
         }
     }
 
+    /**
+     * Check if company can add more teams.
+     * Uses a fresh DB count query to avoid stale cached data and race conditions.
+     */
     public function canAddTeam()
     {
-        return $this->offices->count() < $this->teamLimit();
+        return $this->offices()->count() < $this->teamLimit();
     }
 
     // $plan->hasFeature('storage-2gb');

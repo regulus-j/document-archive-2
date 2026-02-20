@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Office;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class OfficeController extends Controller
 {
@@ -66,25 +67,37 @@ class OfficeController extends Controller
                 ->with('error', 'Please create a company first.');
         }
 
-        if (!$company->canAddTeam()) {
+        // Use a database transaction with pessimistic locking to prevent race conditions
+        try {
+            return DB::transaction(function () use ($request, $company) {
+                // Lock the company row to prevent concurrent team creation
+                $company = $company->lockForUpdate()->find($company->id);
+
+                // Fresh count check within the lock
+                if (!$company->canAddTeam()) {
+                    return redirect()->route('office.index')
+                        ->with('error', 'Max teams reached, upgrade your plan to create more.');
+                }
+
+                $office = Office::create([
+                    'company_id' => $company->id,
+                    'name' => $request->name,
+                    'parent_office_id' => $request->parent_office_id,
+                    'office_lead' => $request->office_lead,
+                ]);
+
+                // If an office lead is selected, ensure they're attached to this office
+                if ($request->office_lead) {
+                    $office->users()->syncWithoutDetaching([$request->office_lead]);
+                }
+
+                return redirect()->route('office.index')
+                    ->with('success', 'Office created successfully.');
+            });
+        } catch (\Exception $e) {
             return redirect()->route('office.index')
-                ->with('error', 'Max teams reached, upgrade your plan to create more.');
+                ->with('error', 'Error creating office: ' . $e->getMessage());
         }
-
-        $office = Office::create([
-            'company_id' => $company->id,
-            'name' => $request->name,
-            'parent_office_id' => $request->parent_office_id,
-            'office_lead' => $request->office_lead,
-        ]);
-
-        // If an office lead is selected, ensure they're attached to this office
-        if ($request->office_lead) {
-            $office->users()->syncWithoutDetaching([$request->office_lead]);
-        }
-
-        return redirect()->route('office.index')
-            ->with('success', 'Office created successfully.');
     }
 
     /**
