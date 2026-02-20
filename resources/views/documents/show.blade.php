@@ -121,6 +121,7 @@
                          x-transition:leave="transition ease-in duration-150"
                          x-transition:leave-start="opacity-100 transform translate-y-0"
                          x-transition:leave-end="opacity-0 transform -translate-y-2"
+                         class="max-h-[500px] overflow-y-auto pr-2">
                 <div class="relative">
                     <!-- Progress Line -->
                     <div class="absolute h-full w-0.5 bg-gray-200 left-6 top-0"></div>
@@ -346,16 +347,7 @@
                             <p class="text-sm font-medium text-emerald-900">From Office</p>
                         </div>
                         <p class="text-base font-medium text-emerald-700">
-                            @if(isset($docRoute[1]) && count($docRoute[1]) > 0)
-                            @foreach($docRoute[1] as $route)
-                            @if($route['type'] == 'office')
-                            {{ $route['name'] }}
-                            @break
-                            @endif
-                            @endforeach
-                            @else
-                            {{ $document->user->offices->first()->name ?? 'N/A' }}
-                            @endif
+                            {{ $document->originatingOffice->name ?? ($document->user->offices->first()->name ?? 'N/A') }}
                         </p>
                     </div>
                     <!-- To Office Card -->
@@ -500,6 +492,96 @@
                     <p class="text-base font-medium text-indigo-700">No signatures yet</p>
                     @endif
                 </div>
+
+                <!-- Workflow Recipients & Responses -->
+                @if(isset($workflows) && $workflows->isNotEmpty())
+                <div class="bg-sky-50/60 p-4 rounded-lg border border-sky-200/60 transition-all duration-300 hover:border-sky-300/80 mb-8">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center">
+                            <svg class="h-4 w-4 text-sky-500 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <p class="text-sm font-medium text-sky-900">Recipients & Responses</p>
+                        </div>
+                        <span class="text-xs font-medium text-sky-600 bg-sky-100 px-2 py-0.5 rounded-full">{{ $workflows->count() }} recipient(s)</span>
+                    </div>
+
+                    @php
+                        $workflowsByStep = $workflows->groupBy('step_order');
+                        $isSequentialWorkflow = $workflows->where('workflow_type', 'sequential')->isNotEmpty();
+                    @endphp
+
+                    @if($isSequentialWorkflow)
+                        <p class="text-xs text-sky-600 mb-3 flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                            Sequential Workflow &mdash; recipients process in step order
+                        </p>
+                    @endif
+
+                    <div class="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                        @foreach($workflowsByStep as $step => $stepWorkflows)
+                            @if($isSequentialWorkflow)
+                            <div class="text-xs font-semibold text-sky-700 uppercase tracking-wider mb-1">Step {{ $step }}</div>
+                            @endif
+
+                            @foreach($stepWorkflows as $wf)
+                                @php
+                                    $wfStatusColors = [
+                                        'pending'      => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'border' => 'border-yellow-200'],
+                                        'waiting'      => ['bg' => 'bg-gray-100', 'text' => 'text-gray-600', 'border' => 'border-gray-200'],
+                                        'received'     => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800', 'border' => 'border-blue-200'],
+                                        'approved'     => ['bg' => 'bg-green-100', 'text' => 'text-green-800', 'border' => 'border-green-200'],
+                                        'rejected'     => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'border' => 'border-red-200'],
+                                        'returned'     => ['bg' => 'bg-amber-100', 'text' => 'text-amber-800', 'border' => 'border-amber-200'],
+                                        'acknowledged' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800', 'border' => 'border-blue-200'],
+                                        'commented'    => ['bg' => 'bg-indigo-100', 'text' => 'text-indigo-800', 'border' => 'border-indigo-200'],
+                                        'forwarded'    => ['bg' => 'bg-purple-100', 'text' => 'text-purple-800', 'border' => 'border-purple-200'],
+                                    ];
+                                    $wfColor = $wfStatusColors[$wf->status] ?? ['bg' => 'bg-gray-100', 'text' => 'text-gray-700', 'border' => 'border-gray-200'];
+
+                                    $purposeLabels = [
+                                        'appropriate_action' => 'Action Required',
+                                        'dissemination' => 'Dissemination',
+                                        'for_comment' => 'For Comment',
+                                    ];
+                                @endphp
+                                <div class="bg-white rounded-lg border {{ $wfColor['border'] }} p-3 transition-all duration-200 hover:shadow-sm">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="flex items-start gap-3 min-w-0">
+                                            <div class="flex-shrink-0 h-8 w-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                                                {{ $wf->recipient ? strtoupper(substr($wf->recipient->first_name ?? '?', 0, 1)) : '?' }}
+                                            </div>
+                                            <div class="min-w-0">
+                                                <p class="text-sm font-medium text-gray-800">
+                                                    {{ $wf->recipient ? ($wf->recipient->first_name . ' ' . $wf->recipient->last_name) : 'Unknown' }}
+                                                </p>
+                                                <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                                                    @if($wf->recipientOffice)
+                                                        <span class="text-xs text-gray-500">{{ $wf->recipientOffice->name }}</span>
+                                                        <span class="text-gray-300">&middot;</span>
+                                                    @endif
+                                                    @if($wf->purpose)
+                                                        <span class="text-xs text-gray-400">{{ $purposeLabels[$wf->purpose] ?? ucfirst($wf->purpose) }}</span>
+                                                    @endif
+                                                </div>
+                                                @if($wf->remarks)
+                                                    <p class="text-xs text-gray-500 mt-1.5 italic">&ldquo;{{ $wf->remarks }}&rdquo;</p>
+                                                @endif
+                                                @if($wf->received_at)
+                                                    <p class="text-xs text-gray-400 mt-1">Responded: {{ \Carbon\Carbon::parse($wf->received_at)->format('M d, Y g:ia') }}</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <span class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $wfColor['bg'] }} {{ $wfColor['text'] }}">
+                                            {{ ucfirst($wf->status) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @endforeach
+                    </div>
+                </div>
+                @endif
 
 
             </div>
