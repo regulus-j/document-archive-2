@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -29,5 +31,9 @@ class AppServiceProvider extends ServiceProvider
         if(config('app.env') === 'production') {
         \URL::forceScheme('https');
     }
+
+        RateLimiter::for('chatbot', function ($request) {
+            return Limit::perMinute(15)->by(optional($request->user())->id ?: $request->ip());
+        });
     }
 }

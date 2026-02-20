@@ -50,6 +50,12 @@ return [
     'recaptcha' => [
         'site_key' => env('RECAPTCHA_SITE_KEY'),
         'secret_key' => env('RECAPTCHA_SECRET_KEY'),
-    ], 
+    ],
+
+    'gemini' => [
+        'api_key'           => env('GEMINI_API_KEY'),
+        'endpoint'          => 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent',
+        'max_output_tokens' => 2048,
+    ],
 
 ];

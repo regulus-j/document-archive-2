@@ -72,6 +72,11 @@
             }
         });
     </script>
+
+    {{-- DocBot AI Chatbot Widget --}}
+    @auth
+        <x-chatbot-widget />
+    @endauth
 </body>
 
 </html>

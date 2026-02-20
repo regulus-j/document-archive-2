@@ -247,9 +247,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{office}', [OfficeController::class, 'destroy'])->name('office.destroy');
     });
 
-    Route::middleware(['auth', 'has.company'])->group(function () {
-        Route::resource('offices', OfficeController::class);
-    });
+    // Note: Office CRUD routes are already defined above under Route::prefix('office')
+    // Do NOT add Route::resource('offices', ...) here to avoid duplicate/unprotected routes
 
     // Office user assignment routes
     Route::get('offices/{office}/assign-users', [OfficeController::class, 'assignUsers'])->name('office.assign.users');
@@ -367,4 +366,11 @@ require __DIR__ . '/auth.php';
 Route::middleware('auth')->group(function () {
     Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
+});
+
+// Chatbot
+Route::middleware('auth')->group(function () {
+    Route::post('/chatbot/ask', [\App\Http\Controllers\ChatbotController::class, 'ask'])
+        ->middleware('throttle:chatbot')
+        ->name('chatbot.ask');
 });
