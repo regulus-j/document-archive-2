@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use App\Models\CompanyAccount;
 use App\Models\CompanyAddress;
 use App\Models\CompanyUser;
@@ -141,7 +142,10 @@ class CompanyController extends Controller
     {
         // Use custom validation rules from the model to enforce one company per user
         // Passing the company ID to exclude the current company from validation
-        $request->validate(CompanyAccount::rules($company->id));
+        $rules = CompanyAccount::rules($company->id);
+        $rules['logo'] = 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048';
+        $rules['color_theme'] = 'nullable|string|in:' . implode(',', array_keys(CompanyAccount::colorPalette()));
+        $request->validate($rules);
 
         $validated = $request->only([
             'user_id',
@@ -149,7 +153,17 @@ class CompanyController extends Controller
             'registered_name',
             'company_email',
             'company_phone',
+            'color_theme',
         ]);
+
+        // Handle logo upload
+        if ($request->hasFile('logo')) {
+            // Delete old logo if present
+            if ($company->logo) {
+                Storage::disk('public')->delete($company->logo);
+            }
+            $validated['logo'] = $request->file('logo')->store('company_logos', 'public');
+        }
 
         $company->update($validated);
 

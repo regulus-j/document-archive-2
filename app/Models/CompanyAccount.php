@@ -18,7 +18,37 @@ class CompanyAccount extends Model
         'registered_name',
         'company_email',
         'company_phone',
+        'logo',
+        'color_theme',
     ];
+
+    /**
+     * Map color theme names to hex values used in PDF exports and site theming.
+     */
+    public static function colorPalette(): array
+    {
+        return [
+            'blue'    => '#2563eb',
+            'indigo'  => '#4f46e5',
+            'purple'  => '#7c3aed',
+            'green'   => '#16a34a',
+            'emerald' => '#059669',
+            'teal'    => '#0d9488',
+            'red'     => '#dc2626',
+            'rose'    => '#e11d48',
+            'orange'  => '#ea580c',
+            'amber'   => '#d97706',
+            'slate'   => '#475569',
+        ];
+    }
+
+    /**
+     * Return the hex value of the company's chosen color theme.
+     */
+    public function colorHex(): string
+    {
+        return static::colorPalette()[$this->color_theme ?? 'blue'] ?? '#2563eb';
+    }
 
     /**
      * Boot the model.

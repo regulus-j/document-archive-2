@@ -215,6 +215,37 @@ class ReportController extends Controller
     }
 
     /**
+     * Resolve company branding (logo as base64 data URI, accent color, company name)
+     * for the currently authenticated user's company.
+     *
+     * @param CompanyAccount|null $company  Pass an already-resolved company to avoid a second query.
+     * @return array{logoDataUri:string|null, companyColor:string, companyName:string}
+     */
+    private function getCompanyBranding(?CompanyAccount $company = null): array
+    {
+        if (!$company) {
+            // Prefer the company owned by the user; fall back to any company they belong to
+            $company = CompanyAccount::where('user_id', auth()->id())->first()
+                ?? CompanyAccount::whereHas('employees', fn($q) => $q->where('users.id', auth()->id()))->first();
+        }
+
+        $logoDataUri = null;
+        if ($company && $company->logo) {
+            $path = Storage::disk('public')->path($company->logo);
+            if (file_exists($path)) {
+                $mime = mime_content_type($path);
+                $logoDataUri = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($path));
+            }
+        }
+
+        return [
+            'logoDataUri'  => $logoDataUri,
+            'companyColor' => $company ? $company->colorHex() : '#2563eb',
+            'companyName'  => $company ? $company->company_name : 'Document Archive',
+        ];
+    }
+
+    /**
      * Export analytics data to PDF
      */
     private function exportAnalyticsToPdf($startDate, $endDate, $userId = null, $officeId = null)
@@ -275,6 +306,9 @@ class ReportController extends Controller
         // Get monthly trend data for the chart
         $monthlyData = $this->getMonthlyAnalyticsData($startDate, $endDate, $userId, $officeId);
         
+        // Get company branding for the PDF header
+        $branding = $this->getCompanyBranding();
+
         // Create PDF
         $pdf = PDF::loadView('reports.analytics_pdf', [
             'startDate' => $startDate,
@@ -285,8 +319,12 @@ class ReportController extends Controller
             'averageTimeToReview' => $averageTimeToReview,
             'averageDocsForwarded' => $averageDocsForwarded,
             'documentsUploaded' => $documentsUploaded,
-            'monthlyData' => $monthlyData,  // Make sure this is passed
-            'generatedAt' => now()->format('Y-m-d H:i:s')
+            'monthlyData' => $monthlyData,
+            'generatedAt' => now()->format('F j, Y h:i A'),
+            'generatedBy' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
+            'logoDataUri'  => $branding['logoDataUri'],
+            'companyColor' => $branding['companyColor'],
+            'companyName'  => $branding['companyName'],
         ]);
         
         $fileName = 'analytics_report_' . now()->format('Y_m_d_H_i_s') . '.pdf';
@@ -668,7 +706,21 @@ class ReportController extends Controller
      */
     private function exportToPdf($data, $title, $dateRange, $reportType)
     {
-        $pdf = Pdf::loadView('reports.pdf_export', compact('data', 'title', 'dateRange', 'reportType'));
+        $branding = $this->getCompanyBranding();
+        $generatedBy = auth()->user()->first_name . ' ' . auth()->user()->last_name;
+        $generatedAt = now()->format('F j, Y h:i A');
+
+        $pdf = Pdf::loadView('reports.pdf_export', [
+            'data'         => $data,
+            'title'        => $title,
+            'dateRange'    => $dateRange,
+            'reportType'   => $reportType,
+            'generatedBy'  => $generatedBy,
+            'generatedAt'  => $generatedAt,
+            'logoDataUri'  => $branding['logoDataUri'],
+            'companyColor' => $branding['companyColor'],
+            'companyName'  => $branding['companyName'],
+        ]);
         $fileName = Str::slug($title) . '_' . now()->format('Y-m-d_H-i-s') . '.pdf';
         
         // Create a report record
@@ -830,6 +882,7 @@ class ReportController extends Controller
                                                 $startDate, $endDate)
     {
         // Create PDF with the company dashboard data
+        $branding = $this->getCompanyBranding($company);
         $pdf = PDF::loadView('reports.company_dashboard_pdf', [
             'company' => $company,
             'companyUsers' => $companyUsers,
@@ -839,7 +892,10 @@ class ReportController extends Controller
             'officePerformanceMetrics' => $officePerformanceMetrics,
             'startDate' => $startDate,
             'endDate' => $endDate,
-            'generatedAt' => now()->format('Y-m-d H:i:s')
+            'generatedAt' => now()->format('F j, Y h:i A'),
+            'generatedBy' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
+            'logoDataUri'  => $branding['logoDataUri'],
+            'companyColor' => $branding['companyColor'],
         ]);
         
         $fileName = 'company_dashboard_' . $company->company_name . '_' . now()->format('Y_m_d_H_i_s') . '.pdf';
@@ -1898,6 +1954,7 @@ class ReportController extends Controller
                                                    $startDate, $endDate)
     {
         // Create PDF with the office dashboard data
+        $branding = $this->getCompanyBranding();
         $pdf = PDF::loadView('reports.office_lead_dashboard_pdf', [
             'office' => $office,
             'officeMembers' => $officeMembers,
@@ -1908,7 +1965,10 @@ class ReportController extends Controller
             'memberPerformanceMetrics' => $memberPerformanceMetrics,
             'startDate' => $startDate,
             'endDate' => $endDate,
-            'generatedAt' => now()->format('Y-m-d H:i:s')
+            'generatedAt' => now()->format('F j, Y h:i A'),
+            'generatedBy' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
+            'logoDataUri'  => $branding['logoDataUri'],
+            'companyColor' => $branding['companyColor'],
         ]);
         
         $fileName = 'office_lead_dashboard_' . $office->name . '_' . now()->format('Y_m_d_H_i_s') . '.pdf';

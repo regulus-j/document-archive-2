@@ -38,7 +38,7 @@
                 </div>
             </div>
             <div class="p-6">
-                <form method="POST" action="{{ route('companies.update', $company->id) }}">
+                <form method="POST" action="{{ route('companies.update', $company->id) }}" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
 
@@ -159,6 +159,81 @@
                                 });
                             </script>
                             @endpush
+
+                            <!-- Company Branding Section -->
+                            <div class="border-t border-gray-200 pt-6">
+                                <!-- Company Branding -->
+                                <div class="mb-8">
+                                    <div class="flex items-center mb-4">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        <h3 class="text-lg font-medium text-gray-900">Branding &amp; Reports</h3>
+                                    </div>
+                                    <p class="text-sm text-gray-500 mb-5">The logo and color will appear on all exported PDF reports.</p>
+
+                                    {{-- Logo Upload --}}
+                                    <div class="mb-6">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Company Logo</label>
+                                        <div class="flex items-center gap-5">
+                                            @if($company->logo)
+                                                <img src="{{ asset('storage/' . $company->logo) }}" alt="Company Logo"
+                                                     class="h-16 w-auto object-contain border border-gray-200 rounded-lg p-1 bg-gray-50">
+                                            @else
+                                                <div class="h-16 w-16 flex items-center justify-center bg-gray-100 border border-dashed border-gray-300 rounded-lg text-gray-400">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    </svg>
+                                                </div>
+                                            @endif
+                                            <div class="flex-1">
+                                                <input type="file" name="logo" id="logo" accept="image/*"
+                                                       class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                                <p class="mt-1 text-xs text-gray-500">PNG, JPG, GIF or SVG up to 2 MB. Recommended: 300×100 px.</p>
+                                                @error('logo')
+                                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Signature Color Palette --}}
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-3">Signature Color</label>
+                                        @php
+                                            $palette = \App\Models\CompanyAccount::colorPalette();
+                                            $paletteLabels = [
+                                                'blue'    => 'Blue',
+                                                'indigo'  => 'Indigo',
+                                                'purple'  => 'Purple',
+                                                'green'   => 'Green',
+                                                'emerald' => 'Emerald',
+                                                'teal'    => 'Teal',
+                                                'red'     => 'Red',
+                                                'rose'    => 'Rose',
+                                                'orange'  => 'Orange',
+                                                'amber'   => 'Amber',
+                                                'slate'   => 'Slate',
+                                            ];
+                                        @endphp
+                                        <div class="flex flex-wrap gap-3">
+                                            @foreach($palette as $key => $hex)
+                                                <label class="cursor-pointer flex flex-col items-center gap-1">
+                                                    <input type="radio" name="color_theme" value="{{ $key }}"
+                                                           {{ old('color_theme', $company->color_theme ?? 'blue') === $key ? 'checked' : '' }}
+                                                           class="sr-only peer">
+                                                    <span class="w-9 h-9 rounded-full border-2 border-transparent peer-checked:border-gray-800 peer-checked:ring-2 peer-checked:ring-offset-1 peer-checked:ring-gray-600 transition-all shadow-sm"
+                                                          style="background-color: {{ $hex }};" title="{{ $paletteLabels[$key] }}"></span>
+                                                    <span class="text-xs text-gray-500 peer-checked:font-semibold peer-checked:text-gray-800">{{ $paletteLabels[$key] }}</span>
+                                                </label>
+                                            @endforeach
+                                        </div>
+                                        @error('color_theme')
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
 
                             <!-- Form Actions -->
                             <div class="border-t border-gray-200 pt-6">
