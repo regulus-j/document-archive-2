@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use PhpOffice\PhpWord\IOFactory;
 use Spatie\PdfToText\Pdf;
@@ -36,13 +37,9 @@ class DocumentController extends Controller
     {
         $this->documentAccessService = $documentAccessService;
     }
-    // public function __construct()
-    // {
-    //     $this->middleware('permission:document-list|document-create|document-edit|document-delete', ['only' => ['index', 'show']]);
-    //     $this->middleware('permission:document-create', ['only' => ['create', 'store']]);
-    //     $this->middleware('permission:document-edit', ['only' => ['edit', 'update']]);
-    //     $this->middleware('permission:document-delete', ['only' => ['destroy']]);
-    // }
+    // B-09 FIX: Removed commented-out duplicate __construct() block that contained
+    // permission middleware. Access control is now handled via DocumentAccessService
+    // and policies. The commented block was confusing and implied it was still active.
 
     /**
      * Display a listing of the documents.
@@ -51,7 +48,15 @@ class DocumentController extends Controller
     {
         // Use the access service to get documents the user can view
         $query = $this->documentAccessService->getAccessibleDocuments()
-            ->with(['user.offices', 'status', 'transaction.fromOffice', 'transaction.toOffice', 'categories']);
+            ->with([
+                'user.offices',
+                'status',
+                'transaction.fromOffice',
+                'transaction.toOffice',
+                'categories',
+                'documentWorkflow.recipient',
+                'documentWorkflow.recipientOffice',
+            ]);
 
         // Get the user's company ID
         $userCompany = auth()->user()->companies()->first();
@@ -121,23 +126,21 @@ class DocumentController extends Controller
 
         $auditLogs = DocumentAudit::latest()->paginate(15);
 
-        // Determine the recipients for each document
+        // Determine the recipients for each document.
+        // documentWorkflow (with recipient + recipientOffice) is already eager-loaded above —
+        // no additional queries are fired here.
         $documentRecipients = [];
         foreach ($documents as $doc) {
-            $workflows = DocumentWorkflow::with(['recipient', 'recipientOffice'])
-                ->where('document_id', $doc->id)
-                ->get();
-
             $recipients = collect();
 
-            foreach ($workflows as $workflow) {
+            foreach ($doc->documentWorkflow as $workflow) {
                 // Add user recipients
                 if ($workflow->recipient) {
                     $name = trim($workflow->recipient->first_name . ' ' . $workflow->recipient->last_name);
                     $recipients->push([
                         'name' => $name,
                         'type' => 'user',
-                        'step_order' => $workflow->step_order
+                        'step_order' => $workflow->step_order,
                     ]);
                 }
 
@@ -146,7 +149,7 @@ class DocumentController extends Controller
                     $recipients->push([
                         'name' => $workflow->recipientOffice->name,
                         'type' => 'office',
-                        'step_order' => $workflow->step_order
+                        'step_order' => $workflow->step_order,
                     ]);
                 }
             }
@@ -267,7 +270,13 @@ class DocumentController extends Controller
         }
 
         $documents = $query->latest()->paginate(5);
-        $auditLogs = DocumentAudit::paginate(15);
+
+        // B-08 FIX: scope audit logs to documents in the current company only, not all companies.
+        $companyDocumentIds = Document::whereHas('user.companies', function ($q) use ($userCompany) {
+            $q->where('company_accounts.id', $userCompany->id);
+        })->pluck('id');
+
+        $auditLogs = DocumentAudit::whereIn('document_id', $companyDocumentIds)->latest()->paginate(15);
 
         return view('documents.archive', array_merge([
             'documents' => $documents,
@@ -341,14 +350,15 @@ class DocumentController extends Controller
         }
 
         $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required',
-            'category' => 'nullable|integer',
-            'from_office' => 'required|exists:offices,id',
-            'main_document' => 'required|file|max:10240|mimes:pdf,doc,docx,jpg,jpeg,png',
-            'attachments.*' => 'file|mimes:jpeg,png,jpg,gif,pdf,docx|max:10240',
-            'archive' => 'nullable|string',
-            'forward' => 'nullable|string',
+            'title'          => 'required|string|max:255',
+            'description'    => 'required',
+            'category'       => 'nullable|integer',
+            'classification' => 'required|in:Public,Office Only,Custom Offices,Private', // A-04 FIX: restrict to known values.
+            'from_office'    => 'required|exists:offices,id',
+            'main_document'  => 'required|file|max:10240|mimes:pdf,doc,docx,jpg,jpeg,png',
+            'attachments.*'  => 'file|mimes:jpeg,png,jpg,gif,pdf,docx|max:10240',
+            'archive'        => 'nullable|string',
+            'forward'        => 'nullable|string',
         ]);
 
         // Custom validation for Custom Offices classification
@@ -365,8 +375,9 @@ class DocumentController extends Controller
             $companyId = $user->companies()->first()->id ?? 'default';
             $companyPath = $companyId;
 
-            $file = $request->file('main_document');  // Changed from 'upload'
-            $fileName = time() . '_' . $file->getClientOriginalName();
+            $file = $request->file('main_document');
+            // A-02 FIX: Never use client-supplied filename for storage (path traversal / double-extension risk).
+            $fileName = Str::random(40) . '.' . $file->getClientOriginalExtension();
             Log::info('Uploading file', ['fileName' => $fileName]);
             $filePath = $file->storeAs($companyPath . '/documents', $fileName, 'public');
 
@@ -431,14 +442,16 @@ class DocumentController extends Controller
             if ($request->hasFile('attachments')) {
                 \Log::info('Processing attachments');
                 foreach ($request->file('attachments') as $attachment) {
-                    $attachmentName = time() . '_' . $attachment->getClientOriginalName();
+                    // A-02 FIX: random storage name; keep sanitised original for display.
+                    $attachmentDisplayName = basename($attachment->getClientOriginalName());
+                    $attachmentName        = Str::random(40) . '.' . $attachment->getClientOriginalExtension();
                     $companyPath = auth()->user()->companies()->first()->id ?? 'default';
                     \Log::info('Uploading attachment', ['attachmentName' => $attachmentName]);
                     $attachmentPath = $attachment->storeAs($companyPath . '/attachments', $attachmentName, 'public');
 
                     DocumentAttachment::create([
                         'document_id' => $document->id,
-                        'filename' => $attachmentName,
+                        'filename' => $attachmentDisplayName,
                         'path' => $attachmentPath,
                         'storage_size' => $attachment->getSize(),
                         'mime_type' => $attachment->getMimeType(),
@@ -469,7 +482,7 @@ class DocumentController extends Controller
         } catch (Exception $e) {
             \Log::error('Document processing error in uploadController: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'Error processing document: ' . $e->getMessage())
+                ->with('error', 'An error occurred while processing your document. Please try again.') // A-05 FIX: no internal details exposed.
                 ->withInput();
         }
     }
@@ -477,6 +490,12 @@ class DocumentController extends Controller
     public function forwardDocument(Request $request, $id)
     {
         $document = Document::findOrFail($id);
+
+        // A-08 FIX: Only the uploader (or a company-admin / super-admin) may reach the
+        // forward page.  Anyone else gets a 403.
+        if (!$this->documentAccessService->canEditDocument($document)) {
+            abort(403, 'Access Denied: You are not authorized to forward this document.');
+        }
 
         // Get the companies this user belongs to
         $userCompanyIds = auth()->user()->companies()->pluck('company_id');
@@ -542,7 +561,8 @@ class DocumentController extends Controller
 
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
-                $fileName = time() . '_' . $file->getClientOriginalName();
+                // A-02 FIX: random storage name.
+                $fileName = Str::random(40) . '.' . $file->getClientOriginalExtension();
                 $filePath = $file->storeAs('documents', $fileName, 'public');
                 $fullPath = storage_path("app/public/temp/{$filePath}");
 
@@ -616,7 +636,7 @@ class DocumentController extends Controller
             \Log::error('Search processing error: ' . $e->getMessage());
 
             return redirect()->back()
-                ->with('error', 'Error processing search: ' . $e->getMessage())
+                ->with('error', 'An error occurred while processing your search. Please try again.') // A-05 FIX.
                 ->withInput();
         }
     }
@@ -645,118 +665,16 @@ class DocumentController extends Controller
     }
 
     /**
-     * DEFUNCT,
-     * Store a newly created document in storage.
+     * B-09 FIX: This method was marked DEFUNCT and is unreachable via any active route.
+     * (POST /documents → uploadController().)
+     * Method is kept as an explicit stub to surface any future routing mistake early.
+     *
+     * @deprecated  Use uploadController() for document uploads.
      */
     public function store(Request $request): RedirectResponse
     {
-        // Validate the request
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required',
-            'classification' => 'required|string',
-            // 'from_office' => 'required|exists:offices,id',
-            // 'to_office' => 'required|exists:offices,id',
-            'remarks' => 'nullable|string|max:250',
-            'upload' => 'required|file|mimes:jpeg,png,jpg,gif,pdf,docx|max:10240', // 10MB max
-            'attachements.*' => 'file|mimes:jpeg,png,jpg,gif,pdf,docx|max:10240',
-        ]);
-
-        try {
-            // Handle file upload
-            $file = $request->file('upload');
-            $fileName = time() . '_' . $file->getClientOriginalName();
-            $filePath = $file->storeAs('documents', $fileName, 'public');
-            // $fullPath = Storage::path('public/' . $filePath);
-
-            // Extract content based on file type
-            // $content = '';
-            // In the store method, replace the OCR section with:
-            // if ($this->isImage($file)) {
-            //     // Configure Tesseract with proper path
-            //     $command = '"' . env('TESSERACT_PATH', 'C:\Program Files\Tesseract-OCR\tesseract.exe') . '" "' . $fullPath . '" stdout';
-            //     $content = shell_exec($command);
-
-            //     if (empty($content)) {
-            //         \Log::warning('OCR produced no output for file: ' . $fileName);
-            //         $content = ''; // Fallback to empty content
-            //     }
-
-            //     // Log the command and output for debugging
-            //     \Log::info('OCR Command: ' . $command);
-            //     \Log::info('OCR Output: ' . ($content ?? 'No output'));
-            // }
-
-            // Create document record
-
-            $document = Document::create([
-                'title' => $request->title,
-                'uploader' => auth()->id(),
-                'description' => $request->description,
-                'path' => $filePath,
-                'remarks' => $request->remarks ?? null,
-            ]);
-
-            $document->categories()->attach([$request->classification]);
-
-            $document->status()->create([
-                'status' => 'pending',
-            ]);
-            $tracking_number = $this->generateTrackingNumber($request->from_office);
-
-            // Create tracking number record
-            DocumentTrackingNumber::create([
-                'doc_id' => $document->id,
-                'tracking_number' => $tracking_number,
-            ]);
-
-            DocumentTransaction::create([
-                'doc_id' => $document->id,
-                'from_office' => $request->from_office,
-                'to_office' => $request->to_office,
-            ]);
-
-            // Handle additional attachments if any
-
-            if ($request->hasFile('attachments')) {
-
-                foreach ($request->file('attachments') as $attachment) {
-
-                    $attachmentName = time() . '_' . $attachment->getClientOriginalName();
-
-                    $attachmentPath = $attachment->storeAs('attachments', $attachmentName, 'public');
-
-                    DocumentAttachment::create([
-
-                        'document_id' => $document->id,
-
-                        'filename' => $attachmentName,
-
-                        'path' => $attachmentPath,
-
-                        'storage_size' => $attachment->getSize(),
-
-                        'mime_type' => $attachment->getMimeType(),
-
-                    ]);
-                }
-            }
-
-            // Log document creation
-            $this->logDocumentAction($document, 'created', 'pending', 'Document uploaded');
-
-            $data = $this->generateTrackingSlip($document->id, auth()->id(), $tracking_number);
-
-            return redirect()->route('documents.index')
-                ->with('data', $data)
-                ->with('success', 'Document uploaded successfully');
-        } catch (Exception $e) {
-            \Log::error('Document processing error: ' . $e->getMessage());
-
-            return redirect()->back()
-                ->with('error', 'Error processing document: ' . $e->getMessage())
-                ->withInput();
-        }
+        // Explicit rejection — not the active upload handler.
+        abort(405, 'This endpoint is no longer in use.');
     }
 
     private function isImage($file): bool
@@ -932,12 +850,13 @@ class DocumentController extends Controller
     public function update(Request $request, Document $document): RedirectResponse
     {
         $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required',
-            'category' => 'nullable|integer',
-            'from_office' => 'required|exists:offices,id',
-            'main_document' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,docx|max:10240',
-            'attachments.*' => 'file|mimes:jpeg,png,jpg,gif,pdf,docx|max:10240',
+            'title'          => 'required|string|max:255',
+            'description'    => 'required',
+            'category'       => 'nullable|integer',
+            'classification' => 'nullable|in:Public,Office Only,Custom Offices,Private', // A-04 FIX: restrict to known values.
+            'from_office'    => 'required|exists:offices,id',
+            'main_document'  => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,docx|max:10240',
+            'attachments.*'  => 'file|mimes:jpeg,png,jpg,gif,pdf,docx|max:10240',
         ]);
 
         // Custom validation for Custom Offices classification
@@ -1006,7 +925,8 @@ class DocumentController extends Controller
                 $companyPath = $companyId;
 
                 $file = $request->file('main_document');
-                $fileName = time() . '_' . $file->getClientOriginalName();
+                // A-02 FIX: random storage name.
+                $fileName = Str::random(40) . '.' . $file->getClientOriginalExtension();
                 \Log::info('Uploading new file', ['fileName' => $fileName]);
                 $filePath = $file->storeAs($companyPath . '/documents', $fileName, 'public');
 
@@ -1039,13 +959,15 @@ class DocumentController extends Controller
                 foreach ($request->file('attachments') as $attachment) {
                     $companyId = auth()->user()->companies()->first()->id ?? 'default';
                     $companyPath = $companyId;
-                    $attachmentName = time() . '_' . $attachment->getClientOriginalName();
+                    // A-02 FIX: random storage name; preserve original for display.
+                    $attachmentDisplayName = basename($attachment->getClientOriginalName());
+                    $attachmentName        = Str::random(40) . '.' . $attachment->getClientOriginalExtension();
                     \Log::info('Uploading attachment', ['attachmentName' => $attachmentName]);
                     $attachmentPath = $attachment->storeAs($companyPath . '/attachments', $attachmentName, 'public');
 
                     DocumentAttachment::create([
                         'document_id' => $document->id,
-                        'filename' => $attachmentName,
+                        'filename' => $attachmentDisplayName,
                         'path' => $attachmentPath,
                         'storage_size' => $attachment->getSize(),
                         'mime_type' => $attachment->getMimeType(),
@@ -1107,7 +1029,7 @@ class DocumentController extends Controller
         } catch (Exception $e) {
             \Log::error('Document update error: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'Error updating document: ' . $e->getMessage())
+                ->with('error', 'An error occurred while updating the document. Please try again.') // A-05 FIX.
                 ->withInput();
         }
     }
@@ -1194,35 +1116,91 @@ class DocumentController extends Controller
 
     public function uploadImage(Request $request)
     {
-        $data = $request->input('image');
+        // A-06 FIX: validate presence and size before any processing.
+        $request->validate([
+            'image' => 'required|string',
+        ]);
 
-        // Decode the base64 image
-        [$type, $data] = explode(';', $data);
-        [, $data] = explode(',', $data);
-        $data = base64_decode($data);
+        $rawData = $request->input('image');
 
-        // Generate a unique filename
-        $filename = 'uploads/' . uniqid() . '.png';
+        // Expect a data URI: "data:<mime>;base64,<data>"
+        if (!str_contains($rawData, ';') || !str_contains($rawData, ',')) {
+            return Response::json(['error' => 'Invalid image format.'], 422);
+        }
 
-        // Store the image
-        Storage::put($filename, $data);
+        [$meta, $encoded] = explode(',', $rawData, 2);
+        $binaryData = base64_decode($encoded, strict: true);
 
-        return Response::json(['success' => 'Image uploaded successfully', 'filename' => $filename, 'path' => asset('storage/' . $filename)]);
+        if ($binaryData === false) {
+            return Response::json(['error' => 'Invalid base64 data.'], 422);
+        }
+
+        // A-06 FIX: enforce size cap (5 MB) to prevent disk exhaustion.
+        $maxBytes = 5 * 1024 * 1024;
+        if (strlen($binaryData) > $maxBytes) {
+            return Response::json(['error' => 'Image exceeds the maximum allowed size of 5 MB.'], 422);
+        }
+
+        // A-06 FIX: verify the decoded data is genuinely an image.
+        $imageInfo = @getimagesizefromstring($binaryData);
+        if ($imageInfo === false) {
+            return Response::json(['error' => 'Uploaded data is not a valid image.'], 422);
+        }
+
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!in_array($imageInfo['mime'], $allowedMimes, true)) {
+            return Response::json(['error' => 'Image type not allowed.'], 422);
+        }
+
+        // Safe extension derived from actual MIME type, not user input.
+        $ext      = image_type_to_extension($imageInfo[2], include_dot: false);
+        $filename = 'uploads/' . Str::random(40) . '.' . $ext;
+
+        Storage::put($filename, $binaryData);
+
+        return Response::json([
+            'success'  => 'Image uploaded successfully',
+            'filename' => $filename,
+            'path'     => asset('storage/' . $filename),
+        ]);
     }
 
     public function downloadFile($id)
     {
         try {
-            $document = Document::findOrFail($id) ?? $document = DocumentAttachment::findOrFail($id);
-            $filePath = storage_path('app/public/' . $document->path);
+            // Resolve the target: try Document first, then fall back to DocumentAttachment.
+            // (The original `findOrFail() ?? findOrFail()` pattern was broken because
+            //  findOrFail() always throws on miss — it never returns null.)
+            $document    = Document::find($id);
+            $attachment  = null;
 
-            if (!$document || !$document->path || !file_exists($filePath)) {
+            if (!$document) {
+                $attachment = DocumentAttachment::with('document')->findOrFail($id);
+                $document   = $attachment->document;
+            }
+
+            if (!$document) {
+                abort(404, 'File not found.');
+            }
+
+            // A-01 FIX: Authorize before serving the file.
+            if (!$this->documentAccessService->canViewDocument($document)) {
+                abort(403, 'Access Denied: You are not authorized to download this file.');
+            }
+
+            $target   = $attachment ?? $document;
+            $filePath = storage_path('app/public/' . $target->path);
+
+            if (!$target->path || !file_exists($filePath)) {
                 return redirect()->back()->with('error', 'File not found or inaccessible.');
             }
 
             return response()->download($filePath);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return redirect()->back()->with('error', 'The requested file does not exist.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error downloading file: ' . $e->getMessage());
+            Log::error('Download error for ID ' . $id . ': ' . $e->getMessage());
+            return redirect()->back()->with('error', 'An error occurred while processing your download request.');
         }
     }
 
@@ -1234,14 +1212,14 @@ class DocumentController extends Controller
 
         do {
             // Define the characters to use for the random part
-            $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            $characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             $charactersLength = strlen($characters);
-            $randomString = '';
+            $randomString     = '';
 
-            // Generate the random part of the tracking number
+            // A-07 FIX: use random_int() instead of rand() — cryptographically secure.
             for ($i = 0; $i < $length; $i++) {
-                $randomString .= $characters[rand(0, $charactersLength - 1)];
-                $randomString .= $characters[rand(0, $charactersLength - 1)];
+                $randomString .= $characters[random_int(0, $charactersLength - 1)];
+                $randomString .= $characters[random_int(0, $charactersLength - 1)];
             }
 
             // Combine the prefix with the random string and a timestamp
@@ -1441,8 +1419,9 @@ public function receiveConfirm(Document $document)
             ->with('success', 'Document has been successfully received.');
 
     } catch (\Exception $e) {
+        Log::error('Failed to receive document ID ' . $document->id . ': ' . $e->getMessage());
         return redirect()->back()
-            ->with('error', 'Failed to receive document: ' . $e->getMessage());
+            ->with('error', 'An error occurred while receiving the document. Please try again.'); // A-05 FIX.
     }
 }
 
