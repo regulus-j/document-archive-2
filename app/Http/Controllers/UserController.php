@@ -229,7 +229,7 @@ class UserController extends Controller
             'middle_name' => $request->middle_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
-            'password' => bcrypt($temp_pass),
+            'password' => Hash::make($temp_pass), // B-10 FIX: use Hash facade for consistency.
         ]);
 
         // Attach multiple offices
@@ -376,6 +376,8 @@ class UserController extends Controller
             'last_name' => 'required|string|max:255',
             'email' => "required|email|unique:users,email,{$id},id,deleted_at,NULL",
             'roles' => 'required|array',
+            // B-06 FIX: require a minimum length and confirmation when a new password is supplied.
+            'password' => 'nullable|string|min:8|confirmed',
         ];
 
         // Conditionally require offices field
@@ -446,10 +448,16 @@ class UserController extends Controller
 
     public function getUsersByOffice(Request $request)
     {
+        $request->validate(['office_id' => 'required|integer|exists:offices,id']);
+
         $officeId = $request->query('office_id');
+
+        // B-07 FIX: select only display-safe columns; never serialise password hash,
+        // remember_token, verification_code, etc. to a JSON response.
         $users = User::whereHas('offices', function ($query) use ($officeId) {
             $query->where('offices.id', $officeId);
-        })->get();
+        })->get(['id', 'first_name', 'last_name', 'email']);
+
         return response()->json($users);
     }
 
