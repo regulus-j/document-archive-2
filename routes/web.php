@@ -162,7 +162,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/complete', [DocumentController::class, 'showComplete'])->name('documents.complete');
         Route::delete('/attachments/{id}', [DocumentController::class, 'deleteAttachment'])->name('attachments.delete');
         Route::get('/forward/{document}', [DocumentController::class, 'forwardDocument'])->name('documents.forward');
-        Route::get('/documents/restore/{id}', [DocumentController::class, 'restore'])->name('documents.restore');
+        // B-04 FIX: Changed GET → POST to prevent CSRF via link prefetch / <img> tag.
+        // Views must use a mini-form with @csrf instead of a plain href.
+        Route::post('/restore/{id}', [DocumentController::class, 'restore'])->name('documents.restore');
 
         Route::delete('/{document}/delete-attachments', [DocumentController::class, 'deleteMultipleAttachments'])->name('documents.attachments.delete-multiple');
 
@@ -222,9 +224,12 @@ Route::middleware('auth')->group(function () {
         Route::put('/{document}', [DocumentController::class, 'update'])->name('documents.update');
         Route::delete('/{document}/delete', [DocumentController::class, 'destroy'])->name('documents.destroy');
         Route::delete('/{document}/delete-attachment', [DocumentController::class, 'deleteAttachment'])->name('documents.attachments.destroy');
-        Route::post('/documents/{document}/cancel', [DocumentController::class, 'cancelWorkflow'])->name('documents.cancel');
-        Route::post('/documents/{document}/recall', [DocumentController::class, 'recallDocument'])->name('documents.recall');
-        Route::post('/documents/{document}/resume', [DocumentController::class, 'resumeDocument'])->name('documents.resume');
+        // B-05 FIX: Removed erroneous inner '/documents/' prefix—these routes are already
+        // inside a prefix('documents') group, so the path was resolving to
+        // /documents/documents/{document}/cancel etc., causing 404s.
+        Route::post('/{document}/cancel', [DocumentController::class, 'cancelWorkflow'])->name('documents.cancel');
+        Route::post('/{document}/recall', [DocumentController::class, 'recallDocument'])->name('documents.recall');
+        Route::post('/{document}/resume', [DocumentController::class, 'resumeDocument'])->name('documents.resume');
 
         // Update status route
         // Route::get('/{document}/status', [DocumentController::class, 'confirmReleased'])->name('documents.confirmrelease');
@@ -298,10 +303,13 @@ Route::middleware('auth')->group(function () {
         Route::delete('/plans/{plan}', [PlanController::class, 'destroy'])->name('plans.destroy');
     });
 
-    Route::post('/subscriptions', [SubscriptionController::class, 'store']);
-    Route::patch('/subscriptions/{subscription}', [SubscriptionController::class, 'update']);
-    Route::post('/subscriptions/{subscription}/cancel', [SubscriptionController::class, 'cancel']);
-    Route::post('/subscriptions/{subscription}/activate', [SubscriptionController::class, 'activate']);
+    // B-03 FIX: The four subscription routes below were duplicate, unnamed copies of the
+    // named routes already registered at the top of this auth group (~line 65).
+    // Unnamed duplicates shadow the named versions and cause redirect failures.
+    // Removed: Route::post('/subscriptions', ...) — use 'subscriptions.store'
+    // Removed: Route::patch('/subscriptions/{subscription}', ...) — use 'subscriptions.update'
+    // Removed: Route::post('/subscriptions/{subscription}/cancel', ...) — use 'subscriptions.cancel'
+    // Removed: Route::post('/subscriptions/{subscription}/activate', ...) — use 'subscriptions.activate'
 
     Route::get('/pay/{plan}/{billing?}', [PaymentController::class, 'linkCreate'])->name('payment.generate');
     Route::get('/payment/check-status/{reference}', [PaymentController::class, 'checkPaymentStatus'])->name('payment.check-status');
