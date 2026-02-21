@@ -37,7 +37,7 @@ class ReportController extends Controller
 
         // IDs of every user that belongs to this company (employees + owner).
         $companyUserIds = $company
-            ? $company->employees()->pluck('company_users.user_id')->push($company->user_id)->unique()
+            ? $company->employees()->pluck('users.id')->push($company->user_id)->filter()->unique()
             : collect([auth()->id()]);
 
         // Scope the reports list to this company's users only.
