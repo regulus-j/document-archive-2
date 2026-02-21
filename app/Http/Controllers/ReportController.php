@@ -30,7 +30,19 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
+        // Resolve the current user's company first so every query below is tenant-scoped.
+        $company = CompanyAccount::where('user_id', auth()->id())->first()
+            ?? CompanyAccount::whereHas('employees', fn($q) => $q->where('users.id', auth()->id()))->first();
+        $companyId = $company?->id;
+
+        // IDs of every user that belongs to this company (employees + owner).
+        $companyUserIds = $company
+            ? $company->employees()->pluck('company_users.user_id')->push($company->user_id)->unique()
+            : collect([auth()->id()]);
+
+        // Scope the reports list to this company's users only.
         $query = Report::with('user')
+            ->whereIn('user_id', $companyUserIds)
             ->when($request->search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%");
@@ -63,9 +75,15 @@ class ReportController extends Controller
             return $this->exportAnalyticsToPdf($startDate, $endDate, $userId, $officeId);
         }
 
+        // Subquery that restricts workflow rows to documents belonging to this company.
+        $companyDocIds = $companyId
+            ? Document::where('company_id', $companyId)->select('id')
+            : Document::whereRaw('1 = 0')->select('id'); // empty set when no company
+
         $averageTimeToReceiveMinutes = DocumentWorkflow::selectRaw('AVG(TIMESTAMPDIFF(MINUTE, created_at, received_at)) as avg_time')
+            ->whereIn('document_id', $companyDocIds)
             ->whereBetween('created_at', [$startDate, $endDate])
-            ->whereNotNull('received_at') // Ensure received_at is not null
+            ->whereNotNull('received_at')
             ->when($userId, fn($q) => $q->where('recipient_id', $userId))
             ->when($officeId, fn($q) =>
                 $q->whereHas('recipient.offices', fn($o) =>
@@ -75,10 +93,11 @@ class ReportController extends Controller
             ->value('avg_time') ?? 0;
 
         $averageTimeToReviewMinutes = DocumentWorkflow::selectRaw('AVG(TIMESTAMPDIFF(MINUTE, received_at, updated_at)) as avg_time')
+            ->whereIn('document_id', $companyDocIds)
             ->whereBetween('created_at', [$startDate, $endDate])
-            ->whereNotNull('received_at') // Ensure received_at is not null
-            ->whereNotNull('updated_at') // Ensure updated_at is not null
-            ->whereRaw('received_at <= updated_at') // Ensure received_at is before updated_at
+            ->whereNotNull('received_at')
+            ->whereNotNull('updated_at')
+            ->whereRaw('received_at <= updated_at')
             ->when($userId, fn($q) => $q->where('recipient_id', $userId))
             ->when($officeId, fn($q) =>
                 $q->whereHas('recipient.offices', fn($o) =>
@@ -95,7 +114,8 @@ class ReportController extends Controller
         $averageTimeToReceiveRaw = round($averageTimeToReceiveMinutes, 2);
         $averageTimeToReviewRaw = round($averageTimeToReviewMinutes, 2);
 
-        $averageDocsForwarded = DocumentWorkflow::whereBetween('created_at', [$startDate, $endDate])
+        $averageDocsForwarded = DocumentWorkflow::whereIn('document_id', $companyDocIds)
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->when($userId, fn($q) => $q->where('sender_id', $userId))
             ->when($officeId, fn($q) =>
                 $q->whereHas('sender.offices', fn($o) =>
@@ -104,11 +124,8 @@ class ReportController extends Controller
             )
             ->count();
 
-        // Get company first so we can scope all queries
-        $company = CompanyAccount::where('user_id', auth()->id())->first();
-
         $documentsUploaded = Document::whereBetween('created_at', [$startDate, $endDate])
-            ->when($company, fn($q) => $q->where('company_id', $company->id))
+            ->when($companyId, fn($q) => $q->where('company_id', $companyId))
             ->when($userId, fn($q) => $q->where('uploader', $userId))
             ->count();
 
@@ -250,8 +267,17 @@ class ReportController extends Controller
      */
     private function exportAnalyticsToPdf($startDate, $endDate, $userId = null, $officeId = null)
     {
+        // Resolve company so every query is tenant-scoped.
+        $company = CompanyAccount::where('user_id', auth()->id())->first()
+            ?? CompanyAccount::whereHas('employees', fn($q) => $q->where('users.id', auth()->id()))->first();
+        $companyId = $company?->id;
+        $companyDocIds = $companyId
+            ? Document::where('company_id', $companyId)->select('id')
+            : Document::whereRaw('1 = 0')->select('id');
+
         // Get the same analytics data as in the analytics method
         $averageTimeToReceiveMinutes = DocumentWorkflow::selectRaw('AVG(TIMESTAMPDIFF(MINUTE, created_at, received_at)) as avg_time')
+            ->whereIn('document_id', $companyDocIds)
             ->whereBetween('created_at', [$startDate, $endDate])
             ->whereNotNull('received_at')
             ->when($userId, fn($q) => $q->where('recipient_id', $userId))
@@ -263,6 +289,7 @@ class ReportController extends Controller
             ->value('avg_time') ?? 0;
 
         $averageTimeToReviewMinutes = DocumentWorkflow::selectRaw('AVG(TIMESTAMPDIFF(MINUTE, received_at, updated_at)) as avg_time')
+            ->whereIn('document_id', $companyDocIds)
             ->whereBetween('created_at', [$startDate, $endDate])
             ->whereNotNull('received_at')
             ->whereNotNull('updated_at')
@@ -278,7 +305,8 @@ class ReportController extends Controller
         $averageTimeToReceive = $this->formatTimeInMinutes($averageTimeToReceiveMinutes);
         $averageTimeToReview = $this->formatTimeInMinutes($averageTimeToReviewMinutes);
         
-        $averageDocsForwarded = DocumentWorkflow::whereBetween('created_at', [$startDate, $endDate])
+        $averageDocsForwarded = DocumentWorkflow::whereIn('document_id', $companyDocIds)
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->when($userId, fn($q) => $q->where('sender_id', $userId))
             ->when($officeId, fn($q) =>
                 $q->whereHas('sender.offices', fn($o) =>
@@ -288,6 +316,7 @@ class ReportController extends Controller
             ->count();
 
         $documentsUploaded = Document::whereBetween('created_at', [$startDate, $endDate])
+            ->when($companyId, fn($q) => $q->where('company_id', $companyId))
             ->when($userId, fn($q) => $q->where('uploader', $userId))
             ->count();
             
@@ -361,9 +390,13 @@ class ReportController extends Controller
         $start = \Carbon\Carbon::parse($startDate);
         $end = \Carbon\Carbon::parse($endDate);
 
-        // Get company for scoping
-        $company = CompanyAccount::where('user_id', auth()->id())->first();
-        $companyId = $company ? $company->id : null;
+        // Get company for scoping (owner OR employee)
+        $company = CompanyAccount::where('user_id', auth()->id())->first()
+            ?? CompanyAccount::whereHas('employees', fn($q) => $q->where('users.id', auth()->id()))->first();
+        $companyId = $company?->id;
+        $companyDocIds = $companyId
+            ? Document::where('company_id', $companyId)->select('id')
+            : Document::whereRaw('1 = 0')->select('id');
         
         // Prepare data arrays
         $months = [];
@@ -379,8 +412,9 @@ class ReportController extends Controller
             $monthStart = $current->copy()->startOfMonth();
             $monthEnd = $current->copy()->endOfMonth();
             
-            // Average time to receive
+            // Average time to receive (company-scoped)
             $receiveTime = DocumentWorkflow::selectRaw('AVG(TIMESTAMPDIFF(MINUTE, created_at, received_at)) as avg_time')
+                ->whereIn('document_id', $companyDocIds)
                 ->whereBetween('created_at', [$monthStart, $monthEnd])
                 ->whereNotNull('received_at')
                 ->when($userId, fn($q) => $q->where('recipient_id', $userId))
@@ -391,8 +425,9 @@ class ReportController extends Controller
                 )
                 ->value('avg_time') ?? 0;
             
-            // Average time to review
+            // Average time to review (company-scoped)
             $reviewTime = DocumentWorkflow::selectRaw('AVG(TIMESTAMPDIFF(MINUTE, received_at, updated_at)) as avg_time')
+                ->whereIn('document_id', $companyDocIds)
                 ->whereBetween('created_at', [$monthStart, $monthEnd])
                 ->whereNotNull('received_at')
                 ->whereNotNull('updated_at')
@@ -405,8 +440,9 @@ class ReportController extends Controller
                 )
                 ->value('avg_time') ?? 0;
             
-            // Documents forwarded
-            $forwardedCount = DocumentWorkflow::whereBetween('created_at', [$monthStart, $monthEnd])
+            // Documents forwarded (company-scoped)
+            $forwardedCount = DocumentWorkflow::whereIn('document_id', $companyDocIds)
+                ->whereBetween('created_at', [$monthStart, $monthEnd])
                 ->when($userId, fn($q) => $q->where('sender_id', $userId))
                 ->when($officeId, fn($q) =>
                     $q->whereHas('sender.offices', fn($o) =>
@@ -446,6 +482,14 @@ class ReportController extends Controller
         // Convert strings to Carbon instances
         $start = \Carbon\Carbon::parse($startDate);
         $end = \Carbon\Carbon::parse($endDate);
+
+        // Resolve company for tenant scoping (owner OR employee)
+        $company = CompanyAccount::where('user_id', auth()->id())->first()
+            ?? CompanyAccount::whereHas('employees', fn($q) => $q->where('users.id', auth()->id()))->first();
+        $companyId = $company?->id;
+        $companyDocIds = $companyId
+            ? Document::where('company_id', $companyId)->select('id')
+            : Document::whereRaw('1 = 0')->select('id');
         
         // Prepare the result array
         $result = [];
@@ -457,8 +501,9 @@ class ReportController extends Controller
             $monthStart = $current->copy()->startOfMonth();
             $monthEnd = $current->copy()->endOfMonth();
             
-            // Get all the metrics for this month
+            // Get all the metrics for this month (all company-scoped)
             $receiveTime = DocumentWorkflow::selectRaw('AVG(TIMESTAMPDIFF(MINUTE, created_at, received_at)) as avg_time')
+                ->whereIn('document_id', $companyDocIds)
                 ->whereBetween('created_at', [$monthStart, $monthEnd])
                 ->whereNotNull('received_at')
                 ->when($userId, fn($q) => $q->where('recipient_id', $userId))
@@ -470,6 +515,7 @@ class ReportController extends Controller
                 ->value('avg_time') ?? 0;
             
             $reviewTime = DocumentWorkflow::selectRaw('AVG(TIMESTAMPDIFF(MINUTE, received_at, updated_at)) as avg_time')
+                ->whereIn('document_id', $companyDocIds)
                 ->whereBetween('created_at', [$monthStart, $monthEnd])
                 ->whereNotNull('received_at')
                 ->whereNotNull('updated_at')
@@ -482,7 +528,8 @@ class ReportController extends Controller
                 )
                 ->value('avg_time') ?? 0;
             
-            $forwardedCount = DocumentWorkflow::whereBetween('created_at', [$monthStart, $monthEnd])
+            $forwardedCount = DocumentWorkflow::whereIn('document_id', $companyDocIds)
+                ->whereBetween('created_at', [$monthStart, $monthEnd])
                 ->when($userId, fn($q) => $q->where('sender_id', $userId))
                 ->when($officeId, fn($q) =>
                     $q->whereHas('sender.offices', fn($o) =>
@@ -492,6 +539,7 @@ class ReportController extends Controller
                 ->count();
             
             $uploadedCount = Document::whereBetween('created_at', [$monthStart, $monthEnd])
+                ->when($companyId, fn($q) => $q->where('company_id', $companyId))
                 ->when($userId, fn($q) => $q->where('uploader', $userId))
                 ->count();
             
@@ -530,13 +578,22 @@ class ReportController extends Controller
             return redirect()->back()->with('error', 'Please select either a user or an office, not both.');
         }
 
+        // Resolve company for tenant scoping.
+        $company = CompanyAccount::where('user_id', auth()->id())->first()
+            ?? CompanyAccount::whereHas('employees', fn($q) => $q->where('users.id', auth()->id()))->first();
+        $companyId = $company?->id;
+        $companyDocIds = $companyId
+            ? Document::where('company_id', $companyId)->select('id')
+            : Document::whereRaw('1 = 0')->select('id');
+
         // Initialize data to avoid undefined variable error
         $data = collect();
 
         // Generate report based on type
         switch ($reportType) {
             case 'audit_history':
-                $data = DocumentAudit::whereBetween('created_at', [$startDate, $endDate])
+                $data = DocumentAudit::whereIn('document_id', $companyDocIds)
+                    ->whereBetween('created_at', [$startDate, $endDate])
                     ->when($userId, fn($q) => $q->where('user_id', $userId))
                     ->when($officeId, fn($q) =>
                         $q->whereHas('user.offices', fn($o) =>
@@ -546,7 +603,8 @@ class ReportController extends Controller
                     ->get();
                 break;
             case 'company_performance':
-                $data = DocumentWorkflow::whereBetween('created_at', [$startDate, $endDate])
+                $data = DocumentWorkflow::whereIn('document_id', $companyDocIds)
+                    ->whereBetween('created_at', [$startDate, $endDate])
                     ->when($userId, fn($q) => $q->where('recipient_id', $userId))
                     ->when($officeId, fn($q) =>
                         $q->whereHas('recipient.offices', fn($o) =>
