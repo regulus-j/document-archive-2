@@ -20,6 +20,7 @@ class Document extends Model
         'path',
         'storage_size',
         'category',
+        'classification', // A-03 FIX: was silently ignored on mass-assignment; access control depends on this value.
         'from_office',
     ];
 
