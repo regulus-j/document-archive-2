@@ -75,10 +75,10 @@ class ReportController extends Controller
             return $this->exportAnalyticsToPdf($startDate, $endDate, $userId, $officeId);
         }
 
-        // Subquery that restricts workflow rows to documents belonging to this company.
-        $companyDocIds = $companyId
-            ? Document::where('company_id', $companyId)->select('id')
-            : Document::whereRaw('1 = 0')->select('id'); // empty set when no company
+        // Scope to documents uploaded by members of this company.
+        // Note: documents.company_id is not reliably populated (legacy data has NULL),
+        // so we scope via the uploader column which is always set.
+        $companyDocIds = Document::whereIn('uploader', $companyUserIds)->select('id');
 
         $averageTimeToReceiveMinutes = DocumentWorkflow::selectRaw('AVG(TIMESTAMPDIFF(MINUTE, created_at, received_at)) as avg_time')
             ->whereIn('document_id', $companyDocIds)
@@ -124,8 +124,8 @@ class ReportController extends Controller
             )
             ->count();
 
-        $documentsUploaded = Document::whereBetween('created_at', [$startDate, $endDate])
-            ->when($companyId, fn($q) => $q->where('company_id', $companyId))
+        $documentsUploaded = Document::whereIn('uploader', $companyUserIds)
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->when($userId, fn($q) => $q->where('uploader', $userId))
             ->count();
 
@@ -270,10 +270,10 @@ class ReportController extends Controller
         // Resolve company so every query is tenant-scoped.
         $company = CompanyAccount::where('user_id', auth()->id())->first()
             ?? CompanyAccount::whereHas('employees', fn($q) => $q->where('users.id', auth()->id()))->first();
-        $companyId = $company?->id;
-        $companyDocIds = $companyId
-            ? Document::where('company_id', $companyId)->select('id')
-            : Document::whereRaw('1 = 0')->select('id');
+        $companyUserIds = $company
+            ? $company->employees()->pluck('users.id')->push($company->user_id)->filter()->unique()
+            : collect([auth()->id()]);
+        $companyDocIds = Document::whereIn('uploader', $companyUserIds)->select('id');
 
         // Get the same analytics data as in the analytics method
         $averageTimeToReceiveMinutes = DocumentWorkflow::selectRaw('AVG(TIMESTAMPDIFF(MINUTE, created_at, received_at)) as avg_time')
@@ -315,8 +315,8 @@ class ReportController extends Controller
             )
             ->count();
 
-        $documentsUploaded = Document::whereBetween('created_at', [$startDate, $endDate])
-            ->when($companyId, fn($q) => $q->where('company_id', $companyId))
+        $documentsUploaded = Document::whereIn('uploader', $companyUserIds)
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->when($userId, fn($q) => $q->where('uploader', $userId))
             ->count();
             
@@ -393,10 +393,10 @@ class ReportController extends Controller
         // Get company for scoping (owner OR employee)
         $company = CompanyAccount::where('user_id', auth()->id())->first()
             ?? CompanyAccount::whereHas('employees', fn($q) => $q->where('users.id', auth()->id()))->first();
-        $companyId = $company?->id;
-        $companyDocIds = $companyId
-            ? Document::where('company_id', $companyId)->select('id')
-            : Document::whereRaw('1 = 0')->select('id');
+        $companyUserIds = $company
+            ? $company->employees()->pluck('users.id')->push($company->user_id)->filter()->unique()
+            : collect([auth()->id()]);
+        $companyDocIds = Document::whereIn('uploader', $companyUserIds)->select('id');
         
         // Prepare data arrays
         $months = [];
@@ -452,8 +452,8 @@ class ReportController extends Controller
                 ->count();
             
             // Documents uploaded (company-scoped)
-            $uploadedCount = Document::whereBetween('created_at', [$monthStart, $monthEnd])
-                ->when($companyId, fn($q) => $q->where('company_id', $companyId))
+            $uploadedCount = Document::whereIn('uploader', $companyUserIds)
+                ->whereBetween('created_at', [$monthStart, $monthEnd])
                 ->when($userId, fn($q) => $q->where('uploader', $userId))
                 ->count();
             
@@ -486,10 +486,10 @@ class ReportController extends Controller
         // Resolve company for tenant scoping (owner OR employee)
         $company = CompanyAccount::where('user_id', auth()->id())->first()
             ?? CompanyAccount::whereHas('employees', fn($q) => $q->where('users.id', auth()->id()))->first();
-        $companyId = $company?->id;
-        $companyDocIds = $companyId
-            ? Document::where('company_id', $companyId)->select('id')
-            : Document::whereRaw('1 = 0')->select('id');
+        $companyUserIds = $company
+            ? $company->employees()->pluck('users.id')->push($company->user_id)->filter()->unique()
+            : collect([auth()->id()]);
+        $companyDocIds = Document::whereIn('uploader', $companyUserIds)->select('id');
         
         // Prepare the result array
         $result = [];
@@ -538,8 +538,8 @@ class ReportController extends Controller
                 )
                 ->count();
             
-            $uploadedCount = Document::whereBetween('created_at', [$monthStart, $monthEnd])
-                ->when($companyId, fn($q) => $q->where('company_id', $companyId))
+            $uploadedCount = Document::whereIn('uploader', $companyUserIds)
+                ->whereBetween('created_at', [$monthStart, $monthEnd])
                 ->when($userId, fn($q) => $q->where('uploader', $userId))
                 ->count();
             
@@ -581,10 +581,10 @@ class ReportController extends Controller
         // Resolve company for tenant scoping.
         $company = CompanyAccount::where('user_id', auth()->id())->first()
             ?? CompanyAccount::whereHas('employees', fn($q) => $q->where('users.id', auth()->id()))->first();
-        $companyId = $company?->id;
-        $companyDocIds = $companyId
-            ? Document::where('company_id', $companyId)->select('id')
-            : Document::whereRaw('1 = 0')->select('id');
+        $companyUserIds = $company
+            ? $company->employees()->pluck('users.id')->push($company->user_id)->filter()->unique()
+            : collect([auth()->id()]);
+        $companyDocIds = Document::whereIn('uploader', $companyUserIds)->select('id');
 
         // Initialize data to avoid undefined variable error
         $data = collect();
