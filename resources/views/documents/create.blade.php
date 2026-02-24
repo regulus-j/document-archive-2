@@ -99,8 +99,35 @@
                             </div>
                         </div>
 
+                        <!-- Classification -->
+                        <div class="space-y-2">
+                            <label for="classification" class="block text-sm font-medium text-gray-700">Classification <span class="text-red-500">*</span></label>
+                            <select name="classification" id="classification" required
+                                class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all">
+                                <option value="Public" {{ old('classification', 'Public') == 'Public' ? 'selected' : '' }}>Public</option>
+                                <option value="Office Only" {{ old('classification') == 'Office Only' ? 'selected' : '' }}>Office Only</option>
+                                <option value="Custom Offices" {{ old('classification') == 'Custom Offices' ? 'selected' : '' }}>Custom Offices</option>
+                                <option value="Private" {{ old('classification') == 'Private' ? 'selected' : '' }}>Private</option>
+                            </select>
+                            <p class="text-xs text-gray-500">Controls who can view this document</p>
+                        </div>
 
+                    </div>
 
+                    <!-- Custom Offices Section -->
+                    <div id="custom-offices-section" class="{{ old('classification') == 'Custom Offices' ? '' : 'hidden' }} mt-2 space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Select Allowed Offices <span class="text-red-500">*</span></label>
+                        <div class="max-h-48 overflow-y-auto border border-gray-300 rounded-lg p-3 bg-gray-50 space-y-2">
+                            @foreach($offices as $office)
+                            <label class="flex items-center">
+                                <input type="checkbox" name="allowed_offices[]" value="{{ $office->id }}"
+                                    {{ in_array($office->id, old('allowed_offices', [])) ? 'checked' : '' }}
+                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-700">{{ $office->name }}</span>
+                            </label>
+                            @endforeach
+                        </div>
+                        <p class="text-xs text-gray-500">Select which offices can view this document</p>
                     </div>
 
                     {{-- ═══════ Category Manager Modal (company-admin only) ═══════ --}}
@@ -475,6 +502,19 @@
             @if($errors->any())
                 showPopup('Please check the form for errors.', 'error');
             @endif
+
+            // Classification toggle for Custom Offices
+            const classificationSelect = document.getElementById('classification');
+            const customOfficesSection = document.getElementById('custom-offices-section');
+            if (classificationSelect && customOfficesSection) {
+                classificationSelect.addEventListener('change', function() {
+                    if (this.value === 'Custom Offices') {
+                        customOfficesSection.classList.remove('hidden');
+                    } else {
+                        customOfficesSection.classList.add('hidden');
+                    }
+                });
+            }
 
             // --- File upload feedback logic ---
 

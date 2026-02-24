@@ -432,9 +432,58 @@
 
             <!-- Document List -->
             <div class="bg-white rounded-xl overflow-visible border border-blue-200/80 transition-all duration-300 hover:border-blue-300/80 mt-3">
+
+                    <!-- Tab Bar: Active / Archived -->
+                    <div class="flex border-b border-blue-200 bg-white rounded-t-xl overflow-hidden">
+                        <a href="{{ route('documents.index', array_merge(request()->except('tab', 'page'), ['tab' => 'active'])) }}"
+                           class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm transition-colors
+                                  {{ ($tab ?? 'active') === 'active'
+                                     ? 'border-blue-500 text-blue-600 bg-blue-50/50'
+                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                            <div class="flex items-center justify-center gap-2">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Active Documents
+                                <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full
+                                             {{ ($tab ?? 'active') === 'active' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600' }}">
+                                    {{ $activeDocCount }}
+                                </span>
+                            </div>
+                        </a>
+                        <a href="{{ route('documents.index', array_merge(request()->except('tab', 'page', 'status'), ['tab' => 'archived'])) }}"
+                           class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm transition-colors
+                                  {{ ($tab ?? 'active') === 'archived'
+                                     ? 'border-gray-500 text-gray-700 bg-gray-50/50'
+                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                            <div class="flex items-center justify-center gap-2">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                </svg>
+                                Archived Documents
+                                <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full
+                                             {{ ($tab ?? 'active') === 'archived' ? 'bg-gray-200 text-gray-700' : 'bg-gray-100 text-gray-600' }}">
+                                    {{ $archivedCount }}
+                                </span>
+                            </div>
+                        </a>
+                    </div>
+
                     <!-- Tabbed Navigation -->
                     <div class="bg-white border-b border-blue-200">
                         <div class="p-6 pb-0">
+                            @if($tab === 'archived')
+                            {{-- Simplified header for Archived tab --}}
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                    </svg>
+                                    <h2 class="text-lg font-semibold text-gray-700">Archived Documents</h2>
+                                </div>
+                                <span class="text-sm text-gray-500">{{ $documents->total() }} archived {{ Str::plural('document', $documents->total()) }}</span>
+                            </div>
+                            @else
                             <div class="flex items-center justify-between mb-8">
                                 <div class="flex items-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none"
@@ -602,6 +651,7 @@
                                     </div>
                                 </div>
                             </div>
+                        @endif {{-- end archived/active tab header --}}
                         </div>
                     </div>
 
@@ -613,7 +663,7 @@
                                     <th class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200 w-12">#</th>
                                     <th class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Title</th>
                                     <th class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Uploader</th>
-                                    <th class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Status & Workflow</th>
+                                    <th class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">{{ $tab === 'archived' ? 'Archived' : 'Status & Workflow' }}</th>
                                     <th class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Tracking</th>
                                     <th class="bg-white px-6 py-3 text-center text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200 w-24">Actions</th>
                                 </tr>
@@ -727,11 +777,21 @@
                                             <div class="flex flex-col items-center justify-center py-12 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50/50 mx-4 my-6">
                                                 <svg class="h-12 w-12 text-gray-400 mb-4" xmlns="http://www.w3.org/2000/svg"
                                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    @if($tab === 'archived')
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                                    @else
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    @endif
                                                 </svg>
+                                                @if($tab === 'archived')
+                                                <p class="text-gray-900 font-medium text-lg mb-2">No archived documents</p>
+                                                <p class="text-gray-500 text-base">Documents that have been archived will appear here.</p>
+                                                @else
                                                 <p class="text-gray-900 font-medium text-lg mb-2">No documents found</p>
                                                 <p class="text-gray-500 text-base">Try adjusting your search criteria or create a new document.</p>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>

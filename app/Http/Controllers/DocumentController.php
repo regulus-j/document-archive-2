@@ -46,6 +46,9 @@ class DocumentController extends Controller
      */
     public function index(Request $request): View
     {
+        // Determine active tab: 'active' (default) or 'archived'
+        $tab = $request->query('tab', 'active');
+
         // Use the access service to get documents the user can view
         $query = $this->documentAccessService->getAccessibleDocuments()
             ->with([
@@ -57,6 +60,13 @@ class DocumentController extends Controller
                 'documentWorkflow.recipient',
                 'documentWorkflow.recipientOffice',
             ]);
+
+        // Scope to tab: archived tab shows only archived, active tab excludes archived
+        if ($tab === 'archived') {
+            $query->whereHas('status', fn($q) => $q->where('status', 'archived'));
+        } else {
+            $query->whereHas('status', fn($q) => $q->where('status', '!=', 'archived'));
+        }
 
         // Get the user's company ID
         $userCompany = auth()->user()->companies()->first();
@@ -160,6 +170,16 @@ class DocumentController extends Controller
         // Add the selected office ID to pass to the view
         $selectedOfficeId = $request->input('office_id', 'all');
 
+        // Count archived documents for the tab badge
+        $archivedCount = $this->documentAccessService->getAccessibleDocuments()
+            ->whereHas('status', fn($q) => $q->where('status', 'archived'))
+            ->count();
+
+        // Count non-archived documents for the active tab badge
+        $activeDocCount = $this->documentAccessService->getAccessibleDocuments()
+            ->whereHas('status', fn($q) => $q->where('status', '!=', 'archived'))
+            ->count();
+
         // Fetch users, teams and categories for filter dropdowns
         if ($userCompany) {
             $filterUsers = User::whereHas('companies', fn($q) => $q->where('company_accounts.id', $userCompany->id))
@@ -178,7 +198,7 @@ class DocumentController extends Controller
 
         return view('documents.index', compact(
             'documents', 'auditLogs', 'documentRecipients', 'offices', 'selectedOfficeId',
-            'filterUsers', 'filterCategories', 'filterTeams'
+            'filterUsers', 'filterCategories', 'filterTeams', 'tab', 'archivedCount', 'activeDocCount'
         ));
     }
 
