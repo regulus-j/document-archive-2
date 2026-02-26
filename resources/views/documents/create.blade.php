@@ -310,11 +310,11 @@
                                             class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
                                             <span>Upload a file</span>
                                             <input id="main-document" name="main_document" type="file"
-                                                accept=".pdf,.doc,.docx" class="sr-only" required>
+                                                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.odt,.ods,.odp,.rtf,.jpg,.jpeg,.png" class="sr-only" required>
                                         </label>
                                         <p class="pl-1">or drag and drop</p>
                                     </div>
-                                    <p class="text-xs text-gray-500">PDF, DOC, DOCX up to 8MB</p>
+                                    <p class="text-xs text-gray-500">PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, CSV, ODT, RTF, JPG, PNG up to 8MB</p>
                                 </div>
                             </div>
                             <div class="upload-feedback hidden mt-2 text-sm text-blue-600"></div>
@@ -337,11 +337,11 @@
                                             class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
                                             <span>Upload attachments</span>
                                             <input id="attachments" name="attachments[]" type="file" multiple
-                                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="sr-only">
+                                                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.odt,.ods,.odp,.rtf,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg" class="sr-only">
                                         </label>
                                         <p class="pl-1">or drag and drop</p>
                                     </div>
-                                    <p class="text-xs text-gray-500">PDF, DOC, DOCX, JPG, JPEG, PNG up to 8MB each (Maximum 5 attachments)</p>
+                                    <p class="text-xs text-gray-500">PDF, Office docs, images up to 8MB each (Maximum 5 attachments)</p>
                                 </div>
                             </div>
                             <!-- Attachment Files Preview -->

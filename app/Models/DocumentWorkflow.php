@@ -23,6 +23,7 @@ class DocumentWorkflow extends Model
         'due_date',
         'remarks',
         'is_paused',
+        'parent_workflow_id',
     ];
 
     public function document()
@@ -43,6 +44,30 @@ class DocumentWorkflow extends Model
     public function recipientOffice()
     {
         return $this->belongsTo(Office::class, 'recipient_office');
+    }
+
+    /**
+     * The parent workflow that spawned this sub-workflow (via forward-from-review).
+     */
+    public function parentWorkflow()
+    {
+        return $this->belongsTo(self::class, 'parent_workflow_id');
+    }
+
+    /**
+     * Child workflows spawned from this workflow (via forward-from-review).
+     */
+    public function childWorkflows()
+    {
+        return $this->hasMany(self::class, 'parent_workflow_id');
+    }
+
+    /**
+     * Check if this is a sub-workflow (forwarded from another workflow's review).
+     */
+    public function isSubWorkflow(): bool
+    {
+        return $this->parent_workflow_id !== null;
     }
 
     public function receive()

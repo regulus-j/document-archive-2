@@ -433,38 +433,89 @@
             <!-- Document List -->
             <div class="bg-white rounded-xl overflow-visible border border-blue-200/80 transition-all duration-300 hover:border-blue-300/80 mt-3">
 
-                    <!-- Tab Bar: Active / Archived -->
+                    <!-- Tab Bar: My Documents / All Documents / Archived -->
                     <div class="flex border-b border-blue-200 bg-white rounded-t-xl overflow-hidden">
-                        <a href="{{ route('documents.index', array_merge(request()->except('tab', 'page'), ['tab' => 'active'])) }}"
+                        <!-- My Documents Tab -->
+                        <a href="{{ route('documents.index', array_merge(request()->except('tab', 'page'), ['tab' => 'my'])) }}"
                            class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm transition-colors
-                                  {{ ($tab ?? 'active') === 'active'
+                                  {{ ($tab ?? 'all') === 'my'
                                      ? 'border-blue-500 text-blue-600 bg-blue-50/50'
+                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                            <div class="flex items-center justify-center gap-2">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                My Documents
+                                <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full
+                                             {{ ($tab ?? 'all') === 'my' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600' }}">
+                                    {{ $myDocCount }}
+                                </span>
+                            </div>
+                        </a>
+
+                        <!-- All Documents Tab with Tooltip -->
+                        <a href="{{ route('documents.index', array_merge(request()->except('tab', 'page'), ['tab' => 'all'])) }}"
+                           class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm transition-colors relative group
+                                  {{ ($tab ?? 'all') === 'all'
+                                     ? 'border-green-500 text-green-600 bg-green-50/50'
                                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                             <div class="flex items-center justify-center gap-2">
                                 <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
-                                Active Documents
+                                All Documents
                                 <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full
-                                             {{ ($tab ?? 'active') === 'active' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600' }}">
-                                    {{ $activeDocCount }}
+                                             {{ ($tab ?? 'all') === 'all' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600' }}">
+                                    {{ $allDocCount }}
                                 </span>
+                                <!-- Info Icon -->
+                                <svg class="h-4 w-4 text-gray-400 hover:text-gray-600 transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <!-- Tooltip -->
+                            <div class="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 w-64 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none">
+                                <div class="text-left">
+                                    <strong class="block mb-1">All Documents includes:</strong>
+                                    <ul class="list-disc list-inside space-y-0.5">
+                                        <li>Your uploaded documents</li>
+                                        <li>Documents uploaded by others that are visible to you</li>
+                                        <li>Documents forwarded to you</li>
+                                    </ul>
+                                </div>
+                                <!-- Arrow -->
+                                <div class="absolute left-1/2 transform -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                             </div>
                         </a>
+
+                        <!-- Archived Documents Tab with Tooltip -->
                         <a href="{{ route('documents.index', array_merge(request()->except('tab', 'page', 'status'), ['tab' => 'archived'])) }}"
-                           class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm transition-colors
-                                  {{ ($tab ?? 'active') === 'archived'
+                           class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm transition-colors relative group
+                                  {{ ($tab ?? 'all') === 'archived'
                                      ? 'border-gray-500 text-gray-700 bg-gray-50/50'
                                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                             <div class="flex items-center justify-center gap-2">
                                 <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                                 </svg>
-                                Archived Documents
+                                Archived
                                 <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full
-                                             {{ ($tab ?? 'active') === 'archived' ? 'bg-gray-200 text-gray-700' : 'bg-gray-100 text-gray-600' }}">
+                                             {{ ($tab ?? 'all') === 'archived' ? 'bg-gray-200 text-gray-700' : 'bg-gray-100 text-gray-600' }}">
                                     {{ $archivedCount }}
                                 </span>
+                                <!-- Info Icon -->
+                                <svg class="h-4 w-4 text-gray-400 hover:text-gray-600 transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <!-- Tooltip -->
+                            <div class="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 w-64 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none">
+                                <div class="text-left">
+                                    <strong class="block mb-1">Archived Documents:</strong>
+                                    <p>Your documents that have been archived for long-term storage.</p>
+                                </div>
+                                <!-- Arrow -->
+                                <div class="absolute left-1/2 transform -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                             </div>
                         </a>
                     </div>
@@ -483,21 +534,39 @@
                                 </div>
                                 <span class="text-sm text-gray-500">{{ $documents->total() }} archived {{ Str::plural('document', $documents->total()) }}</span>
                             </div>
-                            @else
+                            @elseif($tab === 'my')
+                            {{-- Header for My Documents tab --}}
                             <div class="flex items-center justify-between mb-8">
                                 <div class="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none"
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                    <h2 class="text-lg font-semibold text-gray-800">My Documents</h2>
+                                </div>
+                                {{-- <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-gray-500">{{ $documents->total() }} {{ Str::plural('document', $documents->total()) }}</span>
+                                </div> --}}
+                            </div>
+                            @else
+                            {{-- Header for All Documents tab --}}
+                            <div class="flex items-center justify-between mb-8">
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600 mr-2" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
-                                    <h2 class="text-lg font-semibold text-gray-800">Document Management</h2>
+                                    <h2 class="text-lg font-semibold text-gray-800">All Documents</h2>
                                 </div>
                                 {{-- <div class="flex items-center space-x-2">
                                     <span class="text-sm text-gray-500">{{ $documents->total() }} total documents</span>
 
                                 </div> --}}
                             </div>
+                            @endif
+                            </div>
+
+                            @if($tab !== 'archived')
                                     <!-- Unified Document Counter -->
                             <div class="flex flex-wrap items-center gap-2 mb-3">
                                 <!-- Total Documents -->
@@ -651,7 +720,7 @@
                                     </div>
                                 </div>
                             </div>
-                        @endif {{-- end archived/active tab header --}}
+                        @endif {{-- end non-archived status filters --}}
                         </div>
                     </div>
 

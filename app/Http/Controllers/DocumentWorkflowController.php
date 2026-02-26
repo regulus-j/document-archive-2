@@ -125,6 +125,76 @@ class DocumentWorkflowController extends Controller
     }
 
     /**
+     * After a sub-workflow (forwarded-from-review) completes, reactivate the parent workflow
+     * so the original forwarder can continue processing in the main workflow.
+     */
+    private function handleSubWorkflowCompletion(DocumentWorkflow $completedWorkflow): void
+    {
+        // Only applies if this workflow is a sub-workflow
+        if (!$completedWorkflow->parent_workflow_id) {
+            return;
+        }
+
+        $parentWorkflow = DocumentWorkflow::find($completedWorkflow->parent_workflow_id);
+        if (!$parentWorkflow) {
+            return;
+        }
+
+        // Check if ALL child workflows of the parent are now completed
+        $pendingChildren = DocumentWorkflow::where('parent_workflow_id', $parentWorkflow->id)
+            ->whereIn('status', ['pending', 'received', 'waiting'])
+            ->count();
+
+        if ($pendingChildren > 0) {
+            // Still waiting on other sub-workflow recipients
+            return;
+        }
+
+        // All sub-workflows completed — reactivate the parent workflow
+        $parentWorkflow->status = 'received';
+        $parentWorkflow->save();
+
+        \Log::info('Sub-workflow completed, reactivating parent workflow', [
+            'completed_workflow_id' => $completedWorkflow->id,
+            'parent_workflow_id' => $parentWorkflow->id,
+            'parent_recipient_id' => $parentWorkflow->recipient_id,
+        ]);
+
+        // Collect results from child workflows for the notification
+        $childResults = DocumentWorkflow::where('parent_workflow_id', $parentWorkflow->id)
+            ->with('recipient')
+            ->get()
+            ->map(fn($w) => ($w->recipient ? $w->recipient->first_name . ' ' . $w->recipient->last_name : 'Unknown') . ': ' . ucfirst($w->status))
+            ->implode(', ');
+
+        // Notify the original forwarder that the sub-workflow is complete
+        if ($parentWorkflow->recipient_id) {
+            \App\Models\Notifications::create([
+                'user_id' => $parentWorkflow->recipient_id,
+                'type' => 'sub_workflow_completed',
+                'data' => json_encode([
+                    'document_id' => $parentWorkflow->document_id,
+                    'message' => 'The document you forwarded for review has been completed. You can now continue processing.',
+                    'title' => $parentWorkflow->document->title ?? 'Document',
+                    'results' => $childResults,
+                    'workflow_id' => $parentWorkflow->id,
+                ]),
+            ]);
+        }
+
+        // Log the return-to-parent action
+        DocumentAudit::logDocumentAction(
+            $parentWorkflow->document_id,
+            $completedWorkflow->recipient_id ?? auth()->id(),
+            'workflow',
+            'sub_workflow_completed',
+            'Sub-workflow completed by ' . (auth()->user()->first_name ?? '') . ' ' . (auth()->user()->last_name ?? '') .
+            '. Document returned to ' . ($parentWorkflow->recipient ? $parentWorkflow->recipient->first_name . ' ' . $parentWorkflow->recipient->last_name : 'original reviewer') .
+            ' for continued processing.'
+        );
+    }
+
+    /**
      * Store e-signature if provided in the request (called from action methods)
      */
     private function handleInlineSignature(Request $request, DocumentWorkflow $workflow, string $action): void
@@ -453,6 +523,9 @@ class DocumentWorkflowController extends Controller
             }
         }
 
+        // If this was a sub-workflow, check if parent should be reactivated
+        $this->handleSubWorkflowCompletion($workflow);
+
         return redirect()->route('documents.index')
             ->with('success', 'Document workflow approved');
     }
@@ -483,6 +556,9 @@ class DocumentWorkflowController extends Controller
             'rejected',
             'Document rejected: ' . $request->remarks
         );
+
+        // If this was a sub-workflow, check if parent should be reactivated
+        $this->handleSubWorkflowCompletion($workflow);
 
         // Optional: Notify the sender
         if (class_exists('\App\Notifications\DocumentRejected')) {
@@ -631,7 +707,7 @@ class DocumentWorkflowController extends Controller
         $validated = $request->validate([
             'workflow_id' => 'required|exists:document_workflows,id',
             'remark' => 'nullable|string|max:1000',
-            'attachments.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,docx|max:10240',
+            'attachments.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,odt,ods,odp,rtf,jpeg,png,jpg,gif,webp,bmp,svg|max:10240',
             'action' => 'required|in:approve,reject',
         ]);
 
@@ -710,6 +786,9 @@ class DocumentWorkflowController extends Controller
             'returned',
             'Document returned to uploader: ' . $request->remarks
         );
+
+        // If this was a sub-workflow, check if parent should be reactivated
+        $this->handleSubWorkflowCompletion($workflow);
 
         return redirect()->route('documents.index')
             ->with('success', 'Document returned to uploader. The uploader will need to revise the document based on your remarks.');
@@ -857,6 +936,7 @@ class DocumentWorkflowController extends Controller
                 'workflow_type' => $workflow->workflow_type,
                 'urgency' => $workflow->urgency,
                 'due_date' => $workflow->due_date,
+                'parent_workflow_id' => $workflow->id,
             ]);
 
             // Notify the forwarded user
@@ -966,6 +1046,9 @@ class DocumentWorkflowController extends Controller
             'Comment added: ' . $request->remarks
         );
 
+        // If this was a sub-workflow, check if parent should be reactivated
+        $this->handleSubWorkflowCompletion($workflow);
+
         // Notify sender about the comment
         if ($workflow->sender_id && $workflow->sender_id != auth()->id()) {
             \App\Models\Notifications::create([
@@ -1041,6 +1124,9 @@ class DocumentWorkflowController extends Controller
             'acknowledged',
             $logMessage
         );
+
+        // If this was a sub-workflow, check if parent should be reactivated
+        $this->handleSubWorkflowCompletion($workflow);
 
         // Notify sender about the acknowledgment
         if ($workflow->sender_id && $workflow->sender_id != auth()->id()) {
@@ -1271,7 +1357,7 @@ class DocumentWorkflowController extends Controller
 
         $request->validate([
             'attachments' => 'required|array',
-            'attachments.*' => 'file|mimes:jpeg,png,jpg,gif,webp,bmp,svg,pdf,doc,docx,xls,xlsx,csv|max:10240',
+            'attachments.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,odt,ods,odp,rtf,jpeg,png,jpg,gif,webp,bmp,svg|max:10240',
         ]);
 
         $workflow = DocumentWorkflow::findOrFail($workflowId);

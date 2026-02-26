@@ -46,8 +46,8 @@ class DocumentController extends Controller
      */
     public function index(Request $request): View
     {
-        // Determine active tab: 'active' (default) or 'archived'
-        $tab = $request->query('tab', 'active');
+        // Determine active tab: 'all' (default), 'my', or 'archived'
+        $tab = $request->query('tab', 'all');
 
         // Use the access service to get documents the user can view
         $query = $this->documentAccessService->getAccessibleDocuments()
@@ -61,10 +61,14 @@ class DocumentController extends Controller
                 'documentWorkflow.recipientOffice',
             ]);
 
-        // Scope to tab: archived tab shows only archived, active tab excludes archived
+        // Scope to tab: archived shows only archived, my shows only user's uploads, all shows non-archived accessible
         if ($tab === 'archived') {
             $query->whereHas('status', fn($q) => $q->where('status', 'archived'));
+        } elseif ($tab === 'my') {
+            $query->where('uploader', auth()->id())
+                  ->whereHas('status', fn($q) => $q->where('status', '!=', 'archived'));
         } else {
+            // 'all' tab: exclude archived documents
             $query->whereHas('status', fn($q) => $q->where('status', '!=', 'archived'));
         }
 
@@ -175,8 +179,14 @@ class DocumentController extends Controller
             ->whereHas('status', fn($q) => $q->where('status', 'archived'))
             ->count();
 
-        // Count non-archived documents for the active tab badge
-        $activeDocCount = $this->documentAccessService->getAccessibleDocuments()
+        // Count user's own documents (non-archived)
+        $myDocCount = $this->documentAccessService->getAccessibleDocuments()
+            ->where('uploader', auth()->id())
+            ->whereHas('status', fn($q) => $q->where('status', '!=', 'archived'))
+            ->count();
+
+        // Count all accessible non-archived documents
+        $allDocCount = $this->documentAccessService->getAccessibleDocuments()
             ->whereHas('status', fn($q) => $q->where('status', '!=', 'archived'))
             ->count();
 
@@ -198,7 +208,7 @@ class DocumentController extends Controller
 
         return view('documents.index', compact(
             'documents', 'auditLogs', 'documentRecipients', 'offices', 'selectedOfficeId',
-            'filterUsers', 'filterCategories', 'filterTeams', 'tab', 'archivedCount', 'activeDocCount'
+            'filterUsers', 'filterCategories', 'filterTeams', 'tab', 'archivedCount', 'myDocCount', 'allDocCount'
         ));
     }
 
@@ -375,8 +385,8 @@ class DocumentController extends Controller
             'category'       => 'nullable|integer',
             'classification' => 'required|in:Public,Office Only,Custom Offices,Private', // A-04 FIX: restrict to known values.
             'from_office'    => 'required|exists:offices,id',
-            'main_document'  => 'required|file|max:10240|mimes:pdf,doc,docx,jpg,jpeg,png',
-            'attachments.*'  => 'file|mimes:jpeg,png,jpg,gif,pdf,docx|max:10240',
+            'main_document'  => 'required|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,odt,ods,odp,rtf,jpg,jpeg,png',
+            'attachments.*'  => 'file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,odt,ods,odp,rtf,jpeg,png,jpg,gif,webp,bmp,svg|max:10240',
             'archive'        => 'nullable|string',
             'forward'        => 'nullable|string',
         ]);
@@ -536,6 +546,7 @@ class DocumentController extends Controller
         // Validate the tracking number input
         $request->validate([
             'tracking_number' => 'required|string|max:255',
+            'action' => 'nullable|string|in:find,receive',
         ]);
 
         try {
@@ -546,7 +557,27 @@ class DocumentController extends Controller
 
             $document = $documentTracking->document;
 
-            // Redirect to the document's show route
+            $action = $request->input('action', 'find');
+
+            // Route based on selected action
+            if ($action === 'receive') {
+                // Find the user's pending workflow for this document
+                $workflow = DocumentWorkflow::where('document_id', $document->id)
+                    ->where('recipient_id', auth()->id())
+                    ->where('status', 'pending')
+                    ->first();
+
+                if ($workflow) {
+                    return redirect()->route('documents.receive', $workflow->id)
+                        ->with('success', 'Document found. Please confirm receipt.');
+                }
+
+                // No pending workflow found — fall back to show
+                return redirect()->route('documents.show', $document->id)
+                    ->with('info', 'Document found, but you have no pending workflow to receive for this document.');
+            }
+
+            // Default: find — redirect to the document's show route
             return redirect()->route('documents.show', $document->id)
                 ->with('success', 'Document found.');
         } catch (\Exception $e) {
@@ -771,7 +802,7 @@ class DocumentController extends Controller
         }
 
         // Get workflows and organize by step order for display
-        $workflows = DocumentWorkflow::with(['sender', 'recipient', 'recipientOffice'])
+        $workflows = DocumentWorkflow::with(['sender', 'recipient', 'recipientOffice', 'childWorkflows.recipient', 'childWorkflows.recipientOffice'])
             ->where('document_id', $document->id)
             ->orderBy('step_order')
             ->get();
@@ -875,8 +906,8 @@ class DocumentController extends Controller
             'category'       => 'nullable|integer',
             'classification' => 'nullable|in:Public,Office Only,Custom Offices,Private', // A-04 FIX: restrict to known values.
             'from_office'    => 'required|exists:offices,id',
-            'main_document'  => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,docx|max:10240',
-            'attachments.*'  => 'file|mimes:jpeg,png,jpg,gif,pdf,docx|max:10240',
+            'main_document'  => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,odt,ods,odp,rtf,jpeg,png,jpg,gif,webp,bmp,svg|max:10240',
+            'attachments.*'  => 'file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,odt,ods,odp,rtf,jpeg,png,jpg,gif,webp,bmp,svg|max:10240',
         ]);
 
         // Custom validation for Custom Offices classification

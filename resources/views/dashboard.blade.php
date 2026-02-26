@@ -114,91 +114,194 @@
                     Quick Actions
                 </h3>
 
-                <form action="{{ route('trackingNumber-search') }}" method="POST" class="space-y-6">
-                    @csrf
-                    <div>
-                        <label for="action" class="block text-sm font-medium text-gray-700 mb-2">Select Action</label>
-                        <select id="action" name="action"
-                            class="block w-full pl-3 pr-10 py-2.5 text-base border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg">
-                            <option value="">Select an action</option>
-                            @foreach ([
-                                ['value' => 'find', 'label' => 'Find Document', 'icon' => 'M10.5 3a7.5 7.5 0 015.916 12.5l4.243 4.242-1.414 1.414-4.242-4.243A7.5 7.5 0 1110.5 3z'],
-                                ['value' => 'receive', 'label' => 'Receive Document', 'icon' => 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4'],
-                                ['value' => 'acccept', 'label' => 'Accept Document', 'icon' => 'M5 13l4 4L19 7'],
-                                ['value' => 'reject', 'label' => 'Reject Document', 'icon' => 'M6 18L18 6M6 6l12 12'],
-                            ] as $action)
-                                <option value="{{ $action['value'] }}">
-                                    {{ $action['label'] }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                {{-- Quick Shortcut Buttons --}}
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                    <a href="{{ route('documents.create') }}" class="flex flex-col items-center p-4 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 transition group">
+                        <svg class="w-6 h-6 text-blue-600 mb-2 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        <span class="text-sm font-medium text-blue-700">New Document</span>
+                    </a>
+                    <a href="{{ route('documents.workflows') }}" class="flex flex-col items-center p-4 rounded-lg border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 transition group">
+                        <svg class="w-6 h-6 text-indigo-600 mb-2 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        <span class="text-sm font-medium text-indigo-700">My Workflows</span>
+                    </a>
+                    <a href="{{ route('documents.index') }}" class="flex flex-col items-center p-4 rounded-lg border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 transition group">
+                        <svg class="w-6 h-6 text-emerald-600 mb-2 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <span class="text-sm font-medium text-emerald-700">Browse Documents</span>
+                    </a>
+                    <a href="{{ route('documents.receive.index') }}" class="flex flex-col items-center p-4 rounded-lg border border-amber-200 bg-amber-50 hover:bg-amber-100 transition group">
+                        <svg class="w-6 h-6 text-amber-600 mb-2 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <span class="text-sm font-medium text-amber-700">Receive Documents</span>
+                    </a>
+                </div>
 
-                    <div>
-                        <label for="tracking_number" class="block text-sm font-medium text-gray-700 mb-2">
-                            Tracking Number
-                        </label>
-                        <div class="flex">
+                {{-- Tracking Number Lookup --}}
+                <div class="border-t border-gray-200 pt-6">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        Find Document by Tracking Number or QR Code
+                    </h4>
+
+                    <form id="quick-action-form" action="{{ route('trackingNumber-search') }}" method="POST" class="space-y-4">
+                        @csrf
+                        <input type="hidden" name="action" id="qa-action" value="find">
+
+                        <div class="flex flex-col sm:flex-row gap-2">
                             <input type="text" name="tracking_number" id="tracking_number"
-                                class="flex-1 min-w-0 block w-full px-4 py-2.5 rounded-l-lg border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                placeholder="Enter tracking number">
+                                class="flex-1 min-w-0 block w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                placeholder="Enter tracking number (e.g. ADM-20250101-000001)">
 
-                            <button type="button" onclick="startScanner()"
-                                class="inline-flex items-center px-4 py-2.5 border border-gray-300 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                                </svg>
-                                Scan QR
-                            </button>
+                            <div class="flex gap-2">
+                                {{-- Upload QR Image --}}
+                                <label title="Upload QR code image" class="inline-flex items-center px-3 py-2.5 border border-gray-300 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <span class="hidden sm:inline">Upload QR</span>
+                                    <input type="file" id="qr-image-input" accept="image/*" class="hidden" onchange="decodeQrFromImage(this)">
+                                </label>
 
-                            <button type="submit"
-                                class="inline-flex items-center px-4 py-2.5 border border-blue-600 text-sm font-medium rounded-r-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                Submit
-                            </button>
+                                {{-- Camera Scan --}}
+                                <button type="button" onclick="toggleScanner()"
+                                    class="inline-flex items-center px-3 py-2.5 border border-gray-300 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                                    </svg>
+                                    <span class="hidden sm:inline" id="scanner-btn-text">Scan QR</span>
+                                </button>
+
+                                {{-- Submit --}}
+                                <button type="submit"
+                                    class="inline-flex items-center px-5 py-2.5 border border-blue-600 text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors shadow-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    Find
+                                </button>
+                            </div>
                         </div>
 
-                        <div id="reader" class="mt-6 hidden rounded-lg overflow-hidden shadow-lg border border-blue-100"></div>
-                    </div>
+                        {{-- QR decode status message --}}
+                        <div id="qr-decode-status" class="hidden"></div>
 
-                    @push('scripts')
-                    <script src="https://unpkg.com/html5-qrcode"></script>
-                    <script>
-                        function startScanner() {
-                            const reader = document.getElementById('reader');
-                            reader.classList.remove('hidden');
-
-                            const html5QrCode = new Html5Qrcode("reader");
-                            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-
-                            html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
-                                document.getElementById('tracking_number').value = decodedText;
-                                html5QrCode.stop();
-                                reader.classList.add('hidden');
-
-                                // Add a success notification
-                                const notification = document.createElement('div');
-                                notification.className = 'fixed bottom-4 right-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center';
-                                notification.innerHTML = `
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    QR Code scanned successfully!
-                                `;
-                                document.body.appendChild(notification);
-
-                                // Remove notification after 3 seconds
-                                setTimeout(() => {
-                                    notification.remove();
-                                }, 3000);
-                            });
-                        }
-                    </script>
-                    @endpush
-                </form>
+                        {{-- Camera QR Scanner --}}
+                        <div id="reader-wrapper" class="hidden">
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-sm text-gray-600 flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-blue-500 animate-pulse" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="5"/></svg>
+                                    Camera active — point at a QR code
+                                </p>
+                                <button type="button" onclick="stopScanner()" class="text-sm text-red-600 hover:text-red-700 font-medium flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    Close
+                                </button>
+                            </div>
+                            <div id="reader" class="rounded-lg overflow-hidden shadow-lg border border-blue-100"></div>
+                        </div>
+                    </form>
+                </div>
             </div>
+
+            @push('scripts')
+            <script src="https://unpkg.com/html5-qrcode"></script>
+            <script>
+                let html5QrCode = null;
+                let scannerActive = false;
+
+                // Toggle camera scanner on/off
+                function toggleScanner() {
+                    if (scannerActive) {
+                        stopScanner();
+                    } else {
+                        startScanner();
+                    }
+                }
+
+                function startScanner() {
+                    const wrapper = document.getElementById('reader-wrapper');
+                    wrapper.classList.remove('hidden');
+                    scannerActive = true;
+
+                    const btnText = document.getElementById('scanner-btn-text');
+                    if (btnText) btnText.textContent = 'Stop';
+
+                    html5QrCode = new Html5Qrcode("reader");
+                    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+                    html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+                        document.getElementById('tracking_number').value = decodedText;
+                        stopScanner();
+                        showQrStatus('success', 'QR code scanned: ' + decodedText);
+                    }).catch(err => {
+                        showQrStatus('error', 'Could not start camera: ' + err);
+                        stopScanner();
+                    });
+                }
+
+                function stopScanner() {
+                    const wrapper = document.getElementById('reader-wrapper');
+                    if (html5QrCode && scannerActive) {
+                        html5QrCode.stop().then(() => {
+                            html5QrCode.clear();
+                            wrapper.classList.add('hidden');
+                        }).catch(() => {
+                            wrapper.classList.add('hidden');
+                        });
+                    } else {
+                        wrapper.classList.add('hidden');
+                    }
+                    scannerActive = false;
+                    const btnText = document.getElementById('scanner-btn-text');
+                    if (btnText) btnText.textContent = 'Scan QR';
+                }
+
+                // Decode QR from uploaded image file (client-side using html5-qrcode)
+                function decodeQrFromImage(input) {
+                    if (!input.files || !input.files[0]) return;
+
+                    const file = input.files[0];
+                    showQrStatus('info', 'Decoding QR code from image...');
+
+                    const tempScanner = new Html5Qrcode("qr-temp-canvas");
+                    tempScanner.scanFileV2(file, /* showImage= */ false)
+                        .then(result => {
+                            const text = result.decodedText;
+                            document.getElementById('tracking_number').value = text;
+                            showQrStatus('success', 'QR code decoded: ' + text);
+                            tempScanner.clear();
+                        })
+                        .catch(err => {
+                            showQrStatus('error', 'Could not decode QR code from image. Make sure the image contains a clear QR code.');
+                            tempScanner.clear();
+                        });
+
+                    // Reset file input so the same file can be selected again
+                    input.value = '';
+                }
+
+                function showQrStatus(type, message) {
+                    const el = document.getElementById('qr-decode-status');
+                    el.classList.remove('hidden');
+                    const colors = {
+                        success: 'bg-green-50 border-green-200 text-green-800',
+                        error: 'bg-red-50 border-red-200 text-red-800',
+                        info: 'bg-blue-50 border-blue-200 text-blue-800'
+                    };
+                    const icons = {
+                        success: '<svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>',
+                        error: '<svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+                        info: '<svg class="w-4 h-4 mr-2 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>'
+                    };
+                    el.className = 'flex items-center p-3 rounded-lg border text-sm ' + colors[type];
+                    el.innerHTML = icons[type] + '<span>' + message + '</span>';
+
+                    if (type !== 'info') {
+                        setTimeout(() => { el.classList.add('hidden'); }, 5000);
+                    }
+                }
+            </script>
+            {{-- Hidden canvas element for QR image decoding --}}
+            <div id="qr-temp-canvas" style="display:none;"></div>
+            @endpush
 
             <!-- Recent Activity
             <div class="bg-white shadow-xl rounded-xl p-8 border border-blue-100">
