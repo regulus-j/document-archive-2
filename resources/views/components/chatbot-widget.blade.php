@@ -2,7 +2,7 @@
 <div
     x-data="chatbotWidget()"
     x-init="init()"
-    class="fixed bottom-6 right-6 z-50 flex flex-col items-end"
+    class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end"
     x-cloak
 >
     {{-- ================================================================
@@ -16,8 +16,8 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
         x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-        class="mb-4 w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
-        style="height: 520px; display: none;"
+        class="mb-3 sm:mb-4 w-[calc(100vw-2rem)] sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
+        style="height: min(520px, calc(100vh - 7rem)); max-height: calc(100vh - 7rem); display: none;"
     >
         {{-- Header --}}
         <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 flex items-center justify-between flex-shrink-0">
@@ -214,13 +214,13 @@
     <button
         @click="open = !open"
         title="Chat with DocBot"
-        class="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-200 relative"
+        class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-200 relative"
     >
-        <svg x-show="!open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg x-show="!open" class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
         </svg>
-        <svg x-show="open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg x-show="open" class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
         </svg>
         <span x-ref="pulseRing" x-show="!open" class="absolute inset-0 rounded-full bg-blue-400 opacity-30 animate-ping pointer-events-none"></span>
@@ -229,6 +229,8 @@
 
 <script>
 function chatbotWidget() {
+    const STORAGE_KEY = 'docbot_chat_session';
+
     return {
         open: false,
         loading: false,
@@ -237,12 +239,57 @@ function chatbotWidget() {
         messages: [],
 
         init() {
+            // Restore chat session from sessionStorage
+            this.loadSession();
+
             // Stop ping animation after 5 seconds
             setTimeout(() => {
                 if (this.$refs.pulseRing) {
                     this.$refs.pulseRing.style.display = 'none';
                 }
             }, 5000);
+
+            // Auto-scroll if there are restored messages and panel is open
+            if (this.messages.length > 0 && this.open) {
+                this.$nextTick(() => this.scrollToBottom());
+            }
+
+            // Watch for changes to save session
+            this.$watch('messages', () => this.saveSession(), { deep: true });
+            this.$watch('open', (val) => {
+                this.saveSession();
+                if (val && this.messages.length > 0) {
+                    this.$nextTick(() => this.scrollToBottom());
+                }
+            });
+        },
+
+        loadSession() {
+            try {
+                const saved = sessionStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    if (data && Array.isArray(data.messages)) {
+                        this.messages = data.messages;
+                    }
+                    if (typeof data.open === 'boolean') {
+                        this.open = data.open;
+                    }
+                }
+            } catch (e) {
+                console.warn('DocBot: Failed to restore session', e);
+            }
+        },
+
+        saveSession() {
+            try {
+                sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    messages: this.messages,
+                    open: this.open,
+                }));
+            } catch (e) {
+                console.warn('DocBot: Failed to save session', e);
+            }
         },
 
         sendSuggestion(text) {
@@ -320,6 +367,7 @@ function chatbotWidget() {
             this.messages = [];
             this.error = null;
             this.inputText = '';
+            this.saveSession();
         },
 
         scrollToBottom() {

@@ -230,6 +230,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/{document}/cancel', [DocumentController::class, 'cancelWorkflow'])->name('documents.cancel');
         Route::post('/{document}/recall', [DocumentController::class, 'recallDocument'])->name('documents.recall');
         Route::post('/{document}/resume', [DocumentController::class, 'resumeDocument'])->name('documents.resume');
+        Route::post('/{document}/create-new-workflow', [DocumentController::class, 'createNewWorkflow'])->name('documents.createNewWorkflow');
 
         // Update status route
         // Route::get('/{document}/status', [DocumentController::class, 'confirmReleased'])->name('documents.confirmrelease');

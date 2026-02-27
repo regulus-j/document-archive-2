@@ -86,6 +86,20 @@
                         <span class="ml-1.5">Resume</span>
                     </button>
                 </form>
+
+                <form action="{{ route('documents.createNewWorkflow', $document) }}" method="POST" class="inline-block">
+                    @csrf
+                    <button type="submit" onclick="return handleCreateNewWorkflow(this.form);"
+                        class="group inline-flex items-center p-1.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors duration-150"
+                        title="Create New Workflow">
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span class="ml-1.5">New Workflow</span>
+                    </button>
+                </form>
             @endif
     @endif
 

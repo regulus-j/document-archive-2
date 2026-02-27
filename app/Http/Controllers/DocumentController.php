@@ -1524,6 +1524,47 @@ public function receiveConfirm(Document $document)
     }
 
     /**
+     * Create a new workflow for a recalled document.
+     * Clears old workflows and redirects to the forward page.
+     */
+    public function createNewWorkflow(Request $request, Document $document)
+    {
+        // Only the document owner can create a new workflow
+        if ($document->uploader !== auth()->id()) {
+            return redirect()->back()->with('error', 'Access Denied: You are not authorized to create a new workflow for this document.');
+        }
+
+        // Document must be in recalled state
+        if (!$document->status || $document->status->status !== 'recalled') {
+            return redirect()->back()->with('error', 'This document is not in a recalled state.');
+        }
+
+        // Delete all existing workflows for this document
+        $workflows = \App\Models\DocumentWorkflow::where('document_id', $document->id)->get();
+        foreach ($workflows as $workflow) {
+            $workflow->delete();
+        }
+
+        // Clear recipients pivot
+        $document->recipients()->detach();
+
+        // Reset document status to uploaded so it can be forwarded again
+        $document->status()->update(['status' => 'uploaded']);
+
+        // Log the action
+        \App\Models\DocumentAudit::logDocumentAction(
+            $document->id,
+            auth()->id(),
+            'new_workflow',
+            'uploaded',
+            'Previous workflows cleared and document ready for new workflow'
+        );
+
+        return redirect()->route('documents.forward', $document->id)
+            ->with('success', 'Previous workflows have been cleared. You can now create a new workflow for this document.');
+    }
+
+    /**
      * Resume a recalled document and its workflow.
      */
     public function resumeDocument(Request $request, Document $document)
