@@ -1,9 +1,9 @@
 @extends('layouts.app')
 @section('content')
-<div class="min-h-screen bg-gradient-to-b from-blue-50 to-white" x-data="{ showDeleteModal: false, deleteId: null }">
+<div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white" x-data="{ showDeleteModal: false, deleteId: null }">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header -->
-        <div class="bg-white rounded-lg p-6 border border-gray-200 mb-8 mt-8">
+        <div class="bg-white rounded-lg p-6 border border-slate-200 mb-8 mt-8">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
                     <svg class="h-8 w-8 text-[#0066FF]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -12,8 +12,8 @@
                             fill="currentColor" />
                     </svg>
                     <div>
-                        <h1 class="text-xl font-semibold text-gray-900">{{ __('Role Management') }}</h1>
-                        <p class="text-sm text-gray-500">Manage user roles and permissions</p>
+                        <h1 class="text-xl font-semibold text-slate-900">{{ __('Role Management') }}</h1>
+                        <p class="text-sm text-slate-500">Manage user roles and permissions</p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-3">
@@ -37,10 +37,10 @@
                 <div class="flex space-x-4">
                     <div class="flex-1 relative">
                         <input type="text" name="role_search" value="{{ request('role_search') }}"
-                            class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-blue-100 shadow-sm focus:ring-blue-400 focus:border-blue-400 transition-all"
+                            class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-indigo-100 shadow-sm focus:ring-indigo-400 focus:border-indigo-400 transition-all"
                             placeholder="{{ __('Search roles...') }}">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            <svg class="h-5 w-5 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -118,8 +118,8 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <!-- Total Roles Card -->
             <div
-                class="flex items-center p-6 bg-white rounded-lg border border-gray-200">
-                <div class="p-3 mr-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-md">
+                class="flex items-center p-6 bg-white rounded-lg border border-slate-200">
+                <div class="p-3 mr-4 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-md">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -127,8 +127,8 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="mb-2 text-sm font-medium text-gray-600">Total Roles</p>
-                    <p class="text-3xl font-bold text-gray-700">
+                    <p class="mb-2 text-sm font-medium text-slate-600">Total Roles</p>
+                    <p class="text-3xl font-bold text-slate-700">
                         {{ $roles->filter(fn($role) => !(auth()->user()->hasRole('company-admin') && $role->name === 'super-admin'))->count() }}
                     </p>
                 </div>
@@ -136,7 +136,7 @@
 
             <!-- Active Roles Card -->
             <div
-                class="flex items-center p-6 bg-white rounded-lg border border-gray-200">
+                class="flex items-center p-6 bg-white rounded-lg border border-slate-200">
                 <div class="p-3 mr-4 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl shadow-md">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
@@ -145,50 +145,50 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="mb-2 text-sm font-medium text-gray-600">Active Roles</p>
-                    <p class="text-3xl font-bold text-gray-700">
+                    <p class="mb-2 text-sm font-medium text-slate-600">Active Roles</p>
+                    <p class="text-3xl font-bold text-slate-700">
                         {{ $roles->filter(fn($role) => !(auth()->user()->hasRole('company-admin') && $role->name === 'super-admin'))->count() }}
                     </p>
                 </div>
             </div>
 
             <!-- Stats Card -->
-            <div class="p-6 bg-white rounded-lg border border-gray-200">
+            <div class="p-6 bg-white rounded-lg border border-slate-200">
                 <div class="flex items-center justify-center space-x-4">
                     <div class="text-center">
-                        <p class="text-sm font-medium text-gray-600">Found</p>
+                        <p class="text-sm font-medium text-slate-600">Found</p>
                         <p class="text-3xl font-bold text-[#0066FF]">
                              {{ $roles->filter(fn($role) => !(auth()->user()->hasRole('company-admin') && $role->name === 'super-admin'))->count() }}
                         </p>
-                        <p class="text-sm text-gray-500">roles</p>
+                        <p class="text-sm text-slate-500">roles</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Roles Table -->
-        <div class="mb-6 bg-white rounded-lg p-6 border border-gray-200 relative">
-            <table class="min-w-full divide-y divide-gray-200">
+        <div class="mb-6 bg-white rounded-lg p-6 border border-slate-200 relative">
+            <table class="min-w-full divide-y divide-slate-200">
                 <thead>
                     <tr>
-                        <th scope="col" class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
+                        <th scope="col" class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">
                             {{ __('NO') }}
                         </th>
-                        <th scope="col" class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
+                        <th scope="col" class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">
                             <div class="flex items-center space-x-1">
                                 <span>{{ __('NAME') }}</span>
-                                <a href="{{ route('roles.index', array_merge(request()->query(), ['sort' => request('sort') === 'asc' ? 'desc' : 'asc'])) }}" class="text-blue-700 hover:text-blue-900">
+                                <a href="{{ route('roles.index', array_merge(request()->query(), ['sort' => request('sort') === 'asc' ? 'desc' : 'asc'])) }}" class="text-indigo-700 hover:text-indigo-900">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                                     </svg>
                                 </a>
                             </div>
                         </th>
-                        <th scope="col" class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
+                        <th scope="col" class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">
                             <div class="flex items-center space-x-1">
                                 <span>{{ __('PERMISSIONS') }}</span>
                                 <div x-data="{ open: false }" class="relative inline-block text-left">
-                                    <button @click="open = !open" type="button" class="text-blue-700 hover:text-blue-900">
+                                    <button @click="open = !open" type="button" class="text-indigo-700 hover:text-indigo-900">
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707L16.293 11l-4.5 4.5a1 1 0 01-1.414 0L6 11 1.293 7.293A1 1 0 011 6.586V4z"/>
                                         </svg>
@@ -198,21 +198,21 @@
                                         class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
                                         <div class="py-1">
                                             <a href="{{ request()->fullUrlWithQuery(['permission_filter' => '0-5'] + array_diff_key(request()->query(), ['permission_filter' => ''])) }}"
-                                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request('permission_filter') === '0-5' ? 'bg-gray-100' : '' }}">
+                                                class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 {{ request('permission_filter') === '0-5' ? 'bg-slate-100' : '' }}">
                                                 0-5 permissions
                                             </a>
                                             <a href="{{ request()->fullUrlWithQuery(['permission_filter' => '6-10'] + array_diff_key(request()->query(), ['permission_filter' => ''])) }}"
-                                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request('permission_filter') === '6-10' ? 'bg-gray-100' : '' }}">
+                                                class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 {{ request('permission_filter') === '6-10' ? 'bg-slate-100' : '' }}">
                                                 6-10 permissions
                                             </a>
                                             <a href="{{ request()->fullUrlWithQuery(['permission_filter' => '10+'] + array_diff_key(request()->query(), ['permission_filter' => ''])) }}"
-                                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request('permission_filter') === '10+' ? 'bg-gray-100' : '' }}">
+                                                class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 {{ request('permission_filter') === '10+' ? 'bg-slate-100' : '' }}">
                                                 10+ permissions
                                             </a>
                                             @if(request()->has('permission_filter'))
-                                                <div class="border-t border-gray-100 my-1"></div>
+                                                <div class="border-t border-slate-100 my-1"></div>
                                                 <a href="{{ route('roles.index', request()->except('permission_filter')) }}"
-                                                    class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                                    class="block px-4 py-2 text-sm text-red-600 hover:bg-slate-100">
                                                     Clear filter
                                                 </a>
                                             @endif
@@ -221,20 +221,20 @@
                                 </div>
                             </div>
                         </th>
-                        <th scope="col" class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
+                        <th scope="col" class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">
                             <span>{{ __('STATUS') }}</span>
                         </th>
-                        <th scope="col" class="bg-white px-6 py-3 text-right text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
+                        <th scope="col" class="bg-white px-6 py-3 text-right text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">
                             {{ __('ACTION') }}
                         </th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="bg-white divide-y divide-slate-200">
                     @foreach ($roles as $key => $role)
                     @if(!(auth()->user()->hasRole('company-admin') && $role->name === 'super-admin'))
-                    <tr class="hover:bg-gray-50 transition-colors duration-150">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ ++$i }}</td>
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $role->name }}</td>
+                    <tr class="hover:bg-slate-50 transition-colors duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ ++$i }}</td>
+                        <td class="px-6 py-4 text-sm font-medium text-slate-900">{{ $role->name }}</td>
                         <td class="px-6 py-4">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#0066FF]/10 text-[#0066FF]">
                                 {{ count($role->permissions) }} Permissions
@@ -247,7 +247,7 @@
                         </td>
                         <td class="px-6 py-4 text-right text-sm font-medium">
                             <div class="relative inline-block text-left" x-data="{ open: false }">
-                                <button @click="open = !open" type="button" class="p-1 rounded-full text-gray-400 hover:text-[#0066FF] focus:outline-none">
+                                <button @click="open = !open" type="button" class="p-1 rounded-full text-slate-400 hover:text-[#0066FF] focus:outline-none">
                                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
                                     </svg>
@@ -262,16 +262,16 @@
                                     x-transition:leave-end="transform opacity-0 scale-95"
                                     class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-xl bg-white ring-1 ring-black ring-opacity-5 z-[60]">
                                     <div class="py-1">
-                                        <a href="{{ route('roles.show', $role->id) }}" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                            <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-[#0066FF]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <a href="{{ route('roles.show', $role->id) }}" class="group flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                            <svg class="mr-3 h-5 w-5 text-slate-400 group-hover:text-[#0066FF]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                             </svg>
                                             {{ __('View') }}
                                         </a>
                                         @can('role-edit')
-                                        <a href="{{ route('roles.edit', $role->id) }}" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                            <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-[#0066FF]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <a href="{{ route('roles.edit', $role->id) }}" class="group flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                            <svg class="mr-3 h-5 w-5 text-slate-400 group-hover:text-[#0066FF]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                             </svg>
                                             {{ __('Edit') }}
@@ -282,7 +282,7 @@
                                             @csrf
                                             @method('DELETE')
                                             @if($role->name !== 'super-admin' && $role->name !== 'company-admin')
-                                            <button type="button" class="group flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+                                            <button type="button" class="group flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-slate-50"
                                                 @click="deleteId = '{{ $role->id }}'; showDeleteModal = true; open = false">
                                                 <svg class="mr-3 h-5 w-5 text-red-400 group-hover:text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -306,17 +306,17 @@
             <!-- Empty State -->
             @if(count($roles) == 0)
                 <div class="p-8 text-center">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    <svg class="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                         aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900">No roles found</h3>
-                    <p class="mt-1 text-sm text-gray-500">Get started by creating a new role.</p>
+                    <h3 class="mt-2 text-sm font-medium text-slate-900">No roles found</h3>
+                    <p class="mt-1 text-sm text-slate-500">Get started by creating a new role.</p>
                     @can('role-create')
                         <div class="mt-6">
                             <a href="{{ route('roles.create') }}"
-                                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-indigo-600 hover:from-indigo-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                                 <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
                                     fill="currentColor" aria-hidden="true">
                                     <path fill-rule="evenodd"
@@ -358,28 +358,28 @@
                 x-transition:leave-end="opacity-0 translate-y-4"
                 class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 overflow-hidden"
                 @click.away="showDeleteModal = false">
-                <div class="px-6 py-4 border-b border-gray-200">
+                <div class="px-6 py-4 border-b border-slate-200">
                     <div class="flex items-center">
                         <div class="p-2 bg-red-100 rounded-full">
                             <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                             </svg>
                         </div>
-                        <h3 class="ml-3 text-lg font-medium text-gray-900">
+                        <h3 class="ml-3 text-lg font-medium text-slate-900">
                             {{ __('Confirm Delete') }}
                         </h3>
                     </div>
                 </div>
 
                 <div class="px-6 py-4">
-                    <p class="text-gray-600">
+                    <p class="text-slate-600">
                         {{ __('Are you sure you want to delete this role? This action cannot be undone.') }}
                     </p>
                 </div>
 
-                <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
+                <div class="px-6 py-4 bg-slate-50 flex justify-end space-x-3">
                     <button type="button" @click="showDeleteModal = false"
-                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0066FF]">
+                        class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0066FF]">
                         {{ __('Cancel') }}
                     </button>
                     <form :action="'{{ route('roles.destroy', '') }}/' + deleteId" method="POST" class="inline">

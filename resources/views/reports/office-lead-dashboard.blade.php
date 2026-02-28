@@ -2,10 +2,10 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div>
-                <h2 class="text-3xl font-bold text-gray-900 leading-tight">
+                <h2 class="text-3xl font-bold text-slate-900 leading-tight">
                     {{ __('Office Dashboard') }}
                 </h2>
-                <p class="mt-1 text-sm text-gray-500">{{ $office->name }} &middot; {{ \Carbon\Carbon::parse($startDate)->format('M d, Y') }} &ndash; {{ \Carbon\Carbon::parse($endDate)->format('M d, Y') }}</p>
+                <p class="mt-1 text-sm text-slate-500">{{ $office->name }} &middot; {{ \Carbon\Carbon::parse($startDate)->format('M d, Y') }} &ndash; {{ \Carbon\Carbon::parse($endDate)->format('M d, Y') }}</p>
             </div>
             <div class="flex items-center gap-3">
                 <a href="{{ route('reports.office-dashboard', ['start_date' => $startDate, 'end_date' => $endDate, 'export_format' => 'pdf']) }}" 
@@ -17,34 +17,34 @@
         </div>
     </x-slot>
 
-    <div class="py-8 bg-gradient-to-br from-gray-50 via-white to-blue-50 min-h-screen">
+    <div class="py-8 bg-gradient-to-br from-slate-50 via-white to-indigo-50 min-h-screen">
         <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
             {{-- ============================================= --}}
             {{-- DATE FILTER BAR --}}
             {{-- ============================================= --}}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
                 <form action="{{ route('reports.office-dashboard') }}" method="GET" class="flex flex-wrap items-center gap-4">
                     <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        <input type="date" name="start_date" value="{{ $startDate }}" class="rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
-                        <span class="text-gray-400">to</span>
-                        <input type="date" name="end_date" value="{{ $endDate }}" class="rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                        <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <input type="date" name="start_date" value="{{ $startDate }}" class="rounded-lg border-slate-300 text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <span class="text-slate-400">to</span>
+                        <input type="date" name="end_date" value="{{ $endDate }}" class="rounded-lg border-slate-300 text-sm focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition shadow-sm">
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium transition shadow-sm">
                         Apply
                     </button>
-                    <div class="flex ml-auto border border-gray-200 rounded-lg overflow-hidden">
+                    <div class="flex ml-auto border border-slate-200 rounded-lg overflow-hidden">
                         <a href="{{ route('reports.office-dashboard', ['start_date' => now()->subDays(7)->format('Y-m-d'), 'end_date' => now()->format('Y-m-d')]) }}" 
-                           class="px-3 py-2 text-xs font-medium hover:bg-gray-50 border-r border-gray-200 {{ now()->subDays(7)->format('Y-m-d') == $startDate ? 'bg-blue-50 text-blue-700' : 'text-gray-600' }}">7D</a>
+                           class="px-3 py-2 text-xs font-medium hover:bg-slate-50 border-r border-slate-200 {{ now()->subDays(7)->format('Y-m-d') == $startDate ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600' }}">7D</a>
                         <a href="{{ route('reports.office-dashboard', ['start_date' => now()->subMonth()->format('Y-m-d'), 'end_date' => now()->format('Y-m-d')]) }}" 
-                           class="px-3 py-2 text-xs font-medium hover:bg-gray-50 border-r border-gray-200 {{ now()->subMonth()->format('Y-m-d') == $startDate ? 'bg-blue-50 text-blue-700' : 'text-gray-600' }}">1M</a>
+                           class="px-3 py-2 text-xs font-medium hover:bg-slate-50 border-r border-slate-200 {{ now()->subMonth()->format('Y-m-d') == $startDate ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600' }}">1M</a>
                         <a href="{{ route('reports.office-dashboard', ['start_date' => now()->subMonths(3)->format('Y-m-d'), 'end_date' => now()->format('Y-m-d')]) }}" 
-                           class="px-3 py-2 text-xs font-medium hover:bg-gray-50 border-r border-gray-200 {{ now()->subMonths(3)->format('Y-m-d') == $startDate ? 'bg-blue-50 text-blue-700' : 'text-gray-600' }}">3M</a>
+                           class="px-3 py-2 text-xs font-medium hover:bg-slate-50 border-r border-slate-200 {{ now()->subMonths(3)->format('Y-m-d') == $startDate ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600' }}">3M</a>
                         <a href="{{ route('reports.office-dashboard', ['start_date' => now()->subMonths(6)->format('Y-m-d'), 'end_date' => now()->format('Y-m-d')]) }}" 
-                           class="px-3 py-2 text-xs font-medium hover:bg-gray-50 border-r border-gray-200 {{ now()->subMonths(6)->format('Y-m-d') == $startDate ? 'bg-blue-50 text-blue-700' : 'text-gray-600' }}">6M</a>
+                           class="px-3 py-2 text-xs font-medium hover:bg-slate-50 border-r border-slate-200 {{ now()->subMonths(6)->format('Y-m-d') == $startDate ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600' }}">6M</a>
                         <a href="{{ route('reports.office-dashboard', ['start_date' => now()->subYear()->format('Y-m-d'), 'end_date' => now()->format('Y-m-d')]) }}" 
-                           class="px-3 py-2 text-xs font-medium hover:bg-gray-50 {{ now()->subYear()->format('Y-m-d') == $startDate ? 'bg-blue-50 text-blue-700' : 'text-gray-600' }}">1Y</a>
+                           class="px-3 py-2 text-xs font-medium hover:bg-slate-50 {{ now()->subYear()->format('Y-m-d') == $startDate ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600' }}">1Y</a>
                     </div>
                 </form>
             </div>
@@ -53,29 +53,29 @@
             {{-- KPI SUMMARY CARDS --}}
             {{-- ============================================= --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition">
                     <div class="flex items-center gap-3 mb-3">
-                        <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100">
-                            <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-100">
+                            <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         </span>
                     </div>
-                    <p class="text-2xl font-bold text-gray-900">{{ $documentsUploaded }}</p>
-                    <p class="text-sm text-gray-500 mt-1">Total Documents</p>
-                    <p class="text-xs text-gray-400 mt-0.5">In selected period</p>
+                    <p class="text-2xl font-bold text-slate-900">{{ $documentsUploaded }}</p>
+                    <p class="text-sm text-slate-500 mt-1">Total Documents</p>
+                    <p class="text-xs text-slate-400 mt-0.5">In selected period</p>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition">
                     <div class="flex items-center gap-3 mb-3">
                         <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-green-100">
                             <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                         </span>
                     </div>
-                    <p class="text-2xl font-bold text-gray-900">{{ $documentsUploadedToday }}</p>
-                    <p class="text-sm text-gray-500 mt-1">Today's Documents</p>
-                    <p class="text-xs text-gray-400 mt-0.5">Uploaded today</p>
+                    <p class="text-2xl font-bold text-slate-900">{{ $documentsUploadedToday }}</p>
+                    <p class="text-sm text-slate-500 mt-1">Today's Documents</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Uploaded today</p>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition">
                     <div class="flex items-center justify-between mb-3">
                         <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-amber-100">
                             <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -86,41 +86,41 @@
                         </span>
                         @endif
                     </div>
-                    <p class="text-2xl font-bold text-gray-900">{{ $pendingWorkflows }}</p>
-                    <p class="text-sm text-gray-500 mt-1">Pending Workflows</p>
-                    <p class="text-xs text-gray-400 mt-0.5">Awaiting action</p>
+                    <p class="text-2xl font-bold text-slate-900">{{ $pendingWorkflows }}</p>
+                    <p class="text-sm text-slate-500 mt-1">Pending Workflows</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Awaiting action</p>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition">
                     <div class="flex items-center gap-3 mb-3">
                         <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-purple-100">
                             <svg class="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                         </span>
                     </div>
-                    <p class="text-2xl font-bold text-gray-900">{{ $officeMembers->count() }}</p>
-                    <p class="text-sm text-gray-500 mt-1">Team Members</p>
-                    <p class="text-xs text-gray-400 mt-0.5">In your office</p>
+                    <p class="text-2xl font-bold text-slate-900">{{ $officeMembers->count() }}</p>
+                    <p class="text-sm text-slate-500 mt-1">Team Members</p>
+                    <p class="text-xs text-slate-400 mt-0.5">In your office</p>
                 </div>
             </div>
 
             {{-- ============================================= --}}
             {{-- WORKFLOW STATISTICS --}}
             {{-- ============================================= --}}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
                     <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100">
                         <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     </span>
                     <div>
-                        <h3 class="text-base font-semibold text-gray-900">Workflow Statistics</h3>
-                        <p class="text-xs text-gray-500">Actions and performance for the selected period</p>
+                        <h3 class="text-base font-semibold text-slate-900">Workflow Statistics</h3>
+                        <p class="text-xs text-slate-500">Actions and performance for the selected period</p>
                     </div>
                 </div>
                 <div class="p-6">
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                        <div class="rounded-xl bg-blue-50 border border-blue-100 p-4">
-                            <p class="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">Sent</p>
-                            <p class="text-2xl font-bold text-blue-900">{{ $workflowStats['workflows_sent'] }}</p>
+                        <div class="rounded-xl bg-indigo-50 border border-indigo-100 p-4">
+                            <p class="text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-1">Sent</p>
+                            <p class="text-2xl font-bold text-indigo-900">{{ $workflowStats['workflows_sent'] }}</p>
                         </div>
                         <div class="rounded-xl bg-green-50 border border-green-100 p-4">
                             <p class="text-xs font-semibold text-green-600 uppercase tracking-wider mb-1">Received</p>
@@ -165,10 +165,10 @@
             {{-- ============================================= --}}
             {{-- DOCUMENT VOLUME TRENDS --}}
             {{-- ============================================= --}}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div class="px-6 py-4 border-b border-gray-100">
-                    <h3 class="text-base font-semibold text-gray-900">Document Volume Trends</h3>
-                    <p class="text-xs text-gray-500 mt-0.5">Documents and workflows over time</p>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                <div class="px-6 py-4 border-b border-slate-100">
+                    <h3 class="text-base font-semibold text-slate-900">Document Volume Trends</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Documents and workflows over time</p>
                 </div>
                 <div class="p-6">
                     <canvas id="documentTrendsChart" height="100"></canvas>
@@ -179,19 +179,19 @@
             {{-- CATEGORY & STATUS CHARTS --}}
             {{-- ============================================= --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                    <div class="px-6 py-4 border-b border-gray-100">
-                        <h3 class="text-base font-semibold text-gray-900">Document Categories</h3>
-                        <p class="text-xs text-gray-500 mt-0.5">Distribution by classification</p>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                    <div class="px-6 py-4 border-b border-slate-100">
+                        <h3 class="text-base font-semibold text-slate-900">Document Categories</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Distribution by classification</p>
                     </div>
                     <div class="p-6 flex items-center justify-center" style="min-height: 280px">
                         <canvas id="categoriesChart"></canvas>
                     </div>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                    <div class="px-6 py-4 border-b border-gray-100">
-                        <h3 class="text-base font-semibold text-gray-900">Status Distribution</h3>
-                        <p class="text-xs text-gray-500 mt-0.5">Current document statuses</p>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                    <div class="px-6 py-4 border-b border-slate-100">
+                        <h3 class="text-base font-semibold text-slate-900">Status Distribution</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Current document statuses</p>
                     </div>
                     <div class="p-6 flex items-center justify-center" style="min-height: 280px">
                         <canvas id="statusChart"></canvas>
@@ -202,41 +202,41 @@
             {{-- ============================================= --}}
             {{-- MEMBER PERFORMANCE TABLE --}}
             {{-- ============================================= --}}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div class="px-6 py-4 border-b border-gray-100">
-                    <h3 class="text-base font-semibold text-gray-900">Member Performance</h3>
-                    <p class="text-xs text-gray-500 mt-0.5">Individual metrics for the selected period</p>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                <div class="px-6 py-4 border-b border-slate-100">
+                    <h3 class="text-base font-semibold text-slate-900">Member Performance</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Individual metrics for the selected period</p>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full">
                         <thead>
-                            <tr class="bg-gray-50 border-b border-gray-100">
-                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Member</th>
-                                <th class="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Uploads</th>
-                                <th class="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Forwarded</th>
-                                <th class="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Processed</th>
-                                <th class="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Avg Response</th>
-                                <th class="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Avg Processing</th>
-                                <th class="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Approval</th>
-                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider" style="min-width: 140px;">Score</th>
+                            <tr class="bg-slate-50 border-b border-slate-100">
+                                <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Member</th>
+                                <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Uploads</th>
+                                <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Forwarded</th>
+                                <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Processed</th>
+                                <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Avg Response</th>
+                                <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Avg Processing</th>
+                                <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Approval</th>
+                                <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider" style="min-width: 140px;">Score</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-50">
+                        <tbody class="divide-y divide-slate-50">
                             @forelse($memberPerformanceMetrics as $metric)
-                            <tr class="hover:bg-blue-50/30 transition">
+                            <tr class="hover:bg-indigo-50/30 transition">
                                 <td class="px-5 py-3">
                                     <div class="flex items-center gap-3">
-                                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
+                                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
                                             {{ strtoupper(substr($metric['member']->first_name, 0, 1)) }}{{ strtoupper(substr($metric['member']->last_name, 0, 1)) }}
                                         </div>
-                                        <p class="text-sm font-medium text-gray-900">{{ $metric['member']->first_name }} {{ $metric['member']->last_name }}</p>
+                                        <p class="text-sm font-medium text-slate-900">{{ $metric['member']->first_name }} {{ $metric['member']->last_name }}</p>
                                     </div>
                                 </td>
-                                <td class="px-5 py-3 text-center text-sm text-gray-700">{{ $metric['uploads_count'] }}</td>
-                                <td class="px-5 py-3 text-center text-sm text-gray-700">{{ $metric['forwarded_count'] }}</td>
-                                <td class="px-5 py-3 text-center text-sm text-gray-700">{{ $metric['processed_count'] }}</td>
-                                <td class="px-5 py-3 text-center text-xs text-gray-600">{{ $metric['avg_response_time'] }}</td>
-                                <td class="px-5 py-3 text-center text-xs text-gray-600">{{ $metric['avg_processing_time'] }}</td>
+                                <td class="px-5 py-3 text-center text-sm text-slate-700">{{ $metric['uploads_count'] }}</td>
+                                <td class="px-5 py-3 text-center text-sm text-slate-700">{{ $metric['forwarded_count'] }}</td>
+                                <td class="px-5 py-3 text-center text-sm text-slate-700">{{ $metric['processed_count'] }}</td>
+                                <td class="px-5 py-3 text-center text-xs text-slate-600">{{ $metric['avg_response_time'] }}</td>
+                                <td class="px-5 py-3 text-center text-xs text-slate-600">{{ $metric['avg_processing_time'] }}</td>
                                 <td class="px-5 py-3 text-center">
                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold
                                         {{ $metric['approval_rate'] >= 80 ? 'bg-green-100 text-green-800' : ($metric['approval_rate'] >= 50 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800') }}">
@@ -245,18 +245,18 @@
                                 </td>
                                 <td class="px-5 py-3">
                                     <div class="flex items-center gap-2">
-                                        <div class="flex-1 bg-gray-100 rounded-full h-2">
+                                        <div class="flex-1 bg-slate-100 rounded-full h-2">
                                             <div class="h-2 rounded-full transition-all duration-700 {{ $metric['performance_score'] >= 70 ? 'bg-green-500' : ($metric['performance_score'] >= 40 ? 'bg-amber-400' : 'bg-red-500') }}"
                                                  style="width: {{ $metric['performance_score'] }}%"></div>
                                         </div>
-                                        <span class="text-xs font-bold text-gray-700 w-8 text-right">{{ $metric['performance_score'] }}</span>
+                                        <span class="text-xs font-bold text-slate-700 w-8 text-right">{{ $metric['performance_score'] }}</span>
                                     </div>
                                 </td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="8" class="px-5 py-12 text-center text-gray-400">
-                                    <svg class="mx-auto w-10 h-10 text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <td colspan="8" class="px-5 py-12 text-center text-slate-400">
+                                    <svg class="mx-auto w-10 h-10 text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                     No performance data available
                                 </td>
                             </tr>
@@ -269,14 +269,14 @@
             {{-- ============================================= --}}
             {{-- SMART INSIGHTS --}}
             {{-- ============================================= --}}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100">
-                        <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.674M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100">
+                        <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.674M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                     </span>
                     <div>
-                        <h3 class="text-base font-semibold text-gray-900">Performance Insights</h3>
-                        <p class="text-xs text-gray-500">Automated recommendations based on your office data</p>
+                        <h3 class="text-base font-semibold text-slate-900">Performance Insights</h3>
+                        <p class="text-xs text-slate-500">Automated recommendations based on your office data</p>
                     </div>
                 </div>
                 <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -354,13 +354,13 @@
                     </div>
                     @elseif($workflowStats['approval_rate'] > 95)
                     @php $insightCount++; @endphp
-                    <div class="flex gap-3 p-4 rounded-lg bg-blue-50 border border-blue-100">
+                    <div class="flex gap-3 p-4 rounded-lg bg-indigo-50 border border-indigo-100">
                         <span class="flex-shrink-0 mt-0.5">
-                            <svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <svg class="w-5 h-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </span>
                         <div>
-                            <p class="text-sm font-semibold text-blue-800">Very High Approval Rate</p>
-                            <p class="text-sm text-blue-700 mt-1">Approval rate is {{ $workflowStats['approval_rate'] }}%. While this may indicate quality, ensure reviews remain thorough and standards are maintained.</p>
+                            <p class="text-sm font-semibold text-indigo-800">Very High Approval Rate</p>
+                            <p class="text-sm text-indigo-700 mt-1">Approval rate is {{ $workflowStats['approval_rate'] }}%. While this may indicate quality, ensure reviews remain thorough and standards are maintained.</p>
                         </div>
                     </div>
                     @endif
@@ -483,7 +483,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         } else {
-            catCanvas.parentElement.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-gray-400"><svg class="w-10 h-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><p class="text-sm">No category data</p></div>';
+            catCanvas.parentElement.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-slate-400"><svg class="w-10 h-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><p class="text-sm">No category data</p></div>';
         }
     } catch(e) { console.error('Categories chart error:', e); }
 
@@ -512,7 +512,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         } else {
-            statusCanvas.parentElement.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-gray-400"><svg class="w-10 h-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/></svg><p class="text-sm">No status data</p></div>';
+            statusCanvas.parentElement.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-slate-400"><svg class="w-10 h-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/></svg><p class="text-sm">No status data</p></div>';
         }
     } catch(e) { console.error('Status chart error:', e); }
 });

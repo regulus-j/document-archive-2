@@ -10,12 +10,12 @@
                     @forelse($teams as $team)
                         <li>
                             <a href="?team_id={{ $team->id }}"
-                               class="block px-4 py-2 rounded {{ $selectedTeamId == $team->id ? 'bg-blue-100 text-blue-700 font-bold' : 'hover:bg-blue-50' }}">
+                               class="block px-4 py-2 rounded {{ $selectedTeamId == $team->id ? 'bg-indigo-100 text-indigo-700 font-bold' : 'hover:bg-indigo-50' }}">
                                 {{ $team->name }}
                             </a>
                         </li>
                     @empty
-                        <li class="text-gray-400">No teams found.</li>
+                        <li class="text-slate-400">No teams found.</li>
                     @endforelse
                 </ul>
             </div>
@@ -25,14 +25,14 @@
             <div class="bg-white rounded-lg shadow-md p-4">
                 <h2 class="text-lg font-semibold mb-4">Archived Documents</h2>
                 @if($documents->count())
-                    <table class="min-w-full divide-y divide-gray-200">
+                    <table class="min-w-full divide-y divide-slate-200">
                         <thead>
                             <tr>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Uploader</th>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Updated</th>
-<th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Archived By</th>
-<th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Title</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Uploader</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Updated</th>
+<th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Archived By</th>
+<th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -45,18 +45,18 @@
     @if($doc->archivedBy)
         {{ $doc->archivedBy->first_name }} {{ $doc->archivedBy->last_name }}
     @else
-        <span class="text-gray-400">N/A</span>
+        <span class="text-slate-400">N/A</span>
     @endif
 </td>
 <td class="px-4 py-2">
-    <a href="{{ route('documents.show', $doc->id) }}" class="text-blue-600 hover:underline">View</a>
+    <a href="{{ route('documents.show', $doc->id) }}" class="text-indigo-600 hover:underline">View</a>
 </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 @else
-                    <div class="text-gray-400">No archived documents found for this team.</div>
+                    <div class="text-slate-400">No archived documents found for this team.</div>
                 @endif
             </div>
         </div>

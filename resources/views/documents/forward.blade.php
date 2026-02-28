@@ -4,23 +4,23 @@
     <!-- Add SortableJS for drag and drop -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     
-    <div class="min-h-screen bg-gradient-to-b from-blue-50 to-white p-4 md:p-8">
+    <div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white p-4 md:p-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Header Box -->
-            <div class="bg-white rounded-xl mb-6 border border-blue-200/80 overflow-hidden">
+            <div class="bg-white rounded-xl mb-6 border border-indigo-200/80 overflow-hidden">
                 <div class="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div class="flex items-center">
-                        <div class="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+                        <div class="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg">
                             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
                             </svg>
                         </div>
                         <div class="ml-3">
-                            <h1 class="text-2xl font-bold text-gray-800">Forward Document</h1>
-                            <p class="text-sm text-gray-500">Select recipients to forward this document</p>
+                            <h1 class="text-2xl font-bold text-slate-800">Forward Document</h1>
+                            <p class="text-sm text-slate-500">Select recipients to forward this document</p>
                         </div>
                     </div>
-                    <a href="{{ route('documents.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors duration-200">
+                    <a href="{{ route('documents.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors duration-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
                         </svg>
@@ -69,17 +69,17 @@
 
             <!-- Main Content -->
             @if ($users->isEmpty())
-                <div class="bg-white rounded-xl p-8 text-center border border-blue-200/80">
+                <div class="bg-white rounded-xl p-8 text-center border border-indigo-200/80">
                     <div class="flex flex-col items-center justify-center py-12">
-                        <svg class="h-16 w-16 text-gray-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        <svg class="h-16 w-16 text-slate-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
-                        <h2 class="text-xl font-semibold text-gray-700 mb-2">No Recipients Available</h2>
-                        <p class="text-gray-500 text-lg mb-6">There are no users available to forward the document to.</p>
+                        <h2 class="text-xl font-semibold text-slate-700 mb-2">No Recipients Available</h2>
+                        <p class="text-slate-500 text-lg mb-6">There are no users available to forward the document to.</p>
                         <a href="{{ route('documents.index') }}"
-                            class="inline-flex items-center px-5 py-3 border border-blue-600 text-blue-600 bg-white text-base font-medium rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                            class="inline-flex items-center px-5 py-3 border border-indigo-600 text-indigo-600 bg-white text-base font-medium rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
                             <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -90,57 +90,57 @@
                     </div>
                 </div>
             @else
-                <div class="bg-white rounded-xl border border-blue-200/80 overflow-hidden">
-                    <div class="bg-white p-6 border-b border-blue-200/60">
+                <div class="bg-white rounded-xl border border-indigo-200/80 overflow-hidden">
+                    <div class="bg-white p-6 border-b border-indigo-200/60">
                         <div class="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none"
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
                             </svg>
-                            <h2 class="text-lg font-semibold text-gray-800">Forward Document to Recipients</h2>
+                            <h2 class="text-lg font-semibold text-slate-800">Forward Document to Recipients</h2>
                         </div>
-                        <p class="mt-1 text-sm text-gray-600">Select offices and users for each forwarding step</p>
+                        <p class="mt-1 text-sm text-slate-600">Select offices and users for each forwarding step</p>
                     </div>
 
                 <form action="{{ route('documents.forward.submit', $document->id) }}" method="POST" class="p-6">
                     @csrf
                     
                     <!-- Workflow Type Selection -->
-                    <div class="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200/60">
+                    <div class="mb-6 bg-gradient-to-r from-indigo-50 to-indigo-50 p-6 rounded-xl border border-indigo-200/60">
                         <div class="flex items-center justify-between mb-4">
                             <div>
-                                <h3 class="text-lg font-semibold text-gray-800 flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <h3 class="text-lg font-semibold text-slate-800 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                     Workflow Type
                                 </h3>
-                                <p class="text-sm text-gray-600 mt-1">Choose how recipients should process this document</p>
+                                <p class="text-sm text-slate-600 mt-1">Choose how recipients should process this document</p>
                             </div>
                             <div class="flex items-center space-x-4">
                                 <label class="inline-flex items-center cursor-pointer">
-                                    <input type="radio" name="workflow_mode" value="parallel" class="workflow-type-radio form-radio text-blue-600" checked>
-                                    <span class="ml-2 text-sm font-medium text-gray-700">Parallel Processing</span>
+                                    <input type="radio" name="workflow_mode" value="parallel" class="workflow-type-radio form-radio text-indigo-600" checked>
+                                    <span class="ml-2 text-sm font-medium text-slate-700">Parallel Processing</span>
                                 </label>
                                 <label class="inline-flex items-center cursor-pointer">
-                                    <input type="radio" name="workflow_mode" value="sequential" class="workflow-type-radio form-radio text-blue-600">
-                                    <span class="ml-2 text-sm font-medium text-gray-700">Sequential Processing</span>
+                                    <input type="radio" name="workflow_mode" value="sequential" class="workflow-type-radio form-radio text-indigo-600">
+                                    <span class="ml-2 text-sm font-medium text-slate-700">Sequential Processing</span>
                                 </label>
                             </div>
                         </div>
                         
                         <!-- Workflow Description -->
-                        <div id="workflow-description" class="bg-white p-4 rounded-lg border border-blue-200/60">
+                        <div id="workflow-description" class="bg-white p-4 rounded-lg border border-indigo-200/60">
                             <div id="parallel-description" class="workflow-description">
                                 <div class="flex items-start">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mt-0.5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                     <div>
-                                        <p class="text-sm font-medium text-gray-800">Parallel Processing (Default)</p>
-                                        <p class="text-sm text-gray-600 mt-1">All recipients receive the document simultaneously and can process it at the same time. No waiting required.</p>
-                                        <ul class="text-xs text-gray-500 mt-2 space-y-1">
+                                        <p class="text-sm font-medium text-slate-800">Parallel Processing (Default)</p>
+                                        <p class="text-sm text-slate-600 mt-1">All recipients receive the document simultaneously and can process it at the same time. No waiting required.</p>
+                                        <ul class="text-xs text-slate-500 mt-2 space-y-1">
                                             <li>• All recipients can act on the document immediately</li>
                                             <li>• No dependency between recipients</li>
                                             <li>• Faster overall processing time</li>
@@ -154,9 +154,9 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                     <div>
-                                        <p class="text-sm font-medium text-gray-800">Sequential Processing</p>
-                                        <p class="text-sm text-gray-600 mt-1">Recipients process the document in strict order. Each recipient must complete their action (approve, reject, or comment) before the next recipient receives the document.</p>
-                                        <ul class="text-xs text-gray-500 mt-2 space-y-1">
+                                        <p class="text-sm font-medium text-slate-800">Sequential Processing</p>
+                                        <p class="text-sm text-slate-600 mt-1">Recipients process the document in strict order. Each recipient must complete their action (approve, reject, or comment) before the next recipient receives the document.</p>
+                                        <ul class="text-xs text-slate-500 mt-2 space-y-1">
                                             <li>• <strong>Step-by-step processing:</strong> Recipients process in order</li>
                                             <li>• <strong>Controlled workflow:</strong> Previous step must be completed first</li>
                                             <li>• <strong>Drag to reorder:</strong> Change processing sequence by dragging steps</li>
@@ -174,7 +174,7 @@
                     </div>
 
                     <div id="batches-container" class="space-y-6">
-                        <div class="batch-group bg-blue-50/50 p-6 rounded-xl border border-blue-200/60 transition-all duration-200 hover:shadow-lg" data-index="0">
+                        <div class="batch-group bg-indigo-50/50 p-6 rounded-xl border border-indigo-200/60 transition-all duration-200 hover:shadow-lg" data-index="0">
                             <!-- Sequential Step Indicator -->
                             <div class="sequential-step-indicator hidden mb-4">
                                 <div class="flex items-center justify-between bg-white p-3 rounded-lg border border-amber-200">
@@ -186,8 +186,8 @@
                                         <span class="ml-2 text-amber-600">- Document will be sent to this recipient only after the previous step is completed</span>
                                     </div>
                                     <div class="flex items-center space-x-2">
-                                        <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Drag to reorder</span>
-                                        <button type="button" class="drag-handle cursor-move p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors">
+                                        <span class="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">Drag to reorder</span>
+                                        <button type="button" class="drag-handle cursor-move p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                                             </svg>
@@ -197,16 +197,16 @@
                             </div>
                             
                             <div class="flex items-center mb-4">
-                                <div class="step-number-indicator flex-shrink-0 h-8 w-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold shadow-sm">
+                                <div class="step-number-indicator flex-shrink-0 h-8 w-8 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold shadow-sm">
                                     <span class="step-order-label">1</span>
                                 </div>
-                                <label class="ml-3 block text-gray-700 text-lg font-semibold">
+                                <label class="ml-3 block text-slate-700 text-lg font-semibold">
                                     <span class="parallel-label">Recipients for Step <span class="step-order-label">1</span></span>
                                     <span class="sequential-label hidden">Step <span class="step-order-label">1</span> - <span class="step-ordinal-label">First</span> Recipient</span>
                                 </label>
                                 <!-- Sequential Flow Arrow -->
                                 <div class="sequential-arrow hidden ml-auto mr-4">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                                     </svg>
                                 </div>
@@ -215,9 +215,9 @@
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <!-- Offices Selection -->
-                                <div class="bg-white p-5 rounded-xl border border-blue-200/60">
-                                    <h3 class="text-sm font-semibold text-gray-800 mb-3 flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2"
+                                <div class="bg-white p-5 rounded-xl border border-indigo-200/60">
+                                    <h3 class="text-sm font-semibold text-slate-800 mb-3 flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2"
                                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -226,12 +226,12 @@
                                     </h3>
                                     
                                     <!-- Office Selection Info -->
-                                    <div class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <div class="mb-3 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
                                         <div class="flex items-start">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-600 mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
-                                            <p class="text-xs text-blue-700">
+                                            <p class="text-xs text-indigo-700">
                                                 <strong>Office Forwarding:</strong> When you select an office, all users belonging to that office will receive the document and be notified automatically.
                                             </p>
                                         </div>
@@ -240,14 +240,14 @@
                                     <div class="space-y-1.5 max-h-60 overflow-y-auto pr-2">
                                         @foreach ($offices as $office)
                                             <div class="p-2">
-                                                <label class="flex items-center gap-3 text-sm text-gray-700">
+                                                <label class="flex items-center gap-3 text-sm text-slate-700">
                                                     <input type="radio"
                                                            class="office-radio"
                                                            name="recipient_batch[0]"
                                                            id="step0_office{{ $office->id }}"
                                                            value="office_{{ $office->id }}">
                                                     <span>{{ $office->name }}</span>
-                                                    <span class="text-xs text-gray-500 ml-auto">
+                                                    <span class="text-xs text-slate-500 ml-auto">
                                                         ({{ $office->users->count() }} {{ $office->users->count() === 1 ? 'user' : 'users' }})
                                                     </span>
                                                 </label>
@@ -257,9 +257,9 @@
                                 </div>
 
                                 <!-- Users Selection -->
-                                <div class="bg-white p-5 rounded-xl border border-blue-200/60">
-                                    <h3 class="text-sm font-semibold text-gray-800 mb-3 flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2"
+                                <div class="bg-white p-5 rounded-xl border border-indigo-200/60">
+                                    <h3 class="text-sm font-semibold text-slate-800 mb-3 flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2"
                                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -269,8 +269,8 @@
 
                                     <!-- Office Filter Dropdown -->
                                     <div class="mb-4">
-                                        <label class="block text-xs font-medium text-gray-600 mb-1.5">Filter by Office</label>
-                                        <select class="office-filter w-full rounded-lg border-gray-200 text-sm text-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Filter by Office</label>
+                                        <select class="office-filter w-full rounded-lg border-slate-200 text-sm text-slate-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
                                             <option value="all">All Offices</option>
                                             @foreach ($offices as $office)
                                                 <option value="{{ $office->id }}">{{ $office->name }}</option>
@@ -281,7 +281,7 @@
                                     <div class="space-y-1.5 max-h-60 overflow-y-auto pr-2 user-list-container">
                                         @foreach ($users as $user)
                                             <div class="user-item p-2" data-office-ids="{{ json_encode($user->offices->pluck('id')) }}">
-                                                <label class="flex items-center gap-3 text-sm text-gray-700">
+                                                <label class="flex items-center gap-3 text-sm text-slate-700">
                                                     <input type="radio"
                                                            class="user-radio"
                                                            name="recipient_batch[0]"
@@ -296,9 +296,9 @@
                             </div>
 
                             <!-- Purpose and Urgency Selection -->
-                            <div class="bg-white p-5 rounded-xl border border-blue-200/60 mt-4">
-                                <h3 class="text-sm font-semibold text-gray-800 mb-3 flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2"
+                            <div class="bg-white p-5 rounded-xl border border-indigo-200/60 mt-4">
+                                <h3 class="text-sm font-semibold text-slate-800 mb-3 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2"
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -310,27 +310,27 @@
 
                               <!-- Purpose Selection -->
 <div>
-    <label class="block text-xs font-medium text-gray-600 mb-2">Purpose</label>
+    <label class="block text-xs font-medium text-slate-600 mb-2">Purpose</label>
     <div class="flex gap-4" x-data="{ selectedPurpose: '{{ old('purpose_batch.0') }}' }">
-        <label class="flex-1 flex items-start p-3 border-2 rounded-lg border-gray-200 cursor-pointer hover:bg-gray-50 transition-all"
-               :class="selectedPurpose === 'appropriate_action' ? 'border-blue-500 bg-blue-50' : ''">
+        <label class="flex-1 flex items-start p-3 border-2 rounded-lg border-slate-200 cursor-pointer hover:bg-slate-50 transition-all"
+               :class="selectedPurpose === 'appropriate_action' ? 'border-indigo-500 bg-indigo-50' : ''">
             <input type="radio" name="purpose_batch[0]" value="appropriate_action" 
                    class="mt-6 mr-3" x-model="selectedPurpose" required>
             <div class="flex flex-col items-center space-y-2 min-h-[80px] justify-center flex-1">
                 <div class="flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
                 <div class="text-center px-2">
-                    <p class="text-sm font-medium text-gray-800">Appropriate Action</p>
-                    <p class="text-xs text-gray-500 mt-1 line-clamp-3">Document can be approve, reject, reroute, return, or forward</p>
+                    <p class="text-sm font-medium text-slate-800">Appropriate Action</p>
+                    <p class="text-xs text-slate-500 mt-1 line-clamp-3">Document can be approve, reject, reroute, return, or forward</p>
                 </div>
             </div>
         </label>
         
-        <label class="flex-1 flex items-start p-3 border-2 rounded-lg border-gray-200 cursor-pointer hover:bg-gray-50 transition-all"
-               :class="selectedPurpose === 'dissemination' ? 'border-blue-500 bg-blue-50' : ''">
+        <label class="flex-1 flex items-start p-3 border-2 rounded-lg border-slate-200 cursor-pointer hover:bg-slate-50 transition-all"
+               :class="selectedPurpose === 'dissemination' ? 'border-indigo-500 bg-indigo-50' : ''">
             <input type="radio" name="purpose_batch[0]" value="dissemination" 
                    class="mt-6 mr-3" x-model="selectedPurpose">
             <div class="flex flex-col items-center space-y-2 min-h-[80px] justify-center flex-1">
@@ -340,14 +340,14 @@
                     </svg>
                 </div>
                 <div class="text-center px-2">
-                    <p class="text-sm font-medium text-gray-800">Disseminating of Information</p>
-                    <p class="text-xs text-gray-500 mt-1">For information sharing</p>
+                    <p class="text-sm font-medium text-slate-800">Disseminating of Information</p>
+                    <p class="text-xs text-slate-500 mt-1">For information sharing</p>
                 </div>
             </div>
         </label>
         
-        <label class="flex-1 flex items-start p-3 border-2 rounded-lg border-gray-200 cursor-pointer hover:bg-gray-50 transition-all"
-               :class="selectedPurpose === 'for_comment' ? 'border-blue-500 bg-blue-50' : ''">
+        <label class="flex-1 flex items-start p-3 border-2 rounded-lg border-slate-200 cursor-pointer hover:bg-slate-50 transition-all"
+               :class="selectedPurpose === 'for_comment' ? 'border-indigo-500 bg-indigo-50' : ''">
             <input type="radio" name="purpose_batch[0]" value="for_comment" 
                    class="mt-6 mr-3" x-model="selectedPurpose">
             <div class="flex flex-col items-center space-y-2 min-h-[80px] justify-center flex-1">
@@ -357,8 +357,8 @@
                     </svg>
                 </div>
                 <div class="text-center px-2">
-                    <p class="text-sm font-medium text-gray-800">Comment</p>
-                    <p class="text-xs text-gray-500 mt-1">A feedback required to add remarks</p>
+                    <p class="text-sm font-medium text-slate-800">Comment</p>
+                    <p class="text-xs text-slate-500 mt-1">A feedback required to add remarks</p>
                 </div>
             </div>
         </label>
@@ -366,11 +366,11 @@
 </div>
     <!-- Urgency Selection -->
     <div>
-        <label class="block text-xs font-medium text-gray-600 mb-1.5">Urgency Level</label>
+        <label class="block text-xs font-medium text-slate-600 mb-1.5">Urgency Level</label>
         <select name="urgency_batch[0]"
-            class="w-full rounded-lg border-gray-200 text-sm text-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            class="w-full rounded-lg border-slate-200 text-sm text-slate-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
             <option value="">Select Urgency (Optional)</option>
-            <option value="low" class="text-blue-600">Low</option>
+            <option value="low" class="text-indigo-600">Low</option>
             <option value="medium" class="text-yellow-600">Medium</option>
             <option value="high" class="text-orange-600">High</option>
             <option value="critical" class="text-red-600">Critical</option>
@@ -382,12 +382,12 @@
 
                                     <!-- Due Date Selection -->
                                     <div class="md:col-span-2">
-                                        <label class="block text-xs font-medium text-gray-600 mb-1.5">Due Date
+                                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Due Date
                                             (Optional)</label>
                                         <input type="date" name="due_date_batch[0]"
-                                            class="w-full rounded-lg border-gray-200 text-sm text-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                            class="w-full rounded-lg border-slate-200 text-sm text-slate-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                                             min="{{ date('Y-m-d') }}">
-                                        <p class="text-xs text-gray-500 mt-1.5">Due date must be today or later.</p>
+                                        <p class="text-xs text-slate-500 mt-1.5">Due date must be today or later.</p>
                                     </div>
                                 </div>
                             </div>
@@ -399,7 +399,7 @@
 
                     <div class="flex flex-wrap items-center gap-3 mt-6">
                         <button type="button"
-                            class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:border-blue-400 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors duration-200"
+                            class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:border-indigo-400 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors duration-200"
                             onclick="addBatch()">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
@@ -439,7 +439,7 @@
                         </div>
                         
                         <button type="submit"
-                            class="flex items-center gap-2 px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors duration-200 ml-auto"
+                            class="flex items-center gap-2 px-6 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors duration-200 ml-auto"
                             onclick="prepareFormData()">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
@@ -528,10 +528,10 @@
                 // Show helpful message for single step
                 sequentialInfo.innerHTML = `
                     <div class="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <div class="text-blue-700">
+                        <div class="text-indigo-700">
                             <span class="font-medium">Sequential Mode with Single Step</span>
                             <span class="ml-2">- Add more steps to create a processing sequence.</span>
                         </div>
@@ -568,11 +568,11 @@
                     // In sequential mode, use different colors for each step with better progression
                     const colors = [
                         'from-green-500 to-emerald-600',    // Start - Green for first step
-                        'from-blue-500 to-indigo-600',      // Process - Blue for middle steps
+                        'from-indigo-500 to-indigo-600',      // Process - Blue for middle steps
                         'from-purple-500 to-violet-600',    // Review - Purple
                         'from-amber-500 to-orange-600',     // Approve - Amber/Orange
                         'from-pink-500 to-rose-600',        // Final - Pink/Rose
-                        'from-gray-500 to-slate-600'        // Additional - Gray
+                        'from-slate-500 to-slate-600'        // Additional - Gray
                     ];
                     
                     stepIndicator.className = `step-number-indicator flex-shrink-0 h-10 w-10 bg-gradient-to-br ${colors[index % colors.length]} rounded-full flex items-center justify-center text-white font-bold shadow-lg ring-2 ring-white`;
@@ -584,26 +584,26 @@
                         if (!isLast) {
                             arrow.innerHTML = `
                                 <div class="flex flex-col items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                                     </svg>
-                                    <span class="text-xs text-gray-500 mt-1">Then</span>
+                                    <span class="text-xs text-slate-500 mt-1">Then</span>
                                 </div>
                             `;
                         }
                     }
                     
                     // Update batch styling for sequential mode
-                    batch.classList.remove('bg-blue-50/50');
-                    batch.classList.add('bg-gradient-to-r', 'from-white', 'to-gray-50/50');
+                    batch.classList.remove('bg-indigo-50/50');
+                    batch.classList.add('bg-gradient-to-r', 'from-white', 'to-slate-50/50');
                     
                 } else {
                     // In parallel mode, all use the same blue color
-                    stepIndicator.className = 'step-number-indicator flex-shrink-0 h-8 w-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold shadow-sm';
+                    stepIndicator.className = 'step-number-indicator flex-shrink-0 h-8 w-8 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold shadow-sm';
                     
                     // Reset batch styling for parallel mode
-                    batch.classList.remove('bg-gradient-to-r', 'from-white', 'to-gray-50/50');
-                    batch.classList.add('bg-blue-50/50');
+                    batch.classList.remove('bg-gradient-to-r', 'from-white', 'to-slate-50/50');
+                    batch.classList.add('bg-indigo-50/50');
                 }
             });
         }

@@ -16,7 +16,7 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
         x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-        class="mb-3 sm:mb-4 w-[calc(100vw-2rem)] sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
+        class="mb-3 sm:mb-4 w-[calc(100vw-2rem)] sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden"
         style="height: min(520px, calc(100vh - 7rem)); max-height: calc(100vh - 7rem); display: none;"
     >
         {{-- Header --}}
@@ -58,7 +58,7 @@
 
         {{-- Messages Area --}}
         <div
-            class="flex-1 overflow-y-auto px-4 py-3 space-y-4 bg-gray-50 min-h-0"
+            class="flex-1 overflow-y-auto px-4 py-3 space-y-4 bg-slate-50 min-h-0"
             x-ref="messagesContainer"
         >
             {{-- Welcome state (no messages yet) --}}
@@ -70,8 +70,8 @@
                                   d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
                         </svg>
                     </div>
-                    <p class="text-gray-700 font-medium text-sm">Hello! I'm DocBot.</p>
-                    <p class="text-gray-500 text-xs mt-1 max-w-xs leading-relaxed">Ask me to search documents, summarize content, or help you navigate DocTrack.</p>
+                    <p class="text-slate-700 font-medium text-sm">Hello! I'm DocBot.</p>
+                    <p class="text-slate-500 text-xs mt-1 max-w-xs leading-relaxed">Ask me to search documents, summarize content, or help you navigate DocTrack.</p>
                     <div class="mt-4 flex flex-wrap gap-2 justify-center">
                         <button @click="sendSuggestion('Show my pending documents')"
                                 class="text-xs bg-red-50 text-red-700 border border-red-200 rounded-full px-3 py-1 hover:bg-red-100 transition-colors">
@@ -115,7 +115,7 @@
                         <div
                             :class="msg.role === 'user'
                                 ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm'
-                                : 'bg-white text-gray-800 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm shadow-sm border border-gray-100'"
+                                : 'bg-white text-slate-800 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm shadow-sm border border-slate-100'"
                         >
                             <p class="whitespace-pre-wrap leading-relaxed text-sm" x-html="formatMessage(msg.content)"></p>
                         </div>
@@ -123,7 +123,7 @@
                         {{-- Document link cards --}}
                         <template x-if="msg.documents && msg.documents.length > 0">
                             <div class="mt-2 space-y-1.5">
-                                <p class="text-xs text-gray-500 font-medium px-1">Related documents:</p>
+                                <p class="text-xs text-slate-500 font-medium px-1">Related documents:</p>
                                 <template x-for="doc in msg.documents" :key="doc.id">
                                     <a
                                         :href="doc.url"
@@ -155,7 +155,7 @@
                                   d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
                         </svg>
                     </div>
-                    <div class="bg-white rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm border border-gray-100">
+                    <div class="bg-white rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm border border-slate-100">
                         <div class="flex gap-1 items-center">
                             <span class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay:0ms"></span>
                             <span class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay:150ms"></span>
@@ -180,7 +180,7 @@
         </div>
 
         {{-- Input area --}}
-        <div class="px-4 py-3 bg-white border-t border-gray-100 flex-shrink-0">
+        <div class="px-4 py-3 bg-white border-t border-slate-100 flex-shrink-0">
             <form @submit.prevent="sendMessage()" class="flex items-end gap-2">
                 <textarea
                     x-ref="messageInput"
@@ -189,14 +189,14 @@
                     :disabled="loading"
                     placeholder="Ask about documents or how to use DocTrack..."
                     rows="1"
-                    class="flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-400 transition-colors"
+                    class="flex-1 resize-none rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-slate-50 disabled:text-slate-400 transition-colors"
                     style="max-height:120px; overflow-y:auto;"
                     @input="autoResize($refs.messageInput)"
                 ></textarea>
                 <button
                     type="submit"
                     :disabled="loading || inputText.trim() === ''"
-                    class="w-10 h-10 flex-shrink-0 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:cursor-not-allowed text-white rounded-xl flex items-center justify-center transition-colors"
+                    class="w-10 h-10 flex-shrink-0 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:cursor-not-allowed text-white rounded-xl flex items-center justify-center transition-colors"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -204,7 +204,7 @@
                     </svg>
                 </button>
             </form>
-            <p class="text-xs text-gray-400 mt-1.5 text-center select-none">Enter to send &middot; Shift+Enter for new line</p>
+            <p class="text-xs text-slate-400 mt-1.5 text-center select-none">Enter to send &middot; Shift+Enter for new line</p>
         </div>
     </div>
 
@@ -395,7 +395,7 @@ function chatbotWidget() {
             // Convert *italic* markdown
             escaped = escaped.replace(/\*(.+?)\*/g, '<em>$1</em>');
             // Convert `code` markdown
-            escaped = escaped.replace(/`([^`]+)`/g, '<code class="bg-gray-100 text-gray-800 px-1 py-0.5 rounded text-xs">$1</code>');
+            escaped = escaped.replace(/`([^`]+)`/g, '<code class="bg-slate-100 text-slate-800 px-1 py-0.5 rounded text-xs">$1</code>');
             // Convert bullet list items (- or •)
             escaped = escaped.replace(/^[\-•]\s+(.+)$/gm, '<span class="flex gap-1.5 items-start"><span class="text-blue-500 mt-0.5">•</span><span>$1</span></span>');
             // Convert numbered list items

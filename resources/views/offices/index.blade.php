@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+<div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header Box -->
-        <div class="bg-white rounded-lg p-6 border border-gray-200 mb-8 mt-8">
+        <div class="bg-white rounded-lg p-6 border border-slate-200 mb-8 mt-8">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
                     <svg class="h-8 w-8 text-[#0066FF]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -13,8 +13,8 @@
                             fill="currentColor" />
                     </svg>
                     <div>
-                        <h1 class="text-xl font-semibold text-gray-900">{{ __('Teams') }}</h1>
-                        <p class="text-sm text-gray-500">Manage Team locations and hierarchies</p>
+                        <h1 class="text-xl font-semibold text-slate-900">{{ __('Teams') }}</h1>
+                        <p class="text-sm text-slate-500">Manage Team locations and hierarchies</p>
                     </div>
                 </div>
                 <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
@@ -43,9 +43,9 @@
         <div class="mb-6">
             <div class="relative">
                 <input type="text" id="officeSearch" placeholder="{{ __('Search teams...') }}"
-                    class="w-full pl-10 pr-4 py-2.5 rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all">
+                    class="w-full pl-10 pr-4 py-2.5 rounded-lg border-slate-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition-all">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    <svg class="h-5 w-5 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -83,41 +83,41 @@
         @endif
 
         <!-- Default View -->
-        <div id="defaultView" class="mb-6 bg-white relative border border-blue-100">
+        <div id="defaultView" class="mb-6 bg-white relative border border-indigo-100">
             <div class="overflow-visible">
-                <table id="officesTable" class="min-w-full divide-y divide-gray-200">
+                <table id="officesTable" class="min-w-full divide-y divide-slate-200">
                     <thead>
                         <tr>
                             <th scope="col"
-                                class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
+                                class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">
                                 {{ __('Team Name') }}
                             </th>
                             <th scope="col"
-                                class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
+                                class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">
                                 {{ __('Created') }}
                             </th>
                             <th scope="col"
-                                class="bg-white px-6 py-3 text-right text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
+                                class="bg-white px-6 py-3 text-right text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">
                                 {{ __('Actions') }}
                             </th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="bg-white divide-y divide-slate-200">
                         @foreach ($offices as $office)
-                        <tr class="office-row hover:bg-gray-50 transition-colors">
+                        <tr class="office-row hover:bg-slate-50 transition-colors">
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900 office-name">
+                                <div class="text-sm font-medium text-slate-900 office-name">
                                     {{ $office->name }}
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-500 office-created">
+                                <div class="text-sm text-slate-500 office-created">
                                     {{ $office->created_at->format('M d, Y') }}
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-right text-sm font-medium relative">
                                 <div class="relative inline-block text-left" x-data="{ open: false }">
-                                    <button @click.stop="open = !open" type="button" class="p-1 rounded-full text-gray-400 hover:text-[#0066FF] focus:outline-none">
+                                    <button @click.stop="open = !open" type="button" class="p-1 rounded-full text-slate-400 hover:text-[#0066FF] focus:outline-none">
                                         <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
                                         </svg>
@@ -132,15 +132,15 @@
                                         x-transition:leave-end="transform opacity-0 scale-95"
                                         class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-xl bg-white ring-1 ring-black ring-opacity-5 z-[60]">
                                         <div class="py-1">
-                                            <a href="{{ route('office.show', $office->id) }}" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                                <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-[#0066FF]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <a href="{{ route('office.show', $office->id) }}" class="group flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                                <svg class="mr-3 h-5 w-5 text-slate-400 group-hover:text-[#0066FF]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                 </svg>
                                                 {{ __('View') }}
                                             </a>
-                                            <a href="{{ route('office.edit', $office->id) }}" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                                <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-[#0066FF]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <a href="{{ route('office.edit', $office->id) }}" class="group flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                                <svg class="mr-3 h-5 w-5 text-slate-400 group-hover:text-[#0066FF]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                                 </svg>
                                                 {{ __('Edit') }}
@@ -148,7 +148,7 @@
                                             <form action="{{ route('office.destroy', $office->id) }}" method="POST" class="inline">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="group flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-50">
+                                                <button type="submit" class="group flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-slate-50">
                                                     <svg class="mr-3 h-5 w-5 text-red-400 group-hover:text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                     </svg>
@@ -167,22 +167,22 @@
         </div>
 
         <!-- Hierarchical View -->
-        <div id="hierarchicalView" class="mb-6 bg-white rounded-lg shadow-xl relative border border-blue-100 hidden">
+        <div id="hierarchicalView" class="mb-6 bg-white rounded-lg shadow-xl relative border border-indigo-100 hidden">
             <div class="overflow-visible">
-                <table class="min-w-full divide-y divide-gray-200">
+                <table class="min-w-full divide-y divide-slate-200">
                     <thead>
                         <tr>
                             <th scope="col"
-                                class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
+                                class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">
                                 {{ __('Name') }}
                             </th>
                             <th scope="col"
-                                class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
+                                class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">
                                 {{ __('Teams') }}
                             </th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="bg-white divide-y divide-slate-200">
                         @php
                         $officesByParent = $offices->groupBy(function ($office) {
                         return $office->parentOffice ? $office->parentOffice->id : null;
@@ -193,15 +193,15 @@
                         @endphp
 
                         @foreach ($topLevelOffices as $office)
-                        <tr class="hover:bg-gray-50 transition-colors">
+                        <tr class="hover:bg-slate-50 transition-colors">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <div
-                                        class="flex-shrink-0 h-8 w-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold shadow-sm">
+                                        class="flex-shrink-0 h-8 w-8 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold shadow-sm">
                                         {{ substr($office->name, 0, 1) }}
                                     </div>
-                                    <div class="ml-3 text-sm font-medium text-gray-900">
-                                        <a href="{{ route('office.show', $office->id) }}" class="hover:text-blue-600">
+                                    <div class="ml-3 text-sm font-medium text-slate-900">
+                                        <a href="{{ route('office.show', $office->id) }}" class="hover:text-indigo-600">
                                             {{ $office->name }}
                                         </a>
                                     </div>
@@ -219,20 +219,20 @@
                                 <ul class="space-y-2">
                                     @foreach ($childOffices as $childOffice)
                                     <li class="flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-400 mr-2"
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-400 mr-2"
                                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M9 5l7 7-7 7" />
                                         </svg>
                                         <a href="{{ route('office.show', $childOffice->id) }}"
-                                            class="text-sm text-gray-700 hover:text-blue-600">
+                                            class="text-sm text-slate-700 hover:text-indigo-600">
                                             {{ $childOffice->name }}
                                         </a>
                                     </li>
                                     @endforeach
                                 </ul>
                                 @else
-                                <span class="text-sm text-gray-500">{{ __('N/A') }}</span>
+                                <span class="text-sm text-slate-500">{{ __('N/A') }}</span>
                                 @endif
                             </td>
                         </tr>
@@ -244,16 +244,16 @@
                         @endphp
 
                         @if ($parentOffice && !$topLevelOffices->contains($parentOffice))
-                        <tr class="hover:bg-gray-50 transition-colors">
+                        <tr class="hover:bg-slate-50 transition-colors">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <div
-                                        class="flex-shrink-0 h-8 w-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold shadow-sm">
+                                        class="flex-shrink-0 h-8 w-8 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold shadow-sm">
                                         {{ substr($parentOffice->name, 0, 1) }}
                                     </div>
-                                    <div class="ml-3 text-sm font-medium text-gray-900">
+                                    <div class="ml-3 text-sm font-medium text-slate-900">
                                         <a href="{{ route('office.show', $parentOffice->id) }}"
-                                            class="hover:text-blue-600">
+                                            class="hover:text-indigo-600">
                                             {{ $parentOffice->name }}
                                         </a>
                                     </div>
@@ -263,13 +263,13 @@
                                 <ul class="space-y-2">
                                     @foreach ($childOffices as $childOffice)
                                     <li class="flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-400 mr-2"
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-400 mr-2"
                                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M9 5l7 7-7 7" />
                                         </svg>
                                         <a href="{{ route('office.show', $childOffice->id) }}"
-                                            class="text-sm text-gray-700 hover:text-blue-600">
+                                            class="text-sm text-slate-700 hover:text-indigo-600">
                                             {{ $childOffice->name }}
                                         </a>
                                     </li>

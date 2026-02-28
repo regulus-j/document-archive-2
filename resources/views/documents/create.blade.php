@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-        <div class="min-h-screen bg-gradient-to-b from-blue-50 to-white py-12">
+        <div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Header Box -->
-            <div class="bg-white rounded-xl mb-8 border border-blue-200/80 overflow-hidden">
+            <div class="bg-white rounded-xl mb-8 border border-indigo-200/80 overflow-hidden">
                 <div class="bg-white p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div class="flex items-center space-x-3">
-                        <div class="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md">
+                        <div class="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg shadow-md">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -15,12 +15,12 @@
                             </svg>
                         </div>
                         <div>
-                            <h1 class="text-2xl font-bold text-gray-800">Create Document</h1>
-                            <p class="text-sm text-gray-500">Create and upload new document</p>
+                            <h1 class="text-2xl font-bold text-slate-800">Create Document</h1>
+                            <p class="text-sm text-slate-500">Create and upload new document</p>
                         </div>
                     </div>
                 <a href="{{ route('documents.index') }}"
-                    class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                    class="inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                     </svg>
@@ -33,17 +33,17 @@
             @csrf
 
             <!-- Document Information Card -->
-            <div class="bg-white rounded-xl overflow-hidden border border-blue-200/80 transition-all duration-300 hover:border-blue-300/80">
-                <div class="bg-white p-6 border-b border-blue-200/60">
+            <div class="bg-white rounded-xl overflow-hidden border border-indigo-200/80 transition-all duration-300 hover:border-indigo-300/80">
+                <div class="bg-white p-6 border-b border-indigo-200/60">
                     <div class="flex items-center space-x-3">
-                        <div class="p-2 bg-blue-100 rounded-lg">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none"
+                        <div class="p-2 bg-indigo-100 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
                         </div>
-                        <h2 class="text-lg font-semibold text-gray-800">Document Information</h2>
+                        <h2 class="text-lg font-semibold text-slate-800">Document Information</h2>
                     </div>
                 </div>
 
@@ -52,20 +52,20 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Document Title -->
                         <div class="space-y-2">
-                            <label for="title" class="block text-sm font-medium text-gray-700">Document Title</label>
+                            <label for="title" class="block text-sm font-medium text-slate-700">Document Title</label>
                             <input type="text" name="title" id="title" required
-                                class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                class="w-full rounded-lg border-slate-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                                 placeholder="Enter document title">
-                            <p class="text-xs text-gray-500">Provide a clear, descriptive title for the document</p>
+                            <p class="text-xs text-slate-500">Provide a clear, descriptive title for the document</p>
                         </div>
 
                         <!-- Description -->
                         <div class="space-y-2">
-                            <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                            <label for="description" class="block text-sm font-medium text-slate-700">Description</label>
                             <textarea name="description" id="description" rows="3"
-                                class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                                class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                                 placeholder="Enter document description">{{ old('description') }}</textarea>
-                            <p class="text-xs text-gray-500">Provide additional details about the document</p>
+                            <p class="text-xs text-slate-500">Provide additional details about the document</p>
                         </div>
                     </div>
 
@@ -73,11 +73,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                         <div>
-                            <label for="category" class="block text-sm font-medium text-gray-700">Document Category
+                            <label for="category" class="block text-sm font-medium text-slate-700">Document Category
                                 <span class="text-red-500">*</span></label>
                             <div class="flex items-center gap-2 mt-1">
                                 <select name="category" id="category"
-                                    class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                                    class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                                     required>
                                     <option value="">Select Document Category</option>
                                     @foreach($categories as $category)
@@ -90,7 +90,7 @@
                                 @if(isset($isCompanyAdmin) && $isCompanyAdmin)
                                 <button type="button" id="openCategoryManagerBtn"
                                     title="Manage Categories"
-                                    class="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-lg border-2 border-blue-500 text-blue-600 bg-blue-50 hover:bg-blue-100 hover:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+                                    class="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-lg border-2 border-indigo-500 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 hover:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                                     </svg>
@@ -101,33 +101,33 @@
 
                         <!-- Classification -->
                         <div class="space-y-2">
-                            <label for="classification" class="block text-sm font-medium text-gray-700">Classification <span class="text-red-500">*</span></label>
+                            <label for="classification" class="block text-sm font-medium text-slate-700">Classification <span class="text-red-500">*</span></label>
                             <select name="classification" id="classification" required
-                                class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all">
+                                class="w-full rounded-lg border-slate-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition-all">
                                 <option value="Public" {{ old('classification', 'Public') == 'Public' ? 'selected' : '' }}>Public</option>
                                 <option value="Office Only" {{ old('classification') == 'Office Only' ? 'selected' : '' }}>Office Only</option>
                                 <option value="Custom Offices" {{ old('classification') == 'Custom Offices' ? 'selected' : '' }}>Custom Offices</option>
                                 <option value="Private" {{ old('classification') == 'Private' ? 'selected' : '' }}>Private</option>
                             </select>
-                            <p class="text-xs text-gray-500">Controls who can view this document</p>
+                            <p class="text-xs text-slate-500">Controls who can view this document</p>
                         </div>
 
                     </div>
 
                     <!-- Custom Offices Section -->
                     <div id="custom-offices-section" class="{{ old('classification') == 'Custom Offices' ? '' : 'hidden' }} mt-2 space-y-2">
-                        <label class="block text-sm font-medium text-gray-700">Select Allowed Offices <span class="text-red-500">*</span></label>
-                        <div class="max-h-48 overflow-y-auto border border-gray-300 rounded-lg p-3 bg-gray-50 space-y-2">
+                        <label class="block text-sm font-medium text-slate-700">Select Allowed Offices <span class="text-red-500">*</span></label>
+                        <div class="max-h-48 overflow-y-auto border border-slate-300 rounded-lg p-3 bg-slate-50 space-y-2">
                             @foreach($offices as $office)
                             <label class="flex items-center">
                                 <input type="checkbox" name="allowed_offices[]" value="{{ $office->id }}"
                                     {{ in_array($office->id, old('allowed_offices', [])) ? 'checked' : '' }}
-                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                <span class="ml-2 text-sm text-gray-700">{{ $office->name }}</span>
+                                    class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                <span class="ml-2 text-sm text-slate-700">{{ $office->name }}</span>
                             </label>
                             @endforeach
                         </div>
-                        <p class="text-xs text-gray-500">Select which offices can view this document</p>
+                        <p class="text-xs text-slate-500">Select which offices can view this document</p>
                     </div>
 
                     {{-- ═══════ Category Manager Modal (company-admin only) ═══════ --}}
@@ -135,11 +135,11 @@
                     <div id="categoryManagerOverlay"
                          class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
                         <div id="categoryManagerCard"
-                             class="relative w-full max-w-lg mx-4 bg-white rounded-2xl shadow-2xl border border-blue-200/80 overflow-hidden transform transition-all duration-300 scale-95 opacity-0 flex flex-col"
+                             class="relative w-full max-w-lg mx-4 bg-white rounded-2xl shadow-2xl border border-indigo-200/80 overflow-hidden transform transition-all duration-300 scale-95 opacity-0 flex flex-col"
                              style="max-height: 85vh;">
 
                             {{-- Header --}}
-                            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between flex-shrink-0">
+                            <div class="bg-gradient-to-r from-indigo-600 to-indigo-600 px-6 py-4 flex items-center justify-between flex-shrink-0">
                                 <div class="flex items-center gap-3">
                                     <div class="p-2 bg-white/20 rounded-lg">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -148,7 +148,7 @@
                                     </div>
                                     <div>
                                         <h3 class="text-lg font-bold text-white">Manage Categories</h3>
-                                        <p class="text-xs text-blue-100">Add or remove company-specific categories</p>
+                                        <p class="text-xs text-indigo-100">Add or remove company-specific categories</p>
                                     </div>
                                 </div>
                                 <button type="button" id="closeCategoryManagerBtn"
@@ -160,15 +160,15 @@
                             </div>
 
                             {{-- Add Category Form --}}
-                            <div class="px-6 pt-5 pb-4 border-b border-gray-100 flex-shrink-0">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Add New Category</label>
+                            <div class="px-6 pt-5 pb-4 border-b border-slate-100 flex-shrink-0">
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Add New Category</label>
                                 <div class="flex gap-2">
                                     <input type="text" id="newCategoryInput"
                                         placeholder="Enter category name..."
                                         maxlength="255"
-                                        class="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-sm">
+                                        class="flex-1 rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm">
                                     <button type="button" id="addCategoryBtn"
-                                        class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                        class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-indigo-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                                         </svg>
@@ -181,13 +181,13 @@
                             {{-- Categories Table --}}
                             <div class="flex-1 overflow-y-auto px-6 py-4" style="min-height: 0;">
                                 <div class="flex items-center justify-between mb-3">
-                                    <h4 class="text-sm font-semibold text-gray-700">All Categories</h4>
-                                    <span id="categoryCount" class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full"></span>
+                                    <h4 class="text-sm font-semibold text-slate-700">All Categories</h4>
+                                    <span id="categoryCount" class="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-full"></span>
                                 </div>
 
                                 {{-- Loading spinner --}}
                                 <div id="categoryTableLoading" class="flex justify-center py-8">
-                                    <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <svg class="animate-spin h-8 w-8 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
@@ -195,27 +195,27 @@
 
                                 {{-- Table --}}
                                 <div id="categoryTableWrapper" class="hidden">
-                                    <table class="min-w-full divide-y divide-gray-200">
-                                        <thead class="bg-gray-50 sticky top-0">
+                                    <table class="min-w-full divide-y divide-slate-200">
+                                        <thead class="bg-slate-50 sticky top-0">
                                             <tr>
-                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category Name</th>
-                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Category Name</th>
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
+                                                <th class="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Action</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="categoryTableBody" class="bg-white divide-y divide-gray-200">
+                                        <tbody id="categoryTableBody" class="bg-white divide-y divide-slate-200">
                                         </tbody>
                                     </table>
-                                    <div id="categoryEmptyState" class="hidden text-center py-6 text-sm text-gray-500">
+                                    <div id="categoryEmptyState" class="hidden text-center py-6 text-sm text-slate-500">
                                         No categories found. Add one above!
                                     </div>
                                 </div>
                             </div>
 
                             {{-- Footer --}}
-                            <div class="px-6 py-3 bg-gray-50 border-t border-gray-100 flex justify-end flex-shrink-0">
+                            <div class="px-6 py-3 bg-slate-50 border-t border-slate-100 flex justify-end flex-shrink-0">
                                 <button type="button" id="closeCategoryManagerFooterBtn"
-                                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                                    class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors">
                                     Done
                                 </button>
                             </div>
@@ -224,9 +224,9 @@
                     @endif
 
                     <!-- Routing Section -->
-                    <div class="border-t border-gray-200 pt-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none"
+                    <div class="border-t border-slate-200 pt-6">
+                        <h3 class="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M7 16l-4-4m0 0l4-4m-4 4h18" />
@@ -236,7 +236,7 @@
 
                         <!-- Originating Team -->
                         <div class="space-y-2 mb-4">
-                            <label for="from_office" class="block text-sm font-medium text-gray-700">Originating
+                            <label for="from_office" class="block text-sm font-medium text-slate-700">Originating
                                 Team</label>
                             @php
                                 $userOffices = auth()->user()->offices;
@@ -244,7 +244,7 @@
                             @if($userOffices->count() > 1)
                                 {{-- User belongs to multiple teams - show dropdown --}}
                                 <select name="from_office" id="from_office" required
-                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all">
+                                    class="w-full rounded-lg border-slate-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition-all">
                                     @foreach($userOffices as $office)
                                         <option value="{{ $office->id }}" {{ old('from_office', $originatingOfficeId) == $office->id ? 'selected' : '' }}>
                                             {{ $office->name }}
@@ -255,25 +255,25 @@
                                 {{-- User belongs to only one team - show read-only with hidden input --}}
                                 <input type="text" id="from_office_display"
                                     value="{{ $userOffices->first()->name }}"
-                                    class="w-full rounded-lg border-gray-300 bg-gray-100 cursor-not-allowed" readonly>
+                                    class="w-full rounded-lg border-slate-300 bg-slate-100 cursor-not-allowed" readonly>
                                 <input type="hidden" name="from_office" value="{{ $userOffices->first()->id }}">
                             @else
                                 {{-- User has no team assigned --}}
                                 <input type="text" id="from_office_display"
                                     value="No Team Assigned"
-                                    class="w-full rounded-lg border-gray-300 bg-gray-100 cursor-not-allowed" readonly>
+                                    class="w-full rounded-lg border-slate-300 bg-slate-100 cursor-not-allowed" readonly>
                                 <p class="text-red-500 text-sm mt-1">Please contact your administrator to be assigned to a team.</p>
                             @endif
                         </div>
 
                         <!-- Forward to Users Option -->
                         <div class="mt-6">
-                            <label class="inline-flex items-center bg-white px-4 py-3 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">
+                            <label class="inline-flex items-center bg-white px-4 py-3 rounded-lg border border-slate-300 hover:bg-slate-50 transition-colors">
                                 <input type="checkbox" name="forward" value="1"
-                                    class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
                                 <span class="ml-2">
-                                    <span class="text-sm font-medium text-gray-700">Forward to user/s</span>
-                                    <p class="text-xs text-gray-500 mt-1">
+                                    <span class="text-sm font-medium text-slate-700">Forward to user/s</span>
+                                    <p class="text-xs text-slate-500 mt-1">
                                         Checking this option will redirect you to the forwarding page after document creation to select recipients
                                     </p>
                                 </span>
@@ -282,9 +282,9 @@
                     </div>
 
                     <!-- Document Upload Section -->
-                    <div class="border-t border-gray-200 pt-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none"
+                    <div class="border-t border-slate-200 pt-6">
+                        <h3 class="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -294,60 +294,60 @@
 
                         <!-- Main Document Upload -->
                         <div class="mb-6">
-                            <label for="main-document" class="block text-sm font-medium text-gray-700 mb-2">Upload Main
+                            <label for="main-document" class="block text-sm font-medium text-slate-700 mb-2">Upload Main
                                 Document</label>
                             <div
-                                class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-400 transition-colors">
+                                class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-lg hover:border-indigo-400 transition-colors">
                                 <div class="space-y-1 text-center">
-                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none"
+                                    <svg class="mx-auto h-12 w-12 text-slate-400" stroke="currentColor" fill="none"
                                         viewBox="0 0 48 48" aria-hidden="true">
                                         <path
                                             d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
                                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
-                                    <div class="flex text-sm text-gray-600 justify-center">
+                                    <div class="flex text-sm text-slate-600 justify-center">
                                         <label for="main-document"
-                                            class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                                            class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
                                             <span>Upload a file</span>
                                             <input id="main-document" name="main_document" type="file"
                                                 accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.odt,.ods,.odp,.rtf,.jpg,.jpeg,.png" class="sr-only" required>
                                         </label>
                                         <p class="pl-1">or drag and drop</p>
                                     </div>
-                                    <p class="text-xs text-gray-500">PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, CSV, ODT, RTF, JPG, PNG up to 8MB</p>
+                                    <p class="text-xs text-slate-500">PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, CSV, ODT, RTF, JPG, PNG up to 8MB</p>
                                 </div>
                             </div>
-                            <div class="upload-feedback hidden mt-2 text-sm text-blue-600"></div>
+                            <div class="upload-feedback hidden mt-2 text-sm text-indigo-600"></div>
                         </div>
 
                         <!-- Attachments Upload -->
                         <div>
-                            <label for="attachments" class="block text-sm font-medium text-gray-700 mb-2">Upload
+                            <label for="attachments" class="block text-sm font-medium text-slate-700 mb-2">Upload
                                 Attachments</label>
-                            <div class="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-400 transition-colors">
+                            <div class="flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-lg hover:border-indigo-400 transition-colors">
                                 <div class="space-y-1 text-center w-full">
-                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none"
+                                    <svg class="mx-auto h-12 w-12 text-slate-400" stroke="currentColor" fill="none"
                                         viewBox="0 0 48 48" aria-hidden="true">
                                         <path
                                             d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
                                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
-                                    <div class="flex text-sm text-gray-600 justify-center">
+                                    <div class="flex text-sm text-slate-600 justify-center">
                                         <label for="attachments"
-                                            class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                                            class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
                                             <span>Upload attachments</span>
                                             <input id="attachments" name="attachments[]" type="file" multiple
                                                 accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.odt,.ods,.odp,.rtf,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg" class="sr-only">
                                         </label>
                                         <p class="pl-1">or drag and drop</p>
                                     </div>
-                                    <p class="text-xs text-gray-500">PDF, Office docs, images up to 8MB each (Maximum 5 attachments)</p>
+                                    <p class="text-xs text-slate-500">PDF, Office docs, images up to 8MB each (Maximum 5 attachments)</p>
                                 </div>
                             </div>
                             <!-- Attachment Files Preview -->
                             <div id="attachment-files-preview" class="hidden mt-4">
-                                <h4 class="text-sm font-medium text-gray-700 mb-2">Selected Attachments</h4>
-                                <ul id="attachment-files-list" class="divide-y divide-gray-200 border border-gray-200 rounded-md overflow-hidden bg-white">
+                                <h4 class="text-sm font-medium text-slate-700 mb-2">Selected Attachments</h4>
+                                <ul id="attachment-files-list" class="divide-y divide-slate-200 border border-slate-200 rounded-md overflow-hidden bg-white">
                                     <!-- Selected files will be displayed here -->
                                 </ul>
                             </div>
@@ -355,12 +355,12 @@
                     </div>
 
                     <!-- Form Actions -->
-                    <div class="border-t border-blue-200/60 pt-6">
+                    <div class="border-t border-indigo-200/60 pt-6">
                         <div class="flex justify-end items-center space-x-4">
                             <a href="{{ route('documents.index') }}"
-                                class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">Cancel</a>
+                                class="px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">Cancel</a>
                             <button type="submit"
-                                class="inline-flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                class="inline-flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-indigo-600 hover:from-indigo-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -582,13 +582,13 @@
                             const fileIcon = getFileIcon(file.name);
 
                             const li = document.createElement('li');
-                            li.className = 'flex items-center justify-between p-3 hover:bg-gray-50';
+                            li.className = 'flex items-center justify-between p-3 hover:bg-slate-50';
                             li.innerHTML = `
                                 <div class="flex items-center">
                                     ${fileIcon}
                                     <div class="ml-3">
-                                        <div class="text-sm font-medium text-gray-900">${file.name}</div>
-                                        <div class="text-xs text-gray-500">${fileSize}</div>
+                                        <div class="text-sm font-medium text-slate-900">${file.name}</div>
+                                        <div class="text-xs text-slate-500">${fileSize}</div>
                                     </div>
                                 </div>
                                 <button type="button" onclick="removeAttachmentFile(${index})" class="text-red-500 hover:text-red-700 text-sm">
@@ -619,7 +619,7 @@
             // Helper function to get file type icon
             function getFileIcon(filename) {
                 const ext = filename.split('.').pop().toLowerCase();
-                const iconClass = 'h-5 w-5 text-gray-400';
+                const iconClass = 'h-5 w-5 text-slate-400';
 
                 switch(ext) {
                     case 'pdf':
@@ -760,13 +760,13 @@
 
             categories.forEach(cat => {
                 const tr = document.createElement('tr');
-                tr.className = 'hover:bg-gray-50 transition-colors';
+                tr.className = 'hover:bg-slate-50 transition-colors';
                 tr.innerHTML = `
-                    <td class="px-4 py-3 text-sm text-gray-800 font-medium">${escHtml(cat.category)}</td>
+                    <td class="px-4 py-3 text-sm text-slate-800 font-medium">${escHtml(cat.category)}</td>
                     <td class="px-4 py-3">
                         ${cat.is_global
-                            ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Global</span>'
-                            : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Company</span>'}
+                            ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">Global</span>'
+                            : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">Company</span>'}
                     </td>
                     <td class="px-4 py-3 text-right">
                         ${cat.can_delete
@@ -776,7 +776,7 @@
                                     </svg>
                                     Delete
                                </button>`
-                            : '<span class="text-xs text-gray-400">—</span>'}
+                            : '<span class="text-xs text-slate-400">—</span>'}
                     </td>`;
                 tableBody.appendChild(tr);
             });

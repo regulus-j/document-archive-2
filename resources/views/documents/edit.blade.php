@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-b from-blue-50 to-white py-12">
+<div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header Box -->
-        <div class="bg-white rounded-xl mb-8 border border-blue-200/80 overflow-hidden">
+        <div class="bg-white rounded-xl mb-8 border border-indigo-200/80 overflow-hidden">
             <div class="bg-white p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div class="flex items-center space-x-3">
-                    <div class="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md">
+                    <div class="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg shadow-md">
                         <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -15,13 +15,13 @@
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-800">{{ __('Edit Document') }}</h1>
-                        <p class="text-sm text-gray-500">Update document details and attachments</p>
+                        <h1 class="text-2xl font-bold text-slate-800">{{ __('Edit Document') }}</h1>
+                        <p class="text-sm text-slate-500">Update document details and attachments</p>
                     </div>
                 </div>
                 <a href="{{ route('documents.index') }}"
-                    class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                    <svg class="mr-2 -ml-1 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    class="inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg shadow-sm text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                    <svg class="mr-2 -ml-1 h-5 w-5 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M11 17l-5-5m0 0l5-5m-5 5h12" />
@@ -96,17 +96,17 @@
         @endif
 
         <!-- Main Form -->
-        <div class="bg-white rounded-xl overflow-hidden border border-blue-200/80 transition-all duration-300 hover:border-blue-300/80">
-            <div class="bg-white p-6 border-b border-blue-200/60">
+        <div class="bg-white rounded-xl overflow-hidden border border-indigo-200/80 transition-all duration-300 hover:border-indigo-300/80">
+            <div class="bg-white p-6 border-b border-indigo-200/60">
                 <div class="flex items-center space-x-3">
-                    <div class="p-2 bg-blue-100 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none"
+                    <div class="p-2 bg-indigo-100 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                     </div>
-                    <h2 class="text-lg font-semibold text-gray-800">Edit Document Information</h2>
+                    <h2 class="text-lg font-semibold text-slate-800">Edit Document Information</h2>
                 </div>
             </div>
             <form id="editForm" action="{{ route('documents.update', $document->id) }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-6" onsubmit="console.log('Form submitting...', this.method, this.action, new FormData(this));">
@@ -117,32 +117,32 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Document Title -->
                     <div class="space-y-2">
-                        <label for="title" class="block text-sm font-medium text-gray-700">Document Title</label>
+                        <label for="title" class="block text-sm font-medium text-slate-700">Document Title</label>
                         <input type="text" name="title" id="title"
                             value="{{ old('title', $document->title) }}"
-                            class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all"
+                            class="w-full rounded-lg border-slate-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                             placeholder="Enter document title"
                             required>
-                        <p class="text-xs text-gray-500">Provide a clear, descriptive title for the document</p>
+                        <p class="text-xs text-slate-500">Provide a clear, descriptive title for the document</p>
                     </div>
 
                     <!-- Description -->
                     <div class="space-y-2">
-                        <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                        <label for="description" class="block text-sm font-medium text-slate-700">Description</label>
                         <textarea name="description" id="description" rows="3"
-                            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                            class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                             placeholder="Enter document description">{{ old('description', $document->description) }}</textarea>
-                        <p class="text-xs text-gray-500">Provide additional details about the document</p>
+                        <p class="text-xs text-slate-500">Provide additional details about the document</p>
                     </div>
                 </div>
 
                 <!-- Additional Information -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                     <div>
-                        <label for="category" class="block text-sm font-medium text-gray-700">Document Category
+                        <label for="category" class="block text-sm font-medium text-slate-700">Document Category
                             <span class="text-red-500">*</span></label>
                         <select name="category" id="category"
-                            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                            class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                             required>
                             <option value="">Select Document Category</option>
                             @foreach($categories as $id => $category)
@@ -157,9 +157,9 @@
                 </div>
 
                 <!-- Routing Section -->
-                <div class="border-t border-gray-200 pt-6 mt-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none"
+                <div class="border-t border-slate-200 pt-6 mt-6">
+                    <h3 class="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M7 16l-4-4m0 0l4-4m-4 4h18" />
@@ -170,39 +170,39 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- From Team -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">From Team</label>
-                            <div class="p-2 bg-gray-50 rounded-lg border border-gray-200">
-                                <p class="text-gray-800">{{ auth()->user()->offices->first()->name ?? 'N/A' }}</p>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">From Team</label>
+                            <div class="p-2 bg-slate-50 rounded-lg border border-slate-200">
+                                <p class="text-slate-800">{{ auth()->user()->offices->first()->name ?? 'N/A' }}</p>
                             </div>
                             <input type="hidden" name="from_office" value="{{ auth()->user()->offices->first()->id }}">
                         </div>
 
                         <!-- To Team / Recipient Status -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Document Recipients</label>
-                            <div class="p-2 bg-gray-50 rounded-lg border border-gray-200">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Document Recipients</label>
+                            <div class="p-2 bg-slate-50 rounded-lg border border-slate-200">
                                 @php
                                     $workflows = $document->documentWorkflow ?? collect();
                                 @endphp
 
                                 @if($workflows->isEmpty())
-                                    <p class="text-gray-600">Document has not been forwarded yet.</p>
+                                    <p class="text-slate-600">Document has not been forwarded yet.</p>
                                 @else
                                     <div class="space-y-2">
                                         @foreach($workflows as $workflow)
                                             <div class="flex flex-col text-sm">
                                                 @if($workflow->recipient)
-                                                    <span class="text-gray-900 font-medium">{{ $workflow->recipient->first_name }} {{ $workflow->recipient->last_name }}</span>
+                                                    <span class="text-slate-900 font-medium">{{ $workflow->recipient->first_name }} {{ $workflow->recipient->last_name }}</span>
                                                     @if($workflow->recipient->offices->first())
-                                                        <span class="text-gray-500">{{ $workflow->recipient->offices->first()->name }}</span>
+                                                        <span class="text-slate-500">{{ $workflow->recipient->offices->first()->name }}</span>
                                                     @endif
                                                 @elseif($workflow->recipientOffice)
-                                                    <span class="text-gray-900 font-medium">{{ $workflow->recipientOffice->name }}</span>
-                                                    <span class="text-gray-500">Entire Office</span>
+                                                    <span class="text-slate-900 font-medium">{{ $workflow->recipientOffice->name }}</span>
+                                                    <span class="text-slate-500">Entire Office</span>
                                                 @endif
                                             </div>
                                             @if(!$loop->last)
-                                                <hr class="border-gray-200">
+                                                <hr class="border-slate-200">
                                             @endif
                                         @endforeach
                                     </div>
@@ -213,18 +213,18 @@
 
                     <!-- Remarks -->
                     <div class="mt-6">
-                        <label for="remarks" class="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
+                        <label for="remarks" class="block text-sm font-medium text-slate-700 mb-1">Remarks</label>
                         <textarea name="remarks" id="remarks" rows="3"
-                            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                            class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                             placeholder="Enter any additional remarks (optional)"
                             maxlength="250">{{ old('remarks', $document->remarks) }}</textarea>
                     </div>
                 </div>
 
                     <!-- Document Upload Section -->
-                    <div class="border-t border-gray-200 pt-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none"
+                    <div class="border-t border-slate-200 pt-6">
+                        <h3 class="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -233,53 +233,53 @@
                         </h3>
 
                         <!-- Current File -->
-                        <div class="mb-6 bg-white rounded-lg border border-gray-200 p-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-3">Current File</label>
+                        <div class="mb-6 bg-white rounded-lg border border-slate-200 p-4">
+                            <label class="block text-sm font-medium text-slate-700 mb-3">Current File</label>
                             @if($document->path)
-                                <div class="flex items-center space-x-2 p-3 bg-gray-50 rounded-md border border-gray-200">
-                                    <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <div class="flex items-center space-x-2 p-3 bg-slate-50 rounded-md border border-slate-200">
+                                    <svg class="h-5 w-5 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
-                                    <a href="{{ asset('storage/' . $document->path) }}" class="text-blue-500 hover:text-blue-600 hover:underline" target="_blank">
+                                    <a href="{{ asset('storage/' . $document->path) }}" class="text-indigo-500 hover:text-indigo-600 hover:underline" target="_blank">
                                         {{ basename($document->path) }}
                                     </a>
                                 </div>
                             @else
-                                <p class="text-gray-500 p-3 bg-gray-50 rounded-md border border-gray-200">No file currently attached</p>
+                                <p class="text-slate-500 p-3 bg-slate-50 rounded-md border border-slate-200">No file currently attached</p>
                             @endif
                         </div>
 
                         <!-- Upload New File -->
                         <div class="mb-6">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Upload New Document</label>
-                            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-400 transition-colors">
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Upload New Document</label>
+                            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-lg hover:border-indigo-400 transition-colors">
                                 <div class="space-y-1 text-center">
-                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none"
+                                    <svg class="mx-auto h-12 w-12 text-slate-400" stroke="currentColor" fill="none"
                                         viewBox="0 0 48 48" aria-hidden="true">
                                         <path
                                             d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
                                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
-                                    <div class="flex text-sm text-gray-600 justify-center">
+                                    <div class="flex text-sm text-slate-600 justify-center">
                                         <label for="main_document"
-                                            class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                                            class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
                                             <span>Upload a file</span>
                                             <input id="main_document" name="main_document" type="file"
                                                 accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.odt,.ods,.odp,.rtf,.jpg,.jpeg,.png" class="sr-only">
                                         </label>
                                         <p class="pl-1">or drag and drop</p>
                                     </div>
-                                    <p class="text-xs text-gray-500">PDF, Office docs, images up to 8MB</p>
+                                    <p class="text-xs text-slate-500">PDF, Office docs, images up to 8MB</p>
                                 </div>
                             </div>
-                            <div class="upload-feedback hidden mt-2 text-sm text-blue-600"></div>
+                            <div class="upload-feedback hidden mt-2 text-sm text-indigo-600"></div>
                         </div>
                     </div>
 
                     <!-- Attachments Upload -->
-                    <div class="border-t border-gray-200 pt-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none"
+                    <div class="border-t border-slate-200 pt-6">
+                        <h3 class="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
@@ -289,13 +289,13 @@
 
                         <!-- Current Attachments -->
                         @if($document->attachments->count())
-                        <div class="mb-6 bg-white rounded-lg border border-gray-200 p-4">
+                        <div class="mb-6 bg-white rounded-lg border border-slate-200 p-4">
                             <div class="flex justify-between items-center mb-3">
-                                <h4 class="text-sm font-medium text-gray-700">Current Attachments</h4>
+                                <h4 class="text-sm font-medium text-slate-700">Current Attachments</h4>
                                 <div class="flex items-center gap-2">
                                     <div class="flex items-center">
-                                        <input type="checkbox" id="select-all-attachments" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                        <label for="select-all-attachments" class="ml-2 text-sm text-gray-600">Select All</label>
+                                        <input type="checkbox" id="select-all-attachments" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                        <label for="select-all-attachments" class="ml-2 text-sm text-slate-600">Select All</label>
                                     </div>
                                     <button type="button" id="delete-selected-btn" style="display: none;" class="text-red-500 hover:text-red-700 flex items-center px-2 py-1 rounded-md hover:bg-red-50 transition-colors">
                                         <svg class="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -305,20 +305,20 @@
                                     </button>
                                 </div>
                             </div>
-                            <ul class="divide-y divide-gray-200 border border-gray-200 rounded-md overflow-hidden bg-gray-50">
+                            <ul class="divide-y divide-slate-200 border border-slate-200 rounded-md overflow-hidden bg-slate-50">
                                 @foreach($document->attachments as $attachment)
                                     <li class="flex items-center justify-between p-3 hover:bg-white transition-colors">
                                         <div class="flex items-center">
-                                            <input type="checkbox" value="{{ $attachment->id }}" class="attachment-checkbox mr-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                            <svg class="h-4 w-4 text-gray-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <input type="checkbox" value="{{ $attachment->id }}" class="attachment-checkbox mr-3 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                            <svg class="h-4 w-4 text-slate-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                             </svg>
                                             <div>
-                                                <a href="{{ asset('storage/' . $attachment->path) }}" class="text-blue-500 hover:text-blue-600 hover:underline" target="_blank">
+                                                <a href="{{ asset('storage/' . $attachment->path) }}" class="text-indigo-500 hover:text-indigo-600 hover:underline" target="_blank">
                                                     {{ $attachment->filename }}
                                                 </a>
                                                 @if($attachment->size)
-                                                    <div class="text-xs text-gray-500">
+                                                    <div class="text-xs text-slate-500">
                                                         {{ number_format($attachment->size / 1024, 2) }} KB
                                                     </div>
                                                 @endif
@@ -339,32 +339,32 @@
 
                         <!-- Upload New Attachments -->
                         <div>
-                            <label for="attachments" class="block text-sm font-medium text-gray-700 mb-2">Upload New Attachments</label>
-                            <div class="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-400 transition-colors">
+                            <label for="attachments" class="block text-sm font-medium text-slate-700 mb-2">Upload New Attachments</label>
+                            <div class="flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-lg hover:border-indigo-400 transition-colors">
                                 <div class="space-y-1 text-center w-full">
-                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none"
+                                    <svg class="mx-auto h-12 w-12 text-slate-400" stroke="currentColor" fill="none"
                                         viewBox="0 0 48 48" aria-hidden="true">
                                         <path
                                             d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
                                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
-                                    <div class="flex text-sm text-gray-600 justify-center">
+                                    <div class="flex text-sm text-slate-600 justify-center">
                                         <label for="attachments"
-                                            class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                                            class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
                                             <span>Upload attachments</span>
                                             <input id="attachments" name="attachments[]" type="file" multiple
                                                 accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.odt,.ods,.odp,.rtf,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg" class="sr-only">
                                         </label>
                                         <p class="pl-1">or drag and drop</p>
                                     </div>
-                                    <p class="text-xs text-gray-500">PDF, Office docs, images up to 8MB each (Maximum 5 attachments)</p>
+                                    <p class="text-xs text-slate-500">PDF, Office docs, images up to 8MB each (Maximum 5 attachments)</p>
                                 </div>
                             </div>
 
                             <!-- New Attachments Preview -->
                             <div id="new-attachment-files-preview" class="hidden mt-4">
-                                <h4 class="text-sm font-medium text-gray-700 mb-2">Selected Attachments</h4>
-                                <ul id="new-attachment-files-list" class="divide-y divide-gray-200 border border-gray-200 rounded-md overflow-hidden bg-white">
+                                <h4 class="text-sm font-medium text-slate-700 mb-2">Selected Attachments</h4>
+                                <ul id="new-attachment-files-list" class="divide-y divide-slate-200 border border-slate-200 rounded-md overflow-hidden bg-white">
                                     <!-- Selected files will be displayed here -->
                                 </ul>
                             </div>
@@ -379,9 +379,9 @@
                                 name="archive"
                                 id="archive"
                                 value="1"
-                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300 rounded"
                             >
-                            <label for="archive" class="ml-2 block text-sm text-gray-700">
+                            <label for="archive" class="ml-2 block text-sm text-slate-700">
                                 Archive this document
                             </label>
                         </div>
@@ -392,9 +392,9 @@
                                 name="forward"
                                 id="forward"
                                 value="1"
-                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300 rounded"
                             >
-                            <label for="forward" class="ml-2 block text-sm text-gray-700">
+                            <label for="forward" class="ml-2 block text-sm text-slate-700">
                                 Forward after update
                             </label>
                         </div>
@@ -402,14 +402,14 @@
 
                     <!-- Submit Button -->
                     <!-- Form Actions -->
-                    <div class="border-t border-blue-200/60 pt-6">
+                    <div class="border-t border-indigo-200/60 pt-6">
                         <div class="flex flex-col md:flex-row justify-end items-start md:items-center">
                             <!-- Buttons -->
                             <div class="flex items-center space-x-4">
                                 <a href="{{ route('documents.index') }}"
-                                    class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">Cancel</a>
+                                    class="px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">Cancel</a>
                                 <button id="submit-btn" type="submit"
-                                    class="inline-flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                    class="inline-flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-indigo-600 hover:from-indigo-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -550,7 +550,7 @@ function formatFileSize(bytes) {
 // Get file icon helper function
 function getFileIcon(filename) {
     const ext = filename.split('.').pop().toLowerCase();
-    const iconClass = 'h-5 w-5 text-gray-400';
+    const iconClass = 'h-5 w-5 text-slate-400';
 
     switch(ext) {
         case 'pdf':
@@ -826,13 +826,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     const fileIcon = getFileIcon(file.name);
 
                     const li = document.createElement('li');
-                    li.className = 'flex items-center justify-between p-3 hover:bg-gray-50';
+                    li.className = 'flex items-center justify-between p-3 hover:bg-slate-50';
                     li.innerHTML = `
                         <div class="flex items-center">
                             ${fileIcon}
                             <div class="ml-3">
-                                <div class="text-sm font-medium text-gray-900">${file.name}</div>
-                                <div class="text-xs text-gray-500">${fileSize}</div>
+                                <div class="text-sm font-medium text-slate-900">${file.name}</div>
+                                <div class="text-xs text-slate-500">${fileSize}</div>
                             </div>
                         </div>
                         <button type="button" onclick="removeNewAttachmentFile(${index})"
@@ -897,11 +897,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         function highlight(e) {
-            zone.classList.add('border-blue-400', 'bg-blue-50');
+            zone.classList.add('border-indigo-400', 'bg-indigo-50');
         }
 
         function unhighlight(e) {
-            zone.classList.remove('border-blue-400', 'bg-blue-50');
+            zone.classList.remove('border-indigo-400', 'bg-indigo-50');
         }
 
         zone.addEventListener('drop', handleDrop, false);
@@ -1010,7 +1010,7 @@ function formatFileSize(bytes) {
 // Helper function to get file type icon
 function getFileIcon(filename) {
     const ext = filename.split('.').pop().toLowerCase();
-    const iconClass = 'h-5 w-5 text-gray-400';
+    const iconClass = 'h-5 w-5 text-slate-400';
 
     switch(ext) {
         case 'pdf':
@@ -1062,7 +1062,7 @@ function removeNewAttachmentFile(index) {
 <div id="confirm-delete-modal" class="hidden fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-center justify-center min-h-screen">
         <!-- Background overlay -->
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+        <div class="fixed inset-0 bg-slate-500 bg-opacity-75 transition-opacity"></div>
 
         <!-- Modal panel -->
         <div class="relative bg-white rounded-lg max-w-md w-full mx-4 shadow-xl">
@@ -1073,11 +1073,11 @@ function removeNewAttachmentFile(index) {
                     </svg>
                 </div>
                 <div class="mt-4 text-center">
-                    <h3 class="text-lg font-medium text-gray-900" id="modal-title">Confirm Deletion</h3>
-                    <p class="mt-2 text-sm text-gray-500">Are you sure you want to delete the selected attachment(s)? This action cannot be undone.</p>
+                    <h3 class="text-lg font-medium text-slate-900" id="modal-title">Confirm Deletion</h3>
+                    <p class="mt-2 text-sm text-slate-500">Are you sure you want to delete the selected attachment(s)? This action cannot be undone.</p>
                 </div>
                 <div class="mt-6 flex justify-end space-x-3">
-                    <button type="button" onclick="hideDeleteModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <button type="button" onclick="hideDeleteModal()" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                         Cancel
                     </button>
                     <button type="button" id="confirm-delete-btn" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">

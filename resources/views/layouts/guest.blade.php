@@ -21,7 +21,7 @@
     <script src="//unpkg.com/alpinejs" defer></script>
 </head>
 
-<body class="font-sans text-gray-900 antialiased">
+<body class="font-sans text-slate-900 antialiased">
     <div class="min-h-screen flex">
         <!-- Left side - Blue background with welcome message -->
         <div

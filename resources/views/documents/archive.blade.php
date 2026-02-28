@@ -1,24 +1,24 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+<div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <!-- Header Box -->
-        <div class="bg-white rounded-xl shadow-xl mb-6 border border-blue-100 overflow-hidden">
+        <div class="bg-white rounded-xl shadow-xl mb-6 border border-indigo-100 overflow-hidden">
             <div class="bg-white p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div class="flex items-center space-x-3">
-                    <div class="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md">
+                    <div class="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg shadow-md">
                         <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-800">Document Archive</h1>
-                        <p class="text-sm text-gray-500">Search and manage archived documents</p>
+                        <h1 class="text-2xl font-bold text-slate-800">Document Archive</h1>
+                        <p class="text-sm text-slate-500">Search and manage archived documents</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <a href="{{ route('documents.index') }}" class="inline-flex items-center px-4 py-2 border border-blue-600 text-sm font-medium rounded-lg text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                    <a href="{{ route('documents.index') }}" class="inline-flex items-center px-4 py-2 border border-indigo-600 text-sm font-medium rounded-lg text-indigo-600 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                         <svg class="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
                         </svg>
@@ -31,13 +31,13 @@
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <!-- Search Panel -->
             <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl shadow-xl overflow-hidden h-full border border-blue-100 transition-all duration-300">
-                    <div class="bg-white p-6 border-b border-blue-200">
+                <div class="bg-white rounded-xl shadow-xl overflow-hidden h-full border border-indigo-100 transition-all duration-300">
+                    <div class="bg-white p-6 border-b border-indigo-200">
                         <div class="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                             </svg>
-                            <h2 class="text-lg font-semibold text-gray-800">Filter Documents</h2>
+                            <h2 class="text-lg font-semibold text-slate-800">Filter Documents</h2>
                         </div>
                     </div>
 
@@ -45,11 +45,11 @@
                         <!-- Archive Search Form -->
                         <form action="{{ route('documents.archive') }}" method="GET" class="space-y-4">
                             <div>
-                                <label for="text-search" class="block text-sm font-medium text-gray-700 mb-1">Keywords</label>
+                                <label for="text-search" class="block text-sm font-medium text-slate-700 mb-1">Keywords</label>
                                 <div class="relative">
-                                    <input type="text" id="text-search" name="search" value="{{ $search ?? '' }}" class="mt-1 block w-full px-3 py-2 border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md" placeholder="Search in title, description...">
+                                    <input type="text" id="text-search" name="search" value="{{ $search ?? '' }}" class="mt-1 block w-full px-3 py-2 border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" placeholder="Search in title, description...">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <svg class="h-5 w-5 text-indigo-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
                                         </svg>
                                     </div>
@@ -57,18 +57,18 @@
                             </div>
 
                             <div>
-                                <label for="date_from" class="block text-sm font-medium text-gray-700 mb-1">Date From</label>
-                                <input type="date" name="date_from" id="date_from" value="{{ request('date_from') }}" class="mt-1 block w-full px-3 py-2 border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                <label for="date_from" class="block text-sm font-medium text-slate-700 mb-1">Date From</label>
+                                <input type="date" name="date_from" id="date_from" value="{{ request('date_from') }}" class="mt-1 block w-full px-3 py-2 border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                             </div>
 
                             <div>
-                                <label for="date_to" class="block text-sm font-medium text-gray-700 mb-1">Date To</label>
-                                <input type="date" name="date_to" id="date_to" value="{{ request('date_to') }}" class="mt-1 block w-full px-3 py-2 border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                <label for="date_to" class="block text-sm font-medium text-slate-700 mb-1">Date To</label>
+                                <input type="date" name="date_to" id="date_to" value="{{ request('date_to') }}" class="mt-1 block w-full px-3 py-2 border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                             </div>
 
                             <div>
-                                <label for="uploader" class="block text-sm font-medium text-gray-700 mb-1">Uploader</label>
-                                <select name="uploader" id="uploader" class="mt-1 block w-full px-3 py-2 border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                <label for="uploader" class="block text-sm font-medium text-slate-700 mb-1">Uploader</label>
+                                <select name="uploader" id="uploader" class="mt-1 block w-full px-3 py-2 border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                                     <option value="">All Uploaders</option>
                                     @foreach($uploaders ?? [] as $uploader)
                                         <option value="{{ $uploader->id }}" {{ request('uploader') == $uploader->id ? 'selected' : '' }}>
@@ -79,8 +79,8 @@
                             </div>
 
                             <div>
-                                <label for="sort" class="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
-                                <select name="sort" id="sort" class="mt-1 block w-full px-3 py-2 border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                <label for="sort" class="block text-sm font-medium text-slate-700 mb-1">Sort By</label>
+                                <select name="sort" id="sort" class="mt-1 block w-full px-3 py-2 border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                                     <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Latest First</option>
                                     <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Oldest First</option>
                                     <option value="title" {{ request('sort') == 'title' ? 'selected' : '' }}>Title (A-Z)</option>
@@ -89,10 +89,10 @@
                             </div>
 
                             <div class="flex items-center justify-end pt-4">
-                                <button type="reset" class="mr-3 px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                <button type="reset" class="mr-3 px-4 py-2 text-sm text-slate-700 bg-white border border-slate-300 rounded-md shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                     Reset
                                 </button>
-                                <button type="submit" class="px-4 py-2 text-sm text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                <button type="submit" class="px-4 py-2 text-sm text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                     Apply Filters
                                 </button>
                             </div>
@@ -102,11 +102,11 @@
                         <form action="{{ route('trackingNumber-search') }}" method="POST" class="space-y-5 mb-6">
                             @csrf
                             <div>
-                                <label for="tracking-number" class="block text-sm font-medium text-gray-700 mb-1">Tracking Number</label>
+                                <label for="tracking-number" class="block text-sm font-medium text-slate-700 mb-1">Tracking Number</label>
                                 <div class="relative">
-                                    <input type="text" id="tracking-number" name="tracking_number" class="w-full pl-10 pr-4 py-2.5 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50" placeholder="Enter tracking number...">
+                                    <input type="text" id="tracking-number" name="tracking_number" class="w-full pl-10 pr-4 py-2.5 rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Enter tracking number...">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <svg class="h-5 w-5 text-indigo-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                             <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
                                         </svg>
                                     </div>
@@ -119,8 +119,8 @@
 
                         <!-- QR Code Scanner -->
                         <div class="space-y-3">
-                            <div class="border-t border-gray-200 pt-5">
-                                <h3 class="text-md font-medium text-gray-700 mb-3">Scan QR Code</h3>
+                            <div class="border-t border-slate-200 pt-5">
+                                <h3 class="text-md font-medium text-slate-700 mb-3">Scan QR Code</h3>
                                 <div id="qr-reader" class="w-full"></div>
                                 <button id="start-scanner" class="mt-3 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg shadow-sm">
                                     Start Scanner
@@ -133,37 +133,37 @@
 
             <!-- Documents List -->
             <div class="lg:col-span-3">
-                <div class="bg-white rounded-xl overflow-hidden border border-blue-200/80 transition-all duration-300 hover:border-blue-300/80">
-                    <div class="bg-gradient-to-r from-blue-50 to-white p-6 border-b border-blue-200/60">
+                <div class="bg-white rounded-xl overflow-hidden border border-indigo-200/80 transition-all duration-300 hover:border-indigo-300/80">
+                    <div class="bg-gradient-to-r from-indigo-50 to-white p-6 border-b border-indigo-200/60">
                         <div class="flex justify-between items-center">
                             <div class="flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                                 </svg>
-                                <h3 class="text-lg font-semibold text-gray-800">Archived Documents</h3>
+                                <h3 class="text-lg font-semibold text-slate-800">Archived Documents</h3>
                             </div>
-                            <span class="text-sm text-blue-600 bg-blue-50 py-1 px-3 rounded-full border border-blue-200/60">{{ $documents->total() ?? 0 }} documents</span>
+                            <span class="text-sm text-indigo-600 bg-indigo-50 py-1 px-3 rounded-full border border-indigo-200/60">{{ $documents->total() ?? 0 }} documents</span>
                         </div>
                     </div>
 
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-blue-50">
+                        <table class="min-w-full divide-y divide-slate-200">
+                            <thead class="bg-indigo-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">ID</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Title & Description</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Uploader</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Date Archived</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Actions</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Title & Description</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Uploader</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Date Archived</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
+                            <tbody class="bg-white divide-y divide-slate-200">
                                 @forelse($documents as $document)
-                                <tr class="hover:bg-blue-50/50 transition-all duration-200 group">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600">{{ $document->id ?? 'N/A' }}</td>
+                                <tr class="hover:bg-indigo-50/50 transition-all duration-200 group">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-600">{{ $document->id ?? 'N/A' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
-                                            <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-sm group-hover:shadow-md transition-all duration-200">
+                                            <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-sm group-hover:shadow-md transition-all duration-200">
                                                 @php
                                                     $extension = pathinfo($document->file_path ?? '', PATHINFO_EXTENSION);
                                                     $icon = match($extension) {
@@ -178,19 +178,19 @@
                                                 </svg>
                                             </div>
                                             <div class="ml-4">
-                                                <div class="text-sm font-medium text-gray-900">{{ $document->title ?? 'Untitled Document' }}</div>
-                                                <div class="text-sm text-gray-500">{{ Str::limit($document->description ?? 'No description available', 50) }}</div>
+                                                <div class="text-sm font-medium text-slate-900">{{ $document->title ?? 'Untitled Document' }}</div>
+                                                <div class="text-sm text-slate-500">{{ Str::limit($document->description ?? 'No description available', 50) }}</div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                                         @if(optional($document)->user)
                                             {{ $document->user->first_name ?? '' }} {{ $document->user->last_name ?? '' }}
                                         @else
                                             Unknown
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                                         @if(optional($document->status)->updated_at)
                                             {{ $document->status->updated_at->format('M d, Y') }}
                                         @else
@@ -199,14 +199,14 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium relative">
                                         <div x-data="{ open: false }" class="relative">
-                                            <button @click="open = !open" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                                            <button @click="open = !open" class="text-slate-500 hover:text-slate-700 focus:outline-none">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                                                 </svg>
                                             </button>
                                             <div x-show="open"
                                                 @click.away="open = false"
-                                                class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-gray-200"
+                                                class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-slate-200"
                                                 x-transition:enter="transition ease-out duration-100"
                                                 x-transition:enter-start="transform opacity-0 scale-95"
                                                 x-transition:enter-end="transform opacity-100 scale-100"
@@ -214,14 +214,14 @@
                                                 x-transition:leave-start="transform opacity-100 scale-100"
                                                 x-transition:leave-end="transform opacity-0 scale-95">
                                                 <div class="py-1">
-                                                    <a href="{{ route('documents.show', $document->id ?? 0) }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <a href="{{ route('documents.show', $document->id ?? 0) }}" class="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                         </svg>
                                                         View
                                                     </a>
-                                                    <a href="{{ route('documents.download', $document->id ?? 0) }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                    <a href="{{ route('documents.download', $document->id ?? 0) }}" class="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                                         </svg>
@@ -230,7 +230,7 @@
                                                     {{-- Restore button temporarily hidden
                                                     @can('restore', $document)
                                                     <div x-data="{ showRestoreConfirm: false }">
-                                                        <button @click="showRestoreConfirm = true" type="button" class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                        <button @click="showRestoreConfirm = true" type="button" class="flex w-full items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
                                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                                             </svg>
@@ -256,26 +256,26 @@
                                                                 x-transition:leave-end="opacity-0 translate-y-4"
                                                                 class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 overflow-hidden"
                                                                 @click.away="showRestoreConfirm = false">
-                                                                <div class="px-6 py-4 border-b border-gray-200">
+                                                                <div class="px-6 py-4 border-b border-slate-200">
                                                                     <div class="flex items-center">
                                                                         <div class="p-2 bg-emerald-100 rounded-full">
                                                                             <svg class="h-6 w-6 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                                                             </svg>
                                                                         </div>
-                                                                        <h3 class="ml-3 text-lg font-medium text-gray-900">
+                                                                        <h3 class="ml-3 text-lg font-medium text-slate-900">
                                                                             {{ __('Confirm Restore') }}
                                                                         </h3>
                                                                     </div>
                                                                 </div>
                                                                 <div class="px-6 py-4">
-                                                                    <p class="text-gray-600">
+                                                                    <p class="text-slate-600">
                                                                         {{ __('It will be moved back to active documents.') }}
                                                                     </p>
                                                                 </div>
-                                                                <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
+                                                                <div class="px-6 py-4 bg-slate-50 flex justify-end space-x-3">
                                                                     <button type="button" @click="showRestoreConfirm = false"
-                                                                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0066FF]">
+                                                                        class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0066FF]">
                                                                         {{ __('Cancel') }}
                                                                     </button>
                                                                     <a href="{{ route('documents.restore', $document->id) }}"
@@ -290,7 +290,7 @@
                                                     --}}
                                                     @can('delete', $document)
                                                     <div x-data="{ showDeleteConfirm: false }">
-                                                        <button @click="showDeleteConfirm = true" type="button" class="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                                        <button @click="showDeleteConfirm = true" type="button" class="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-slate-100">
                                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                             </svg>
@@ -316,26 +316,26 @@
                                                                 x-transition:leave-end="opacity-0 translate-y-4"
                                                                 class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 overflow-hidden"
                                                                 @click.away="showDeleteConfirm = false">
-                                                                <div class="px-6 py-4 border-b border-gray-200">
+                                                                <div class="px-6 py-4 border-b border-slate-200">
                                                                     <div class="flex items-center">
                                                                         <div class="p-2 bg-red-100 rounded-full">
                                                                             <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                                                                             </svg>
                                                                         </div>
-                                                                        <h3 class="ml-3 text-lg font-medium text-gray-900">
+                                                                        <h3 class="ml-3 text-lg font-medium text-slate-900">
                                                                             {{ __('Confirm Delete') }}
                                                                         </h3>
                                                                     </div>
                                                                 </div>
                                                                 <div class="px-6 py-4">
-                                                                    <p class="text-gray-600">
+                                                                    <p class="text-slate-600">
                                                                         {{ __('Are you sure you want to delete this document? ') }}
                                                                     </p>
                                                                 </div>
-                                                                <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
+                                                                <div class="px-6 py-4 bg-slate-50 flex justify-end space-x-3">
                                                                     <button type="button" @click="showDeleteConfirm = false"
-                                                                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0066FF]">
+                                                                        class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0066FF]">
                                                                         {{ __('Cancel') }}
                                                                     </button>
                                                                     <form action="{{ route('documents.destroy', $document->id) }}" method="POST" class="inline">
@@ -359,15 +359,15 @@
                                 @empty
                                 <tr>
                                     <td colspan="5" class="px-6 py-10 text-center">
-                                        <div class="flex flex-col items-center justify-center p-8 bg-gradient-to-br from-blue-50 to-indigo-50/50 rounded-xl border border-blue-100 mx-6">
-                                            <div class="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md mb-4">
+                                        <div class="flex flex-col items-center justify-center p-8 bg-gradient-to-br from-indigo-50 to-indigo-50/50 rounded-xl border border-indigo-100 mx-6">
+                                            <div class="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg shadow-md mb-4">
                                                 <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
                                                 </svg>
                                             </div>
-                                            <p class="text-gray-900 text-lg font-semibold mb-1">No Archived Documents</p>
-                                            <p class="text-gray-600 text-sm">No documents have been archived yet</p>
-                                            <a href="{{ route('documents.index') }}" class="mt-4 inline-flex items-center px-4 py-2 border border-blue-600 text-sm font-medium rounded-lg text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                            <p class="text-slate-900 text-lg font-semibold mb-1">No Archived Documents</p>
+                                            <p class="text-slate-600 text-sm">No documents have been archived yet</p>
+                                            <a href="{{ route('documents.index') }}" class="mt-4 inline-flex items-center px-4 py-2 border border-indigo-600 text-sm font-medium rounded-lg text-indigo-600 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                                                 <svg class="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
                                                 </svg>
@@ -381,7 +381,7 @@
                         </table>
                     </div>
 
-                    <div class="bg-white px-4 py-3 border-t border-blue-200 sm:px-6">
+                    <div class="bg-white px-4 py-3 border-t border-indigo-200 sm:px-6">
                         {{ $documents->withQueryString()->links() }}
                     </div>
                 </div>

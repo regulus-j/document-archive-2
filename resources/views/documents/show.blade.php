@@ -33,13 +33,13 @@
 @endpush
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+<div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white">
     <div class="max-w-7xl mx-auto space-y-8 p-4 md:p-8">
         <!-- Header -->
-        <div class="bg-white rounded-xl border border-blue-200/80 transition-all duration-300 hover:border-blue-300/80 hover:shadow-sm">
+        <div class="bg-white rounded-xl border border-indigo-200/80 transition-all duration-300 hover:border-indigo-300/80 hover:shadow-sm">
             <div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div class="flex items-center space-x-3">
-                    <div class="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+                    <div class="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg">
                         <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -47,13 +47,13 @@
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-800">{{ __('Document Details') }}</h1>
-                        <p class="text-sm text-gray-500">View complete document information and history</p>
+                        <h1 class="text-2xl font-bold text-slate-800">{{ __('Document Details') }}</h1>
+                        <p class="text-sm text-slate-500">View complete document information and history</p>
                     </div>
                 </div>
                 <a href="javascript:history.back()"
-                    class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                    <svg class="mr-2 -ml-1 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    class="inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg shadow-sm text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                    <svg class="mr-2 -ml-1 h-5 w-5 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M11 17l-5-5m0 0l5-5m-5 5h12" />
@@ -64,7 +64,7 @@
         </div>
 
         <!-- Progress Tracking Card -->
-        <div class="bg-white rounded-xl border border-blue-200/80 transition-all duration-300 hover:border-blue-300/80 hover:shadow-sm overflow-hidden">
+        <div class="bg-white rounded-xl border border-indigo-200/80 transition-all duration-300 hover:border-indigo-300/80 hover:shadow-sm overflow-hidden">
             <div class="p-6">
                 @php
                     // Sort audit logs by created_at timestamp in descending order
@@ -72,13 +72,13 @@
                 @endphp
                 <div x-data="{ isOpen: false }" class="relative">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold text-gray-800 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <h3 class="text-lg font-semibold text-slate-800 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                             </svg>
                             Document Progress
                         </h3>
-                        <button @click="isOpen = !isOpen" class="flex items-center text-sm text-blue-600 hover:text-blue-800 focus:outline-none transition-colors">
+                        <button @click="isOpen = !isOpen" class="flex items-center text-sm text-indigo-600 hover:text-indigo-800 focus:outline-none transition-colors">
                             <span x-text="isOpen ? 'Hide Details' : 'Show Details'" class="mr-1"></span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transform transition-transform" :class="{ 'rotate-180': isOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -87,9 +87,9 @@
                     </div>
 
                     <!-- Current Status -->
-                    <div class="bg-white rounded-lg border border-gray-200 p-4 mb-4">
+                    <div class="bg-white rounded-lg border border-slate-200 p-4 mb-4">
                         <div class="flex justify-between items-center">
-                            <h4 class="text-sm font-medium text-gray-500">Current Status</h4>
+                            <h4 class="text-sm font-medium text-slate-500">Current Status</h4>
                             @php
                                 $latestLog = $sortedLogs->first();
                                 $currentStatus = $latestLog ? $latestLog->status : ($document->status?->status ?? 'Pending');
@@ -124,7 +124,7 @@
                          class="max-h-[500px] overflow-y-auto pr-2">
                 <div class="relative">
                     <!-- Progress Line -->
-                    <div class="absolute h-full w-0.5 bg-gray-200 left-6 top-0"></div>
+                    <div class="absolute h-full w-0.5 bg-slate-200 left-6 top-0"></div>
 
                     <!-- Timeline Items -->
                     <div class="space-y-8 relative">
@@ -133,7 +133,7 @@
                             $statusColors = [
                                 'created' => ['bg' => 'bg-green-500', 'text' => 'text-green-800', 'light' => 'bg-green-100'],
                                 'pending' => ['bg' => 'bg-yellow-500', 'text' => 'text-yellow-800', 'light' => 'bg-yellow-100'],
-                                'received' => ['bg' => 'bg-blue-500', 'text' => 'text-blue-800', 'light' => 'bg-blue-100'],
+                                'received' => ['bg' => 'bg-indigo-500', 'text' => 'text-indigo-800', 'light' => 'bg-indigo-100'],
                                 'approved' => ['bg' => 'bg-green-500', 'text' => 'text-green-800', 'light' => 'bg-green-100'],
                                 'rejected' => ['bg' => 'bg-red-500', 'text' => 'text-red-800', 'light' => 'bg-red-100'],
                                 'returned' => ['bg' => 'bg-amber-500', 'text' => 'text-amber-800', 'light' => 'bg-amber-100'],
@@ -141,8 +141,8 @@
                                 'completed' => ['bg' => 'bg-indigo-500', 'text' => 'text-indigo-800', 'light' => 'bg-indigo-100'],
                                 'uploaded' => ['bg' => 'bg-green-500', 'text' => 'text-green-800', 'light' => 'bg-green-100'],
                                 'needs_revision' => ['bg' => 'bg-amber-500', 'text' => 'text-amber-800', 'light' => 'bg-amber-100'],
-                                'cancelled' => ['bg' => 'bg-gray-500', 'text' => 'text-gray-800', 'light' => 'bg-gray-100'],
-                                'draft' => ['bg' => 'bg-gray-500', 'text' => 'text-gray-800', 'light' => 'bg-gray-100']
+                                'cancelled' => ['bg' => 'bg-slate-500', 'text' => 'text-slate-800', 'light' => 'bg-slate-100'],
+                                'draft' => ['bg' => 'bg-slate-500', 'text' => 'text-slate-800', 'light' => 'bg-slate-100']
                             ];
 
                             // Helper function to get status color with fallback
@@ -150,13 +150,13 @@
                                 global $statusColors;
                                 if (!isset($statusColors) || !is_array($statusColors)) {
                                     // Fallback colors if $statusColors is not available
-                                    return $type === 'bg' ? 'bg-gray-500' : ($type === 'light' ? 'bg-gray-100' : 'text-gray-800');
+                                    return $type === 'bg' ? 'bg-slate-500' : ($type === 'light' ? 'bg-slate-100' : 'text-slate-800');
                                 }
 
                                 $defaultColors = [
-                                    'bg' => 'bg-gray-500',
-                                    'light' => 'bg-gray-100',
-                                    'text' => 'text-gray-800'
+                                    'bg' => 'bg-slate-500',
+                                    'light' => 'bg-slate-100',
+                                    'text' => 'text-slate-800'
                                 ];
 
                                 if ($status === null) {
@@ -204,7 +204,7 @@
                                 <!-- Timeline Content -->
                                 <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
                                     <div>
-                                        <p class="text-sm text-gray-800">
+                                        <p class="text-sm text-slate-800">
                                             <span class="font-medium">
                                                 {{ $log->user ? $log->user->first_name . ' ' . $log->user->last_name : 'System' }}
                                             </span>
@@ -243,10 +243,10 @@
                                             @endif
                                         </p>
                                         @if($log->details)
-                                            <p class="text-sm text-gray-500 mt-0.5">{{ $log->details }}</p>
+                                            <p class="text-sm text-slate-500 mt-0.5">{{ $log->details }}</p>
                                         @endif
                                     </div>
-                                    <div class="text-right text-sm whitespace-nowrap text-gray-500">
+                                    <div class="text-right text-sm whitespace-nowrap text-slate-500">
                                         <time datetime="{{ $log->created_at }}">{{ $log->created_at->format('M d, Y H:i') }}</time>
                                     </div>
                                 </div>
@@ -281,12 +281,12 @@
         @endif
 
         <!-- Document Details Card -->
-        <div class="bg-white rounded-xl border border-blue-200/80 transition-all duration-300 hover:border-blue-300/80 hover:shadow-sm overflow-hidden">
+        <div class="bg-white rounded-xl border border-indigo-200/80 transition-all duration-300 hover:border-indigo-300/80 hover:shadow-sm overflow-hidden">
             <!-- Card Header -->
-            <div class="p-6 border-b border-blue-200/60">
+            <div class="p-6 border-b border-indigo-200/60">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                     <div class="flex items-center space-x-3">
-                        <h2 class="text-xl font-semibold text-gray-800">{{ $document->title }}</h2>
+                        <h2 class="text-xl font-semibold text-slate-800">{{ $document->title }}</h2>
                     </div>
                     @php
                         $statusColor = match(strtolower($document->status?->status ?? '')) {
@@ -315,14 +315,14 @@
                 <!-- Document Information Grid with Attachment Card -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                     <!-- Tracking Number Card -->
-                    <div class="bg-blue-50/60 p-4 rounded-lg border border-blue-200/60 transition-all duration-300 hover:border-blue-300/80">
+                    <div class="bg-indigo-50/60 p-4 rounded-lg border border-indigo-200/60 transition-all duration-300 hover:border-indigo-300/80">
                         <div class="flex items-center mb-1">
-                            <svg class="h-4 w-4 text-blue-500 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg class="h-4 w-4 text-indigo-500 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
                             </svg>
-                            <p class="text-sm font-medium text-blue-900">Tracking Number</p>
+                            <p class="text-sm font-medium text-indigo-900">Tracking Number</p>
                         </div>
-                        <p class="text-base font-medium text-blue-700">
+                        <p class="text-base font-medium text-indigo-700">
                             {{ $document->trackingNumber->tracking_number ?? 'N/A' }}
                         </p>
                     </div>
@@ -404,20 +404,20 @@
                         </p>
                     </div>
                     <!-- Attachments Card -->
-                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                        <p class="text-sm font-medium text-gray-500 mb-2">Attachments</p>
+                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                        <p class="text-sm font-medium text-slate-500 mb-2">Attachments</p>
                         @if($document->attachments->isNotEmpty())
                         <div class="space-y-2">
                             @foreach($document->attachments as $attachment)
                             <div class="flex items-center justify-between">
                                 <div class="min-w-0 flex-1">
                                     <a href="{{ route('documents.download', $attachment->id) }}"
-                                        class="text-sm text-blue-600 hover:text-blue-800 transition-colors font-medium truncate block">
+                                        class="text-sm text-indigo-600 hover:text-indigo-800 transition-colors font-medium truncate block">
                                         {{ $attachment->filename }}
                                     </a>
-                                    <p class="text-xs text-gray-400 mt-0.5">
+                                    <p class="text-xs text-slate-400 mt-0.5">
                                         @if($attachment->uploader)
-                                            <span class="text-gray-600">{{ $attachment->uploader->first_name }} {{ $attachment->uploader->last_name }}</span>
+                                            <span class="text-slate-600">{{ $attachment->uploader->first_name }} {{ $attachment->uploader->last_name }}</span>
                                             <span class="mx-1">&middot;</span>
                                         @endif
                                         {{ $attachment->created_at->format('M d, Y g:ia') }}
@@ -431,20 +431,20 @@
                             @endforeach
                         </div>
                         @else
-                        <p class="text-base font-medium text-gray-900">N/A</p>
+                        <p class="text-base font-medium text-slate-900">N/A</p>
                         @endif
                     </div>
                 </div>
 
                 <!-- Description -->
-                <div class="bg-gray-50/60 p-4 rounded-lg border border-gray-200/60 transition-all duration-300 hover:border-gray-300/80 mb-8">
+                <div class="bg-slate-50/60 p-4 rounded-lg border border-slate-200/60 transition-all duration-300 hover:border-slate-300/80 mb-8">
                     <div class="flex items-center mb-2">
-                        <svg class="h-4 w-4 text-gray-500 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg class="h-4 w-4 text-slate-500 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
                         </svg>
-                        <p class="text-sm font-medium text-gray-700">Description</p>
+                        <p class="text-sm font-medium text-slate-700">Description</p>
                     </div>
-                    <p class="text-base text-gray-600">{{ $document->description }}</p>
+                    <p class="text-base text-slate-600">{{ $document->description }}</p>
                 </div>
 
                 <!-- E-Signatures -->
@@ -465,13 +465,13 @@
                         @foreach($document->eSignatures as $sig)
                         <div class="bg-white rounded-lg border border-indigo-100 p-3 transition-all duration-300 hover:border-indigo-300 hover:shadow-sm cursor-pointer" onclick="openSignatureModal('{{ Storage::disk('public')->url($sig->signature_path) }}', '{{ addslashes($sig->full_name) }}', '{{ addslashes($sig->position ?? '') }}', '{{ ucfirst($sig->action) }}', '{{ $sig->signed_at->format('M d, Y g:ia') }}')">
                             <div class="flex items-start gap-3">
-                                <div class="flex-shrink-0 w-20 h-14 rounded border border-gray-200 bg-white overflow-hidden">
+                                <div class="flex-shrink-0 w-20 h-14 rounded border border-slate-200 bg-white overflow-hidden">
                                     <img src="{{ Storage::disk('public')->url($sig->signature_path) }}" alt="Signature" class="w-full h-full object-contain">
                                 </div>
                                 <div class="min-w-0 flex-1">
-                                    <p class="text-sm font-semibold text-gray-800">{{ $sig->full_name }}</p>
+                                    <p class="text-sm font-semibold text-slate-800">{{ $sig->full_name }}</p>
                                     @if($sig->position)
-                                        <p class="text-xs text-gray-500">{{ $sig->position }}</p>
+                                        <p class="text-xs text-slate-500">{{ $sig->position }}</p>
                                     @endif
                                     <div class="flex items-center gap-2 mt-1">
                                         @php
@@ -482,7 +482,7 @@
                                             {{ ucfirst($sig->action) }}
                                         </span>
                                     </div>
-                                    <p class="text-xs text-gray-400 mt-1">{{ $sig->signed_at->format('M d, Y g:ia') }}</p>
+                                    <p class="text-xs text-slate-400 mt-1">{{ $sig->signed_at->format('M d, Y g:ia') }}</p>
                                 </div>
                             </div>
                         </div>
@@ -514,12 +514,12 @@
 
                         $wfStatusColors = [
                             'pending'      => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'border' => 'border-yellow-200'],
-                            'waiting'      => ['bg' => 'bg-gray-100', 'text' => 'text-gray-600', 'border' => 'border-gray-200'],
-                            'received'     => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800', 'border' => 'border-blue-200'],
+                            'waiting'      => ['bg' => 'bg-slate-100', 'text' => 'text-slate-600', 'border' => 'border-slate-200'],
+                            'received'     => ['bg' => 'bg-indigo-100', 'text' => 'text-indigo-800', 'border' => 'border-indigo-200'],
                             'approved'     => ['bg' => 'bg-green-100', 'text' => 'text-green-800', 'border' => 'border-green-200'],
                             'rejected'     => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'border' => 'border-red-200'],
                             'returned'     => ['bg' => 'bg-amber-100', 'text' => 'text-amber-800', 'border' => 'border-amber-200'],
-                            'acknowledged' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800', 'border' => 'border-blue-200'],
+                            'acknowledged' => ['bg' => 'bg-indigo-100', 'text' => 'text-indigo-800', 'border' => 'border-indigo-200'],
                             'commented'    => ['bg' => 'bg-indigo-100', 'text' => 'text-indigo-800', 'border' => 'border-indigo-200'],
                             'forwarded'    => ['bg' => 'bg-purple-100', 'text' => 'text-purple-800', 'border' => 'border-purple-200'],
                         ];
@@ -545,33 +545,33 @@
 
                             @foreach($stepWorkflows as $wf)
                                 @php
-                                    $wfColor = $wfStatusColors[$wf->status] ?? ['bg' => 'bg-gray-100', 'text' => 'text-gray-700', 'border' => 'border-gray-200'];
+                                    $wfColor = $wfStatusColors[$wf->status] ?? ['bg' => 'bg-slate-100', 'text' => 'text-slate-700', 'border' => 'border-slate-200'];
                                 @endphp
                                 {{-- Main workflow card --}}
                                 <div class="bg-white rounded-lg border {{ $wfColor['border'] }} p-3 transition-all duration-200 hover:shadow-sm">
                                     <div class="flex items-start justify-between gap-3">
                                         <div class="flex items-start gap-3 min-w-0">
-                                            <div class="flex-shrink-0 h-8 w-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                                            <div class="flex-shrink-0 h-8 w-8 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm">
                                                 {{ $wf->recipient ? strtoupper(substr($wf->recipient->first_name ?? '?', 0, 1)) : '?' }}
                                             </div>
                                             <div class="min-w-0">
-                                                <p class="text-sm font-medium text-gray-800">
+                                                <p class="text-sm font-medium text-slate-800">
                                                     {{ $wf->recipient ? ($wf->recipient->first_name . ' ' . $wf->recipient->last_name) : 'Unknown' }}
                                                 </p>
                                                 <div class="flex flex-wrap items-center gap-1.5 mt-1">
                                                     @if($wf->recipientOffice)
-                                                        <span class="text-xs text-gray-500">{{ $wf->recipientOffice->name }}</span>
-                                                        <span class="text-gray-300">&middot;</span>
+                                                        <span class="text-xs text-slate-500">{{ $wf->recipientOffice->name }}</span>
+                                                        <span class="text-slate-300">&middot;</span>
                                                     @endif
                                                     @if($wf->purpose)
-                                                        <span class="text-xs text-gray-400">{{ $purposeLabels[$wf->purpose] ?? ucfirst($wf->purpose) }}</span>
+                                                        <span class="text-xs text-slate-400">{{ $purposeLabels[$wf->purpose] ?? ucfirst($wf->purpose) }}</span>
                                                     @endif
                                                 </div>
                                                 @if($wf->remarks)
-                                                    <p class="text-xs text-gray-500 mt-1.5 italic">&ldquo;{{ $wf->remarks }}&rdquo;</p>
+                                                    <p class="text-xs text-slate-500 mt-1.5 italic">&ldquo;{{ $wf->remarks }}&rdquo;</p>
                                                 @endif
                                                 @if($wf->received_at)
-                                                    <p class="text-xs text-gray-400 mt-1">Responded: {{ \Carbon\Carbon::parse($wf->received_at)->format('M d, Y g:ia') }}</p>
+                                                    <p class="text-xs text-slate-400 mt-1">Responded: {{ \Carbon\Carbon::parse($wf->received_at)->format('M d, Y g:ia') }}</p>
                                                 @endif
                                             </div>
                                         </div>
@@ -591,7 +591,7 @@
                                     </div>
                                     @foreach($wf->childWorkflows as $subWf)
                                         @php
-                                            $subColor = $wfStatusColors[$subWf->status] ?? ['bg' => 'bg-gray-100', 'text' => 'text-gray-700', 'border' => 'border-gray-200'];
+                                            $subColor = $wfStatusColors[$subWf->status] ?? ['bg' => 'bg-slate-100', 'text' => 'text-slate-700', 'border' => 'border-slate-200'];
                                         @endphp
                                         <div class="bg-purple-50/60 rounded-lg border {{ $subColor['border'] }} border-dashed p-2.5 transition-all duration-200 hover:shadow-sm">
                                             <div class="flex items-start justify-between gap-2">
@@ -600,19 +600,19 @@
                                                         {{ $subWf->recipient ? strtoupper(substr($subWf->recipient->first_name ?? '?', 0, 1)) : '?' }}
                                                     </div>
                                                     <div class="min-w-0">
-                                                        <p class="text-xs font-medium text-gray-700">
+                                                        <p class="text-xs font-medium text-slate-700">
                                                             {{ $subWf->recipient ? ($subWf->recipient->first_name . ' ' . $subWf->recipient->last_name) : 'Unknown' }}
                                                         </p>
                                                         <div class="flex flex-wrap items-center gap-1 mt-0.5">
                                                             @if($subWf->recipientOffice)
-                                                                <span class="text-[10px] text-gray-400">{{ $subWf->recipientOffice->name }}</span>
+                                                                <span class="text-[10px] text-slate-400">{{ $subWf->recipientOffice->name }}</span>
                                                             @endif
                                                         </div>
                                                         @if($subWf->remarks)
-                                                            <p class="text-[10px] text-gray-400 mt-1 italic">&ldquo;{{ $subWf->remarks }}&rdquo;</p>
+                                                            <p class="text-[10px] text-slate-400 mt-1 italic">&ldquo;{{ $subWf->remarks }}&rdquo;</p>
                                                         @endif
                                                         @if($subWf->received_at)
-                                                            <p class="text-[10px] text-gray-400 mt-0.5">Responded: {{ \Carbon\Carbon::parse($subWf->received_at)->format('M d, Y g:ia') }}</p>
+                                                            <p class="text-[10px] text-slate-400 mt-0.5">Responded: {{ \Carbon\Carbon::parse($subWf->received_at)->format('M d, Y g:ia') }}</p>
                                                         @endif
                                                     </div>
                                                 </div>
@@ -650,9 +650,9 @@
                     <p class="mt-2 text-sm text-amber-700"><strong>Rejection remarks:</strong> {{ $workflow->remarks }}</p>
                     @endif
                     <div class="mt-4">
-                        <a href="{{ route('documents.edit', $document->id) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">Revise Document</a>
+                        <a href="{{ route('documents.edit', $document->id) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">Revise Document</a>
                         <form action="{{ route('documents.cancel', $document->id) }}" method="POST" class="inline-block ml-2">@csrf
-                            <button type="submit" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Cancel Workflow</button>
+                            <button type="submit" class="inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50">Cancel Workflow</button>
                         </form>
                     </div>
                 </div>
@@ -675,9 +675,9 @@
                     <p class="mt-2 text-sm text-amber-700"><strong>Return remarks:</strong> {{ $returnedWorkflow->remarks }}</p>
                     @endif
                     <div class="mt-4">
-                        <a href="{{ route('documents.edit', $document->id) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">Update Document</a>
+                        <a href="{{ route('documents.edit', $document->id) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">Update Document</a>
                         <form action="{{ route('documents.cancel', $document->id) }}" method="POST" class="inline-block ml-2">@csrf
-                            <button type="submit" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Cancel Workflow</button>
+                            <button type="submit" class="inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50">Cancel Workflow</button>
                         </form>
                     </div>
                 </div>
@@ -692,21 +692,21 @@
     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
     <div class="relative flex items-center justify-center min-h-screen p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden" onclick="event.stopPropagation()">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
                 <div>
-                    <h3 id="sig-modal-name" class="text-lg font-semibold text-gray-800"></h3>
-                    <p id="sig-modal-position" class="text-sm text-gray-500"></p>
+                    <h3 id="sig-modal-name" class="text-lg font-semibold text-slate-800"></h3>
+                    <p id="sig-modal-position" class="text-sm text-slate-500"></p>
                 </div>
-                <button onclick="closeSignatureModal()" class="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition">
+                <button onclick="closeSignatureModal()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
-            <div class="p-6 bg-gray-50 flex items-center justify-center">
+            <div class="p-6 bg-slate-50 flex items-center justify-center">
                 <img id="sig-modal-img" src="" alt="Signature" class="max-w-full max-h-64 object-contain">
             </div>
-            <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+            <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
                 <span id="sig-modal-action" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"></span>
-                <span id="sig-modal-date" class="text-xs text-gray-400"></span>
+                <span id="sig-modal-date" class="text-xs text-slate-400"></span>
             </div>
         </div>
     </div>

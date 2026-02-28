@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-b from-blue-50 to-white py-12">
+<div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header Box -->
-        <div class="bg-white rounded-xl mb-8 border border-blue-200/80 overflow-hidden">
+        <div class="bg-white rounded-xl mb-8 border border-indigo-200/80 overflow-hidden">
             <div class="bg-white p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div class="flex items-center space-x-3">
-                    <div class="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md">
+                    <div class="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg shadow-md">
                         <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -15,12 +15,12 @@
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-800">Create New User</h1>
-                        <p class="text-sm text-gray-600">Add a new user to your organization</p>
+                        <h1 class="text-2xl font-bold text-slate-800">Create New User</h1>
+                        <p class="text-sm text-slate-600">Add a new user to your organization</p>
                     </div>
                 </div>
                 <a href="{{ route('users.index') }}"
-                    class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                    class="inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                     </svg>
@@ -51,17 +51,17 @@
         @endif
 
     <!-- Form Card -->
-    <div class="bg-white rounded-xl overflow-hidden border border-blue-200/80 transition-all duration-300 hover:border-blue-300/80">
-        <div class="bg-white p-6 border-b border-blue-200/60">
+    <div class="bg-white rounded-xl overflow-hidden border border-indigo-200/80 transition-all duration-300 hover:border-indigo-300/80">
+        <div class="bg-white p-6 border-b border-indigo-200/60">
             <div class="flex items-center space-x-3">
-                <div class="p-2 bg-blue-100 rounded-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none"
+                <div class="p-2 bg-indigo-100 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                 </div>
-                <h2 class="text-lg font-semibold text-gray-800">User Information</h2>
+                <h2 class="text-lg font-semibold text-slate-800">User Information</h2>
             </div>
         </div>
 
@@ -70,9 +70,9 @@
 
             <div class="space-y-8">
                 <!-- Personal Information Section -->
-                <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 space-y-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none"
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-6">
+                    <h3 class="text-lg font-semibold text-slate-900 mb-6 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -83,9 +83,9 @@
                         <!-- First Name -->
                         <div class="space-y-2">
                             <label for="first_name"
-                                class="block text-sm font-medium text-gray-700">{{ __('First Name*') }}</label>
+                                class="block text-sm font-medium text-slate-700">{{ __('First Name*') }}</label>
                             <input id="first_name"
-                                class="mt-2 block w-full p-3 rounded-md border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring focus:ring-blue-200 transition duration-150"
+                                class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                                 type="text" name="first_name" value="{{ old('first_name') }}" required autofocus
                                 autocomplete="given-name" placeholder="Enter first name"/>
                             @error('first_name')
@@ -96,9 +96,9 @@
                         <!-- Middle Name -->
                         <div class="space-y-2">
                             <label for="middle_name"
-                                class="block text-sm font-medium text-gray-700">{{ __('Middle Name (Optional)') }}</label>
+                                class="block text-sm font-medium text-slate-700">{{ __('Middle Name (Optional)') }}</label>
                             <input id="middle_name"
-                                class="mt-2 block w-full p-3 rounded-md border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring focus:ring-blue-200 transition duration-150"
+                                class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                                 type="text" name="middle_name" value="{{ old('middle_name') }}"
                                 autocomplete="additional-name" placeholder="Enter middle name"/>
                             @error('middle_name')
@@ -109,9 +109,9 @@
                         <!-- Last Name -->
                         <div class="space-y-2">
                             <label for="last_name"
-                                class="block text-sm font-medium text-gray-700">{{ __('Last Name*') }}</label>
+                                class="block text-sm font-medium text-slate-700">{{ __('Last Name*') }}</label>
                             <input id="last_name"
-                                class="mt-2 block w-full p-3 rounded-md border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring focus:ring-blue-200 transition duration-150"
+                                class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                                 type="text" name="last_name" value="{{ old('last_name') }}" required
                                 autocomplete="family-name" placeholder="Enter last name"/>
                             @error('last_name')
@@ -121,9 +121,9 @@
 
                         <!-- Email -->
                         <div class="space-y-2">
-                            <label for="email" class="block text-sm font-medium text-gray-700">{{ __('Email*') }}</label>
+                            <label for="email" class="block text-sm font-medium text-slate-700">{{ __('Email*') }}</label>
                             <input id="email"
-                                class="mt-2 block w-full p-3 rounded-md border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring focus:ring-blue-200 transition duration-150"
+                                class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                                 type="email" name="email" value="{{ old('email') }}" required
                                 autocomplete="email" placeholder="Enter email address"/>
                             @error('email')
@@ -134,9 +134,9 @@
                 </div>
 
                 <!-- Access & Permissions Section -->
-                <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 space-y-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none"
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-6">
+                    <h3 class="text-lg font-semibold text-slate-900 mb-6 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
@@ -146,14 +146,14 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Roles -->
                         <div class="space-y-2">
-                            <label for="roles" class="block text-sm font-medium text-gray-700">{{ __('Roles*') }}</label>
+                            <label for="roles" class="block text-sm font-medium text-slate-700">{{ __('Roles*') }}</label>
                             <div class="relative">
                                 <div class="relative">
                                     <input type="text" id="search-role"
-                                        class="mt-2 block w-full p-3 rounded-md border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring focus:ring-blue-200 transition duration-150"
+                                        class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                                         placeholder="Search for roles...">
                                     <select name="roles[]" id="roles"
-                                        class="mt-2 block w-full p-3 rounded-md border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring focus:ring-blue-200 transition duration-150"
+                                        class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                                         multiple size="4">
                                         @foreach ($roles as $value => $label)
                                         <option value="{{ $value }}">{{ $label }}</option>
@@ -164,7 +164,7 @@
                             @error('roles')
                             <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                             @enderror
-                            <p class="text-xs text-gray-500 mt-1">Select one or more roles for this user</p>
+                            <p class="text-xs text-slate-500 mt-1">Select one or more roles for this user</p>
                         </div>
 
                         <!-- Companies -->
@@ -173,25 +173,25 @@
                         <!-- Offices -->
                         <div class="space-y-2">
                             <label for="offices"
-                                class="block text-sm font-medium text-gray-700">{{ __('Teams*') }}</label>
+                                class="block text-sm font-medium text-slate-700">{{ __('Teams*') }}</label>
                             <div class="relative">
                                 @if(count($offices) > 0)
                                     <div class="relative">
-                                        <div class="mt-2 bg-white rounded-lg border border-gray-200">
-                                            <div class="p-3 border-b border-gray-200">
+                                        <div class="mt-2 bg-white rounded-lg border border-slate-200">
+                                            <div class="p-3 border-b border-slate-200">
                                                 <input type="text"
                                                     id="search-office"
-                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    class="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                                     placeholder="Search teams...">
                                             </div>
                                             <div class="p-2 max-h-48 overflow-y-auto">
                                                 @foreach($offices as $id => $name)
-                                                    <label class="flex items-center p-2 hover:bg-gray-50 rounded-md cursor-pointer">
+                                                    <label class="flex items-center p-2 hover:bg-slate-50 rounded-md cursor-pointer">
                                                         <input type="checkbox"
                                                             name="offices[]"
                                                             value="{{ $id }}"
-                                                            class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                                                        <span class="ml-3 text-sm text-gray-700">{{ $name }}</span>
+                                                            class="h-4 w-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
+                                                        <span class="ml-3 text-sm text-slate-700">{{ $name }}</span>
                                                     </label>
                                                 @endforeach
                                             </div>
@@ -224,7 +224,7 @@
                             @error('offices')
                             <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                             @enderror
-                            <p class="text-xs text-gray-500 mt-1">Select one or more teams this user will have access to</p>
+                            <p class="text-xs text-slate-500 mt-1">Select one or more teams this user will have access to</p>
                         </div>
 
                         <script>
@@ -265,18 +265,18 @@
             </div>
 
             <!-- Form Actions -->
-            <div class="border-t border-blue-200/60 pt-6">
+            <div class="border-t border-indigo-200/60 pt-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
-                    <div class="text-sm text-gray-600 mb-4 md:mb-0">
+                    <div class="text-sm text-slate-600 mb-4 md:mb-0">
                         <p>All fields marked with an asterisk (*) are required</p>
                     </div>
                     <div class="flex items-center space-x-4">
                         <a href="{{ route('users.index') }}"
-                            class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all">
+                            class="inline-flex items-center px-4 py-2 border border-slate-300 shadow-sm text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
                             Cancel
                         </a>
                         <button type="submit"
-                            class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all">
+                            class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-indigo-600 hover:from-indigo-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
                             <svg class="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

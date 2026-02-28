@@ -1,11 +1,11 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-xl text-slate-800 leading-tight">
             {{ __('Subscription Status') }}
         </h2>
     </x-slot>
 
-    <div class="min-h-screen bg-gradient-to-b from-blue-50 to-white p-4 md:p-8">
+    <div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white p-4 md:p-8">
         <div class="max-w-7xl mx-auto">
             <!-- Alert Messages -->
             @if (session('success'))
@@ -46,10 +46,10 @@
             @endif
 
             <!-- Header Box -->
-            <div class="bg-white rounded-xl shadow-xl mb-6 border border-blue-100 overflow-hidden">
+            <div class="bg-white rounded-xl shadow-xl mb-6 border border-indigo-100 overflow-hidden">
                 <div class="bg-white p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div class="flex items-center space-x-3">
-                        <div class="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md">
+                        <div class="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg shadow-md">
                             <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -57,8 +57,8 @@
                             </svg>
                         </div>
                         <div>
-                            <h1 class="text-2xl font-bold text-gray-800">Subscription Status</h1>
-                            <p class="text-sm text-gray-500">Manage your subscription and plan details</p>
+                            <h1 class="text-2xl font-bold text-slate-800">Subscription Status</h1>
+                            <p class="text-sm text-slate-500">Manage your subscription and plan details</p>
                         </div>
                     </div>
                 </div>
@@ -67,30 +67,30 @@
             <div class="flex flex-col md:flex-row gap-6">
                 <!-- Current Subscription Information -->
                 <div class="w-full md:w-2/3">
-                    <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-blue-100 h-full">
-                        <div class="bg-white p-6 border-b border-blue-200">
+                    <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-indigo-100 h-full">
+                        <div class="bg-white p-6 border-b border-indigo-200">
                             <div class="flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none"
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <h2 class="text-lg font-semibold text-gray-800">Current Subscription</h2>
+                                <h2 class="text-lg font-semibold text-slate-800">Current Subscription</h2>
                             </div>
                         </div>
 
                         <div class="p-6">
                             @if($subscription)
-                            <div class="bg-blue-50 rounded-lg p-6 border border-blue-100">
+                            <div class="bg-indigo-50 rounded-lg p-6 border border-indigo-100">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <p class="text-sm text-gray-600">Plan Name</p>
-                                        <p class="font-medium text-gray-800 text-lg">
+                                        <p class="text-sm text-slate-600">Plan Name</p>
+                                        <p class="font-medium text-slate-800 text-lg">
                                             {{ $subscription->plan->plan_name ?? 'N/A' }}
                                         </p>
                                     </div>
                                     <div>
-                                        <p class="text-sm text-gray-600">Status</p>
+                                        <p class="text-sm text-slate-600">Status</p>
                                         <span
                                             class="px-2.5 py-1 text-xs font-medium rounded-full 
                                                                             {{ $subscription->status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
@@ -98,8 +98,8 @@
                                         </span>
                                     </div>
                                     <div>
-                                        <p class="text-sm text-gray-600">Start Date</p>
-                                        <p class="font-medium text-gray-800">
+                                        <p class="text-sm text-slate-600">Start Date</p>
+                                        <p class="font-medium text-slate-800">
                                             @if($subscription->start_date)
                                             @if(is_string($subscription->start_date))
                                             {{ \Carbon\Carbon::parse($subscription->start_date)->format('M d, Y') }}
@@ -112,8 +112,8 @@
                                         </p>
                                     </div>
                                     <div>
-                                        <p class="text-sm text-gray-600">End Date</p>
-                                        <p class="font-medium text-gray-800">
+                                        <p class="text-sm text-slate-600">End Date</p>
+                                        <p class="font-medium text-slate-800">
                                             @if($subscription->end_date)
                                             @if(is_string($subscription->end_date))
                                             {{ \Carbon\Carbon::parse($subscription->end_date)->format('M d, Y') }}
@@ -126,8 +126,8 @@
                                         </p>
                                     </div>
                                     <div>
-                                        <p class="text-sm text-gray-600">Auto Renewal</p>
-                                        <p class="font-medium text-gray-800">
+                                        <p class="text-sm text-slate-600">Auto Renewal</p>
+                                        <p class="font-medium text-slate-800">
                                             @if($subscription->auto_renew ?? false)
                                             <span class="text-emerald-600 flex items-center">
                                                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"
@@ -154,15 +154,15 @@
                                 </div>
 
                                 <div class="mt-6">
-                                    <h4 class="font-semibold text-gray-800 mb-2 flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 mr-1"
+                                    <h4 class="font-semibold text-slate-800 mb-2 flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-600 mr-1"
                                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M5 13l4 4L19 7" />
                                         </svg>
                                         Plan Features
                                     </h4>
-                                    <ul class="list-disc pl-5 text-gray-700 space-y-1">
+                                    <ul class="list-disc pl-5 text-slate-700 space-y-1">
                                         @php
                                         $features = [];
                                         if ($subscription->plan && isset($subscription->plan->features)) {
@@ -190,9 +190,9 @@
                                     </ul>
                                 </div>
 
-                                <div class="mt-6 pt-4 border-t border-blue-200">
-                                    <h4 class="font-semibold text-gray-800 mb-2 flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 mr-1"
+                                <div class="mt-6 pt-4 border-t border-indigo-200">
+                                    <h4 class="font-semibold text-slate-800 mb-2 flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-600 mr-1"
                                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -225,13 +225,13 @@
                                 </div>
                             </div>
                             @else
-                            <div class="bg-blue-50 rounded-lg p-6 border border-blue-100 text-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-400 mx-auto mb-4"
+                            <div class="bg-indigo-50 rounded-lg p-6 border border-indigo-100 text-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-indigo-400 mx-auto mb-4"
                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                                 </svg>
-                                <p class="text-gray-700">No active subscription found.</p>
+                                <p class="text-slate-700">No active subscription found.</p>
                             </div>
                             @endif
                         </div>
@@ -240,15 +240,15 @@
 
                 <!-- Upgrade Options -->
                 <div class="w-full md:w-1/3">
-                    <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-blue-100 h-full">
-                        <div class="bg-white p-6 border-b border-blue-200">
+                    <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-indigo-100 h-full">
+                        <div class="bg-white p-6 border-b border-indigo-200">
                             <div class="flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none"
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                                 </svg>
-                                <h2 class="text-lg font-semibold text-gray-800">Available Plan Upgrades</h2>
+                                <h2 class="text-lg font-semibold text-slate-800">Available Plan Upgrades</h2>
                             </div>
                         </div>
 
@@ -257,12 +257,12 @@
                             <div class="space-y-4">
                                 @foreach($availablePlans as $plan)
                                 <div
-                                    class="border border-blue-100 rounded-lg p-4 hover:shadow-md transition duration-200 bg-blue-50">
-                                    <h4 class="font-semibold text-gray-800">{{ $plan->plan_name ?? 'No name' }}</h4>
-                                    <p class="text-sm text-gray-600 mt-1">
+                                    class="border border-indigo-100 rounded-lg p-4 hover:shadow-md transition duration-200 bg-indigo-50">
+                                    <h4 class="font-semibold text-slate-800">{{ $plan->plan_name ?? 'No name' }}</h4>
+                                    <p class="text-sm text-slate-600 mt-1">
                                         {{ $plan->description ?? 'No description available' }}
                                     </p>
-                                    <p class="mt-2 text-blue-600 font-medium">₱{{ number_format($plan->price * 100 ?? 0, 2) }}
+                                    <p class="mt-2 text-indigo-600 font-medium">₱{{ number_format($plan->price * 100 ?? 0, 2) }}
                                         / {{ $plan->billing_period ?? 'month' }}</p>
 
                                     <div class="mt-3">
@@ -272,7 +272,7 @@
                                         <a
                                             href="{{ route('payment.generate', ['plan' => $plan->id]) }}/monthly">
                                             <button type="submit"
-                                                class="w-full px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm rounded-lg shadow-sm transition duration-200">
+                                                class="w-full px-3 py-2 bg-gradient-to-r from-indigo-600 to-indigo-600 hover:from-indigo-700 hover:to-indigo-700 text-white text-sm rounded-lg shadow-sm transition duration-200">
                                                 <span class="flex items-center justify-center">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1"
                                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -291,13 +291,13 @@
                                 @endforeach
                             </div>
                             @else
-                            <div class="bg-blue-50 rounded-lg p-6 border border-blue-100 text-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-400 mx-auto mb-4"
+                            <div class="bg-indigo-50 rounded-lg p-6 border border-indigo-100 text-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-indigo-400 mx-auto mb-4"
                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <p class="text-gray-700">No upgrade options available at this time.</p>
+                                <p class="text-slate-700">No upgrade options available at this time.</p>
                             </div>
                             @endif
                         </div>

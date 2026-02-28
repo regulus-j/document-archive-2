@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+<div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header Box -->
-        <div class="bg-white rounded-lg p-6 border border-gray-200 mb-8 mt-8">
+        <div class="bg-white rounded-lg p-6 border border-slate-200 mb-8 mt-8">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
                     <svg class="h-8 w-8 text-[#0066FF]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -13,8 +13,8 @@
                             stroke="currentColor" />
                     </svg>
                     <div>
-                        <h1 class="text-xl font-semibold text-gray-900">{{ __('Document Categories') }}</h1>
-                        <p class="text-sm text-gray-500">Manage purpose/category labels for documents</p>
+                        <h1 class="text-xl font-semibold text-slate-900">{{ __('Document Categories') }}</h1>
+                        <p class="text-sm text-slate-500">Manage purpose/category labels for documents</p>
                     </div>
                 </div>
                 <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
@@ -34,9 +34,9 @@
         <div class="mb-6">
             <div class="relative">
                 <input type="text" id="categorySearch" placeholder="{{ __('Search categories...') }}"
-                    class="w-full pl-10 pr-4 py-2.5 rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all">
+                    class="w-full pl-10 pr-4 py-2.5 rounded-lg border-slate-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition-all">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    <svg class="h-5 w-5 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -93,45 +93,45 @@
         @endif
 
         <!-- Categories Table -->
-        <div class="mb-6 bg-white relative border border-blue-100 rounded-lg overflow-hidden">
+        <div class="mb-6 bg-white relative border border-indigo-100 rounded-lg overflow-hidden">
             <div class="overflow-visible">
-                <table id="categoriesTable" class="min-w-full divide-y divide-gray-200">
+                <table id="categoriesTable" class="min-w-full divide-y divide-slate-200">
                     <thead>
                         <tr>
                             <th scope="col"
-                                class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
+                                class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">
                                 {{ __('Category Name') }}
                             </th>
                             <th scope="col"
-                                class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
+                                class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">
                                 {{ __('Type') }}
                             </th>
                             <th scope="col"
-                                class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
+                                class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">
                                 {{ __('Documents') }}
                             </th>
                             <th scope="col"
-                                class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
+                                class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">
                                 {{ __('Created') }}
                             </th>
                             <th scope="col"
-                                class="bg-white px-6 py-3 text-right text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
+                                class="bg-white px-6 py-3 text-right text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">
                                 {{ __('Actions') }}
                             </th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="bg-white divide-y divide-slate-200">
                         @forelse ($categories as $category)
-                        <tr class="category-row hover:bg-gray-50 transition-colors">
+                        <tr class="category-row hover:bg-slate-50 transition-colors">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
-                                    <span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-blue-100 text-blue-600 mr-3">
+                                    <span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-indigo-100 text-indigo-600 mr-3">
                                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                                         </svg>
                                     </span>
-                                    <div class="text-sm font-medium text-gray-900 category-name">
+                                    <div class="text-sm font-medium text-slate-900 category-name">
                                         {{ $category->category }}
                                     </div>
                                 </div>
@@ -142,25 +142,25 @@
                                         {{ __('Global') }}
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
                                         {{ __('Company') }}
                                     </span>
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-500">
+                                <div class="text-sm text-slate-500">
                                     {{ $category->documents_count ?? $category->documents()->count() }}
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-500">
+                                <div class="text-sm text-slate-500">
                                     {{ $category->created_at->format('M d, Y') }}
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-right text-sm font-medium relative">
                                 @if(!$category->is_global)
                                 <div class="relative inline-block text-left" x-data="{ open: false }">
-                                    <button @click.stop="open = !open" type="button" class="p-1 rounded-full text-gray-400 hover:text-[#0066FF] focus:outline-none">
+                                    <button @click.stop="open = !open" type="button" class="p-1 rounded-full text-slate-400 hover:text-[#0066FF] focus:outline-none">
                                         <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
                                         </svg>
@@ -175,8 +175,8 @@
                                         x-transition:leave-end="transform opacity-0 scale-95"
                                         class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-xl bg-white ring-1 ring-black ring-opacity-5 z-[60]">
                                         <div class="py-1">
-                                            <a href="{{ route('categories.edit', $category->id) }}" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                                <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-[#0066FF]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <a href="{{ route('categories.edit', $category->id) }}" class="group flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                                <svg class="mr-3 h-5 w-5 text-slate-400 group-hover:text-[#0066FF]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                                 </svg>
                                                 {{ __('Edit') }}
@@ -196,7 +196,7 @@
                                     </div>
                                 </div>
                                 @else
-                                <span class="text-gray-400 text-xs italic">{{ __('System category') }}</span>
+                                <span class="text-slate-400 text-xs italic">{{ __('System category') }}</span>
                                 @endif
                             </td>
                         </tr>
@@ -204,12 +204,12 @@
                         <tr>
                             <td colspan="5" class="px-6 py-12 text-center">
                                 <div class="flex flex-col items-center">
-                                    <svg class="h-12 w-12 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg class="h-12 w-12 text-slate-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                                     </svg>
-                                    <p class="text-gray-500 text-lg">{{ __('No categories found') }}</p>
-                                    <p class="text-gray-400 text-sm mt-1">{{ __('Create your first category to get started') }}</p>
+                                    <p class="text-slate-500 text-lg">{{ __('No categories found') }}</p>
+                                    <p class="text-slate-400 text-sm mt-1">{{ __('Create your first category to get started') }}</p>
                                     <a href="{{ route('categories.create') }}" class="mt-4 inline-flex items-center px-4 py-2 bg-[#0066FF] text-white text-sm font-medium rounded-md hover:bg-[#0052CC]">
                                         <svg class="h-5 w-5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />

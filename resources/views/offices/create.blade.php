@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="min-h-screen bg-gradient-to-b from-blue-50 to-white p-4 md:p-8">
+    <div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white p-4 md:p-8">
         <div class="max-w-4xl mx-auto">
             <!-- Header Box -->
-            <div class="bg-white rounded-xl shadow-xl mb-6 border border-blue-100 overflow-hidden">
+            <div class="bg-white rounded-xl shadow-xl mb-6 border border-indigo-100 overflow-hidden">
                 <div class="bg-white p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div class="flex items-center space-x-3">
-                        <div class="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md">
+                        <div class="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg shadow-md">
                             <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -15,12 +15,12 @@
                             </svg>
                         </div>
                         <div>
-                            <h1 class="text-2xl font-bold text-gray-800">{{ __('Create New Team') }}</h1>
-                            <p class="text-sm text-gray-500">Add a new team to your organization</p>
+                            <h1 class="text-2xl font-bold text-slate-800">{{ __('Create New Team') }}</h1>
+                            <p class="text-sm text-slate-500">Add a new team to your organization</p>
                         </div>
                     </div>
                     <a href="{{ route('office.index') }}"
-                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-gradient-to-r from-indigo-600 to-indigo-600 hover:from-indigo-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                         <svg class="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -32,10 +32,10 @@
             </div>
 
             <!-- Form Card -->
-            <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-blue-100">
-                <div class="p-6 border-b border-gray-200">
-                    <h2 class="text-xl font-semibold text-gray-800 flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+            <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-indigo-100">
+                <div class="p-6 border-b border-slate-200">
+                    <h2 class="text-xl font-semibold text-slate-800 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
@@ -51,11 +51,11 @@
                         <div class="grid grid-cols-1 gap-6">
                             <!-- Office Name -->
                             <div>
-                                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+                                <label for="name" class="block text-sm font-medium text-slate-700 mb-1">
                                     {{ __('Team Name') }} <span class="text-red-500">*</span>
                                 </label>
                                 <input type="text" id="name" name="name" value="{{ old('name') }}" required
-                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 @error('name') border-red-500 @enderror"
+                                    class="block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 @error('name') border-red-500 @enderror"
                                     placeholder="{{ __('Enter team name') }}">
                                 @error('name')
                                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -64,12 +64,12 @@
 
                             <!-- Parent Office -->
                             <div>
-                                <label for="parent_office_id" class="block text-sm font-medium text-gray-700 mb-1">
+                                <label for="parent_office_id" class="block text-sm font-medium text-slate-700 mb-1">
                                     {{ __('Main Team') }}
                                 </label>
                                 <div class="relative">
                                     <select id="parent_office_id" name="parent_office_id"
-                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 @error('parent_office_id') border-red-500 @enderror">
+                                        class="block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 @error('parent_office_id') border-red-500 @enderror">
                                         <option value="">{{ __('None (Top-level Team)') }}</option>
                                         @foreach($offices as $id => $name)
                                             <option value="{{ $id }}" {{ old('parent_office_id') == $id ? 'selected' : '' }}>
@@ -78,7 +78,7 @@
                                         @endforeach
                                     </select>
                                     <div
-                                        class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                        class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-700">
                                         <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -86,7 +86,7 @@
                                         </svg>
                                     </div>
                                 </div>
-                                <p class="mt-1 text-xs text-gray-500">Select a main team if this is a sub-team</p>
+                                <p class="mt-1 text-xs text-slate-500">Select a main team if this is a sub-team</p>
                                 @error('parent_office_id')
                                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
@@ -94,12 +94,12 @@
 
                             <!-- Office Lead -->
                             <div>
-                                <label for="office_lead" class="block text-sm font-medium text-gray-700 mb-1">
+                                <label for="office_lead" class="block text-sm font-medium text-slate-700 mb-1">
                                     {{ __('Team Leader') }}
                                 </label>
                                 <div class="relative">
                                     <select id="office_lead" name="office_lead"
-                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 @error('office_lead') border-red-500 @enderror">
+                                        class="block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 @error('office_lead') border-red-500 @enderror">
                                         <option value="">{{ __('Select Team Leader (Optional)') }}</option>
                                         @foreach($users as $user)
                                             <option value="{{ $user->id }}" {{ old('office_lead') == $user->id ? 'selected' : '' }}>
@@ -108,7 +108,7 @@
                                         @endforeach
                                     </select>
                                     <div
-                                        class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                        class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-700">
                                         <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -116,7 +116,7 @@
                                         </svg>
                                     </div>
                                 </div>
-                                <p class="mt-1 text-xs text-gray-500">The selected user will be added to this team automatically</p>
+                                <p class="mt-1 text-xs text-slate-500">The selected user will be added to this team automatically</p>
                                 @error('office_lead')
                                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
@@ -125,7 +125,7 @@
                             <!-- Submit Button -->
                             <div class="flex justify-end pt-4">
                                 <button type="submit"
-                                    class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                    class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-indigo-600 to-indigo-600 hover:from-indigo-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                                     <svg class="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

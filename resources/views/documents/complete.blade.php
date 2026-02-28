@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-b from-blue-50 to-white" x-data="{ showConfirmation: false, documentToArchive: null }">
+<div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white" x-data="{ showConfirmation: false, documentToArchive: null }">
     <!-- Confirmation Popup -->
     <div x-show="showConfirmation" class="confirmation-overlay" x-cloak>
         <div class="confirmation-content" @click.outside="showConfirmation = false">
@@ -32,7 +32,7 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <!-- Header Box -->
-        <div class="bg-white rounded-xl mb-6 border border-blue-200/80 overflow-hidden">
+        <div class="bg-white rounded-xl mb-6 border border-indigo-200/80 overflow-hidden">
             <div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div class="flex items-center space-x-3">
                     <div class="p-3 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg shadow-md">
@@ -41,12 +41,12 @@
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-800">Completed Documents</h1>
-                        <p class="text-sm text-gray-500">View your completed and processed documents here.</p>
+                        <h1 class="text-2xl font-bold text-slate-800">Completed Documents</h1>
+                        <p class="text-sm text-slate-500">View your completed and processed documents here.</p>
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <a href="{{ route('documents.index') }}" class="inline-flex items-center px-4 py-2 border border-blue-600 text-sm font-medium rounded-lg text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                    <a href="{{ route('documents.index') }}" class="inline-flex items-center px-4 py-2 border border-indigo-600 text-sm font-medium rounded-lg text-indigo-600 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                         <svg class="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                         </svg>
@@ -57,23 +57,23 @@
         </div>
 
         <!-- Flow Instructions -->
-        <div class="bg-blue-50 rounded-xl border border-blue-200 p-4 mb-6">
+        <div class="bg-indigo-50 rounded-xl border border-indigo-200 p-4 mb-6">
             <div class="flex items-start">
-                <svg class="h-6 w-6 text-blue-600 mt-0.5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="h-6 w-6 text-indigo-600 mt-0.5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div>
-                    <p class="text-sm text-blue-800 font-medium">Completed Documents Overview:</p>
-                    <p class="mt-1 text-sm text-blue-600">View documents you've completed processing or those that have completed their workflow. Use the tabs below to switch between received and sent documents. For documents you've sent, you can archive them once they're completed to keep your list organized.</p>
+                    <p class="text-sm text-indigo-800 font-medium">Completed Documents Overview:</p>
+                    <p class="mt-1 text-sm text-indigo-600">View documents you've completed processing or those that have completed their workflow. Use the tabs below to switch between received and sent documents. For documents you've sent, you can archive them once they're completed to keep your list organized.</p>
                 </div>
             </div>
         </div>
 
         <!-- Tabs -->
-        <div class="bg-white rounded-xl overflow-hidden border border-blue-200/80 mb-6">
+        <div class="bg-white rounded-xl overflow-hidden border border-indigo-200/80 mb-6">
             <div class="flex">
                 <a href="{{ route('documents.complete', ['tab' => 'received']) }}"
-                   class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm {{ $tab === 'received' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                   class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm {{ $tab === 'received' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">
                     <div class="flex items-center justify-center">
                         <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -82,7 +82,7 @@
                     </div>
                 </a>
                 <a href="{{ route('documents.complete', ['tab' => 'sent']) }}"
-                   class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm {{ $tab === 'sent' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                   class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm {{ $tab === 'sent' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">
                     <div class="flex items-center justify-center">
                         <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -94,33 +94,33 @@
         </div>
 
         <!-- Document List -->
-        <div class="bg-white rounded-xl overflow-visible border border-blue-200/80 transition-all duration-300 hover:border-blue-300/80">
+        <div class="bg-white rounded-xl overflow-visible border border-indigo-200/80 transition-all duration-300 hover:border-indigo-300/80">
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
+                <table class="min-w-full divide-y divide-slate-200">
                     <thead>
                         <tr>
-                            <th class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200 w-12">#</th>
-                            <th class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Title</th>
+                            <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200 w-12">#</th>
+                            <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Title</th>
                             @if($tab === 'received')
-                                <th class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Uploaded By</th>
+                                <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Uploaded By</th>
                             @else
-                                <th class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Recipient</th>
+                                <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Recipient</th>
                             @endif
-                            <th class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Date Completed</th>
-                            <th class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Status</th>
-                            <th class="bg-white px-6 py-3 text-right text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Actions</th>
+                            <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Date Completed</th>
+                            <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Status</th>
+                            <th class="bg-white px-6 py-3 text-right text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="bg-white divide-y divide-slate-200">
                         @php
                             $counter = ($documents->currentPage() - 1) * $documents->perPage() + 1;
                         @endphp
                         @foreach ($documents as $document)
-                        <tr class="hover:bg-gray-50 transition-colors duration-200">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $counter++ }}</td>
+                        <tr class="hover:bg-slate-50 transition-colors duration-200">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{{ $counter++ }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">{{ $document->title }}</div>
-                                <div class="text-xs text-gray-500">{{ $document->reference_number }}</div>
+                                <div class="text-sm font-medium text-slate-900">{{ $document->title }}</div>
+                                <div class="text-xs text-slate-500">{{ $document->reference_number }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 @if($tab === 'received')
@@ -128,29 +128,29 @@
                                         $uploaderName = optional($document->user)->first_name . ' ' . optional($document->user)->last_name;
                                         $uploaderOffice = optional(optional($document->user)->offices->first())->name ?? 'No Office';
                                     @endphp
-                                    <div class="text-sm text-gray-900">{{ $uploaderName }}</div>
-                                    <div class="text-xs text-gray-500">{{ $uploaderOffice }}</div>
+                                    <div class="text-sm text-slate-900">{{ $uploaderName }}</div>
+                                    <div class="text-xs text-slate-500">{{ $uploaderOffice }}</div>
                                 @else
                                     @php
                                         $lastWorkflow = $document->documentWorkflow->last();
                                         $recipientName = $lastWorkflow ? (optional($lastWorkflow->recipient)->first_name . ' ' . optional($lastWorkflow->recipient)->last_name) : 'N/A';
                                         $recipientOffice = $lastWorkflow ? optional($lastWorkflow->recipientOffice)->name : 'No Office';
                                     @endphp
-                                    <div class="text-sm text-gray-900">{{ $recipientName }}</div>
-                                    <div class="text-xs text-gray-500">{{ $recipientOffice }}</div>
+                                    <div class="text-sm text-slate-900">{{ $recipientName }}</div>
+                                    <div class="text-xs text-slate-500">{{ $recipientOffice }}</div>
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">{{ $document->updated_at->format('M d, Y') }}</div>
-                                <div class="text-xs text-gray-500">{{ $document->updated_at->format('h:i A') }}</div>
+                                <div class="text-sm text-slate-900">{{ $document->updated_at->format('M d, Y') }}</div>
+                                <div class="text-xs text-slate-500">{{ $document->updated_at->format('h:i A') }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 @php
                                     $statusClass = match(optional($document->status)->status) {
                                         'completed', 'complete' => 'bg-green-100 text-green-800',
-                                        'acknowledged' => 'bg-blue-100 text-blue-800',
+                                        'acknowledged' => 'bg-indigo-100 text-indigo-800',
                                         'commented' => 'bg-cyan-100 text-cyan-800',
-                                        default => 'bg-gray-100 text-gray-800'
+                                        default => 'bg-slate-100 text-slate-800'
                                     };
                                 @endphp
                                 <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusClass }}">
@@ -161,7 +161,7 @@
                                 @if($tab === 'received')
                                             <div class="flex justify-end space-x-2">
                                                 <a href="{{ route('documents.show', $document->id) }}"
-                                                    class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                                    class="inline-flex items-center px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                                                     <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -169,7 +169,7 @@
                                                     View
                                                 </a>
                                                 <a href="{{ route('documents.download', $document->id) }}"
-                                                    class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                                    class="inline-flex items-center px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                                                     <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                                     </svg>
@@ -179,7 +179,7 @@
                                         @else
                                             <div class="flex justify-end space-x-2">
                                                 <a href="{{ route('documents.show', $document->id) }}"
-                                                    class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                                    class="inline-flex items-center px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                                                     <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -187,7 +187,7 @@
                                                     View
                                                 </a>
                                                 <a href="{{ route('documents.download', $document->id) }}"
-                                                    class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                                    class="inline-flex items-center px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                                                     <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                                     </svg>
@@ -196,7 +196,7 @@
                                                 @if($document->status->status !== 'archived')
                                                     <button type="button"
                                                         @click="showConfirmation = true; documentToArchive = {{ $document->id }}"
-                                                        class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                                        class="inline-flex items-center px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                                                         <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                                                         </svg>

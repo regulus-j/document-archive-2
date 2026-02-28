@@ -1,6 +1,6 @@
 <x-app-layout>
     {{-- <x-slot name="header">
-        <h2 class="text-3xl font-bold text-gray-900 leading-tight">
+        <h2 class="text-3xl font-bold text-slate-900 leading-tight">
             {{ __('Team Dashboard') }}
         </h2>
     </x-slot> --}}
@@ -32,30 +32,32 @@
     </div>
     @endif
 
-    <div class="bg-gradient-to-b from-blue-50 to-white py-12">
+    <div class="py-8 lg:py-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
             <!-- Welcome Message -->
-            <div class="bg-white rounded-lg p-6 border border-gray-200 mb-8">
+            <div class="bg-white rounded-lg p-6 border border-slate-200/80 shadow-card mb-8">
                 <div class="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-500 mr-3" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                    </svg>
+                    <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center mr-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                    </div>
                     <div>
-                        <h1 class="text-2xl font-semibold text-gray-900">
+                        <h1 class="text-xl font-semibold text-slate-900">
                             {{ __("Welcome back, " . auth()->user()->first_name . "!") }}
                         </h1>
-                        <p class="text-gray-500 mt-1">{{ __("From " . optional(auth()->user()->companies()->first())->company_name . " company!") }}</p>
+                        <p class="text-slate-500 text-sm mt-0.5">{{ __("From " . optional(auth()->user()->companies()->first())->company_name . " company!") }}</p>
                     </div>
                 </div>
             </div>
 
             <!-- Office Lead Statistics (Only shown for office leads) -->
             @if($isOfficeLead && $ledOffice)
-            <div class="bg-white rounded-lg p-6 border border-gray-200 mb-8">
-                <h3 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="bg-white rounded-lg p-6 border border-slate-200/80 shadow-card mb-8">
+                <h3 class="text-lg font-semibold text-slate-900 mb-6 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
@@ -64,61 +66,61 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                     <!-- Office Document Count -->
-                    <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <div class="bg-white rounded-lg p-4 border border-slate-200/80 border-l-[3px] border-l-indigo-400 shadow-card hover:shadow-card-hover transition-shadow">
                         <div class="flex items-center">
-                            <div class="flex-shrink-0 bg-blue-100 rounded-lg p-3">
-                                <svg class="h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div class="flex-shrink-0 bg-indigo-50 rounded-lg p-3">
+                                <svg class="h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
                             </div>
                             <div class="ml-4 flex-1">
-                                <div class="text-sm font-medium text-blue-800 mb-1">Total Documents</div>
-                                <div class="text-2xl font-bold text-blue-900">{{ $officeDocumentCount }}</div>
+                                <div class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Total Documents</div>
+                                <div class="text-2xl font-bold text-slate-900">{{ $officeDocumentCount }}</div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Today's Documents -->
-                    <div class="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
+                    <div class="bg-white rounded-lg p-4 border border-slate-200/80 border-l-[3px] border-l-emerald-400 shadow-card hover:shadow-card-hover transition-shadow">
                         <div class="flex items-center">
-                            <div class="flex-shrink-0 bg-emerald-100 rounded-lg p-3">
-                                <svg class="h-6 w-6 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div class="flex-shrink-0 bg-emerald-50 rounded-lg p-3">
+                                <svg class="h-5 w-5 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
                             </div>
                             <div class="ml-4 flex-1">
-                                <div class="text-sm font-medium text-emerald-800 mb-1">Documents Today</div>
-                                <div class="text-2xl font-bold text-emerald-900">{{ $officeDocumentsTodayCount }}</div>
+                                <div class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Documents Today</div>
+                                <div class="text-2xl font-bold text-slate-900">{{ $officeDocumentsTodayCount }}</div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Pending Workflows -->
-                    <div class="bg-amber-50 rounded-lg p-4 border border-amber-200">
+                    <div class="bg-white rounded-lg p-4 border border-slate-200/80 border-l-[3px] border-l-amber-400 shadow-card hover:shadow-card-hover transition-shadow">
                         <div class="flex items-center">
-                            <div class="flex-shrink-0 bg-amber-100 rounded-lg p-3">
-                                <svg class="h-6 w-6 text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div class="flex-shrink-0 bg-amber-50 rounded-lg p-3">
+                                <svg class="h-5 w-5 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
                             <div class="ml-4 flex-1">
-                                <div class="text-sm font-medium text-amber-800 mb-1">Pending Workflows</div>
-                                <div class="text-2xl font-bold text-amber-900">{{ $officePendingWorkflowsCount }}</div>
+                                <div class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Pending Workflows</div>
+                                <div class="text-2xl font-bold text-slate-900">{{ $officePendingWorkflowsCount }}</div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Office Members -->
-                    <div class="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                    <div class="bg-white rounded-lg p-4 border border-slate-200/80 border-l-[3px] border-l-slate-400 shadow-card hover:shadow-card-hover transition-shadow">
                         <div class="flex items-center">
-                            <div class="flex-shrink-0 bg-purple-100 rounded-lg p-3">
-                                <svg class="h-6 w-6 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div class="flex-shrink-0 bg-slate-100 rounded-lg p-3">
+                                <svg class="h-5 w-5 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                 </svg>
                             </div>
                             <div class="ml-4 flex-1">
-                                <div class="text-sm font-medium text-purple-800 mb-1">Team Members</div>
-                                <div class="text-2xl font-bold text-purple-900">{{ $officeMembers->count() }}</div>
+                                <div class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Team Members</div>
+                                <div class="text-2xl font-bold text-slate-900">{{ $officeMembers->count() }}</div>
                             </div>
                         </div>
                     </div>
@@ -127,22 +129,22 @@
                 <!-- Recent Office Documents -->
                 @if($officeDocuments->count() > 0)
                 <div class="mt-6">
-                    <h4 class="text-lg font-medium text-gray-700 mb-3">Recent Team Documents</h4>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+                    <h4 class="text-base font-medium text-slate-700 mb-3">Recent Team Documents</h4>
+                    <div class="overflow-x-auto rounded-lg border border-slate-200/80">
+                        <table class="min-w-full divide-y divide-slate-200">
+                            <thead class="bg-slate-50/80">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Uploader</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categories</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Title</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Uploader</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Categories</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
+                            <tbody class="bg-white divide-y divide-slate-100">
                                 @foreach($officeDocuments as $document)
                                 <tr>
                                     <td class="px-4 py-3 whitespace-nowrap">
-                                        <a href="{{ route('documents.show', $document) }}" class="text-blue-600 hover:text-blue-900">
+                                        <a href="{{ route('documents.show', $document) }}" class="text-indigo-600 hover:text-indigo-700 font-medium">
                                             {{ Str::limit($document->title, 30) }}
                                         </a>
                                     </td>
@@ -155,11 +157,11 @@
                                     <td class="px-4 py-3">
                                         <div class="flex flex-wrap gap-1">
                                             @forelse($document->categories as $category)
-                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-medium rounded-full bg-slate-100 text-slate-700">
                                                     {{ $category->name ?? $category->category ?? 'Unnamed Category' }}
                                                 </span>
                                             @empty
-                                                <span class="text-gray-400 text-xs">No categories</span>
+                                                <span class="text-slate-400 text-xs">No categories</span>
                                             @endforelse
                                         </div>
                                     </td>
@@ -169,7 +171,7 @@
                         </table>
                     </div>
                     <div class="mt-4">
-                        <a href="{{ route('reports.office-user-dashboard') }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <a href="{{ route('reports.office-user-dashboard') }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
                                 <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />
                                 <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
@@ -179,15 +181,15 @@
                     </div>
                 </div>
                 @else
-                <div class="text-center text-gray-500 py-4">No recent team documents found</div>
+                <div class="text-center text-slate-500 py-4">No recent team documents found</div>
                 @endif
             </div>
             @endif
 
             <!-- Office User Statistics -->
-            <div class="bg-white rounded-lg p-6 border border-gray-200 mb-8">
-                <h3 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="bg-white rounded-lg p-6 border border-slate-200/80 shadow-card mb-8">
+                <h3 class="text-lg font-semibold text-slate-900 mb-6 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                     Your Activity Overview
@@ -199,35 +201,41 @@
                             'title' => 'Documents Received',
                             'value' => $totalDocuments,
                             'icon' => 'M3 10h11M9 21V3m0 18v-8m-6 8h6m6-18h6m-6 0v18m0-18v8m6-8v8',
-                            'color' => 'blue'
+                            'accent' => 'border-l-indigo-400',
+                            'iconBg' => 'bg-indigo-50',
+                            'iconColor' => 'text-indigo-500'
                         ],
                         [
                             'title' => 'Pending Documents',
                             'value' => $pendingDocuments,
                             'icon' => 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
-                            'color' => 'amber'
+                            'accent' => 'border-l-amber-400',
+                            'iconBg' => 'bg-amber-50',
+                            'iconColor' => 'text-amber-500'
                         ],
                         [
                             'title' => 'Processed Documents',
                             'value' => $countRecentDocs,
                             'icon' => 'M5 13l4 4L19 7',
-                            'color' => 'emerald'
+                            'accent' => 'border-l-emerald-400',
+                            'iconBg' => 'bg-emerald-50',
+                            'iconColor' => 'text-emerald-500'
                         ]
                     ] as $stat)
-                        <div class="bg-{{ $stat['color'] }}-50 rounded-lg p-4 border border-{{ $stat['color'] }}-200">
+                        <div class="bg-white rounded-lg p-4 border border-slate-200/80 border-l-[3px] {{ $stat['accent'] }} shadow-card hover:shadow-card-hover transition-shadow">
                             <div class="flex items-center">
-                                <div class="flex-shrink-0 bg-{{ $stat['color'] }}-100 rounded-lg p-3">
-                                    <svg class="h-6 w-6 text-{{ $stat['color'] }}-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                <div class="flex-shrink-0 {{ $stat['iconBg'] }} rounded-lg p-3">
+                                    <svg class="h-5 w-5 {{ $stat['iconColor'] }}" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="{{ $stat['icon'] }}" />
                                     </svg>
                                 </div>
                                 <div class="ml-4 flex-1">
-                                    <div class="text-sm font-medium text-{{ $stat['color'] }}-800 mb-1">
+                                    <div class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">
                                         {{ $stat['title'] }}
                                     </div>
-                                    <div class="text-2xl font-bold text-{{ $stat['color'] }}-900">
+                                    <div class="text-2xl font-bold text-slate-900">
                                         {{ $stat['value'] }}
                                     </div>
                                 </div>
@@ -238,9 +246,9 @@
             </div>
 
             <!-- Quick Actions for Office Users -->
-            <div class="bg-white rounded-lg p-6 border border-gray-200">
-                <h3 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="bg-white rounded-lg p-6 border border-slate-200/80 shadow-card">
+                <h3 class="text-lg font-semibold text-slate-900 mb-6 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                     Quick Actions
@@ -249,9 +257,9 @@
                 <form action="{{ route('trackingNumber-search') }}" method="POST" class="space-y-6">
                     @csrf
                     <div>
-                        <label for="action" class="block text-sm font-medium text-gray-700 mb-2">Select Action</label>
+                        <label for="action" class="block text-sm font-medium text-slate-700 mb-2">Select Action</label>
                         <select id="action" name="action"
-                            class="block w-full pl-3 pr-10 py-2.5 text-base border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg">
+                            class="block w-full pl-3 pr-10 py-2.5 text-base border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm rounded-lg text-slate-900">
                             <option value="">Select an action</option>
                             @foreach ([
                                 ['value' => 'find', 'label' => 'Find', 'icon' => 'M10.5 3a7.5 7.5 0 015.916 12.5l4.243 4.242-1.414 1.414-4.242-4.243A7.5 7.5 0 1110.5 3z'],
@@ -266,14 +274,14 @@
                         </select>
                     </div>
                     <div>
-                        <label for="tracking_number" class="block text-sm font-medium text-gray-700 mb-2">Tracking Number</label>
+                        <label for="tracking_number" class="block text-sm font-medium text-slate-700 mb-2">Tracking Number</label>
                         <div class="flex">
                             <input type="text" name="tracking_number" id="tracking_number"
-                                class="flex-1 min-w-0 block w-full px-4 py-2.5 rounded-l-lg border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                class="flex-1 min-w-0 block w-full px-4 py-2.5 rounded-l-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm text-slate-900 placeholder:text-slate-400"
                                 placeholder="Enter tracking number">
 
                             <button type="button" onclick="startScanner()"
-                                class="inline-flex items-center px-4 py-2.5 border border-gray-300 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors">
+                                class="inline-flex items-center px-4 py-2.5 border border-slate-300 text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                                 </svg>
@@ -281,7 +289,7 @@
                             </button>
 
                             <button type="submit"
-                                class="inline-flex items-center px-4 py-2.5 border border-blue-600 text-sm font-medium rounded-r-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors">
+                                class="inline-flex items-center px-4 py-2.5 border border-indigo-600 text-sm font-medium rounded-r-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors shadow-sm">
                                 Submit
                             </button>
                         </div>

@@ -1,6 +1,6 @@
 <div class="relative" x-data="{ open: false }">
     <!-- Three dot menu button -->
-    <button @click="open = !open" type="button" class="p-1.5 rounded-full text-gray-400 hover:text-[#0066FF] focus:outline-none">
+    <button @click="open = !open" type="button" class="p-1.5 rounded-full text-slate-400 hover:text-[#0066FF] focus:outline-none">
         <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
         </svg>
@@ -16,12 +16,12 @@
          x-transition:leave="transition ease-in duration-75"
          x-transition:leave-start="opacity-100 scale-100"
          x-transition:leave-end="opacity-0 scale-95"
-         class="absolute right-0 top-1/2 -translate-y-1/2 z-50 bg-white rounded-lg shadow-lg border border-gray-200 py-2 px-3 min-w-[200px]"
+         class="absolute right-0 top-1/2 -translate-y-1/2 z-50 bg-white rounded-lg shadow-lg border border-slate-200 py-2 px-3 min-w-[200px]"
          style="transform-origin: center right;">
             <div class="flex items-center space-x-2">
                 <!-- View Action -->
                 <a href="{{ route('documents.show', $document->id) }}"
-                    class="group inline-flex items-center p-1.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-[#0066FF] rounded-lg transition-colors duration-150"
+                    class="group inline-flex items-center p-1.5 text-sm text-slate-700 hover:bg-indigo-50 hover:text-[#0066FF] rounded-lg transition-colors duration-150"
                     title="View Document">
                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -47,7 +47,7 @@
     @if ($isUploader)
         @if ($status == 'uploaded' || $status == 'pending')
             <a href="{{ route('documents.forward', $document->id) }}"
-                class="group inline-flex items-center p-1.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600 rounded-lg transition-colors duration-150"
+                class="group inline-flex items-center p-1.5 text-sm text-slate-700 hover:bg-amber-50 hover:text-amber-600 rounded-lg transition-colors duration-150"
                 title="Forward Document">
                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -60,7 +60,7 @@
             <form action="{{ route('documents.recall', $document) }}" method="POST" class="inline-block">
                 @csrf
                 <button type="submit" onclick="return handleRecallDocument(this.form);"
-                    class="group inline-flex items-center p-1.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 rounded-lg transition-colors duration-150"
+                    class="group inline-flex items-center p-1.5 text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-600 rounded-lg transition-colors duration-150"
                     title="Recall Document">
                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -76,7 +76,7 @@
                 <form action="{{ route('documents.resume', $document) }}" method="POST" class="inline-block">
                     @csrf
                     <button type="submit" onclick="return handleResumeDocument(this.form);"
-                        class="group inline-flex items-center p-1.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors duration-150"
+                        class="group inline-flex items-center p-1.5 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors duration-150"
                         title="Resume Document">
                         <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -90,7 +90,7 @@
                 <form action="{{ route('documents.createNewWorkflow', $document) }}" method="POST" class="inline-block">
                     @csrf
                     <button type="submit" onclick="return handleCreateNewWorkflow(this.form);"
-                        class="group inline-flex items-center p-1.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors duration-150"
+                        class="group inline-flex items-center p-1.5 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors duration-150"
                         title="Create New Workflow">
                         <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -105,7 +105,7 @@
 
     @if ($canEdit)
         <a href="{{ route('documents.edit', $document->id) }}"
-            class="group inline-flex items-center p-1.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors duration-150"
+            class="group inline-flex items-center p-1.5 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors duration-150"
             title="Edit Document">
             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -118,7 +118,7 @@
 
                 <!-- Download Action -->
                 <a href="{{ route('documents.download', $document->id) }}"
-                    class="group inline-flex items-center p-1.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-[#0066FF] rounded-lg transition-colors duration-150"
+                    class="group inline-flex items-center p-1.5 text-sm text-slate-700 hover:bg-indigo-50 hover:text-[#0066FF] rounded-lg transition-colors duration-150"
                     title="Download Document">
                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -143,7 +143,7 @@
                     <form action="{{ route('documents.archive.store', $document) }}" method="POST" class="inline-block">
                         @csrf
                         <button type="submit" onclick="return handleArchiveDocument(this.form);"
-                            class="group inline-flex items-center p-1.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-600 rounded-lg transition-colors duration-150 w-full"
+                            class="group inline-flex items-center p-1.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-600 rounded-lg transition-colors duration-150 w-full"
                             title="Archive Document">
                             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">

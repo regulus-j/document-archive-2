@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-b from-blue-50 to-white p-4 md:p-8">
+<div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white p-4 md:p-8">
     <div class="max-w-7xl mx-auto px-6">
 
         {{-- Success/Error Messages --}}
@@ -19,20 +19,20 @@
         @endif
 
         <!-- Header Box -->
-        <div class="bg-white rounded-xl mb-6 border border-blue-200/80 overflow-hidden">
+        <div class="bg-white rounded-xl mb-6 border border-indigo-200/80 overflow-hidden">
             <div class="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div class="flex items-center">
-                    <div class="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+                    <div class="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
                     </div>
                     <div class="ml-3">
-                        <h1 class="text-2xl font-bold text-gray-800">Review Document</h1>
-                        <p class="text-sm text-gray-500">Review, sign, and take action on the document</p>
+                        <h1 class="text-2xl font-bold text-slate-800">Review Document</h1>
+                        <p class="text-sm text-slate-500">Review, sign, and take action on the document</p>
                     </div>
                 </div>
-                <a href="{{ route('documents.workflows') }}" class="inline-flex items-center px-4 py-2 bg-white border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors duration-200">
+                <a href="{{ route('documents.workflows') }}" class="inline-flex items-center px-4 py-2 bg-white border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors duration-200">
                     <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
                     </svg>
@@ -49,40 +49,40 @@
             {{-- ============================================= --}}
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {{-- Document Information (left) --}}
-                <div class="bg-white rounded-xl border border-blue-200/80 overflow-hidden">
-                    <div class="bg-gradient-to-r from-blue-50 to-white p-4 border-b border-blue-200/60">
-                        <h2 class="text-lg font-semibold text-gray-700">Document Information</h2>
+                <div class="bg-white rounded-xl border border-indigo-200/80 overflow-hidden">
+                    <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-200/60">
+                        <h2 class="text-lg font-semibold text-slate-700">Document Information</h2>
                     </div>
                     <div class="p-5 space-y-4">
                         <div>
-                            <label class="text-xs font-medium text-gray-400 uppercase tracking-wider">Title</label>
-                            <p class="text-sm font-medium text-gray-800 mt-1">{{ $document->title ?? 'Untitled' }}</p>
+                            <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Title</label>
+                            <p class="text-sm font-medium text-slate-800 mt-1">{{ $document->title ?? 'Untitled' }}</p>
                         </div>
                         <div>
-                            <label class="text-xs font-medium text-gray-400 uppercase tracking-wider">Description</label>
-                            <p class="text-sm text-gray-600 mt-1">{{ $document->description ?? 'No description' }}</p>
+                            <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Description</label>
+                            <p class="text-sm text-slate-600 mt-1">{{ $document->description ?? 'No description' }}</p>
                         </div>
                         <div>
-                            <label class="text-xs font-medium text-gray-400 uppercase tracking-wider">Purpose</label>
+                            <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Purpose</label>
                             <div class="mt-1">
                                 @switch($workflow->purpose)
                                     @case('appropriate_action')
                                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Appropriate Action Required</span>
                                         @break
                                     @case('for_comment')
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">For Comment</span>
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">For Comment</span>
                                         @break
                                     @case('dissemination')
                                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Dissemination of Information</span>
                                         @break
                                     @default
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">General Review</span>
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700">General Review</span>
                                 @endswitch
                             </div>
                         </div>
                         @if($workflow->urgency)
                         <div>
-                            <label class="text-xs font-medium text-gray-400 uppercase tracking-wider">Urgency</label>
+                            <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Urgency</label>
                             <div class="mt-1">
                                 @php
                                     $urgColors = ['low'=>'green','medium'=>'yellow','high'=>'orange','critical'=>'red'];
@@ -94,12 +94,12 @@
                         @endif
                         @if($workflow->due_date)
                         <div>
-                            <label class="text-xs font-medium text-gray-400 uppercase tracking-wider">Due Date</label>
-                            <p class="text-sm text-gray-700 mt-1">{{ \Carbon\Carbon::parse($workflow->due_date)->format('M d, Y') }}</p>
+                            <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Due Date</label>
+                            <p class="text-sm text-slate-700 mt-1">{{ \Carbon\Carbon::parse($workflow->due_date)->format('M d, Y') }}</p>
                         </div>
                         @endif
                         <div class="pt-3 flex gap-2">
-                            <a class="inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition shadow-sm"
+                            <a class="inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-indigo-600 hover:from-indigo-700 hover:to-indigo-700 transition shadow-sm"
                                href="{{ route('documents.download', $document->id) }}">
                                 <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                 Download
@@ -123,20 +123,20 @@
                 </div>
 
                 {{-- Document Viewer (right, spans 2 cols) --}}
-                <div class="lg:col-span-2 bg-white rounded-xl border border-blue-200/80 overflow-hidden">
-                    <div class="bg-gradient-to-r from-blue-50 to-white p-4 border-b border-blue-200/60 flex items-center justify-between">
-                        <h2 class="text-lg font-semibold text-gray-700">Document Viewer</h2>
+                <div class="lg:col-span-2 bg-white rounded-xl border border-indigo-200/80 overflow-hidden">
+                    <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-200/60 flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-slate-700">Document Viewer</h2>
                         <div id="viewer-controls" class="flex items-center gap-2" style="display:none;">
-                            <button onclick="zoomViewer(-1)" class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500" title="Zoom Out">
+                            <button onclick="zoomViewer(-1)" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500" title="Zoom Out">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"/></svg>
                             </button>
-                            <span id="zoom-level" class="text-xs text-gray-500 min-w-[3rem] text-center">100%</span>
-                            <button onclick="zoomViewer(1)" class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500" title="Zoom In">
+                            <span id="zoom-level" class="text-xs text-slate-500 min-w-[3rem] text-center">100%</span>
+                            <button onclick="zoomViewer(1)" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500" title="Zoom In">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
                             </button>
                         </div>
                     </div>
-                    <div id="document-viewer-container" class="bg-gray-50 flex items-center justify-center" style="min-height: 500px;">
+                    <div id="document-viewer-container" class="bg-slate-50 flex items-center justify-center" style="min-height: 500px;">
                         @if($previewable)
                             @if($ext === 'pdf')
                                 <iframe id="doc-viewer-frame" src="{{ route('documents.preview', $document->id) }}" class="w-full border-0" style="height: 500px;"></iframe>
@@ -147,23 +147,23 @@
                             @elseif($isOfficeDoc)
                                 <div id="docx-viewer" class="p-6 overflow-auto w-full bg-white" data-url="{{ route('documents.preview', $document->id) }}" style="max-height: 500px;">
                                     <div class="flex items-center justify-center py-12">
-                                        <svg class="animate-spin h-8 w-8 text-blue-500 mr-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
-                                        <span class="text-sm text-gray-500">Loading document...</span>
+                                        <svg class="animate-spin h-8 w-8 text-indigo-500 mr-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+                                        <span class="text-sm text-slate-500">Loading document...</span>
                                     </div>
                                 </div>
                             @elseif($isSpreadsheet)
                                 <div id="xlsx-viewer" class="p-4 overflow-auto w-full bg-white" data-url="{{ route('documents.preview', $document->id) }}" style="max-height: 500px;">
                                     <div class="flex items-center justify-center py-12">
                                         <svg class="animate-spin h-8 w-8 text-green-500 mr-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
-                                        <span class="text-sm text-gray-500">Loading spreadsheet...</span>
+                                        <span class="text-sm text-slate-500">Loading spreadsheet...</span>
                                     </div>
                                 </div>
                             @endif
                         @else
                             <div class="text-center py-16">
-                                <svg class="mx-auto h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                <p class="mt-3 text-sm text-gray-500">Preview not available for this file type (<strong>.{{ $ext }}</strong>)</p>
-                                <p class="mt-1 text-xs text-gray-400">Please download the file to view it</p>
+                                <svg class="mx-auto h-16 w-16 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                <p class="mt-3 text-sm text-slate-500">Preview not available for this file type (<strong>.{{ $ext }}</strong>)</p>
+                                <p class="mt-1 text-xs text-slate-400">Please download the file to view it</p>
                             </div>
                         @endif
                     </div>
@@ -175,10 +175,10 @@
             {{-- ============================================= --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {{-- Attachments --}}
-                <div class="bg-white rounded-xl border border-blue-200/80 overflow-hidden">
-                    <div class="bg-gradient-to-r from-blue-50 to-white p-4 border-b border-blue-200/60 flex items-center justify-between">
-                        <h2 class="text-lg font-semibold text-gray-700">Attachments</h2>
-                        <span class="text-xs font-medium text-gray-400">{{ $document->attachments->count() }} file(s)</span>
+                <div class="bg-white rounded-xl border border-indigo-200/80 overflow-hidden">
+                    <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-200/60 flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-slate-700">Attachments</h2>
+                        <span class="text-xs font-medium text-slate-400">{{ $document->attachments->count() }} file(s)</span>
                     </div>
                     <div class="p-4">
                         @if($document->attachments->count())
@@ -190,18 +190,18 @@
                                         $iconColors = ['pdf'=>'red','doc'=>'blue','docx'=>'blue','xls'=>'green','xlsx'=>'green','csv'=>'green','jpg'=>'amber','jpeg'=>'amber','png'=>'purple','gif'=>'pink','webp'=>'amber','bmp'=>'amber','svg'=>'indigo'];
                                         $ic = $iconColors[$attExt] ?? 'gray';
                                     @endphp
-                                    <div class="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition group">
+                                    <div class="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:bg-slate-50 transition group">
                                         <div class="flex items-center gap-3 min-w-0">
                                             <div class="flex-shrink-0 w-9 h-9 rounded-lg bg-{{ $ic }}-100 flex items-center justify-center">
                                                 <span class="text-xs font-bold text-{{ $ic }}-600 uppercase">{{ $attExt }}</span>
                                             </div>
                                             <div class="min-w-0">
-                                                <p class="text-sm font-medium text-gray-700 truncate">{{ $attachment->filename }}</p>
-                                                <p class="text-xs text-gray-400">
+                                                <p class="text-sm font-medium text-slate-700 truncate">{{ $attachment->filename }}</p>
+                                                <p class="text-xs text-slate-400">
                                                     {{ $attachment->storage_size ? number_format($attachment->storage_size / 1024, 1) . ' KB' : '' }}
                                                     @if($attachment->uploader)
                                                         <span class="mx-1">&middot;</span>
-                                                        <span class="text-blue-600">{{ $attachment->uploader->first_name }} {{ $attachment->uploader->last_name }}</span>
+                                                        <span class="text-indigo-600">{{ $attachment->uploader->first_name }} {{ $attachment->uploader->last_name }}</span>
                                                     @endif
                                                     <span class="mx-1">&middot;</span>
                                                     {{ $attachment->created_at->format('M d, Y g:ia') }}
@@ -216,7 +216,7 @@
                                             </button>
                                             @endif
                                             <a href="{{ Storage::disk('public')->url($attachment->path) }}" download
-                                               class="p-1.5 rounded-lg hover:bg-blue-100 text-blue-600" title="Download">
+                                               class="p-1.5 rounded-lg hover:bg-indigo-100 text-indigo-600" title="Download">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                             </a>
                                         </div>
@@ -225,32 +225,32 @@
                             </div>
                         @else
                             <div class="text-center py-8">
-                                <svg class="mx-auto h-10 w-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                                <p class="mt-2 text-sm text-gray-500">No attachments</p>
+                                <svg class="mx-auto h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                                <p class="mt-2 text-sm text-slate-500">No attachments</p>
                             </div>
                         @endif
 
                         {{-- Upload Attachments (for all reviewers with actionable status) --}}
                         @if(in_array($workflow->status, ['received', 'pending']))
-                        <div class="mt-4 pt-4 border-t border-gray-100">
-                            <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5">
-                                <svg class="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                        <div class="mt-4 pt-4 border-t border-slate-100">
+                            <h4 class="text-sm font-medium text-slate-700 mb-2 flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                                 Upload Additional Attachments
                             </h4>
                             <form action="{{ route('documents.uploadProcessorAttachment', $workflow->id) }}" method="POST" enctype="multipart/form-data">
                                 @csrf
                                 <div class="flex items-center gap-2">
-                                    <label class="flex-1 flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition">
-                                        <svg class="w-5 h-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                                        <span class="text-sm text-gray-500" id="file-label">Choose files...</span>
+                                    <label class="flex-1 flex items-center justify-center px-4 py-3 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition">
+                                        <svg class="w-5 h-5 text-slate-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                                        <span class="text-sm text-slate-500" id="file-label">Choose files...</span>
                                         <input type="file" name="attachments[]" multiple class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.odt,.ods,.odp,.rtf,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg"
                                                onchange="document.getElementById('file-label').textContent = this.files.length + ' file(s) selected'">
                                     </label>
-                                    <button type="submit" class="px-4 py-3 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition shadow-sm">
+                                    <button type="submit" class="px-4 py-3 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm">
                                         Upload
                                     </button>
                                 </div>
-                                <p class="text-xs text-gray-400 mt-1.5">Max 10MB per file &middot; PDF, Office docs (DOC, XLS, PPT, CSV, ODT, RTF...), Images</p>
+                                <p class="text-xs text-slate-400 mt-1.5">Max 10MB per file &middot; PDF, Office docs (DOC, XLS, PPT, CSV, ODT, RTF...), Images</p>
                             </form>
                         </div>
                         @endif
@@ -258,22 +258,22 @@
                 </div>
 
                 {{-- E-Signatures --}}
-                <div class="bg-white rounded-xl border border-blue-200/80 overflow-hidden">
-                    <div class="bg-gradient-to-r from-blue-50 to-white p-4 border-b border-blue-200/60">
-                        <h2 class="text-lg font-semibold text-gray-700">E-Signatures</h2>
+                <div class="bg-white rounded-xl border border-indigo-200/80 overflow-hidden">
+                    <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-200/60">
+                        <h2 class="text-lg font-semibold text-slate-700">E-Signatures</h2>
                     </div>
                     <div class="p-4">
                         @if($document->eSignatures->count())
                             <div class="space-y-3 max-h-72 overflow-y-auto pr-1">
                                 @foreach($document->eSignatures as $sig)
-                                    <div class="flex items-start gap-3 p-3 rounded-lg border border-gray-100 bg-gray-50/50">
-                                        <div class="flex-shrink-0 w-20 h-14 rounded border border-gray-200 bg-white overflow-hidden">
+                                    <div class="flex items-start gap-3 p-3 rounded-lg border border-slate-100 bg-slate-50/50">
+                                        <div class="flex-shrink-0 w-20 h-14 rounded border border-slate-200 bg-white overflow-hidden">
                                             <img src="{{ Storage::disk('public')->url($sig->signature_path) }}" alt="Signature" class="w-full h-full object-contain">
                                         </div>
                                         <div class="min-w-0 flex-1">
-                                            <p class="text-sm font-medium text-gray-800">{{ $sig->full_name }}</p>
+                                            <p class="text-sm font-medium text-slate-800">{{ $sig->full_name }}</p>
                                             @if($sig->position)
-                                                <p class="text-xs text-gray-500">{{ $sig->position }}</p>
+                                                <p class="text-xs text-slate-500">{{ $sig->position }}</p>
                                             @endif
                                             <div class="flex items-center gap-2 mt-1">
                                                 @php
@@ -281,7 +281,7 @@
                                                     $ac = $actionColors[$sig->action] ?? 'gray';
                                                 @endphp
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $ac }}-100 text-{{ $ac }}-700">{{ ucfirst($sig->action) }}</span>
-                                                <span class="text-xs text-gray-400">{{ $sig->signed_at->format('M d, Y g:ia') }}</span>
+                                                <span class="text-xs text-slate-400">{{ $sig->signed_at->format('M d, Y g:ia') }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -289,8 +289,8 @@
                             </div>
                         @else
                             <div class="text-center py-8">
-                                <svg class="mx-auto h-10 w-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                                <p class="mt-2 text-sm text-gray-500">No signatures yet</p>
+                                <svg class="mx-auto h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                <p class="mt-2 text-sm text-slate-500">No signatures yet</p>
                             </div>
                         @endif
                     </div>
@@ -300,9 +300,9 @@
             {{-- ============================================= --}}
             {{-- ROW 3: Actions + Signature Pad --}}
             {{-- ============================================= --}}
-            <div class="bg-white rounded-xl border border-blue-200/80 overflow-hidden">
-                <div class="bg-gradient-to-r from-blue-50 to-white p-4 border-b border-blue-200/60">
-                    <h2 class="text-lg font-semibold text-gray-700">Available Actions</h2>
+            <div class="bg-white rounded-xl border border-indigo-200/80 overflow-hidden">
+                <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-200/60">
+                    <h2 class="text-lg font-semibold text-slate-700">Available Actions</h2>
                 </div>
                 <div class="p-4">
 
@@ -322,10 +322,10 @@
                                 @case('approved') border-green-200 bg-green-50 @break
                                 @case('rejected') border-red-200 bg-red-50 @break
                                 @case('returned') border-yellow-200 bg-yellow-50 @break
-                                @case('acknowledged') border-blue-200 bg-blue-50 @break
+                                @case('acknowledged') border-indigo-200 bg-indigo-50 @break
                                 @case('commented') border-indigo-200 bg-indigo-50 @break
                                 @case('forwarded') border-purple-200 bg-purple-50 @break
-                                @default border-gray-200 bg-gray-50
+                                @default border-slate-200 bg-slate-50
                             @endswitch
                         ">
                             <svg class="w-5 h-5 flex-shrink-0
@@ -333,19 +333,19 @@
                                     @case('approved') text-green-600 @break
                                     @case('rejected') text-red-600 @break
                                     @case('returned') text-yellow-600 @break
-                                    @case('acknowledged') text-blue-600 @break
+                                    @case('acknowledged') text-indigo-600 @break
                                     @case('commented') text-indigo-600 @break
                                     @case('forwarded') text-purple-600 @break
-                                    @default text-gray-600
+                                    @default text-slate-600
                                 @endswitch
                             " fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                             <div>
-                                <p class="text-sm font-medium text-gray-800">Action already completed</p>
-                                <p class="text-xs text-gray-500 mt-0.5">This workflow has been <strong>{{ $workflow->status }}</strong>. No further actions are available.</p>
+                                <p class="text-sm font-medium text-slate-800">Action already completed</p>
+                                <p class="text-xs text-slate-500 mt-0.5">This workflow has been <strong>{{ $workflow->status }}</strong>. No further actions are available.</p>
                                 @if($workflow->remarks)
-                                    <p class="text-xs text-gray-500 mt-1"><strong>Remarks:</strong> {{ $workflow->remarks }}</p>
+                                    <p class="text-xs text-slate-500 mt-1"><strong>Remarks:</strong> {{ $workflow->remarks }}</p>
                                 @endif
                             </div>
                         </div>
@@ -385,7 +385,7 @@
 
                     @if($workflow->purpose === 'for_comment')
                         <div class="inline-flex rounded-md shadow-sm">
-                            <button type="button" class="relative inline-flex items-center px-3 py-2 text-sm font-medium border border-blue-200 text-blue-700 bg-white hover:bg-blue-50 rounded-lg transition-colors" onclick="showActionForm('comment-form')">
+                            <button type="button" class="relative inline-flex items-center px-3 py-2 text-sm font-medium border border-indigo-200 text-indigo-700 bg-white hover:bg-indigo-50 rounded-lg transition-colors" onclick="showActionForm('comment-form')">
                                 <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.955 8.955 0 01-3.647-.756L3 21l1.756-6.353A8.955 8.955 0 013 12c0-4.418 3.582-8 8-8s8 3.582 8 8z"/></svg>
                                 Add Comment
                             </button>
@@ -434,14 +434,14 @@
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                 E-Signature (Optional)
                             </h4>
-                            <p class="text-xs text-gray-500 mb-3">Draw your signature below. It will be attached to this action.</p>
-                            <div class="bg-white rounded-lg border-2 border-gray-200 overflow-hidden" style="touch-action: none;">
+                            <p class="text-xs text-slate-500 mb-3">Draw your signature below. It will be attached to this action.</p>
+                            <div class="bg-white rounded-lg border-2 border-slate-200 overflow-hidden" style="touch-action: none;">
                                 <canvas id="signature-canvas" width="500" height="150" class="w-full cursor-crosshair" style="height: 150px;"></canvas>
                             </div>
                             <div class="flex items-center gap-2 mt-2">
-                                <button type="button" onclick="clearSignature()" class="text-xs text-gray-500 hover:text-red-600 transition">Clear Signature</button>
-                                <span class="text-xs text-gray-300">|</span>
-                                <span id="sig-status" class="text-xs text-gray-400">No signature drawn</span>
+                                <button type="button" onclick="clearSignature()" class="text-xs text-slate-500 hover:text-red-600 transition">Clear Signature</button>
+                                <span class="text-xs text-slate-300">|</span>
+                                <span id="sig-status" class="text-xs text-slate-400">No signature drawn</span>
                             </div>
                         </div>
 
@@ -452,8 +452,8 @@
                                 @csrf
                                 <input type="hidden" name="signature_data" value="">
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Approval Remarks (Optional)</label>
-                                    <textarea name="remarks" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200" placeholder="Add any comments about this document..."></textarea>
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">Approval Remarks (Optional)</label>
+                                    <textarea name="remarks" rows="3" class="w-full rounded-md border-slate-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200" placeholder="Add any comments about this document..."></textarea>
                                 </div>
                                 <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition">
                                     Confirm Approval
@@ -468,8 +468,8 @@
                                 @csrf
                                 <input type="hidden" name="signature_data" value="">
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Rejection Remarks (Required)</label>
-                                    <textarea name="remarks" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring focus:ring-red-200" required placeholder="Explain why this document needs revision..."></textarea>
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">Rejection Remarks (Required)</label>
+                                    <textarea name="remarks" rows="3" class="w-full rounded-md border-slate-300 shadow-sm focus:border-red-500 focus:ring focus:ring-red-200" required placeholder="Explain why this document needs revision..."></textarea>
                                 </div>
                                 <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition">
                                     Confirm Rejection
@@ -484,8 +484,8 @@
                                 @csrf
                                 <input type="hidden" name="signature_data" value="">
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Return Remarks (Required)</label>
-                                    <textarea name="remarks" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring focus:ring-yellow-200" required placeholder="Explain why this document is being returned..."></textarea>
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">Return Remarks (Required)</label>
+                                    <textarea name="remarks" rows="3" class="w-full rounded-md border-slate-300 shadow-sm focus:border-yellow-500 focus:ring focus:ring-yellow-200" required placeholder="Explain why this document is being returned..."></textarea>
                                 </div>
                                 <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600 transition">
                                     Confirm Return
@@ -499,17 +499,17 @@
                             <form method="POST" action="{{ route('documents.forwardFromWorkflow', $workflow->id) }}">
                                 @csrf
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Forward To</label>
-                                    <select name="recipients[]" multiple class="w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-200" required>
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">Forward To</label>
+                                    <select name="recipients[]" multiple class="w-full rounded-md border-slate-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-200" required>
                                         @foreach($companyUsers as $user)
                                             <option value="{{ $user->id }}">{{ $user->first_name }} {{ $user->last_name }}</option>
                                         @endforeach
                                     </select>
-                                    <p class="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd key to select multiple users</p>
+                                    <p class="text-xs text-slate-500 mt-1">Hold Ctrl/Cmd key to select multiple users</p>
                                 </div>
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Forward Remarks</label>
-                                    <textarea name="remarks" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-200" placeholder="Additional instructions for the recipients..."></textarea>
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">Forward Remarks</label>
+                                    <textarea name="remarks" rows="3" class="w-full rounded-md border-slate-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-200" placeholder="Additional instructions for the recipients..."></textarea>
                                 </div>
                                 <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-purple-500 hover:bg-purple-600 transition">
                                     Confirm Forward
@@ -518,16 +518,16 @@
                         </div>
 
                         {{-- Comment Form --}}
-                        <div id="comment-form" class="hidden p-4 border border-blue-200 rounded-lg bg-blue-50">
-                            <h3 class="font-medium text-blue-800 mb-3">Add Your Comment</h3>
+                        <div id="comment-form" class="hidden p-4 border border-indigo-200 rounded-lg bg-indigo-50">
+                            <h3 class="font-medium text-indigo-800 mb-3">Add Your Comment</h3>
                             <form method="POST" action="{{ route('documents.addComment', $workflow->id) }}" onsubmit="return injectSignature(this)">
                                 @csrf
                                 <input type="hidden" name="signature_data" value="">
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Comments / Feedback</label>
-                                    <textarea name="remarks" rows="5" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200" required placeholder="Please provide your comments, feedback, or suggestions..."></textarea>
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">Comments / Feedback</label>
+                                    <textarea name="remarks" rows="5" class="w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200" required placeholder="Please provide your comments, feedback, or suggestions..."></textarea>
                                 </div>
-                                <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition">
+                                <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition">
                                     Submit Comment
                                 </button>
                             </form>
@@ -540,8 +540,8 @@
                                 @csrf
                                 <input type="hidden" name="signature_data" value="">
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Acknowledgment Notes (Optional)</label>
-                                    <textarea name="remarks" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200" placeholder="Any notes regarding your acknowledgment..."></textarea>
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">Acknowledgment Notes (Optional)</label>
+                                    <textarea name="remarks" rows="3" class="w-full rounded-md border-slate-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200" placeholder="Any notes regarding your acknowledgment..."></textarea>
                                 </div>
                                 <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition">
                                     Confirm Acknowledgment
@@ -666,7 +666,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var status = document.getElementById('sig-status');
             if (status) {
                 status.textContent = 'No signature drawn';
-                status.className = 'text-xs text-gray-400';
+                status.className = 'text-xs text-slate-400';
             }
         }
     };
@@ -693,7 +693,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 viewer.innerHTML = '<div class="prose prose-sm max-w-none">' + result.value + '</div>';
             })
             .catch(function(err) {
-                viewer.innerHTML = '<div class="text-center py-12"><p class="text-sm text-red-500">Failed to render document.</p><p class="text-xs text-gray-400 mt-1">' + err.message + '</p></div>';
+                viewer.innerHTML = '<div class="text-center py-12"><p class="text-sm text-red-500">Failed to render document.</p><p class="text-xs text-slate-400 mt-1">' + err.message + '</p></div>';
             });
     };
 
@@ -710,7 +710,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (wb.SheetNames.length > 1) {
                     html += '<div class="flex gap-1 mb-3 flex-wrap">';
                     wb.SheetNames.forEach(function(name, i) {
-                        html += '<button onclick="switchSheet(this, ' + i + ')" class="px-3 py-1 text-xs rounded-md border ' + (i === 0 ? 'bg-blue-100 border-blue-300 text-blue-700 font-medium' : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100') + '">' + name + '</button>';
+                        html += '<button onclick="switchSheet(this, ' + i + ')" class="px-3 py-1 text-xs rounded-md border ' + (i === 0 ? 'bg-indigo-100 border-indigo-300 text-indigo-700 font-medium' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100') + '">' + name + '</button>';
                     });
                     html += '</div>';
                 }
@@ -725,24 +725,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 viewer.querySelectorAll('table').forEach(function(t) {
                     t.className = 'w-full text-xs border-collapse';
                     t.querySelectorAll('td, th').forEach(function(cell) {
-                        cell.className = 'border border-gray-200 px-2 py-1 text-gray-700';
+                        cell.className = 'border border-slate-200 px-2 py-1 text-slate-700';
                     });
                     t.querySelectorAll('th').forEach(function(th) {
-                        th.className += ' bg-gray-100 font-medium text-gray-800';
+                        th.className += ' bg-slate-100 font-medium text-slate-800';
                     });
                 });
             })
             .catch(function(err) {
-                viewer.innerHTML = '<div class="text-center py-12"><p class="text-sm text-red-500">Failed to render spreadsheet.</p><p class="text-xs text-gray-400 mt-1">' + err.message + '</p></div>';
+                viewer.innerHTML = '<div class="text-center py-12"><p class="text-sm text-red-500">Failed to render spreadsheet.</p><p class="text-xs text-slate-400 mt-1">' + err.message + '</p></div>';
             });
     };
 
     window.switchSheet = function(btn, index) {
         // Update tab styles
         btn.parentElement.querySelectorAll('button').forEach(function(b) {
-            b.className = 'px-3 py-1 text-xs rounded-md border bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100';
+            b.className = 'px-3 py-1 text-xs rounded-md border bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100';
         });
-        btn.className = 'px-3 py-1 text-xs rounded-md border bg-blue-100 border-blue-300 text-blue-700 font-medium';
+        btn.className = 'px-3 py-1 text-xs rounded-md border bg-indigo-100 border-indigo-300 text-indigo-700 font-medium';
         // Toggle sheet visibility
         var viewer = btn.closest('#xlsx-viewer') || document.getElementById('xlsx-viewer');
         viewer.querySelectorAll('.sheet-content').forEach(function(s) {
@@ -786,7 +786,7 @@ document.addEventListener('DOMContentLoaded', function() {
             docDiv.id = 'docx-viewer';
             docDiv.className = 'p-6 overflow-auto w-full bg-white';
             docDiv.style.maxHeight = '500px';
-            docDiv.innerHTML = '<div class="flex items-center justify-center py-12"><svg class="animate-spin h-8 w-8 text-blue-500 mr-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg><span class="text-sm text-gray-500">Loading document...</span></div>';
+            docDiv.innerHTML = '<div class="flex items-center justify-center py-12"><svg class="animate-spin h-8 w-8 text-indigo-500 mr-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg><span class="text-sm text-slate-500">Loading document...</span></div>';
             container.appendChild(docDiv);
             renderDocx(url);
         } else if (sheetExts.indexOf(ext) !== -1) {
@@ -794,11 +794,11 @@ document.addEventListener('DOMContentLoaded', function() {
             xlDiv.id = 'xlsx-viewer';
             xlDiv.className = 'p-4 overflow-auto w-full bg-white';
             xlDiv.style.maxHeight = '500px';
-            xlDiv.innerHTML = '<div class="flex items-center justify-center py-12"><svg class="animate-spin h-8 w-8 text-green-500 mr-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg><span class="text-sm text-gray-500">Loading spreadsheet...</span></div>';
+            xlDiv.innerHTML = '<div class="flex items-center justify-center py-12"><svg class="animate-spin h-8 w-8 text-green-500 mr-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg><span class="text-sm text-slate-500">Loading spreadsheet...</span></div>';
             container.appendChild(xlDiv);
             renderXlsx(url);
         } else {
-            container.innerHTML = '<div class="text-center py-16"><svg class="mx-auto h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><p class="mt-3 text-sm text-gray-500">Preview not available for .' + ext + '</p></div>';
+            container.innerHTML = '<div class="text-center py-16"><svg class="mx-auto h-16 w-16 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><p class="mt-3 text-sm text-slate-500">Preview not available for .' + ext + '</p></div>';
         }
 
         // Show zoom controls

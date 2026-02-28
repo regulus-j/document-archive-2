@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 py-12 px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-4xl mx-auto">
         <div class="bg-white shadow-xl rounded-lg overflow-hidden">
             <div class="p-6 sm:p-10">
                 <div class="flex flex-col sm:flex-row justify-between items-center mb-8">
-                    <h1 class="text-3xl font-extrabold text-gray-900 mb-4 sm:mb-0">
+                    <h1 class="text-3xl font-extrabold text-slate-900 mb-4 sm:mb-0">
                         Create New Company
                     </h1>
                     <a href="{{ route('dashboard') }}"
-                        class="inline-flex items-center px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300 active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition ease-in-out duration-150">
+                        class="inline-flex items-center px-4 py-2 bg-slate-200 border border-transparent rounded-md font-semibold text-xs text-slate-700 uppercase tracking-widest hover:bg-slate-300 active:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition ease-in-out duration-150">
                         <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                         </svg>
@@ -48,30 +48,30 @@
                         <input type="hidden" name="part" value='1'>
 
                         <div class="sm:col-span-2">
-                            <label for="company_name" class="block text-sm font-medium text-gray-700">Company Name</label>
+                            <label for="company_name" class="block text-sm font-medium text-slate-700">Company Name</label>
                             <input type="text" name="company_name" id="company_name" value="{{ old('company_name') }}"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 required>
                         </div>
 
                         <div class="sm:col-span-2">
-                            <label for="registered_name" class="block text-sm font-medium text-gray-700">Registered Name</label>
+                            <label for="registered_name" class="block text-sm font-medium text-slate-700">Registered Name</label>
                             <input type="text" name="registered_name" id="registered_name" value="{{ old('registered_name') }}"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 required>
                         </div>
 
                         <div>
-                            <label for="company_email" class="block text-sm font-medium text-gray-700">Company Email</label>
+                            <label for="company_email" class="block text-sm font-medium text-slate-700">Company Email</label>
                             <input type="email" name="company_email" id="company_email" value="{{ old('company_email') }}"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 required>
                         </div>
 
                         <div>
-                            <label for="company_phone" class="block text-sm font-medium text-gray-700">Company Phone</label>
+                            <label for="company_phone" class="block text-sm font-medium text-slate-700">Company Phone</label>
                             <input type="text" name="company_phone" id="company_phone" value="{{ old('company_phone') }}"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 required>
                         </div>
                     </div>
@@ -79,7 +79,7 @@
                     <div class="pt-5">
                         <div class="flex justify-end">
                             <button type="submit"
-                                class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white {{ session('success') ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700' }} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white {{ session('success') ? 'bg-slate-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700' }} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                                 {{ session('success') ? 'disabled' : '' }}>
                                 Create Company
                             </button>
@@ -87,7 +87,7 @@
                     </div>
 
                     @if(session('success'))
-                    <h1 class="text-3xl font-extrabold text-gray-900 mb-4 sm:mb-0">
+                    <h1 class="text-3xl font-extrabold text-slate-900 mb-4 sm:mb-0">
                         New Company Address
                     </h1>
                         @include('companies.partials.input_address')

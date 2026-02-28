@@ -2,10 +2,10 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div>
-                <h2 class="text-3xl font-bold text-gray-900 leading-tight">
+                <h2 class="text-3xl font-bold text-slate-900 leading-tight">
                     {{ __('Performance Dashboard') }}
                 </h2>
-                <p class="mt-1 text-sm text-gray-500">{{ $company->company_name }} &middot; {{ \Carbon\Carbon::parse($startDate)->format('M d, Y') }} &ndash; {{ \Carbon\Carbon::parse($endDate)->format('M d, Y') }}</p>
+                <p class="mt-1 text-sm text-slate-500">{{ $company->company_name }} &middot; {{ \Carbon\Carbon::parse($startDate)->format('M d, Y') }} &ndash; {{ \Carbon\Carbon::parse($endDate)->format('M d, Y') }}</p>
             </div>
             <div class="flex items-center gap-3">
                 <a href="{{ route('reports.company-dashboard', ['start_date' => $startDate, 'end_date' => $endDate, 'export_format' => 'pdf']) }}" 
@@ -17,34 +17,34 @@
         </div>
     </x-slot>
 
-    <div class="py-8 bg-gradient-to-br from-gray-50 via-white to-blue-50 min-h-screen">
+    <div class="py-8 bg-gradient-to-br from-slate-50 via-white to-indigo-50 min-h-screen">
         <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
             {{-- ============================================= --}}
             {{-- DATE FILTER BAR --}}
             {{-- ============================================= --}}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
                 <form action="{{ route('reports.company-dashboard') }}" method="GET" class="flex flex-wrap items-center gap-4">
                     <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        <input type="date" name="start_date" value="{{ $startDate }}" class="rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
-                        <span class="text-gray-400">to</span>
-                        <input type="date" name="end_date" value="{{ $endDate }}" class="rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                        <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <input type="date" name="start_date" value="{{ $startDate }}" class="rounded-lg border-slate-300 text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <span class="text-slate-400">to</span>
+                        <input type="date" name="end_date" value="{{ $endDate }}" class="rounded-lg border-slate-300 text-sm focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition shadow-sm">
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium transition shadow-sm">
                         Apply
                     </button>
-                    <div class="flex ml-auto border border-gray-200 rounded-lg overflow-hidden">
+                    <div class="flex ml-auto border border-slate-200 rounded-lg overflow-hidden">
                         <a href="{{ route('reports.company-dashboard', ['start_date' => now()->subDays(7)->format('Y-m-d'), 'end_date' => now()->format('Y-m-d')]) }}" 
-                           class="px-3 py-2 text-xs font-medium hover:bg-gray-50 border-r border-gray-200 {{ now()->subDays(7)->format('Y-m-d') == $startDate ? 'bg-blue-50 text-blue-700' : 'text-gray-600' }}">7D</a>
+                           class="px-3 py-2 text-xs font-medium hover:bg-slate-50 border-r border-slate-200 {{ now()->subDays(7)->format('Y-m-d') == $startDate ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600' }}">7D</a>
                         <a href="{{ route('reports.company-dashboard', ['start_date' => now()->subMonth()->format('Y-m-d'), 'end_date' => now()->format('Y-m-d')]) }}" 
-                           class="px-3 py-2 text-xs font-medium hover:bg-gray-50 border-r border-gray-200 {{ now()->subMonth()->format('Y-m-d') == $startDate ? 'bg-blue-50 text-blue-700' : 'text-gray-600' }}">1M</a>
+                           class="px-3 py-2 text-xs font-medium hover:bg-slate-50 border-r border-slate-200 {{ now()->subMonth()->format('Y-m-d') == $startDate ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600' }}">1M</a>
                         <a href="{{ route('reports.company-dashboard', ['start_date' => now()->subMonths(3)->format('Y-m-d'), 'end_date' => now()->format('Y-m-d')]) }}" 
-                           class="px-3 py-2 text-xs font-medium hover:bg-gray-50 border-r border-gray-200 {{ now()->subMonths(3)->format('Y-m-d') == $startDate ? 'bg-blue-50 text-blue-700' : 'text-gray-600' }}">3M</a>
+                           class="px-3 py-2 text-xs font-medium hover:bg-slate-50 border-r border-slate-200 {{ now()->subMonths(3)->format('Y-m-d') == $startDate ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600' }}">3M</a>
                         <a href="{{ route('reports.company-dashboard', ['start_date' => now()->subMonths(6)->format('Y-m-d'), 'end_date' => now()->format('Y-m-d')]) }}" 
-                           class="px-3 py-2 text-xs font-medium hover:bg-gray-50 border-r border-gray-200 {{ now()->subMonths(6)->format('Y-m-d') == $startDate ? 'bg-blue-50 text-blue-700' : 'text-gray-600' }}">6M</a>
+                           class="px-3 py-2 text-xs font-medium hover:bg-slate-50 border-r border-slate-200 {{ now()->subMonths(6)->format('Y-m-d') == $startDate ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600' }}">6M</a>
                         <a href="{{ route('reports.company-dashboard', ['start_date' => now()->subYear()->format('Y-m-d'), 'end_date' => now()->format('Y-m-d')]) }}" 
-                           class="px-3 py-2 text-xs font-medium hover:bg-gray-50 {{ now()->subYear()->format('Y-m-d') == $startDate ? 'bg-blue-50 text-blue-700' : 'text-gray-600' }}">1Y</a>
+                           class="px-3 py-2 text-xs font-medium hover:bg-slate-50 {{ now()->subYear()->format('Y-m-d') == $startDate ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600' }}">1Y</a>
                     </div>
                 </form>
             </div>
@@ -54,10 +54,10 @@
             {{-- ============================================= --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 {{-- Documents --}}
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition">
                     <div class="flex items-center justify-between mb-3">
-                        <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100">
-                            <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-100">
+                            <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         </span>
                         @if($periodComparison['documents']['change'] != 0)
                         <span class="inline-flex items-center text-xs font-semibold px-2 py-1 rounded-full {{ $periodComparison['documents']['change'] > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
@@ -72,13 +72,13 @@
                         </span>
                         @endif
                     </div>
-                    <p class="text-2xl font-bold text-gray-900">{{ $periodComparison['documents']['current'] }}</p>
-                    <p class="text-sm text-gray-500 mt-1">Documents Created</p>
-                    <p class="text-xs text-gray-400 mt-0.5">prev: {{ $periodComparison['documents']['previous'] }}</p>
+                    <p class="text-2xl font-bold text-slate-900">{{ $periodComparison['documents']['current'] }}</p>
+                    <p class="text-sm text-slate-500 mt-1">Documents Created</p>
+                    <p class="text-xs text-slate-400 mt-0.5">prev: {{ $periodComparison['documents']['previous'] }}</p>
                 </div>
 
                 {{-- Workflows --}}
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition">
                     <div class="flex items-center justify-between mb-3">
                         <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-100">
                             <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
@@ -96,13 +96,13 @@
                         </span>
                         @endif
                     </div>
-                    <p class="text-2xl font-bold text-gray-900">{{ $periodComparison['workflows']['current'] }}</p>
-                    <p class="text-sm text-gray-500 mt-1">Workflows Sent</p>
-                    <p class="text-xs text-gray-400 mt-0.5">prev: {{ $periodComparison['workflows']['previous'] }}</p>
+                    <p class="text-2xl font-bold text-slate-900">{{ $periodComparison['workflows']['current'] }}</p>
+                    <p class="text-sm text-slate-500 mt-1">Workflows Sent</p>
+                    <p class="text-xs text-slate-400 mt-0.5">prev: {{ $periodComparison['workflows']['previous'] }}</p>
                 </div>
 
                 {{-- Completion Rate --}}
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition">
                     <div class="flex items-center justify-between mb-3">
                         <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-green-100">
                             <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -111,13 +111,13 @@
                             {{ $workflowCompletion['completion_rate'] >= 80 ? 'Healthy' : ($workflowCompletion['completion_rate'] >= 50 ? 'Fair' : 'Needs Attention') }}
                         </span>
                     </div>
-                    <p class="text-2xl font-bold text-gray-900">{{ $workflowCompletion['completion_rate'] }}%</p>
-                    <p class="text-sm text-gray-500 mt-1">Completion Rate</p>
-                    <p class="text-xs text-gray-400 mt-0.5">{{ $workflowCompletion['completed'] }}/{{ $workflowCompletion['total'] }} workflows</p>
+                    <p class="text-2xl font-bold text-slate-900">{{ $workflowCompletion['completion_rate'] }}%</p>
+                    <p class="text-sm text-slate-500 mt-1">Completion Rate</p>
+                    <p class="text-xs text-slate-400 mt-0.5">{{ $workflowCompletion['completed'] }}/{{ $workflowCompletion['total'] }} workflows</p>
                 </div>
 
                 {{-- Avg Turnaround --}}
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition">
                     <div class="flex items-center justify-between mb-3">
                         <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-amber-100">
                             <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -135,21 +135,21 @@
                         </span>
                         @endif
                     </div>
-                    <p class="text-2xl font-bold text-gray-900">{{ $workflowCompletion['avg_turnaround_formatted'] }}</p>
-                    <p class="text-sm text-gray-500 mt-1">Avg Turnaround</p>
-                    <p class="text-xs text-gray-400 mt-0.5">prev: {{ $periodComparison['avg_processing']['previous_formatted'] }}</p>
+                    <p class="text-2xl font-bold text-slate-900">{{ $workflowCompletion['avg_turnaround_formatted'] }}</p>
+                    <p class="text-sm text-slate-500 mt-1">Avg Turnaround</p>
+                    <p class="text-xs text-slate-400 mt-0.5">prev: {{ $periodComparison['avg_processing']['previous_formatted'] }}</p>
                 </div>
 
                 {{-- Storage --}}
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition">
                     <div class="flex items-center justify-between mb-3">
                         <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-purple-100">
                             <svg class="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
                         </span>
                     </div>
-                    <p class="text-2xl font-bold text-gray-900">{{ $storageMetrics['formatted_total_size'] }}</p>
-                    <p class="text-sm text-gray-500 mt-1">Total Storage</p>
-                    <p class="text-xs text-gray-400 mt-0.5">{{ $storageMetrics['document_count'] }} docs &middot; {{ $storageMetrics['attachment_count'] }} files</p>
+                    <p class="text-2xl font-bold text-slate-900">{{ $storageMetrics['formatted_total_size'] }}</p>
+                    <p class="text-sm text-slate-500 mt-1">Total Storage</p>
+                    <p class="text-xs text-slate-400 mt-0.5">{{ $storageMetrics['document_count'] }} docs &middot; {{ $storageMetrics['attachment_count'] }} files</p>
                 </div>
             </div>
 
@@ -158,10 +158,10 @@
             {{-- ============================================= --}}
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {{-- Workflow Funnel --}}
-                <div class="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-200">
-                    <div class="px-6 py-4 border-b border-gray-100">
-                        <h3 class="text-base font-semibold text-gray-900">Workflow Breakdown</h3>
-                        <p class="text-xs text-gray-500 mt-0.5">Current period status distribution</p>
+                <div class="lg:col-span-1 bg-white rounded-xl shadow-sm border border-slate-200">
+                    <div class="px-6 py-4 border-b border-slate-100">
+                        <h3 class="text-base font-semibold text-slate-900">Workflow Breakdown</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Current period status distribution</p>
                     </div>
                     <div class="p-6 space-y-4">
                         @php
@@ -176,17 +176,17 @@
                         @foreach($funnelItems as $item)
                         <div>
                             <div class="flex justify-between text-sm mb-1">
-                                <span class="font-medium text-gray-700">{{ $item['label'] }}</span>
-                                <span class="font-semibold text-gray-900">{{ $item['value'] }}</span>
+                                <span class="font-medium text-slate-700">{{ $item['label'] }}</span>
+                                <span class="font-semibold text-slate-900">{{ $item['value'] }}</span>
                             </div>
-                            <div class="w-full bg-gray-100 rounded-full h-2.5">
+                            <div class="w-full bg-slate-100 rounded-full h-2.5">
                                 <div class="bg-{{ $item['color'] }}-500 h-2.5 rounded-full transition-all duration-500" style="width: {{ max($item['width'], ($item['value'] > 0 ? 3 : 0)) }}%"></div>
                             </div>
                         </div>
                         @endforeach
 
-                        <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
-                            <span class="text-sm text-gray-600">Approval Rate</span>
+                        <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                            <span class="text-sm text-slate-600">Approval Rate</span>
                             <span class="text-lg font-bold {{ $workflowCompletion['approval_rate'] >= 70 ? 'text-green-600' : ($workflowCompletion['approval_rate'] >= 40 ? 'text-amber-600' : 'text-red-600') }}">
                                 {{ $workflowCompletion['approval_rate'] }}%
                             </span>
@@ -195,12 +195,12 @@
                 </div>
 
                 {{-- Document Aging --}}
-                <div class="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-200">
-                    <div class="px-6 py-4 border-b border-gray-100">
+                <div class="lg:col-span-1 bg-white rounded-xl shadow-sm border border-slate-200">
+                    <div class="px-6 py-4 border-b border-slate-100">
                         <div class="flex items-center justify-between">
                             <div>
-                                <h3 class="text-base font-semibold text-gray-900">Pending Document Age</h3>
-                                <p class="text-xs text-gray-500 mt-0.5">{{ $documentAging['total_pending'] }} total pending</p>
+                                <h3 class="text-base font-semibold text-slate-900">Pending Document Age</h3>
+                                <p class="text-xs text-slate-500 mt-0.5">{{ $documentAging['total_pending'] }} total pending</p>
                             </div>
                             @if($documentAging['critical_count'] > 0)
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
@@ -215,48 +215,48 @@
                 </div>
 
                 {{-- Recent Activity --}}
-                <div class="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-200">
-                    <div class="px-6 py-4 border-b border-gray-100">
-                        <h3 class="text-base font-semibold text-gray-900">Recent Activity</h3>
-                        <p class="text-xs text-gray-500 mt-0.5">Latest workflow actions</p>
+                <div class="lg:col-span-1 bg-white rounded-xl shadow-sm border border-slate-200">
+                    <div class="px-6 py-4 border-b border-slate-100">
+                        <h3 class="text-base font-semibold text-slate-900">Recent Activity</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Latest workflow actions</p>
                     </div>
-                    <div class="divide-y divide-gray-50 max-h-[380px] overflow-y-auto">
+                    <div class="divide-y divide-slate-50 max-h-[380px] overflow-y-auto">
                         @forelse($recentActivity as $activity)
-                        <div class="px-5 py-3 hover:bg-gray-50 transition">
+                        <div class="px-5 py-3 hover:bg-slate-50 transition">
                             <div class="flex items-start gap-3">
                                 <span class="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full 
-                                    {{ $activity['status'] === 'approved' ? 'bg-green-100' : ($activity['status'] === 'rejected' ? 'bg-red-100' : ($activity['status'] === 'received' ? 'bg-blue-100' : 'bg-gray-100')) }}">
+                                    {{ $activity['status'] === 'approved' ? 'bg-green-100' : ($activity['status'] === 'rejected' ? 'bg-red-100' : ($activity['status'] === 'received' ? 'bg-indigo-100' : 'bg-slate-100')) }}">
                                     @if($activity['status'] === 'approved')
                                         <svg class="w-3.5 h-3.5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                     @elseif($activity['status'] === 'rejected')
                                         <svg class="w-3.5 h-3.5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                     @elseif($activity['status'] === 'received')
-                                        <svg class="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                        <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                                     @else
-                                        <svg class="w-3.5 h-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     @endif
                                 </span>
                                 <div class="min-w-0 flex-1">
-                                    <p class="text-sm font-medium text-gray-900 truncate">{{ $activity['document_title'] }}</p>
-                                    <p class="text-xs text-gray-500">
+                                    <p class="text-sm font-medium text-slate-900 truncate">{{ $activity['document_title'] }}</p>
+                                    <p class="text-xs text-slate-500">
                                         {{ $activity['sender_name'] }}
-                                        <svg class="inline w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                        <svg class="inline w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                                         {{ $activity['recipient_name'] }}
                                     </p>
                                 </div>
                                 <div class="flex-shrink-0 text-right">
                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
-                                        {{ $activity['status'] === 'approved' ? 'bg-green-100 text-green-800' : ($activity['status'] === 'rejected' ? 'bg-red-100 text-red-800' : ($activity['status'] === 'received' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800')) }}">
+                                        {{ $activity['status'] === 'approved' ? 'bg-green-100 text-green-800' : ($activity['status'] === 'rejected' ? 'bg-red-100 text-red-800' : ($activity['status'] === 'received' ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-100 text-slate-800')) }}">
                                         {{ ucfirst($activity['status']) }}
                                     </span>
-                                    <p class="text-xs text-gray-400 mt-0.5">{{ $activity['time_ago'] }}</p>
+                                    <p class="text-xs text-slate-400 mt-0.5">{{ $activity['time_ago'] }}</p>
                                 </div>
                             </div>
                         </div>
                         @empty
                         <div class="p-8 text-center">
-                            <svg class="mx-auto w-10 h-10 text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
-                            <p class="text-sm text-gray-500">No recent activity</p>
+                            <svg class="mx-auto w-10 h-10 text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+                            <p class="text-sm text-slate-500">No recent activity</p>
                         </div>
                         @endforelse
                     </div>
@@ -266,11 +266,11 @@
             {{-- ============================================= --}}
             {{-- DOCUMENT VOLUME TRENDS --}}
             {{-- ============================================= --}}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                     <div>
-                        <h3 class="text-base font-semibold text-gray-900">Document Volume Trends</h3>
-                        <p class="text-xs text-gray-500 mt-0.5">Documents created and workflows over time</p>
+                        <h3 class="text-base font-semibold text-slate-900">Document Volume Trends</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Documents created and workflows over time</p>
                     </div>
                 </div>
                 <div class="p-6">
@@ -282,19 +282,19 @@
             {{-- CATEGORY & STATUS CHARTS --}}
             {{-- ============================================= --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                    <div class="px-6 py-4 border-b border-gray-100">
-                        <h3 class="text-base font-semibold text-gray-900">Document Categories</h3>
-                        <p class="text-xs text-gray-500 mt-0.5">Distribution by classification</p>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                    <div class="px-6 py-4 border-b border-slate-100">
+                        <h3 class="text-base font-semibold text-slate-900">Document Categories</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Distribution by classification</p>
                     </div>
                     <div class="p-6 flex items-center justify-center" style="min-height: 300px">
                         <canvas id="categoriesChart"></canvas>
                     </div>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                    <div class="px-6 py-4 border-b border-gray-100">
-                        <h3 class="text-base font-semibold text-gray-900">Status Distribution</h3>
-                        <p class="text-xs text-gray-500 mt-0.5">Current document statuses</p>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                    <div class="px-6 py-4 border-b border-slate-100">
+                        <h3 class="text-base font-semibold text-slate-900">Status Distribution</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Current document statuses</p>
                     </div>
                     <div class="p-6 flex items-center justify-center" style="min-height: 300px">
                         <canvas id="statusChart"></canvas>
@@ -306,26 +306,26 @@
             {{-- WORKFLOW BOTTLENECKS --}}
             {{-- ============================================= --}}
             @if($workflowBottlenecks['total_pending'] > 0)
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
                     <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-amber-100">
                         <svg class="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
                     </span>
                     <div>
-                        <h3 class="text-base font-semibold text-gray-900">Workflow Bottlenecks</h3>
-                        <p class="text-xs text-gray-500">{{ $workflowBottlenecks['total_pending'] }} pending workflows need attention</p>
+                        <h3 class="text-base font-semibold text-slate-900">Workflow Bottlenecks</h3>
+                        <p class="text-xs text-slate-500">{{ $workflowBottlenecks['total_pending'] }} pending workflows need attention</p>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-gray-100">
+                <div class="grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
                     {{-- Pending by User --}}
                     <div class="p-5">
-                        <h4 class="text-sm font-semibold text-gray-700 mb-3">By User</h4>
+                        <h4 class="text-sm font-semibold text-slate-700 mb-3">By User</h4>
                         <div class="space-y-3">
                             @foreach($workflowBottlenecks['pending_by_user']->take(5) as $item)
                             <div class="flex items-center justify-between">
                                 <div class="min-w-0">
-                                    <p class="text-sm font-medium text-gray-900 truncate">{{ $item['user']->first_name ?? 'Unknown' }} {{ $item['user']->last_name ?? '' }}</p>
-                                    <p class="text-xs text-gray-500">Avg wait: {{ $item['avg_wait_formatted'] }}</p>
+                                    <p class="text-sm font-medium text-slate-900 truncate">{{ $item['user']->first_name ?? 'Unknown' }} {{ $item['user']->last_name ?? '' }}</p>
+                                    <p class="text-xs text-slate-500">Avg wait: {{ $item['avg_wait_formatted'] }}</p>
                                 </div>
                                 <span class="flex-shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
                                     {{ $item['pending_count'] }}
@@ -333,19 +333,19 @@
                             </div>
                             @endforeach
                             @if($workflowBottlenecks['pending_by_user']->isEmpty())
-                            <p class="text-sm text-gray-400 italic">No pending items</p>
+                            <p class="text-sm text-slate-400 italic">No pending items</p>
                             @endif
                         </div>
                     </div>
                     {{-- Pending by Office --}}
                     <div class="p-5">
-                        <h4 class="text-sm font-semibold text-gray-700 mb-3">By Office</h4>
+                        <h4 class="text-sm font-semibold text-slate-700 mb-3">By Office</h4>
                         <div class="space-y-3">
                             @foreach($workflowBottlenecks['pending_by_office']->take(5) as $item)
                             <div class="flex items-center justify-between">
                                 <div class="min-w-0">
-                                    <p class="text-sm font-medium text-gray-900 truncate">{{ $item['office']->name ?? 'Unknown' }}</p>
-                                    <p class="text-xs text-gray-500">Avg wait: {{ $item['avg_wait_formatted'] }}</p>
+                                    <p class="text-sm font-medium text-slate-900 truncate">{{ $item['office']->name ?? 'Unknown' }}</p>
+                                    <p class="text-xs text-slate-500">Avg wait: {{ $item['avg_wait_formatted'] }}</p>
                                 </div>
                                 <span class="flex-shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
                                     {{ $item['pending_count'] }}
@@ -353,27 +353,27 @@
                             </div>
                             @endforeach
                             @if($workflowBottlenecks['pending_by_office']->isEmpty())
-                            <p class="text-sm text-gray-400 italic">No pending items</p>
+                            <p class="text-sm text-slate-400 italic">No pending items</p>
                             @endif
                         </div>
                     </div>
                     {{-- Oldest Pending --}}
                     <div class="p-5">
-                        <h4 class="text-sm font-semibold text-gray-700 mb-3">Longest Waiting</h4>
+                        <h4 class="text-sm font-semibold text-slate-700 mb-3">Longest Waiting</h4>
                         <div class="space-y-3">
                             @foreach($workflowBottlenecks['oldest_pending'] as $item)
                             <div class="flex items-center justify-between">
                                 <div class="min-w-0">
-                                    <p class="text-sm font-medium text-gray-900 truncate">{{ $item['document']->title ?? 'Document' }}</p>
-                                    <p class="text-xs text-gray-500">Since {{ $item['created_at'] }}</p>
+                                    <p class="text-sm font-medium text-slate-900 truncate">{{ $item['document']->title ?? 'Document' }}</p>
+                                    <p class="text-xs text-slate-500">Since {{ $item['created_at'] }}</p>
                                 </div>
-                                <span class="flex-shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $item['waiting_hours'] > 168 ? 'bg-red-100 text-red-800' : ($item['waiting_hours'] > 48 ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800') }}">
+                                <span class="flex-shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $item['waiting_hours'] > 168 ? 'bg-red-100 text-red-800' : ($item['waiting_hours'] > 48 ? 'bg-amber-100 text-amber-800' : 'bg-indigo-100 text-indigo-800') }}">
                                     {{ $item['waiting_formatted'] }}
                                 </span>
                             </div>
                             @endforeach
                             @if(count($workflowBottlenecks['oldest_pending']) === 0)
-                            <p class="text-sm text-gray-400 italic">No pending items</p>
+                            <p class="text-sm text-slate-400 italic">No pending items</p>
                             @endif
                         </div>
                     </div>
@@ -384,11 +384,11 @@
             {{-- ============================================= --}}
             {{-- USER PERFORMANCE TABLE --}}
             {{-- ============================================= --}}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                     <div>
-                        <h3 class="text-base font-semibold text-gray-900">User Performance</h3>
-                        <p class="text-xs text-gray-500 mt-0.5">Individual metrics for the selected period</p>
+                        <h3 class="text-base font-semibold text-slate-900">User Performance</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Individual metrics for the selected period</p>
                     </div>
                     <a href="{{ route('reports.company-dashboard', ['start_date' => $startDate, 'end_date' => $endDate, 'export_table' => 'user_performance']) }}" 
                        class="inline-flex items-center px-3 py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-xs font-medium transition shadow-sm">
@@ -399,36 +399,36 @@
                 <div class="overflow-x-auto">
                     <table class="w-full">
                         <thead>
-                            <tr class="bg-gray-50 border-b border-gray-100">
-                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
-                                <th class="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Uploads</th>
-                                <th class="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Forwarded</th>
-                                <th class="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Processed</th>
-                                <th class="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Avg Response</th>
-                                <th class="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Avg Processing</th>
-                                <th class="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Approval</th>
-                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider" style="min-width: 140px;">Score</th>
+                            <tr class="bg-slate-50 border-b border-slate-100">
+                                <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">User</th>
+                                <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Uploads</th>
+                                <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Forwarded</th>
+                                <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Processed</th>
+                                <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Avg Response</th>
+                                <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Avg Processing</th>
+                                <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Approval</th>
+                                <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider" style="min-width: 140px;">Score</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-50">
+                        <tbody class="divide-y divide-slate-50">
                             @forelse($userPerformanceMetrics as $metric)
-                            <tr class="hover:bg-blue-50/30 transition">
+                            <tr class="hover:bg-indigo-50/30 transition">
                                 <td class="px-5 py-3">
                                     <div class="flex items-center gap-3">
-                                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
+                                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
                                             {{ strtoupper(substr($metric['user']->first_name, 0, 1)) }}{{ strtoupper(substr($metric['user']->last_name, 0, 1)) }}
                                         </div>
                                         <div>
-                                            <p class="text-sm font-medium text-gray-900">{{ $metric['user']->first_name }} {{ $metric['user']->last_name }}</p>
-                                            <p class="text-xs text-gray-400">{{ $metric['total_documents_handled'] }} total handled</p>
+                                            <p class="text-sm font-medium text-slate-900">{{ $metric['user']->first_name }} {{ $metric['user']->last_name }}</p>
+                                            <p class="text-xs text-slate-400">{{ $metric['total_documents_handled'] }} total handled</p>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-5 py-3 text-center text-sm text-gray-700">{{ $metric['uploads_count'] }}</td>
-                                <td class="px-5 py-3 text-center text-sm text-gray-700">{{ $metric['forwarded_count'] }}</td>
-                                <td class="px-5 py-3 text-center text-sm text-gray-700">{{ $metric['processed_count'] }}</td>
-                                <td class="px-5 py-3 text-center text-xs text-gray-600">{{ $metric['avg_response_time'] }}</td>
-                                <td class="px-5 py-3 text-center text-xs text-gray-600">{{ $metric['avg_processing_time'] }}</td>
+                                <td class="px-5 py-3 text-center text-sm text-slate-700">{{ $metric['uploads_count'] }}</td>
+                                <td class="px-5 py-3 text-center text-sm text-slate-700">{{ $metric['forwarded_count'] }}</td>
+                                <td class="px-5 py-3 text-center text-sm text-slate-700">{{ $metric['processed_count'] }}</td>
+                                <td class="px-5 py-3 text-center text-xs text-slate-600">{{ $metric['avg_response_time'] }}</td>
+                                <td class="px-5 py-3 text-center text-xs text-slate-600">{{ $metric['avg_processing_time'] }}</td>
                                 <td class="px-5 py-3 text-center">
                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold
                                         {{ $metric['approval_rate'] >= 80 ? 'bg-green-100 text-green-800' : ($metric['approval_rate'] >= 50 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800') }}">
@@ -437,18 +437,18 @@
                                 </td>
                                 <td class="px-5 py-3">
                                     <div class="flex items-center gap-2">
-                                        <div class="flex-1 bg-gray-100 rounded-full h-2">
+                                        <div class="flex-1 bg-slate-100 rounded-full h-2">
                                             <div class="h-2 rounded-full transition-all duration-700 {{ $metric['performance_score'] >= 70 ? 'bg-green-500' : ($metric['performance_score'] >= 40 ? 'bg-amber-400' : 'bg-red-500') }}"
                                                  style="width: {{ $metric['performance_score'] }}%"></div>
                                         </div>
-                                        <span class="text-xs font-bold text-gray-700 w-8 text-right">{{ $metric['performance_score'] }}</span>
+                                        <span class="text-xs font-bold text-slate-700 w-8 text-right">{{ $metric['performance_score'] }}</span>
                                     </div>
                                 </td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="8" class="px-5 py-12 text-center text-gray-400">
-                                    <svg class="mx-auto w-10 h-10 text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <td colspan="8" class="px-5 py-12 text-center text-slate-400">
+                                    <svg class="mx-auto w-10 h-10 text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                     No performance data for the selected period
                                 </td>
                             </tr>
@@ -461,11 +461,11 @@
             {{-- ============================================= --}}
             {{-- OFFICE PERFORMANCE TABLE --}}
             {{-- ============================================= --}}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                     <div>
-                        <h3 class="text-base font-semibold text-gray-900">Office Performance</h3>
-                        <p class="text-xs text-gray-500 mt-0.5">Departmental efficiency for the selected period</p>
+                        <h3 class="text-base font-semibold text-slate-900">Office Performance</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Departmental efficiency for the selected period</p>
                     </div>
                     <a href="{{ route('reports.company-dashboard', ['start_date' => $startDate, 'end_date' => $endDate, 'export_table' => 'office_performance']) }}" 
                        class="inline-flex items-center px-3 py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-xs font-medium transition shadow-sm">
@@ -476,46 +476,46 @@
                 <div class="overflow-x-auto">
                     <table class="w-full">
                         <thead>
-                            <tr class="bg-gray-50 border-b border-gray-100">
-                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Office</th>
-                                <th class="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Members</th>
-                                <th class="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Originated</th>
-                                <th class="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Received</th>
-                                <th class="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Processed</th>
-                                <th class="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Avg Processing</th>
-                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider" style="min-width: 140px;">Efficiency</th>
+                            <tr class="bg-slate-50 border-b border-slate-100">
+                                <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Office</th>
+                                <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Members</th>
+                                <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Originated</th>
+                                <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Received</th>
+                                <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Processed</th>
+                                <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Avg Processing</th>
+                                <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider" style="min-width: 140px;">Efficiency</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-50">
+                        <tbody class="divide-y divide-slate-50">
                             @forelse($officePerformanceMetrics as $metric)
-                            <tr class="hover:bg-blue-50/30 transition">
+                            <tr class="hover:bg-indigo-50/30 transition">
                                 <td class="px-5 py-3">
                                     <div class="flex items-center gap-3">
                                         <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-xs font-bold">
                                             {{ strtoupper(substr($metric['office']->name, 0, 2)) }}
                                         </div>
-                                        <p class="text-sm font-medium text-gray-900">{{ $metric['office']->name }}</p>
+                                        <p class="text-sm font-medium text-slate-900">{{ $metric['office']->name }}</p>
                                     </div>
                                 </td>
-                                <td class="px-5 py-3 text-center text-sm text-gray-700">{{ $metric['user_count'] }}</td>
-                                <td class="px-5 py-3 text-center text-sm text-gray-700">{{ $metric['documents_originated'] }}</td>
-                                <td class="px-5 py-3 text-center text-sm text-gray-700">{{ $metric['documents_received'] }}</td>
-                                <td class="px-5 py-3 text-center text-sm text-gray-700">{{ $metric['workflows_processed'] }}</td>
-                                <td class="px-5 py-3 text-center text-xs text-gray-600">{{ $metric['avg_processing_time'] }}</td>
+                                <td class="px-5 py-3 text-center text-sm text-slate-700">{{ $metric['user_count'] }}</td>
+                                <td class="px-5 py-3 text-center text-sm text-slate-700">{{ $metric['documents_originated'] }}</td>
+                                <td class="px-5 py-3 text-center text-sm text-slate-700">{{ $metric['documents_received'] }}</td>
+                                <td class="px-5 py-3 text-center text-sm text-slate-700">{{ $metric['workflows_processed'] }}</td>
+                                <td class="px-5 py-3 text-center text-xs text-slate-600">{{ $metric['avg_processing_time'] }}</td>
                                 <td class="px-5 py-3">
                                     <div class="flex items-center gap-2">
-                                        <div class="flex-1 bg-gray-100 rounded-full h-2">
+                                        <div class="flex-1 bg-slate-100 rounded-full h-2">
                                             <div class="h-2 rounded-full transition-all duration-700 {{ $metric['efficiency_score'] >= 70 ? 'bg-green-500' : ($metric['efficiency_score'] >= 40 ? 'bg-amber-400' : 'bg-red-500') }}"
                                                  style="width: {{ $metric['efficiency_score'] }}%"></div>
                                         </div>
-                                        <span class="text-xs font-bold text-gray-700 w-8 text-right">{{ $metric['efficiency_score'] }}</span>
+                                        <span class="text-xs font-bold text-slate-700 w-8 text-right">{{ $metric['efficiency_score'] }}</span>
                                     </div>
                                 </td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="7" class="px-5 py-12 text-center text-gray-400">
-                                    <svg class="mx-auto w-10 h-10 text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                <td colspan="7" class="px-5 py-12 text-center text-slate-400">
+                                    <svg class="mx-auto w-10 h-10 text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                                     No office data for the selected period
                                 </td>
                             </tr>
@@ -530,11 +530,11 @@
             {{-- ============================================= --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {{-- User Storage --}}
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                         <div>
-                            <h3 class="text-base font-semibold text-gray-900">Storage by User</h3>
-                            <p class="text-xs text-gray-500 mt-0.5">Disk usage per team member</p>
+                            <h3 class="text-base font-semibold text-slate-900">Storage by User</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Disk usage per team member</p>
                         </div>
                         <a href="{{ route('reports.company-dashboard', ['start_date' => $startDate, 'end_date' => $endDate, 'export_table' => 'user_storage']) }}" 
                            class="inline-flex items-center px-2.5 py-1 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-xs font-medium transition">
@@ -545,22 +545,22 @@
                     <div class="p-5">
                         <canvas id="userStorageChart" height="200"></canvas>
                     </div>
-                    <div class="border-t border-gray-50">
+                    <div class="border-t border-slate-50">
                         <div class="max-h-48 overflow-y-auto">
                             <table class="w-full">
-                                <thead class="sticky top-0 bg-gray-50">
+                                <thead class="sticky top-0 bg-slate-50">
                                     <tr>
-                                        <th class="px-5 py-2 text-left text-xs font-medium text-gray-500">User</th>
-                                        <th class="px-5 py-2 text-right text-xs font-medium text-gray-500">Docs</th>
-                                        <th class="px-5 py-2 text-right text-xs font-medium text-gray-500">Size</th>
+                                        <th class="px-5 py-2 text-left text-xs font-medium text-slate-500">User</th>
+                                        <th class="px-5 py-2 text-right text-xs font-medium text-slate-500">Docs</th>
+                                        <th class="px-5 py-2 text-right text-xs font-medium text-slate-500">Size</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-50">
+                                <tbody class="divide-y divide-slate-50">
                                     @foreach($storageMetrics['user_storage'] as $userStorage)
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-5 py-2 text-sm text-gray-700">{{ $userStorage['user']->first_name }} {{ $userStorage['user']->last_name }}</td>
-                                        <td class="px-5 py-2 text-sm text-gray-500 text-right">{{ $userStorage['count'] }}</td>
-                                        <td class="px-5 py-2 text-sm font-medium text-gray-900 text-right">{{ $userStorage['formatted_size'] }}</td>
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-5 py-2 text-sm text-slate-700">{{ $userStorage['user']->first_name }} {{ $userStorage['user']->last_name }}</td>
+                                        <td class="px-5 py-2 text-sm text-slate-500 text-right">{{ $userStorage['count'] }}</td>
+                                        <td class="px-5 py-2 text-sm font-medium text-slate-900 text-right">{{ $userStorage['formatted_size'] }}</td>
                                     </tr>
                                     @endforeach
                                 </tbody>
@@ -570,11 +570,11 @@
                 </div>
 
                 {{-- Office Storage --}}
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                         <div>
-                            <h3 class="text-base font-semibold text-gray-900">Storage by Office</h3>
-                            <p class="text-xs text-gray-500 mt-0.5">Disk usage per department</p>
+                            <h3 class="text-base font-semibold text-slate-900">Storage by Office</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Disk usage per department</p>
                         </div>
                         <a href="{{ route('reports.company-dashboard', ['start_date' => $startDate, 'end_date' => $endDate, 'export_table' => 'office_storage']) }}" 
                            class="inline-flex items-center px-2.5 py-1 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-xs font-medium transition">
@@ -585,22 +585,22 @@
                     <div class="p-5">
                         <canvas id="officeStorageChart" height="200"></canvas>
                     </div>
-                    <div class="border-t border-gray-50">
+                    <div class="border-t border-slate-50">
                         <div class="max-h-48 overflow-y-auto">
                             <table class="w-full">
-                                <thead class="sticky top-0 bg-gray-50">
+                                <thead class="sticky top-0 bg-slate-50">
                                     <tr>
-                                        <th class="px-5 py-2 text-left text-xs font-medium text-gray-500">Office</th>
-                                        <th class="px-5 py-2 text-right text-xs font-medium text-gray-500">Docs</th>
-                                        <th class="px-5 py-2 text-right text-xs font-medium text-gray-500">Size</th>
+                                        <th class="px-5 py-2 text-left text-xs font-medium text-slate-500">Office</th>
+                                        <th class="px-5 py-2 text-right text-xs font-medium text-slate-500">Docs</th>
+                                        <th class="px-5 py-2 text-right text-xs font-medium text-slate-500">Size</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-50">
+                                <tbody class="divide-y divide-slate-50">
                                     @foreach($storageMetrics['office_storage'] as $officeStorage)
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-5 py-2 text-sm text-gray-700">{{ $officeStorage['office']->name }}</td>
-                                        <td class="px-5 py-2 text-sm text-gray-500 text-right">{{ $officeStorage['count'] }}</td>
-                                        <td class="px-5 py-2 text-sm font-medium text-gray-900 text-right">{{ $officeStorage['formatted_size'] }}</td>
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-5 py-2 text-sm text-slate-700">{{ $officeStorage['office']->name }}</td>
+                                        <td class="px-5 py-2 text-sm text-slate-500 text-right">{{ $officeStorage['count'] }}</td>
+                                        <td class="px-5 py-2 text-sm font-medium text-slate-900 text-right">{{ $officeStorage['formatted_size'] }}</td>
                                     </tr>
                                     @endforeach
                                 </tbody>
@@ -613,14 +613,14 @@
             {{-- ============================================= --}}
             {{-- SMART INSIGHTS / RECOMMENDATIONS --}}
             {{-- ============================================= --}}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100">
-                        <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.674M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100">
+                        <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.674M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                     </span>
                     <div>
-                        <h3 class="text-base font-semibold text-gray-900">Smart Insights</h3>
-                        <p class="text-xs text-gray-500">Automated recommendations based on your data</p>
+                        <h3 class="text-base font-semibold text-slate-900">Smart Insights</h3>
+                        <p class="text-xs text-slate-500">Automated recommendations based on your data</p>
                     </div>
                 </div>
                 <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -702,13 +702,13 @@
 
                     @if(abs($percentChange) > 30)
                     @php $insightCount++; @endphp
-                    <div class="flex gap-3 p-4 rounded-lg {{ $percentChange > 0 ? 'bg-blue-50 border-blue-100' : 'bg-amber-50 border-amber-100' }} border">
+                    <div class="flex gap-3 p-4 rounded-lg {{ $percentChange > 0 ? 'bg-indigo-50 border-indigo-100' : 'bg-amber-50 border-amber-100' }} border">
                         <span class="flex-shrink-0 mt-0.5">
-                            <svg class="w-5 h-5 {{ $percentChange > 0 ? 'text-blue-500' : 'text-amber-500' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                            <svg class="w-5 h-5 {{ $percentChange > 0 ? 'text-indigo-500' : 'text-amber-500' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
                         </span>
                         <div>
-                            <p class="text-sm font-semibold {{ $percentChange > 0 ? 'text-blue-800' : 'text-amber-800' }}">Volume {{ $percentChange > 0 ? 'Increase' : 'Decrease' }}</p>
-                            <p class="text-sm {{ $percentChange > 0 ? 'text-blue-700' : 'text-amber-700' }} mt-1">
+                            <p class="text-sm font-semibold {{ $percentChange > 0 ? 'text-indigo-800' : 'text-amber-800' }}">Volume {{ $percentChange > 0 ? 'Increase' : 'Decrease' }}</p>
+                            <p class="text-sm {{ $percentChange > 0 ? 'text-indigo-700' : 'text-amber-700' }} mt-1">
                                 Document volume {{ $percentChange > 0 ? 'increased' : 'decreased' }} by {{ abs($percentChange) }}% compared to the previous month.
                                 {{ $percentChange > 0 ? 'Ensure adequate resources to handle the growth.' : 'Investigate if this is expected or indicates a process issue.' }}
                             </p>
@@ -927,7 +927,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         } else {
-            catCanvas.parentElement.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-gray-400"><svg class="w-10 h-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><p class="text-sm">No category data</p></div>';
+            catCanvas.parentElement.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-slate-400"><svg class="w-10 h-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><p class="text-sm">No category data</p></div>';
         }
     } catch(e) { console.error('Categories chart error:', e); }
 
@@ -959,7 +959,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         } else {
-            statusCanvas.parentElement.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-gray-400"><svg class="w-10 h-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/></svg><p class="text-sm">No status data</p></div>';
+            statusCanvas.parentElement.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-slate-400"><svg class="w-10 h-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/></svg><p class="text-sm">No status data</p></div>';
         }
     } catch(e) { console.error('Status chart error:', e); }
 

@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <!-- Header Box -->
-        <div class="max-w-7xl mx-auto bg-white rounded-xl mb-6 border border-blue-200/80 overflow-hidden">
+        <div class="max-w-7xl mx-auto bg-white rounded-xl mb-6 border border-indigo-200/80 overflow-hidden">
             <div class="bg-white p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div class="flex items-center space-x-3">
-                    <div class="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md">
+                    <div class="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg shadow-md">
                         <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -15,14 +15,14 @@
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-800">Document Management</h1>
-                        <p class="text-sm text-gray-500">Search, view and manage all documents</p>
+                        <h1 class="text-2xl font-bold text-slate-800">Document Management</h1>
+                        <p class="text-sm text-slate-500">Search, view and manage all documents</p>
                     </div>
                 </div>
                 <div>
                     @can('document-create')
                         <a href="{{ route('documents.create') }}"
-                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-md text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-md text-white bg-gradient-to-r from-indigo-600 to-indigo-600 hover:from-indigo-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                             <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -76,10 +76,10 @@
         <!-- QR Code Modal -->
         @if (session('data'))
             <div class="fixed inset-0 flex items-center justify-center z-50">
-                <div class="bg-gray-900 bg-opacity-70 absolute inset-0"></div>
+                <div class="bg-slate-900 bg-opacity-70 absolute inset-0"></div>
                 <div class="bg-white p-8 rounded-xl shadow-2xl z-10 max-w-md w-full">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 mr-2" fill="none"
+                    <h2 class="text-xl font-semibold text-slate-800 mb-6 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600 mr-2" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
@@ -87,7 +87,7 @@
                         QR Code Generated
                     </h2>
                     <div class="flex justify-center mb-6">
-                        <div class="bg-white p-4 rounded-lg shadow-md border border-blue-100">
+                        <div class="bg-white p-4 rounded-lg shadow-md border border-indigo-100">
                             <img src="{{ session('data') }}" alt="QR Code" class="w-48 h-48">
                         </div>
                     </div>
@@ -102,7 +102,7 @@
                             Save QR Code
                         </a>
                         <button onclick="document.querySelector('.fixed.inset-0').remove()"
-                            class="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transition-colors">
+                            class="px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-lg hover:from-indigo-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md transition-colors">
                             Close
                         </button>
                     </div>
@@ -113,14 +113,14 @@
         <!-- Main Content -->
         <div class="max-w-7xl mx-auto space-y-8">
             <!-- Search Panel -->
-            <div class=" rounded-xl border-blue-200/80 transition-all duration-300 hover:border-blue-300/80 hover:shadow-sm">
-                <div class="bg-white p-6 border-b border-blue-200/60">
+            <div class=" rounded-xl border-indigo-200/80 transition-all duration-300 hover:border-indigo-300/80 hover:shadow-sm">
+                <div class="bg-white p-6 border-b border-indigo-200/60">
                     {{-- <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
-                            <h2 class="text-lg font-semibold text-gray-800">Search and Filter</h2>
+                            <h2 class="text-lg font-semibold text-slate-800">Search and Filter</h2>
                         </div>
                     </div> --}}
 
@@ -132,19 +132,19 @@
                                 <!-- Combined Search Bar with Filter -->
                                 <div class="flex-1 relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg"
+                                        <svg class="h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg"
                                             viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                         </svg>
                                     </div>
                                     <input type="text" id="quick-search" name="text"
-                                        class="w-full pl-10 pr-36 py-2.5 rounded-lg border-gray-200 bg-gray-50/60 focus:bg-white focus:border-blue-500 focus:ring-blue-200 transition-all"
+                                        class="w-full pl-10 pr-36 py-2.5 rounded-lg border-slate-200 bg-slate-50/60 focus:bg-white focus:border-indigo-500 focus:ring-indigo-200 transition-all"
                                         placeholder="Search documents...">
                                     <div class="absolute inset-y-0 right-0 flex items-center">
-                                        <div class="h-6 w-px bg-gray-200 mx-2"></div>
+                                        <div class="h-6 w-px bg-slate-200 mx-2"></div>
                                         <select id="filter-field"
-                                            class="h-full py-0 pl-2 pr-7 border-transparent bg-transparent text-gray-500 sm:text-sm focus:ring-0">
+                                            class="h-full py-0 pl-2 pr-7 border-transparent bg-transparent text-slate-500 sm:text-sm focus:ring-0">
                                             <option value="general">All Fields</option>
                                             <option value="title">Title</option>
                                             <option value="uploader">Uploader</option>
@@ -161,17 +161,17 @@
                                     <button type="button"
                                         id="image-search-toggle-btn"
                                         onclick="toggleImageSearch()"
-                                        class="px-4 py-2.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50/80 text-gray-700 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
+                                        class="px-4 py-2.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50/80 text-slate-700 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200">
                                         <div class="relative w-5 h-5">
                                             <!-- Image icon -->
-                                            <svg class="image-icon h-5 w-5 text-gray-400 transition-all duration-200"
+                                            <svg class="image-icon h-5 w-5 text-slate-400 transition-all duration-200"
                                                 xmlns="http://www.w3.org/2000/svg"
                                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                             </svg>
                                             <!-- Close icon (hidden by default) -->
-                                            <svg class="close-icon absolute inset-0 h-5 w-5 text-gray-400 opacity-0 transition-all duration-200"
+                                            <svg class="close-icon absolute inset-0 h-5 w-5 text-slate-400 opacity-0 transition-all duration-200"
                                                 xmlns="http://www.w3.org/2000/svg"
                                                 fill="none"
                                                 viewBox="0 0 24 24"
@@ -186,23 +186,23 @@
 
                             <!-- Image Search Section (Hidden by default) -->
                             <div id="image-search-section" class="hidden mt-4">
-                                <div class="p-4 bg-gray-50/80 rounded-lg border border-gray-200">
+                                <div class="p-4 bg-slate-50/80 rounded-lg border border-slate-200">
                                     <div class="flex items-center gap-4">
                                         <div class="flex-1">
                                             <input type="file" id="image-input" name="image" accept="image/*" class="hidden">
                                             <label for="image-input"
-                                                class="flex items-center justify-center w-full px-4 py-2.5 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-all">
-                                                <svg class="h-5 w-5 text-gray-400 mr-2" xmlns="http://www.w3.org/2000/svg"
+                                                class="flex items-center justify-center w-full px-4 py-2.5 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-indigo-500 focus:outline-none focus:border-indigo-500 transition-all">
+                                                <svg class="h-5 w-5 text-slate-400 mr-2" xmlns="http://www.w3.org/2000/svg"
                                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                                                 </svg>
-                                                <span class="text-gray-600">Click to upload or drag and drop</span>
+                                                <span class="text-slate-600">Click to upload or drag and drop</span>
                                             </label>
                                         </div>
                                         <button type="button" id="camera-toggle"
-                                        class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                        <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg"
+                                        class="inline-flex items-center px-4 py-2 border border-slate-300 shadow-sm text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        <svg class="h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg"
                                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -217,11 +217,11 @@
                                 <!-- Camera Container -->
                                 <div id="camera-container" class="hidden mt-3">
                                     <div
-                                        class="relative w-full aspect-video rounded-xl overflow-hidden bg-black shadow-lg border border-blue-200">
+                                        class="relative w-full aspect-video rounded-xl overflow-hidden bg-black shadow-lg border border-indigo-200">
                                         <video id="camera-stream" autoplay playsinline
                                             class="w-full h-full object-contain"></video>
                                         <button type="button" id="capture-button"
-                                            class="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transition-colors">
+                                            class="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-600 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md transition-colors">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1"
                                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -236,11 +236,11 @@
 
                                 <!-- Image Preview -->
                                 <div id="preview-container" class="hidden relative w-full mt-3">
-                                    <div class="bg-white p-2 rounded-xl shadow-md border border-blue-200">
+                                    <div class="bg-white p-2 rounded-xl shadow-md border border-indigo-200">
                                         <img id="preview-image" src="#" alt="Preview" class="w-full rounded-lg">
                                         <button type="button" onclick="clearImage()"
-                                            class="absolute top-4 right-4 p-1.5 bg-white rounded-full shadow-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 border border-gray-200">
-                                            <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg"
+                                            class="absolute top-4 right-4 p-1.5 bg-white rounded-full shadow-md hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 border border-slate-200">
+                                            <svg class="h-5 w-5 text-slate-500" xmlns="http://www.w3.org/2000/svg"
                                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M6 18L18 6M6 6l12 12" />
@@ -253,7 +253,7 @@
                             <!-- Search Button -->
                             <div class="mt-3">
                                 <button type="submit" id="submit-button"
-                                    class="w-full inline-flex justify-center items-center px-4 py-2.5 border border-transparent text-sm font-medium rounded-lg shadow-md text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                    class="w-full inline-flex justify-center items-center px-4 py-2.5 border border-transparent text-sm font-medium rounded-lg shadow-md text-white bg-gradient-to-r from-indigo-600 to-indigo-600 hover:from-indigo-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                                     <span id="spinner" class="hidden mr-2">
                                         <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg"
                                             fill="none" viewBox="0 0 24 24">
@@ -273,18 +273,18 @@
             </div>
 
             <!-- Filters Bar -->
-            <div class="bg-white rounded-xl border border-blue-200/80 overflow-visible mt-3">
-                <div class="px-6 py-4 border-b border-blue-200/60 flex items-center justify-between cursor-pointer select-none" id="filterToggleHeader" onclick="toggleFilterPanel()">
+            <div class="bg-white rounded-xl border border-indigo-200/80 overflow-visible mt-3">
+                <div class="px-6 py-4 border-b border-indigo-200/60 flex items-center justify-between cursor-pointer select-none" id="filterToggleHeader" onclick="toggleFilterPanel()">
                     <div class="flex items-center space-x-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                         </svg>
-                        <h2 class="text-sm font-semibold text-gray-800">Advanced Filters</h2>
+                        <h2 class="text-sm font-semibold text-slate-800">Advanced Filters</h2>
                         @if(request('date_from') || request('date_to') || request('user_id') || request('category_id') || request('team_id'))
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Active</span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">Active</span>
                         @endif
                     </div>
-                    <svg id="filterChevron" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transition-transform duration-200 {{ request('date_from') || request('date_to') || request('user_id') || request('category_id') || request('team_id') ? 'rotate-180' : '' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg id="filterChevron" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400 transition-transform duration-200 {{ request('date_from') || request('date_to') || request('user_id') || request('category_id') || request('team_id') ? 'rotate-180' : '' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
                 </div>
@@ -301,110 +301,110 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                             {{-- Date From --}}
                             <div>
-                                <label for="date_from" class="block text-xs font-medium text-gray-600 mb-1">Date From</label>
+                                <label for="date_from" class="block text-xs font-medium text-slate-600 mb-1">Date From</label>
                                 <input type="date" id="date_from" name="date_from" value="{{ request('date_from') }}"
-                                    class="w-full rounded-lg border-gray-300 shadow-sm text-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                    class="w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                             </div>
 
                             {{-- Date To --}}
                             <div>
-                                <label for="date_to" class="block text-xs font-medium text-gray-600 mb-1">Date To</label>
+                                <label for="date_to" class="block text-xs font-medium text-slate-600 mb-1">Date To</label>
                                 <input type="date" id="date_to" name="date_to" value="{{ request('date_to') }}"
-                                    class="w-full rounded-lg border-gray-300 shadow-sm text-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                    class="w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                             </div>
 
                             {{-- User (searchable) --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Uploaded By</label>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Uploaded By</label>
                                 <input type="hidden" id="user_id" name="user_id" value="{{ request('user_id') }}">
                                 <div class="searchable-select relative" data-target="user_id">
-                                    <button type="button" class="ss-toggle w-full flex items-center justify-between rounded-lg border border-gray-300 shadow-sm text-sm px-3 py-2 bg-white text-left focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all">
-                                        <span class="ss-label truncate text-gray-700">
+                                    <button type="button" class="ss-toggle w-full flex items-center justify-between rounded-lg border border-slate-300 shadow-sm text-sm px-3 py-2 bg-white text-left focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition-all">
+                                        <span class="ss-label truncate text-slate-700">
                                             @if(request('user_id'))
                                                 {{ $filterUsers->firstWhere('id', request('user_id'))?->first_name }} {{ $filterUsers->firstWhere('id', request('user_id'))?->last_name }}
                                             @else
                                                 All Users
                                             @endif
                                         </span>
-                                        <svg class="h-4 w-4 text-gray-400 flex-shrink-0 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <svg class="h-4 w-4 text-slate-400 flex-shrink-0 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                         </svg>
                                     </button>
-                                    <div class="ss-dropdown hidden absolute z-50 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-                                        <div class="p-2 border-b border-gray-100">
-                                            <input type="text" class="ss-search w-full rounded-md border-gray-300 text-sm px-3 py-1.5 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50" placeholder="Search users...">
+                                    <div class="ss-dropdown hidden absolute z-50 mt-1 w-full bg-white rounded-lg shadow-lg border border-slate-200 overflow-hidden">
+                                        <div class="p-2 border-b border-slate-100">
+                                            <input type="text" class="ss-search w-full rounded-md border-slate-300 text-sm px-3 py-1.5 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Search users...">
                                         </div>
                                         <ul class="ss-options max-h-48 overflow-y-auto py-1">
-                                            <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 transition-colors" data-value="">All Users</li>
+                                            <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 transition-colors" data-value="">All Users</li>
                                             @foreach($filterUsers as $u)
-                                                <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 transition-colors" data-value="{{ $u->id }}">{{ $u->first_name }} {{ $u->last_name }}</li>
+                                                <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 transition-colors" data-value="{{ $u->id }}">{{ $u->first_name }} {{ $u->last_name }}</li>
                                             @endforeach
                                         </ul>
-                                        <div class="ss-empty hidden px-3 py-4 text-sm text-gray-400 text-center">No results found</div>
+                                        <div class="ss-empty hidden px-3 py-4 text-sm text-slate-400 text-center">No results found</div>
                                     </div>
                                 </div>
                             </div>
 
                             {{-- Team (searchable) --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Team</label>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Team</label>
                                 <input type="hidden" id="team_id" name="team_id" value="{{ request('team_id') }}">
                                 <div class="searchable-select relative" data-target="team_id">
-                                    <button type="button" class="ss-toggle w-full flex items-center justify-between rounded-lg border border-gray-300 shadow-sm text-sm px-3 py-2 bg-white text-left focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all">
-                                        <span class="ss-label truncate text-gray-700">
+                                    <button type="button" class="ss-toggle w-full flex items-center justify-between rounded-lg border border-slate-300 shadow-sm text-sm px-3 py-2 bg-white text-left focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition-all">
+                                        <span class="ss-label truncate text-slate-700">
                                             @if(request('team_id'))
                                                 {{ $filterTeams->firstWhere('id', request('team_id'))?->name ?? 'All Teams' }}
                                             @else
                                                 All Teams
                                             @endif
                                         </span>
-                                        <svg class="h-4 w-4 text-gray-400 flex-shrink-0 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <svg class="h-4 w-4 text-slate-400 flex-shrink-0 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                         </svg>
                                     </button>
-                                    <div class="ss-dropdown hidden absolute z-50 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-                                        <div class="p-2 border-b border-gray-100">
-                                            <input type="text" class="ss-search w-full rounded-md border-gray-300 text-sm px-3 py-1.5 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50" placeholder="Search teams...">
+                                    <div class="ss-dropdown hidden absolute z-50 mt-1 w-full bg-white rounded-lg shadow-lg border border-slate-200 overflow-hidden">
+                                        <div class="p-2 border-b border-slate-100">
+                                            <input type="text" class="ss-search w-full rounded-md border-slate-300 text-sm px-3 py-1.5 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Search teams...">
                                         </div>
                                         <ul class="ss-options max-h-48 overflow-y-auto py-1">
-                                            <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 transition-colors" data-value="">All Teams</li>
+                                            <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 transition-colors" data-value="">All Teams</li>
                                             @foreach($filterTeams as $team)
-                                                <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 transition-colors" data-value="{{ $team->id }}">{{ $team->name }}</li>
+                                                <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 transition-colors" data-value="{{ $team->id }}">{{ $team->name }}</li>
                                             @endforeach
                                         </ul>
-                                        <div class="ss-empty hidden px-3 py-4 text-sm text-gray-400 text-center">No results found</div>
+                                        <div class="ss-empty hidden px-3 py-4 text-sm text-slate-400 text-center">No results found</div>
                                     </div>
                                 </div>
                             </div>
 
                             {{-- Category (searchable) --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Category</label>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Category</label>
                                 <input type="hidden" id="category_id" name="category_id" value="{{ request('category_id') }}">
                                 <div class="searchable-select relative" data-target="category_id">
-                                    <button type="button" class="ss-toggle w-full flex items-center justify-between rounded-lg border border-gray-300 shadow-sm text-sm px-3 py-2 bg-white text-left focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all">
-                                        <span class="ss-label truncate text-gray-700">
+                                    <button type="button" class="ss-toggle w-full flex items-center justify-between rounded-lg border border-slate-300 shadow-sm text-sm px-3 py-2 bg-white text-left focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition-all">
+                                        <span class="ss-label truncate text-slate-700">
                                             @if(request('category_id'))
                                                 {{ $filterCategories->firstWhere('id', request('category_id'))?->category ?? 'All Categories' }}
                                             @else
                                                 All Categories
                                             @endif
                                         </span>
-                                        <svg class="h-4 w-4 text-gray-400 flex-shrink-0 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <svg class="h-4 w-4 text-slate-400 flex-shrink-0 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                         </svg>
                                     </button>
-                                    <div class="ss-dropdown hidden absolute z-50 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-                                        <div class="p-2 border-b border-gray-100">
-                                            <input type="text" class="ss-search w-full rounded-md border-gray-300 text-sm px-3 py-1.5 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50" placeholder="Search categories...">
+                                    <div class="ss-dropdown hidden absolute z-50 mt-1 w-full bg-white rounded-lg shadow-lg border border-slate-200 overflow-hidden">
+                                        <div class="p-2 border-b border-slate-100">
+                                            <input type="text" class="ss-search w-full rounded-md border-slate-300 text-sm px-3 py-1.5 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Search categories...">
                                         </div>
                                         <ul class="ss-options max-h-48 overflow-y-auto py-1">
-                                            <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 transition-colors" data-value="">All Categories</li>
+                                            <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 transition-colors" data-value="">All Categories</li>
                                             @foreach($filterCategories as $cat)
-                                                <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 transition-colors" data-value="{{ $cat->id }}">{{ $cat->category }}</li>
+                                                <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 transition-colors" data-value="{{ $cat->id }}">{{ $cat->category }}</li>
                                             @endforeach
                                         </ul>
-                                        <div class="ss-empty hidden px-3 py-4 text-sm text-gray-400 text-center">No results found</div>
+                                        <div class="ss-empty hidden px-3 py-4 text-sm text-slate-400 text-center">No results found</div>
                                     </div>
                                 </div>
                             </div>
@@ -412,14 +412,14 @@
 
                         <div class="flex items-center gap-3 pt-2">
                             <button type="submit"
-                                class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-indigo-600 hover:from-indigo-700 hover:to-indigo-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                                 </svg>
                                 Apply Filters
                             </button>
                             <a href="{{ route('documents.index') }}"
-                                class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
@@ -431,23 +431,23 @@
             </div>
 
             <!-- Document List -->
-            <div class="bg-white rounded-xl overflow-visible border border-blue-200/80 transition-all duration-300 hover:border-blue-300/80 mt-3">
+            <div class="bg-white rounded-xl overflow-visible border border-indigo-200/80 transition-all duration-300 hover:border-indigo-300/80 mt-3">
 
                     <!-- Tab Bar: My Documents / All Documents / Archived -->
-                    <div class="flex border-b border-blue-200 bg-white rounded-t-xl overflow-hidden">
+                    <div class="flex border-b border-indigo-200 bg-white rounded-t-xl overflow-hidden">
                         <!-- My Documents Tab -->
                         <a href="{{ route('documents.index', array_merge(request()->except('tab', 'page'), ['tab' => 'my'])) }}"
                            class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm transition-colors
                                   {{ ($tab ?? 'all') === 'my'
-                                     ? 'border-blue-500 text-blue-600 bg-blue-50/50'
-                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                                     ? 'border-indigo-500 text-indigo-600 bg-indigo-50/50'
+                                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">
                             <div class="flex items-center justify-center gap-2">
                                 <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                                 My Documents
                                 <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full
-                                             {{ ($tab ?? 'all') === 'my' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600' }}">
+                                             {{ ($tab ?? 'all') === 'my' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600' }}">
                                     {{ $myDocCount }}
                                 </span>
                             </div>
@@ -458,23 +458,23 @@
                            class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm transition-colors relative group
                                   {{ ($tab ?? 'all') === 'all'
                                      ? 'border-green-500 text-green-600 bg-green-50/50'
-                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">
                             <div class="flex items-center justify-center gap-2">
                                 <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
                                 All Documents
                                 <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full
-                                             {{ ($tab ?? 'all') === 'all' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600' }}">
+                                             {{ ($tab ?? 'all') === 'all' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600' }}">
                                     {{ $allDocCount }}
                                 </span>
                                 <!-- Info Icon -->
-                                <svg class="h-4 w-4 text-gray-400 hover:text-gray-600 transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg class="h-4 w-4 text-slate-400 hover:text-slate-600 transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
                             <!-- Tooltip -->
-                            <div class="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 w-64 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none">
+                            <div class="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 w-64 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none">
                                 <div class="text-left">
                                     <strong class="block mb-1">All Documents includes:</strong>
                                     <ul class="list-disc list-inside space-y-0.5">
@@ -484,7 +484,7 @@
                                     </ul>
                                 </div>
                                 <!-- Arrow -->
-                                <div class="absolute left-1/2 transform -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                                <div class="absolute left-1/2 transform -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900"></div>
                             </div>
                         </a>
 
@@ -492,59 +492,59 @@
                         <a href="{{ route('documents.index', array_merge(request()->except('tab', 'page', 'status'), ['tab' => 'archived'])) }}"
                            class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm transition-colors relative group
                                   {{ ($tab ?? 'all') === 'archived'
-                                     ? 'border-gray-500 text-gray-700 bg-gray-50/50'
-                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                                     ? 'border-slate-500 text-slate-700 bg-slate-50/50'
+                                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">
                             <div class="flex items-center justify-center gap-2">
                                 <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                                 </svg>
                                 Archived
                                 <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full
-                                             {{ ($tab ?? 'all') === 'archived' ? 'bg-gray-200 text-gray-700' : 'bg-gray-100 text-gray-600' }}">
+                                             {{ ($tab ?? 'all') === 'archived' ? 'bg-slate-200 text-slate-700' : 'bg-slate-100 text-slate-600' }}">
                                     {{ $archivedCount }}
                                 </span>
                                 <!-- Info Icon -->
-                                <svg class="h-4 w-4 text-gray-400 hover:text-gray-600 transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg class="h-4 w-4 text-slate-400 hover:text-slate-600 transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
                             <!-- Tooltip -->
-                            <div class="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 w-64 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none">
+                            <div class="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 w-64 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none">
                                 <div class="text-left">
                                     <strong class="block mb-1">Archived Documents:</strong>
                                     <p>Your documents that have been archived for long-term storage.</p>
                                 </div>
                                 <!-- Arrow -->
-                                <div class="absolute left-1/2 transform -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                                <div class="absolute left-1/2 transform -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900"></div>
                             </div>
                         </a>
                     </div>
 
                     <!-- Tabbed Navigation -->
-                    <div class="bg-white border-b border-blue-200">
+                    <div class="bg-white border-b border-indigo-200">
                         <div class="p-6 pb-0">
                             @if($tab === 'archived')
                             {{-- Simplified header for Archived tab --}}
                             <div class="flex items-center justify-between mb-4">
                                 <div class="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                                     </svg>
-                                    <h2 class="text-lg font-semibold text-gray-700">Archived Documents</h2>
+                                    <h2 class="text-lg font-semibold text-slate-700">Archived Documents</h2>
                                 </div>
-                                <span class="text-sm text-gray-500">{{ $documents->total() }} archived {{ Str::plural('document', $documents->total()) }}</span>
+                                <span class="text-sm text-slate-500">{{ $documents->total() }} archived {{ Str::plural('document', $documents->total()) }}</span>
                             </div>
                             @elseif($tab === 'my')
                             {{-- Header for My Documents tab --}}
                             <div class="flex items-center justify-between mb-8">
                                 <div class="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
-                                    <h2 class="text-lg font-semibold text-gray-800">My Documents</h2>
+                                    <h2 class="text-lg font-semibold text-slate-800">My Documents</h2>
                                 </div>
                                 {{-- <div class="flex items-center space-x-2">
-                                    <span class="text-sm text-gray-500">{{ $documents->total() }} {{ Str::plural('document', $documents->total()) }}</span>
+                                    <span class="text-sm text-slate-500">{{ $documents->total() }} {{ Str::plural('document', $documents->total()) }}</span>
                                 </div> --}}
                             </div>
                             @else
@@ -556,10 +556,10 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
-                                    <h2 class="text-lg font-semibold text-gray-800">All Documents</h2>
+                                    <h2 class="text-lg font-semibold text-slate-800">All Documents</h2>
                                 </div>
                                 {{-- <div class="flex items-center space-x-2">
-                                    <span class="text-sm text-gray-500">{{ $documents->total() }} total documents</span>
+                                    <span class="text-sm text-slate-500">{{ $documents->total() }} total documents</span>
 
                                 </div> --}}
                             </div>
@@ -575,13 +575,13 @@
                                     $documentAccessService = app(\App\Services\DocumentAccessService::class);
                                     $totalCount = $documentAccessService->getAccessibleDocuments()->count();
                                 @endphp
-                                <div class="flex items-center space-x-2 bg-blue-50 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors"
+                                <div class="flex items-center space-x-2 bg-indigo-50 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-indigo-100 transition-colors"
                                      onclick="filterDocumentsByStatus('all')"
                                      title="Show all documents">
-                                    <svg class="h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg class="h-4 w-4 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
-                                    <span class="text-sm font-medium text-blue-700">Total: {{ $totalCount }}</span>
+                                    <span class="text-sm font-medium text-indigo-700">Total: {{ $totalCount }}</span>
                                 </div>
 
                                 @php
@@ -603,12 +603,12 @@
                         'forwarded' => ['bg' => 'bg-indigo-50', 'text' => 'text-indigo-600'],
                         'received' => ['bg' => 'bg-green-50', 'text' => 'text-green-600'],
                         'approved' => ['bg' => 'bg-emerald-50', 'text' => 'text-emerald-600'],
-                        'acknowledged' => ['bg' => 'bg-blue-50', 'text' => 'text-blue-600'],
+                        'acknowledged' => ['bg' => 'bg-indigo-50', 'text' => 'text-indigo-600'],
                         'commented' => ['bg' => 'bg-cyan-50', 'text' => 'text-cyan-600'],
                         'returned' => ['bg' => 'bg-orange-50', 'text' => 'text-orange-600'],
                         'rejected' => ['bg' => 'bg-red-50', 'text' => 'text-red-600'],
                         'recalled' => ['bg' => 'bg-purple-50', 'text' => 'text-purple-600'],
-                        'archived' => ['bg' => 'bg-gray-50', 'text' => 'text-gray-600']
+                        'archived' => ['bg' => 'bg-slate-50', 'text' => 'text-slate-600']
                     ];                                    // Get document counts for each status using DocumentAccessService
                                     $documentAccessService = app(\App\Services\DocumentAccessService::class);
                                     $baseQuery = $documentAccessService->getAccessibleDocuments();
@@ -632,12 +632,12 @@
                                     <!-- Status Filter Dropdown -->
                                     <div x-data="{ open: false }" class="relative inline-flex items-center filter-group">
                                         <div>
-                                            <button @click="open = !open" type="button" class="inline-flex justify-between items-center min-w-[140px] px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:text-gray-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-gray-200">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <button @click="open = !open" type="button" class="inline-flex justify-between items-center min-w-[140px] px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:border-slate-300 hover:text-slate-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-slate-200">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                                                 </svg>
                                                 <span>Status</span>
-                                                <svg class="w-4 h-4 ml-2 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <svg class="w-4 h-4 ml-2 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                                 </svg>
                                             </button>
@@ -647,12 +647,12 @@
                                     <!-- Office/Team Filter Dropdown -->
                                     <div x-data="{ open: false }" class="relative inline-flex items-center filter-group">
                                         <div>
-                                            <button @click="open = !open" type="button" class="inline-flex justify-between items-center min-w-[180px] px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:text-gray-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-gray-200">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <button @click="open = !open" type="button" class="inline-flex justify-between items-center min-w-[180px] px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:border-slate-300 hover:text-slate-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-slate-200">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                                 </svg>
                                                 <span class="truncate">{{ $selectedOfficeId === 'all' ? 'All Offices' : ($offices->where('id', $selectedOfficeId)->first()?->name ?? 'All Offices') }}</span>
-                                                <svg class="w-4 h-4 ml-2 text-gray-400 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <svg class="w-4 h-4 ml-2 text-slate-400 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                                 </svg>
                                             </button>
@@ -666,20 +666,20 @@
                                             x-transition:leave="transition ease-in duration-75"
                                             x-transition:leave-start="transform opacity-100 scale-100"
                                             x-transition:leave-end="transform opacity-0 scale-95"
-                                            class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none z-50"
+                                            class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-slate-100 focus:outline-none z-50"
                                         >
                                             <div class="py-1">
                                                 <a href="{{ route('documents.index', array_merge(request()->except('office_id', 'page'), ['office_id' => 'all'])) }}"
-                                                   class="group flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900">
-                                                    <svg class="h-4 w-4 text-gray-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                   class="group flex items-center w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900">
+                                                    <svg class="h-4 w-4 text-slate-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                                     </svg>
                                                     All Offices
                                                 </a>
                                                 @foreach($offices as $office)
                                                     <a href="{{ route('documents.index', array_merge(request()->except('office_id', 'page'), ['office_id' => $office->id])) }}"
-                                                       class="group flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900">
-                                                        <svg class="h-4 w-4 text-gray-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                       class="group flex items-center w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900">
+                                                        <svg class="h-4 w-4 text-slate-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                                         </svg>
                                                         {{ $office->name }}
@@ -698,13 +698,13 @@
                                         x-transition:leave="transition ease-in duration-75"
                                         x-transition:leave-start="transform opacity-100 scale-100"
                                         x-transition:leave-end="transform opacity-0 scale-95"
-                                        class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none z-50"
+                                        class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-slate-100 focus:outline-none z-50"
                                     >
                                         <div class="py-1">
                                             @foreach($documentCounts as $status => $count)
                                                 <button
                                                     onclick="filterDocumentsByStatus('{{ $status }}')"
-                                                    class="group flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                                                    class="group flex items-center w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900"
                                                     data-status="{{ $status }}"
                                                 >
                                                     <svg class="h-4 w-4 {{ $statusColors[$status]['text'] }} mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -726,18 +726,18 @@
 
                     <!-- Unified Document List -->
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
+                        <table class="min-w-full divide-y divide-slate-200">
                             <thead>
                                 <tr>
-                                    <th class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200 w-12">#</th>
-                                    <th class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Title</th>
-                                    <th class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Uploader</th>
-                                    <th class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">{{ $tab === 'archived' ? 'Archived' : 'Status & Workflow' }}</th>
-                                    <th class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Tracking</th>
-                                    <th class="bg-white px-6 py-3 text-center text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200 w-24">Actions</th>
+                                    <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200 w-12">#</th>
+                                    <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Title</th>
+                                    <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Uploader</th>
+                                    <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">{{ $tab === 'archived' ? 'Archived' : 'Status & Workflow' }}</th>
+                                    <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Tracking</th>
+                                    <th class="bg-white px-6 py-3 text-center text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200 w-24">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
+                            <tbody class="bg-white divide-y divide-slate-200">
                                 @php
                                     $counter = ($documents->currentPage() - 1) * $documents->perPage() + 1;
                                 @endphp
@@ -767,18 +767,18 @@
                                             ->latest()
                                             ->first() : null;
                                     @endphp
-                                    <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">{{ $counter++ }}</td>
+                                    <tr class="hover:bg-slate-50 transition-colors">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-500">{{ $counter++ }}</td>
                                         <td class="px-6 py-4">
-                                            <div class="text-sm font-medium text-gray-900 truncate">{{ $document->title }}</div>
+                                            <div class="text-sm font-medium text-slate-900 truncate">{{ $document->title }}</div>
                                         </td>
                                         <td class="px-6 py-4">
                                             <div class="flex flex-col space-y-2">
                                                 <div class="flex items-center">
-                                                    <div class="flex-shrink-0 h-6 w-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                                                    <div class="flex-shrink-0 h-6 w-6 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm">
                                                         {{ $document->user?->first_name ? substr($document->user->first_name, 0, 1) : 'N' }}
                                                     </div>
-                                                    <div class="ml-2 text-sm text-gray-700 font-medium truncate">
+                                                    <div class="ml-2 text-sm text-slate-700 font-medium truncate">
                                                         {{ ($document->user?->first_name ?? 'Unknown') . ' ' . ($document->user?->last_name ?? 'User') }}
                                                     </div>
                                                 </div>
@@ -799,7 +799,7 @@
                                                 </div>
 
                                                 <!-- Recipients -->
-                                                <div class="flex items-center text-xs text-gray-500">
+                                                <div class="flex items-center text-xs text-slate-500">
                                                     <span class="font-medium mr-1">Recipients:</span>
                                                     @if (isset($documentRecipients[$document->id]) && count($documentRecipients[$document->id]) > 0)
                                                         <span class="truncate max-w-xs">
@@ -822,7 +822,7 @@
                                         </td>
                                         <td class="px-6 py-4">
                                             <div class="flex flex-col space-y-1.5">
-                                                <div class="text-xs text-gray-500 space-y-1">
+                                                <div class="text-xs text-slate-500 space-y-1">
                                                     <div>
                                                         <span class="font-medium">Created:</span>
                                                         {{ $document->created_at->format('M d, Y H:i') }}
@@ -843,8 +843,8 @@
                                 @empty
                                     <tr>
                                         <td colspan="6" class="px-6 py-4">
-                                            <div class="flex flex-col items-center justify-center py-12 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50/50 mx-4 my-6">
-                                                <svg class="h-12 w-12 text-gray-400 mb-4" xmlns="http://www.w3.org/2000/svg"
+                                            <div class="flex flex-col items-center justify-center py-12 border-2 border-dashed border-slate-200 rounded-lg bg-slate-50/50 mx-4 my-6">
+                                                <svg class="h-12 w-12 text-slate-400 mb-4" xmlns="http://www.w3.org/2000/svg"
                                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     @if($tab === 'archived')
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -855,11 +855,11 @@
                                                     @endif
                                                 </svg>
                                                 @if($tab === 'archived')
-                                                <p class="text-gray-900 font-medium text-lg mb-2">No archived documents</p>
-                                                <p class="text-gray-500 text-base">Documents that have been archived will appear here.</p>
+                                                <p class="text-slate-900 font-medium text-lg mb-2">No archived documents</p>
+                                                <p class="text-slate-500 text-base">Documents that have been archived will appear here.</p>
                                                 @else
-                                                <p class="text-gray-900 font-medium text-lg mb-2">No documents found</p>
-                                                <p class="text-gray-500 text-base">Try adjusting your search criteria or create a new document.</p>
+                                                <p class="text-slate-900 font-medium text-lg mb-2">No documents found</p>
+                                                <p class="text-slate-500 text-base">Try adjusting your search criteria or create a new document.</p>
                                                 @endif
                                             </div>
                                         </td>
@@ -872,7 +872,7 @@
 
 
                 <!-- Pagination for both tabs -->
-                <div class="p-6 border-t border-gray-200">
+                <div class="p-6 border-t border-slate-200">
                     {{ $documents->appends(request()->query())->links() }}
                 </div>
             </div>
@@ -925,8 +925,8 @@
                     label.textContent = opt.textContent.trim();
                     dropdown.classList.add('hidden');
                     // Highlight selected
-                    options.forEach(o => o.classList.remove('bg-blue-50', 'font-semibold'));
-                    opt.classList.add('bg-blue-50', 'font-semibold');
+                    options.forEach(o => o.classList.remove('bg-indigo-50', 'font-semibold'));
+                    opt.classList.add('bg-indigo-50', 'font-semibold');
                 });
             });
 
@@ -948,7 +948,7 @@
             if (hidden.value) {
                 options.forEach(opt => {
                     if (opt.dataset.value === hidden.value) {
-                        opt.classList.add('bg-blue-50', 'font-semibold');
+                        opt.classList.add('bg-indigo-50', 'font-semibold');
                     }
                 });
             }
@@ -968,8 +968,8 @@
             modal.innerHTML = `
                 <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900">Contact Reviewer</h3>
-                        <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-600">
+                        <h3 class="text-lg font-semibold text-slate-900">Contact Reviewer</h3>
+                        <button onclick="this.closest('.fixed').remove()" class="text-slate-400 hover:text-slate-600">
                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -977,24 +977,24 @@
                     </div>
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Reviewer</label>
-                            <p class="text-sm text-gray-900 bg-gray-50 rounded-lg p-2">${reviewerName}</p>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Reviewer</label>
+                            <p class="text-sm text-slate-900 bg-slate-50 rounded-lg p-2">${reviewerName}</p>
                         </div>
                         ${reviewerEmail ? `
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                            <p class="text-sm text-gray-900 bg-gray-50 rounded-lg p-2">${reviewerEmail}</p>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                            <p class="text-sm text-slate-900 bg-slate-50 rounded-lg p-2">${reviewerEmail}</p>
                         </div>
                         ` : ''}
                         <div class="flex space-x-3 pt-4">
                             ${reviewerEmail ? `
                             <a href="mailto:${reviewerEmail}"
-                               class="flex-1 bg-blue-600 text-white text-center py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                               class="flex-1 bg-indigo-600 text-white text-center py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">
                                 Send Email
                             </a>
                             ` : ''}
                             <button onclick="this.closest('.fixed').remove()"
-                                    class="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">
+                                    class="flex-1 bg-slate-200 text-slate-800 py-2 px-4 rounded-lg hover:bg-slate-300 transition-colors">
                                 Close
                             </button>
                         </div>
@@ -1584,7 +1584,7 @@
                 }, 10);
 
                 // Update button style
-                button.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600');
+                button.classList.add('bg-indigo-50', 'border-indigo-500', 'text-indigo-600');
                 imageIcon.classList.add('opacity-0');
                 closeIcon.classList.remove('opacity-0');
                 if (buttonText) buttonText.textContent = 'Close Image Search';
@@ -1600,7 +1600,7 @@
                 }, 300);
 
                 // Reset button style
-                button.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600');
+                button.classList.remove('bg-indigo-50', 'border-indigo-500', 'text-indigo-600');
                 imageIcon.classList.remove('opacity-0');
                 closeIcon.classList.add('opacity-0');
                 if (buttonText) buttonText.textContent = 'Image Search';
@@ -1634,13 +1634,13 @@
             badges.forEach(badge => {
                 const badgeStatus = badge.getAttribute('data-status');
                 if (badgeStatus === status || (status === 'all' && badgeStatus === null)) {
-                    badge.classList.add('bg-gray-50', 'ring-2', 'ring-offset-2');
+                    badge.classList.add('bg-slate-50', 'ring-2', 'ring-offset-2');
                     if (badgeStatus === 'approved') badge.classList.add('ring-emerald-500');
                     else if (badgeStatus === 'pending') badge.classList.add('ring-yellow-500');
                     else if (badgeStatus === 'rejected') badge.classList.add('ring-red-500');
-                    else badge.classList.add('ring-blue-500');
+                    else badge.classList.add('ring-indigo-500');
                 } else {
-                    badge.classList.remove('bg-gray-50', 'ring-2', 'ring-offset-2', 'ring-emerald-500', 'ring-yellow-500', 'ring-red-500', 'ring-blue-500');
+                    badge.classList.remove('bg-slate-50', 'ring-2', 'ring-offset-2', 'ring-emerald-500', 'ring-yellow-500', 'ring-red-500', 'ring-indigo-500');
                 }
             });
 
@@ -1661,7 +1661,7 @@
             // Initialize all status badges with interactive styles
             const statusBadges = document.querySelectorAll('[data-status]');
             statusBadges.forEach(badge => {
-                badge.classList.add('cursor-pointer', 'hover:bg-gray-50', 'transition-colors');
+                badge.classList.add('cursor-pointer', 'hover:bg-slate-50', 'transition-colors');
             });
         });
 
