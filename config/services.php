@@ -55,7 +55,7 @@ return [
     'gemini' => [
         'api_key'           => env('GEMINI_API_KEY'),
         'endpoint'          => 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent',
-        'max_output_tokens' => 2048,
+        'max_output_tokens' => 1024,
     ],
 
 ];

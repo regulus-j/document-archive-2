@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Services\DocumentAccessService;
+use App\Services\DocumentContentExtractorService;
+use App\Services\TextSummarizationService;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,15 +14,23 @@ use Illuminate\Support\Str;
 class ChatbotController extends Controller
 {
     protected DocumentAccessService $documentAccessService;
+    protected DocumentContentExtractorService $contentExtractor;
+    protected TextSummarizationService $summarizer;
     protected Client $httpClient;
 
-    const MAX_CONTENT_CHARS = 3000;
+    const MAX_CONTENT_CHARS = 1500;
+    const MAX_FILE_CONTENT_CHARS = 4000;
     const MAX_CONTEXT_DOCS  = 5;
-    const MAX_HISTORY_TURNS = 8;
+    const MAX_HISTORY_TURNS = 6;
 
-    public function __construct(DocumentAccessService $documentAccessService)
-    {
+    public function __construct(
+        DocumentAccessService $documentAccessService,
+        DocumentContentExtractorService $contentExtractor,
+        TextSummarizationService $summarizer
+    ) {
         $this->documentAccessService = $documentAccessService;
+        $this->contentExtractor = $contentExtractor;
+        $this->summarizer = $summarizer;
         $this->httpClient = new Client(['timeout' => 45.0]);
     }
 
@@ -30,14 +40,30 @@ class ChatbotController extends Controller
             'message'           => 'required|string|max:1000',
             'history'           => 'nullable|array|max:' . self::MAX_HISTORY_TURNS,
             'history.*.role'    => 'required|in:user,assistant',
-            'history.*.content' => 'required|string|max:2000',
+            'history.*.content' => 'required|string|max:3000',
         ]);
 
         $userMessage = trim($validated['message']);
         $history     = $validated['history'] ?? [];
 
+        // Truncate long history entries server-side to cap prompt size
+        $history = array_map(function ($turn) {
+            $turn['content'] = Str::limit($turn['content'], 1200);
+            return $turn;
+        }, $history);
+
         $intent = $this->detectIntent($userMessage);
 
+        // --- Handle summarize & read_content locally (NLP, no API call) ---
+        if ($intent === 'summarize') {
+            return $this->handleSummarizeLocally($userMessage);
+        }
+
+        if ($intent === 'read_content') {
+            return $this->handleReadContentLocally($userMessage);
+        }
+
+        // --- All other intents: build context → send to Gemini ---
         $contextBlock  = '';
         $documentLinks = [];
 
@@ -53,9 +79,6 @@ class ChatbotController extends Controller
                 break;
             case 'search':
                 [$contextBlock, $documentLinks] = $this->buildSearchContext($userMessage);
-                break;
-            case 'summarize':
-                [$contextBlock, $documentLinks] = $this->buildDocumentContext($userMessage, 'summarize');
                 break;
             case 'question':
                 [$contextBlock, $documentLinks] = $this->buildDocumentContext($userMessage, 'question');
@@ -80,6 +103,192 @@ class ChatbotController extends Controller
         return response()->json([
             'reply'     => $reply,
             'documents' => $documentLinks,
+        ]);
+    }
+
+    /* ----------------------------------------------------------------
+     *  LOCAL NLP HANDLERS (no API call)
+     * ---------------------------------------------------------------- */
+
+    /**
+     * Handle the "summarize" intent locally using extractive NLP summarization.
+     * No Gemini API call — runs entirely on-server.
+     */
+    private function handleSummarizeLocally(string $message): \Illuminate\Http\JsonResponse
+    {
+        $docId      = $this->extractDocumentId($message);
+        $searchTerm = $this->extractSearchTerm($message);
+
+        $query = $this->documentAccessService->getAccessibleDocuments()
+            ->with(['status', 'trackingNumber', 'categories', 'user', 'originatingOffice']);
+
+        if ($docId) {
+            $query->where('id', $docId);
+        } elseif ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('title', 'like', "%{$searchTerm}%")
+                  ->orWhere('description', 'like', "%{$searchTerm}%")
+                  ->orWhereHas('trackingNumber', function ($tq) use ($searchTerm) {
+                      $tq->where('tracking_number', 'like', "%{$searchTerm}%");
+                  });
+            });
+        } else {
+            return response()->json([
+                'reply'     => "Please specify which document to summarize by title, tracking number, or ID.\n\nFor example:\n- \"Summarize document #42\"\n- \"Summary of Budget Report\"\n- \"Summarize ZIE-DOC-XXXX\"",
+                'documents' => [],
+            ]);
+        }
+
+        $docs = $query->latest()->limit(1)->get();
+
+        if ($docs->isEmpty()) {
+            return response()->json([
+                'reply'     => 'No matching document found. Please verify the document title or ID.',
+                'documents' => [],
+            ]);
+        }
+
+        $doc = $docs->first();
+
+        // Extract content from file
+        $extraction = $this->contentExtractor->extract($doc);
+
+        if (empty($extraction['content'])) {
+            $errorMsg = $extraction['error'] ?? 'No text content could be extracted.';
+            return response()->json([
+                'reply'     => "**{$doc->title}** (ID: {$doc->id})\n\nI couldn't extract text content from this document. {$errorMsg}\n\nYou can view or download the file directly from the document detail page.",
+                'documents' => [[
+                    'id'    => $doc->id,
+                    'title' => $doc->title,
+                    'url'   => route('documents.show', $doc->id),
+                ]],
+            ]);
+        }
+
+        // Run NLP extractive summarization
+        $result = $this->summarizer->summarizeForChatbot($extraction['content'], $doc->title, 5);
+        $keyTerms = $this->summarizer->extractKeyTerms($extraction['content'], 6);
+
+        // Build formatted reply
+        $status   = $doc->status ? ucfirst($doc->status->status) : 'N/A';
+        $tracking = $doc->trackingNumber ? $doc->trackingNumber->tracking_number : 'N/A';
+        $uploader = $doc->user ? trim($doc->user->first_name . ' ' . $doc->user->last_name) : 'Unknown';
+        $cats     = $doc->categories->pluck('category')->implode(', ') ?: 'Uncategorized';
+
+        $reply = "**Summary of: {$doc->title}**\n";
+        $reply .= "Tracking #: **{$tracking}** | Status: **{$status}** | By: {$uploader}\n";
+        $reply .= "Category: {$cats} | Date: {$doc->created_at->format('M d, Y')}\n\n";
+
+        $reply .= $result['summary'];
+
+        if (!empty($keyTerms)) {
+            $reply .= "\n\n**Key terms:** " . implode(', ', $keyTerms);
+        }
+
+        $reply .= "\n\n*Compressed {$result['original_sentences']} sentences → {$result['sentence_count']} ({$result['compression_ratio']}% reduction)*";
+
+        return response()->json([
+            'reply'     => $reply,
+            'documents' => [[
+                'id'    => $doc->id,
+                'title' => $doc->title,
+                'url'   => route('documents.show', $doc->id),
+            ]],
+        ]);
+    }
+
+    /**
+     * Handle the "read_content" intent locally — returns extracted document
+     * content directly without calling the Gemini API.
+     */
+    private function handleReadContentLocally(string $message): \Illuminate\Http\JsonResponse
+    {
+        $docId      = $this->extractDocumentId($message);
+        $searchTerm = $this->extractSearchTerm($message);
+
+        $query = $this->documentAccessService->getAccessibleDocuments()
+            ->with(['status', 'trackingNumber', 'categories', 'user', 'attachments', 'originatingOffice']);
+
+        if ($docId) {
+            $query->where('id', $docId);
+        } elseif ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('title', 'like', "%{$searchTerm}%")
+                  ->orWhere('description', 'like', "%{$searchTerm}%")
+                  ->orWhereHas('trackingNumber', function ($tq) use ($searchTerm) {
+                      $tq->where('tracking_number', 'like', "%{$searchTerm}%");
+                  });
+            });
+        } else {
+            return response()->json([
+                'reply'     => "Please specify which document to read by title, tracking number, or ID.\n\nFor example:\n- \"Read document #42\"\n- \"Show content of Budget Report\"\n- \"Read ZIE-DOC-XXXX\"",
+                'documents' => [],
+            ]);
+        }
+
+        $docs = $query->latest()->limit(1)->get();
+
+        if ($docs->isEmpty()) {
+            return response()->json([
+                'reply'     => 'No matching document found. Please verify the document title or ID.',
+                'documents' => [],
+            ]);
+        }
+
+        $doc = $docs->first();
+
+        // Force file extraction for freshest content
+        $extraction = $this->contentExtractor->extract($doc, true);
+
+        if (empty($extraction['content']) && !empty($doc->content)) {
+            $extraction = [
+                'content' => $doc->content,
+                'source'  => 'database',
+                'error'   => null,
+            ];
+        }
+
+        // Build document header
+        $status   = $doc->status ? ucfirst($doc->status->status) : 'N/A';
+        $tracking = $doc->trackingNumber ? $doc->trackingNumber->tracking_number : 'N/A';
+        $uploader = $doc->user ? trim($doc->user->first_name . ' ' . $doc->user->last_name) : 'Unknown';
+        $cats     = $doc->categories->pluck('category')->implode(', ') ?: 'Uncategorized';
+        $office   = $doc->originatingOffice ? $doc->originatingOffice->name : 'N/A';
+        $fileExt  = strtolower(pathinfo($doc->path ?? '', PATHINFO_EXTENSION));
+
+        $reply = "**{$doc->title}** (ID: {$doc->id})\n";
+        $reply .= "Tracking #: **{$tracking}** | Status: **{$status}**\n";
+        $reply .= "By: {$uploader} | Office: {$office}\n";
+        $reply .= "Category: {$cats} | Type: .{$fileExt} | Date: {$doc->created_at->format('M d, Y')}\n";
+
+        if ($doc->description) {
+            $reply .= "Description: " . Str::limit($doc->description, 200) . "\n";
+        }
+
+        if (!empty($extraction['content'])) {
+            $contentText = Str::limit($extraction['content'], self::MAX_FILE_CONTENT_CHARS);
+            $reply .= "\n**Document Content:**\n{$contentText}";
+        } else {
+            $errorMsg = $extraction['error'] ?? 'No text content could be extracted.';
+            $reply .= "\n*Content not available: {$errorMsg}*\n";
+            $reply .= "You can download or preview the file directly from the document detail page.";
+        }
+
+        // Include attachment info (names only, not full content)
+        if ($doc->attachments && $doc->attachments->count() > 0) {
+            $reply .= "\n\n**Attachments ({$doc->attachments->count()}):**";
+            foreach ($doc->attachments->take(5) as $att) {
+                $reply .= "\n- {$att->filename}";
+            }
+        }
+
+        return response()->json([
+            'reply'     => $reply,
+            'documents' => [[
+                'id'    => $doc->id,
+                'title' => $doc->title,
+                'url'   => route('documents.show', $doc->id),
+            ]],
         ]);
     }
 
@@ -118,6 +327,18 @@ class ChatbotController extends Controller
                              'who has', 'forwarded to', 'sent to', 'progress of'];
         foreach ($workflowKeywords as $kw) {
             if (str_contains($lower, $kw)) return 'workflow';
+        }
+
+        // Read actual document content
+        $readContentKeywords = ['read document', 'read the document', 'read content', 'read the content',
+                                'show content', 'show the content', 'show me the content',
+                                'open document', 'open the document', 'view content', 'view the content',
+                                'full content', 'full text', 'document text', 'file content',
+                                'what does it say', 'what does the document say', 'read file',
+                                'extract content', 'extract text', 'get content', 'get the content',
+                                'read doc', 'read the doc', 'actual content', 'document content'];
+        foreach ($readContentKeywords as $kw) {
+            if (str_contains($lower, $kw)) return 'read_content';
         }
 
         // Summarize
@@ -168,7 +389,10 @@ class ChatbotController extends Controller
             ->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'like', "%{$searchTerm}%")
                   ->orWhere('description', 'like', "%{$searchTerm}%")
-                  ->orWhere('content', 'like', "%{$searchTerm}%");
+                  ->orWhere('content', 'like', "%{$searchTerm}%")
+                  ->orWhereHas('trackingNumber', function ($tq) use ($searchTerm) {
+                      $tq->where('tracking_number', 'like', "%{$searchTerm}%");
+                  });
             })
             ->latest()
             ->limit(10)
@@ -214,25 +438,30 @@ class ChatbotController extends Controller
         } elseif ($searchTerm) {
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'like', "%{$searchTerm}%")
-                  ->orWhere('description', 'like', "%{$searchTerm}%");
+                  ->orWhere('description', 'like', "%{$searchTerm}%")
+                  ->orWhereHas('trackingNumber', function ($tq) use ($searchTerm) {
+                      $tq->where('tracking_number', 'like', "%{$searchTerm}%");
+                  });
             });
         } else {
-            return ['Please specify which document you are asking about by title or ID.', []];
+            return ['Please specify which document you are asking about by title, tracking number, or ID.', []];
         }
 
         $docs = $query->latest()->limit(self::MAX_CONTEXT_DOCS)->get();
 
         if ($docs->isEmpty()) {
-            return ['No matching document found. Please verify the document title or ID.', []];
+            return ['No matching document found. Please verify the document title, tracking number, or ID.', []];
         }
 
         $contextLines = [];
         $links        = [];
 
         foreach ($docs as $doc) {
-            $contentSnippet = $doc->content
-                ? Str::limit($doc->content, self::MAX_CONTENT_CHARS)
-                : '[Content not extracted — the file must be opened directly.]';
+            // Use the content extractor service to get actual document content
+            $extraction = $this->contentExtractor->extract($doc);
+            $contentSnippet = !empty($extraction['content'])
+                ? Str::limit($extraction['content'], self::MAX_CONTENT_CHARS)
+                : ($extraction['error'] ?? '[Content not available — the file must be opened directly.]');
 
             $status   = $doc->status ? ucfirst($doc->status->status) : 'N/A';
             $tracking = $doc->trackingNumber ? $doc->trackingNumber->tracking_number : 'N/A';
@@ -498,6 +727,109 @@ class ChatbotController extends Controller
         return [implode("\n", $contextLines), $links];
     }
 
+    /**
+     * Build context for the "read_content" intent — reads the actual file content
+     * from disk and provides it in full to the AI for answering user questions.
+     */
+    private function buildReadContentContext(string $message): array
+    {
+        $docId      = $this->extractDocumentId($message);
+        $searchTerm = $this->extractSearchTerm($message);
+
+        $query = $this->documentAccessService->getAccessibleDocuments()
+            ->with(['status', 'trackingNumber', 'categories', 'user', 'attachments', 'originatingOffice']);
+
+        if ($docId) {
+            $query->where('id', $docId);
+        } elseif ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('title', 'like', "%{$searchTerm}%")
+                  ->orWhere('description', 'like', "%{$searchTerm}%");
+            });
+        } else {
+            return ['Please specify which document you want me to read by title or ID. For example: "Read document #123" or "Read content of Budget Report".', []];
+        }
+
+        // For read_content, limit to 1 document to allow deeper content
+        $docs = $query->latest()->limit(1)->get();
+
+        if ($docs->isEmpty()) {
+            return ['No matching document found. Please verify the document title or ID.', []];
+        }
+
+        $contextLines = [];
+        $links        = [];
+
+        foreach ($docs as $doc) {
+            // Force reading from file to get the most complete content
+            $extraction = $this->contentExtractor->extract($doc, true);
+
+            // If file extraction failed, fall back to DB content
+            if (empty($extraction['content']) && !empty($doc->content)) {
+                $extraction = [
+                    'content' => $doc->content,
+                    'source'  => 'database',
+                    'error'   => null,
+                ];
+            }
+
+            $status   = $doc->status ? ucfirst($doc->status->status) : 'N/A';
+            $tracking = $doc->trackingNumber ? $doc->trackingNumber->tracking_number : 'N/A';
+            $uploader = $doc->user ? trim($doc->user->first_name . ' ' . $doc->user->last_name) : 'Unknown';
+            $cats     = $doc->categories->pluck('category')->implode(', ') ?: 'Uncategorized';
+            $office   = $doc->originatingOffice ? $doc->originatingOffice->name : 'N/A';
+            $fileExt  = strtolower(pathinfo($doc->path ?? '', PATHINFO_EXTENSION));
+
+            $contextLines[] = "=== Document: {$doc->title} (ID: {$doc->id}) ===";
+            $contextLines[] = "Tracking #: {$tracking}";
+            $contextLines[] = "Status: {$status}";
+            $contextLines[] = "Uploaded by: {$uploader}";
+            $contextLines[] = "From office: {$office}";
+            $contextLines[] = "Category: {$cats}";
+            $contextLines[] = "File type: .{$fileExt}";
+            $contextLines[] = "Created: {$doc->created_at->format('M d, Y h:i A')}";
+            $contextLines[] = 'Description: ' . ($doc->description ?? 'None');
+            $contextLines[] = "Content source: {$extraction['source']}";
+
+            if (!empty($extraction['content'])) {
+                $contentText = Str::limit($extraction['content'], self::MAX_FILE_CONTENT_CHARS);
+                $contextLines[] = "\n--- DOCUMENT CONTENT (extracted from {$extraction['source']}) ---\n{$contentText}\n--- END OF DOCUMENT CONTENT ---";
+            } else {
+                $errorMsg = $extraction['error'] ?? 'No content could be extracted.';
+                $contextLines[] = "\n[Content not available: {$errorMsg}]";
+                $contextLines[] = "Suggest the user download or preview the file directly from the document detail page.";
+            }
+
+            // Also extract attachment content if any
+            if ($doc->attachments && $doc->attachments->count() > 0) {
+                $attachmentResults = $this->contentExtractor->extractAttachments($doc, 2);
+                if (!empty($attachmentResults)) {
+                    $contextLines[] = "\n--- ATTACHMENT CONTENT ---";
+                    foreach ($attachmentResults as $att) {
+                        $contextLines[] = "Attachment: {$att['filename']}";
+                        if (!empty($att['content'])) {
+                            $contextLines[] = Str::limit($att['content'], 1000);
+                        } else {
+                            $contextLines[] = "[{$att['error']}]";
+                        }
+                        $contextLines[] = '';
+                    }
+                    $contextLines[] = "--- END OF ATTACHMENTS ---";
+                }
+            }
+
+            $contextLines[] = '';
+
+            $links[] = [
+                'id'    => $doc->id,
+                'title' => $doc->title,
+                'url'   => route('documents.show', $doc->id),
+            ];
+        }
+
+        return [implode("\n", $contextLines), $links];
+    }
+
     /* ----------------------------------------------------------------
      *  PROMPT BUILDER
      * ---------------------------------------------------------------- */
@@ -537,7 +869,8 @@ Your capabilities:
 5. **Provide statistics** — document counts, activity breakdowns, top categories.
 6. **Show recent activity** — latest documents uploaded or received.
 7. **Track document workflow** — show who has a document, what step it's on, and its progress.
-8. **Guide users** on how to use DocTrack features based on the accurate instructions below.
+8. **Read actual document content** — extract and display the full text content from document files (PDF, DOCX, TXT, RTF, CSV, ODT). Users can ask you to "read document #123" or "show content of Budget Report" and you will retrieve the actual file content.
+9. **Guide users** on how to use DocTrack features based on the accurate instructions below.
 
 === ACCURATE NAVIGATION STRUCTURE ===
 
@@ -630,19 +963,22 @@ Click your **profile avatar** → **"Profile"** to update your name, email, or p
 
 === RESPONSE GUIDELINES ===
 - Only discuss documents the current user has access to. NEVER invent document content.
-- If document content isn't extracted (e.g. Excel, scanned images), tell the user the file must be downloaded or previewed directly.
+- When document content has been extracted and provided in the "Retrieved Data" section, use it to answer the user's questions accurately. Present the content in a well-organized manner.
+- If document content isn't extracted (e.g. Excel, scanned images, or secured PDFs), tell the user the file must be downloaded or previewed directly from the document detail page.
+- When the user asks to "read" a document, present the extracted text content clearly. If the content is long, provide a structured overview with key sections highlighted.
 - Be concise and friendly. Use bullet points and numbered lists where helpful.
 - Use **bold** for important items like document titles, statuses, and due dates.
 - When showing document lists, include tracking numbers and status when available.
 - For pending documents, highlight urgency and due dates to help the user prioritize.
 - Always refer to exact menu names as documented above (e.g. say "Actions → Pending" not "Documents list → Pending").
 - If a question is outside your knowledge, say so clearly rather than guessing.
-- Suggest follow-up actions when appropriate (e.g. "Would you like me to summarize any of these?").
+- Suggest follow-up actions when appropriate (e.g. "Would you like me to read or summarize any of these?").
 SYSTEM;
 
         $historyBlock = '';
         if (!empty($history)) {
-            $recentHistory = array_slice($history, -self::MAX_HISTORY_TURNS);
+            // Only keep the most recent turns to limit prompt size
+            $recentHistory = array_slice($history, -4);
             foreach ($recentHistory as $turn) {
                 $roleLabel     = $turn['role'] === 'user' ? 'User' : 'DocBot';
                 $historyBlock .= "{$roleLabel}: {$turn['content']}\n";

@@ -391,18 +391,6 @@
                             {{ $document->status?->status ?? "N/A" }}
                         </p>
                     </div>
-                    <!-- Remarks Card -->
-                    <div class="bg-rose-50/60 p-4 rounded-lg border border-rose-200/60 transition-all duration-300 hover:border-rose-300/80">
-                        <div class="flex items-center mb-1">
-                            <svg class="h-4 w-4 text-rose-500 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                            </svg>
-                            <p class="text-sm font-medium text-rose-900">Remarks</p>
-                        </div>
-                        <p class="text-base font-medium text-rose-700">
-                            {{ $document->remarks ?? 'N/A' }}
-                        </p>
-                    </div>
                     <!-- Attachments Card -->
                     <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
                         <p class="text-sm font-medium text-slate-500 mb-2">Attachments</p>

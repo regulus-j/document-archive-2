@@ -85,6 +85,10 @@
                                 class="text-xs bg-green-50 text-green-700 border border-green-200 rounded-full px-3 py-1 hover:bg-green-100 transition-colors">
                             My stats
                         </button>
+                        <button @click="sendSuggestion('Read document content')"
+                                class="text-xs bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-3 py-1 hover:bg-amber-100 transition-colors">
+                            Read doc content
+                        </button>
                         <button @click="sendSuggestion('How do I forward a document?')"
                                 class="text-xs bg-purple-50 text-purple-700 border border-purple-200 rounded-full px-3 py-1 hover:bg-purple-100 transition-colors">
                             How to forward?
@@ -313,10 +317,12 @@ function chatbotWidget() {
             this.$nextTick(() => this.scrollToBottom());
 
             // Last N turns for context (exclude the message we just added)
+            // Truncate each history turn to reduce request payload size
+            const MAX_HISTORY_CHARS = 1500;
             const history = this.messages
                 .slice(0, -1)
-                .slice(-6)
-                .map(m => ({ role: m.role, content: m.content }));
+                .slice(-4)
+                .map(m => ({ role: m.role, content: m.content.substring(0, MAX_HISTORY_CHARS) }));
 
             try {
                 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');

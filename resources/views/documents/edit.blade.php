@@ -211,14 +211,6 @@
                         </div>
                     </div>
 
-                    <!-- Remarks -->
-                    <div class="mt-6">
-                        <label for="remarks" class="block text-sm font-medium text-slate-700 mb-1">Remarks</label>
-                        <textarea name="remarks" id="remarks" rows="3"
-                            class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                            placeholder="Enter any additional remarks (optional)"
-                            maxlength="250">{{ old('remarks', $document->remarks) }}</textarea>
-                    </div>
                 </div>
 
                     <!-- Document Upload Section -->
