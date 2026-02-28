@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div class="min-h-screen py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <!-- Header Box -->
-        <div class="max-w-7xl mx-auto bg-white rounded-xl mb-6 border border-indigo-200/80 overflow-hidden">
-            <div class="bg-white p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="bg-white rounded-lg shadow-card border border-slate-200/80 overflow-hidden">
+            <div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div class="flex items-center space-x-3">
-                    <div class="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg shadow-md">
+                    <div class="p-3 bg-indigo-600 rounded-lg">
                         <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -22,7 +22,7 @@
                 <div>
                     @can('document-create')
                         <a href="{{ route('documents.create') }}"
-                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-md text-white bg-gradient-to-r from-indigo-600 to-indigo-600 hover:from-indigo-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                             <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -111,10 +111,10 @@
         @endif
 
         <!-- Main Content -->
-        <div class="max-w-7xl mx-auto space-y-8">
+        <div class="space-y-6">
             <!-- Search Panel -->
-            <div class=" rounded-xl border-indigo-200/80 transition-all duration-300 hover:border-indigo-300/80 hover:shadow-sm">
-                <div class="bg-white p-6 border-b border-indigo-200/60">
+            <div class="rounded-lg">
+                <div class="bg-white rounded-lg shadow-card border border-slate-200/80 p-6">
                     {{-- <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -253,7 +253,7 @@
                             <!-- Search Button -->
                             <div class="mt-3">
                                 <button type="submit" id="submit-button"
-                                    class="w-full inline-flex justify-center items-center px-4 py-2.5 border border-transparent text-sm font-medium rounded-lg shadow-md text-white bg-gradient-to-r from-indigo-600 to-indigo-600 hover:from-indigo-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                                    class="w-full inline-flex justify-center items-center px-4 py-2.5 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                                     <span id="spinner" class="hidden mr-2">
                                         <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg"
                                             fill="none" viewBox="0 0 24 24">
@@ -273,8 +273,8 @@
             </div>
 
             <!-- Filters Bar -->
-            <div class="bg-white rounded-xl border border-indigo-200/80 overflow-visible mt-3">
-                <div class="px-6 py-4 border-b border-indigo-200/60 flex items-center justify-between cursor-pointer select-none" id="filterToggleHeader" onclick="toggleFilterPanel()">
+            <div class="bg-white rounded-lg shadow-card border border-slate-200/80 overflow-visible">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between cursor-pointer select-none" id="filterToggleHeader" onclick="toggleFilterPanel()">
                     <div class="flex items-center space-x-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -412,7 +412,7 @@
 
                         <div class="flex items-center gap-3 pt-2">
                             <button type="submit"
-                                class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-indigo-600 hover:from-indigo-700 hover:to-indigo-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                                class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                                 </svg>
@@ -431,10 +431,10 @@
             </div>
 
             <!-- Document List -->
-            <div class="bg-white rounded-xl overflow-visible border border-indigo-200/80 transition-all duration-300 hover:border-indigo-300/80 mt-3">
+            <div class="bg-white rounded-lg shadow-card border border-slate-200/80 overflow-visible">
 
                     <!-- Tab Bar: My Documents / All Documents / Archived -->
-                    <div class="flex border-b border-indigo-200 bg-white rounded-t-xl overflow-hidden">
+                    <div class="flex border-b border-slate-200 bg-white rounded-t-lg overflow-hidden">
                         <!-- My Documents Tab -->
                         <a href="{{ route('documents.index', array_merge(request()->except('tab', 'page'), ['tab' => 'my'])) }}"
                            class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm transition-colors
@@ -457,7 +457,7 @@
                         <a href="{{ route('documents.index', array_merge(request()->except('tab', 'page'), ['tab' => 'all'])) }}"
                            class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm transition-colors relative group
                                   {{ ($tab ?? 'all') === 'all'
-                                     ? 'border-green-500 text-green-600 bg-green-50/50'
+                                     ? 'border-indigo-500 text-indigo-600 bg-indigo-50/50'
                                      : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">
                             <div class="flex items-center justify-center gap-2">
                                 <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -465,7 +465,7 @@
                                 </svg>
                                 All Documents
                                 <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full
-                                             {{ ($tab ?? 'all') === 'all' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600' }}">
+                                             {{ ($tab ?? 'all') === 'all' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600' }}">
                                     {{ $allDocCount }}
                                 </span>
                                 <!-- Info Icon -->
@@ -521,7 +521,7 @@
                     </div>
 
                     <!-- Tabbed Navigation -->
-                    <div class="bg-white border-b border-indigo-200">
+                    <div class="bg-white border-b border-slate-200">
                         <div class="p-6 pb-0">
                             @if($tab === 'archived')
                             {{-- Simplified header for Archived tab --}}
@@ -568,7 +568,7 @@
 
                             @if($tab !== 'archived')
                                     <!-- Unified Document Counter -->
-                            <div class="flex flex-wrap items-center gap-2 mb-3">
+                            <div class="flex flex-wrap items-center gap-2 px-6 py-4">
                                 <!-- Total Documents -->
                                 @php
                                     // Get total count using DocumentAccessService
@@ -632,27 +632,12 @@
                                     <!-- Status Filter Dropdown -->
                                     <div x-data="{ open: false }" class="relative inline-flex items-center filter-group">
                                         <div>
-                                            <button @click="open = !open" type="button" class="inline-flex justify-between items-center min-w-[140px] px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:border-slate-300 hover:text-slate-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-slate-200">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <button @click="open = !open" type="button" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:border-slate-300 hover:text-slate-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-slate-200">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                                                 </svg>
                                                 <span>Status</span>
-                                                <svg class="w-4 h-4 ml-2 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                                </svg>
-                                            </button>
-                                        </div>
-
-                                    @role('company-admin')
-                                    <!-- Office/Team Filter Dropdown -->
-                                    <div x-data="{ open: false }" class="relative inline-flex items-center filter-group">
-                                        <div>
-                                            <button @click="open = !open" type="button" class="inline-flex justify-between items-center min-w-[180px] px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:border-slate-300 hover:text-slate-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-slate-200">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                                </svg>
-                                                <span class="truncate">{{ $selectedOfficeId === 'all' ? 'All Offices' : ($offices->where('id', $selectedOfficeId)->first()?->name ?? 'All Offices') }}</span>
-                                                <svg class="w-4 h-4 ml-2 text-slate-400 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <svg class="w-4 h-4 ml-1.5 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                                 </svg>
                                             </button>
@@ -666,7 +651,52 @@
                                             x-transition:leave="transition ease-in duration-75"
                                             x-transition:leave-start="transform opacity-100 scale-100"
                                             x-transition:leave-end="transform opacity-0 scale-95"
-                                            class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-slate-100 focus:outline-none z-50"
+                                            class="absolute right-0 top-full mt-1 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-slate-100 focus:outline-none z-50"
+                                        >
+                                            <div class="py-1">
+                                                @foreach($documentCounts as $status => $count)
+                                                    <button
+                                                        onclick="filterDocumentsByStatus('{{ $status }}')"
+                                                        class="group flex items-center w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                                                        data-status="{{ $status }}"
+                                                    >
+                                                        <svg class="h-4 w-4 {{ $statusColors[$status]['text'] }} mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="{{ $statusIcons[$status] }}" />
+                                                        </svg>
+                                                        <span class="flex-1 text-left">{{ ucfirst($status) }}</span>
+                                                        <span class="inline-flex items-center justify-center px-2 py-0.5 ml-2 text-xs font-medium rounded-full bg-{{ explode('-', $statusColors[$status]['bg'])[1] }}-100 {{ $statusColors[$status]['text'] }}">
+                                                            {{ $count }}
+                                                        </span>
+                                                    </button>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @role('company-admin')
+                                    <!-- Office/Team Filter Dropdown -->
+                                    <div x-data="{ open: false }" class="relative inline-flex items-center filter-group">
+                                        <div>
+                                            <button @click="open = !open" type="button" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:border-slate-300 hover:text-slate-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-slate-200">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                </svg>
+                                                <span class="truncate max-w-[120px]">{{ $selectedOfficeId === 'all' ? 'All Offices' : ($offices->where('id', $selectedOfficeId)->first()?->name ?? 'All Offices') }}</span>
+                                                <svg class="w-4 h-4 ml-1.5 text-slate-400 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        </div>
+
+                                        <div x-show="open"
+                                            @click.away="open = false"
+                                            x-transition:enter="transition ease-out duration-100"
+                                            x-transition:enter-start="transform opacity-0 scale-95"
+                                            x-transition:enter-end="transform opacity-100 scale-100"
+                                            x-transition:leave="transition ease-in duration-75"
+                                            x-transition:leave-start="transform opacity-100 scale-100"
+                                            x-transition:leave-end="transform opacity-0 scale-95"
+                                            class="absolute right-0 top-full mt-1 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-slate-100 focus:outline-none z-50"
                                         >
                                             <div class="py-1">
                                                 <a href="{{ route('documents.index', array_merge(request()->except('office_id', 'page'), ['office_id' => 'all'])) }}"
@@ -689,35 +719,6 @@
                                         </div>
                                     </div>
                                     @endrole
-
-                                    <div x-show="open"
-                                        @click.away="open = false"
-                                        x-transition:enter="transition ease-out duration-100"
-                                        x-transition:enter-start="transform opacity-0 scale-95"
-                                        x-transition:enter-end="transform opacity-100 scale-100"
-                                        x-transition:leave="transition ease-in duration-75"
-                                        x-transition:leave-start="transform opacity-100 scale-100"
-                                        x-transition:leave-end="transform opacity-0 scale-95"
-                                        class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-slate-100 focus:outline-none z-50"
-                                    >
-                                        <div class="py-1">
-                                            @foreach($documentCounts as $status => $count)
-                                                <button
-                                                    onclick="filterDocumentsByStatus('{{ $status }}')"
-                                                    class="group flex items-center w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-                                                    data-status="{{ $status }}"
-                                                >
-                                                    <svg class="h-4 w-4 {{ $statusColors[$status]['text'] }} mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="{{ $statusIcons[$status] }}" />
-                                                    </svg>
-                                                    <span class="flex-1 text-left">{{ ucfirst($status) }}</span>
-                                                    <span class="inline-flex items-center justify-center px-2 py-0.5 ml-2 text-xs font-medium rounded-full bg-{{ explode('-', $statusColors[$status]['bg'])[1] }}-100 {{ $statusColors[$status]['text'] }}">
-                                                        {{ $count }}
-                                                    </span>
-                                                </button>
-                                            @endforeach
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         @endif {{-- end non-archived status filters --}}
@@ -729,15 +730,15 @@
                         <table class="min-w-full divide-y divide-slate-200">
                             <thead>
                                 <tr>
-                                    <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200 w-12">#</th>
-                                    <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Title</th>
-                                    <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Uploader</th>
-                                    <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">{{ $tab === 'archived' ? 'Archived' : 'Status & Workflow' }}</th>
-                                    <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Tracking</th>
-                                    <th class="bg-white px-6 py-3 text-center text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200 w-24">Actions</th>
+                                    <th class="bg-slate-50 px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100 w-12">#</th>
+                                    <th class="bg-slate-50 px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">Title</th>
+                                    <th class="bg-slate-50 px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">Uploader</th>
+                                    <th class="bg-slate-50 px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">{{ $tab === 'archived' ? 'Archived' : 'Status & Workflow' }}</th>
+                                    <th class="bg-slate-50 px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">Tracking</th>
+                                    <th class="bg-slate-50 px-6 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100 w-24">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-slate-200">
+                            <tbody class="bg-white divide-y divide-slate-100">
                                 @php
                                     $counter = ($documents->currentPage() - 1) * $documents->perPage() + 1;
                                 @endphp
@@ -767,15 +768,15 @@
                                             ->latest()
                                             ->first() : null;
                                     @endphp
-                                    <tr class="hover:bg-slate-50 transition-colors">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-500">{{ $counter++ }}</td>
-                                        <td class="px-6 py-4">
-                                            <div class="text-sm font-medium text-slate-900 truncate">{{ $document->title }}</div>
+                                    <tr class="hover:bg-slate-50/60 transition-colors">
+                                        <td class="px-6 py-3.5 whitespace-nowrap text-sm text-slate-400 font-medium">{{ $counter++ }}</td>
+                                        <td class="px-6 py-3.5">
+                                            <div class="text-sm font-medium text-slate-900 truncate max-w-[220px]">{{ $document->title }}</div>
                                         </td>
-                                        <td class="px-6 py-4">
-                                            <div class="flex flex-col space-y-2">
+                                        <td class="px-6 py-3.5">
+                                            <div class="flex flex-col space-y-1.5">
                                                 <div class="flex items-center">
-                                                    <div class="flex-shrink-0 h-6 w-6 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                                                    <div class="flex-shrink-0 h-6 w-6 bg-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
                                                         {{ $document->user?->first_name ? substr($document->user->first_name, 0, 1) : 'N' }}
                                                     </div>
                                                     <div class="ml-2 text-sm text-slate-700 font-medium truncate">
@@ -789,11 +790,11 @@
                                                 @endif
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4">
-                                            <div class="flex flex-col space-y-2">
+                                        <td class="px-6 py-3.5">
+                                            <div class="flex flex-col space-y-1.5">
                                                 <!-- Status Badge -->
-                                                <div class="flex items-center space-x-2">
-                                                    <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-{{ $statusColor }}-100 text-{{ $statusColor }}-800">
+                                                <div class="flex items-center">
+                                                    <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-{{ $statusColor }}-50 text-{{ $statusColor }}-700 ring-1 ring-inset ring-{{ $statusColor }}-600/20">
                                                         {{ $document->status?->status ?? 'N/A' }}
                                                     </span>
                                                 </div>
@@ -820,21 +821,21 @@
                                                 @endif
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4">
-                                            <div class="flex flex-col space-y-1.5">
-                                                <div class="text-xs text-slate-500 space-y-1">
+                                        <td class="px-6 py-3.5">
+                                            <div class="flex flex-col space-y-1">
+                                                <div class="text-xs text-slate-500 space-y-0.5">
                                                     <div>
-                                                        <span class="font-medium">Created:</span>
+                                                        <span class="font-medium text-slate-600">Created:</span>
                                                         {{ $document->created_at->format('M d, Y H:i') }}
                                                     </div>
                                                     <div>
-                                                        <span class="font-medium">Updated:</span>
+                                                        <span class="font-medium text-slate-600">Updated:</span>
                                                         {{ $document->updated_at->format('M d, Y H:i') }}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 text-center">
+                                        <td class="px-6 py-3.5 text-center">
                                             <div class="flex justify-center space-x-2">
                                                 @include('documents.partials.document-actions', ['document' => $document])
                                             </div>
@@ -843,7 +844,7 @@
                                 @empty
                                     <tr>
                                         <td colspan="6" class="px-6 py-4">
-                                            <div class="flex flex-col items-center justify-center py-12 border-2 border-dashed border-slate-200 rounded-lg bg-slate-50/50 mx-4 my-6">
+                                            <div class="flex flex-col items-center justify-center py-12 border-2 border-dashed border-slate-200 rounded-lg bg-slate-50/50 mx-4 my-4">
                                                 <svg class="h-12 w-12 text-slate-400 mb-4" xmlns="http://www.w3.org/2000/svg"
                                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     @if($tab === 'archived')
@@ -872,7 +873,7 @@
 
 
                 <!-- Pagination for both tabs -->
-                <div class="p-6 border-t border-slate-200">
+                <div class="p-6 border-t border-slate-100">
                     {{ $documents->appends(request()->query())->links() }}
                 </div>
             </div>

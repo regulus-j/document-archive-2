@@ -208,7 +208,7 @@
                          x-transition:leave-end="opacity-0 scale-95"
                          class="absolute right-0 mt-2 z-50 origin-top-right overflow-hidden"
                          @mouseenter="open = true" @mouseleave="open = false"
-                         style="width: 600px;">
+                         style="width: 420px;">
                         @include('components.notification-modal', [
                             'notifications' => App\Models\Notifications::where('user_id', auth()->id())
                                 ->orderBy('created_at', 'desc')->take(20)->get()

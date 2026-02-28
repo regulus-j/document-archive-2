@@ -368,8 +368,8 @@ class ChatbotController extends Controller
 
         // Top categories
         $topCategories = (clone $baseQuery)
-            ->join('document_category', 'documents.id', '=', 'document_category.document_id')
-            ->join('document_categories', 'document_category.document_category_id', '=', 'document_categories.id')
+            ->join('document_category', 'documents.id', '=', 'document_category.doc_id')
+            ->join('document_categories', 'document_category.category_id', '=', 'document_categories.id')
             ->selectRaw('document_categories.category, count(*) as cnt')
             ->groupBy('document_categories.category')
             ->orderByDesc('cnt')

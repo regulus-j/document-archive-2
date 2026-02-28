@@ -1,37 +1,74 @@
-<div class="p-0 min-h-[250px] max-h-[500px] overflow-y-auto overflow-x-hidden min-w-[600px] bg-white shadow-lg rounded-lg border border-slate-200">
-    <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50">
-        <h5 class="font-semibold text-xl text-slate-800 m-0">Notifications</h5>
-        <a href="{{ route('notifications.index') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
-            View All
+@php
+    // Map notification types to icon + color
+    $iconMap = [
+        'document_forwarded'     => ['icon' => 'M13 7l5 5m0 0l-5 5m5-5H6',                                                     'bg' => 'bg-indigo-100', 'text' => 'text-indigo-600'],
+        'document_next_step'     => ['icon' => 'M13 7l5 5m0 0l-5 5m5-5H6',                                                     'bg' => 'bg-indigo-100', 'text' => 'text-indigo-600'],
+        'document_referred'      => ['icon' => 'M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6',                                     'bg' => 'bg-amber-100',  'text' => 'text-amber-600'],
+        'document_recall'        => ['icon' => 'M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6',                                     'bg' => 'bg-red-100',    'text' => 'text-red-600'],
+        'document_updated'       => ['icon' => 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z', 'bg' => 'bg-sky-100', 'text' => 'text-sky-600'],
+        'document_updated_for_rereceipt' => ['icon' => 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15', 'bg' => 'bg-sky-100', 'text' => 'text-sky-600'],
+        'document_resumed'       => ['icon' => 'M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z', 'bg' => 'bg-emerald-100', 'text' => 'text-emerald-600'],
+        'workflow_comment'       => ['icon' => 'M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z', 'bg' => 'bg-slate-100', 'text' => 'text-slate-600'],
+        'workflow_acknowledged'  => ['icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',                                'bg' => 'bg-emerald-100', 'text' => 'text-emerald-600'],
+        'sub_workflow_completed' => ['icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',                                'bg' => 'bg-emerald-100', 'text' => 'text-emerald-600'],
+        'document_sequential_next'     => ['icon' => 'M9 5l7 7-7 7',                                                            'bg' => 'bg-indigo-100', 'text' => 'text-indigo-600'],
+        'document_sequential_progress' => ['icon' => 'M9 5l7 7-7 7',                                                            'bg' => 'bg-indigo-100', 'text' => 'text-indigo-600'],
+    ];
+    $defaultIcon = ['icon' => 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9', 'bg' => 'bg-slate-100', 'text' => 'text-slate-500'];
+@endphp
+
+<div class="min-w-[420px] max-w-[420px] bg-white shadow-card rounded-lg border border-slate-200/80">
+    {{-- Header --}}
+    <div class="px-4 py-3 border-b border-slate-200/80 flex items-center justify-between">
+        <h5 class="text-sm font-semibold text-slate-800 m-0">Notifications</h5>
+        <a href="{{ route('notifications.index') }}" class="text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
+            View All &rarr;
         </a>
     </div>
-    <ul class="divide-y divide-slate-100 overflow-y-auto">
+
+    {{-- Notification list --}}
+    <ul class="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">
         @forelse($notifications as $notification)
-            <li class="flex justify-between items-start {{ $notification->read_at ? 'bg-slate-50' : 'bg-blue-50' }} p-4 hover:bg-slate-100 transition-colors duration-150">
-                <div class="flex-1 pr-4">
-                    <div class="font-semibold text-lg text-slate-900 mb-2">
+            @php $nIcon = $iconMap[$notification->type] ?? $defaultIcon; @endphp
+            <li class="flex items-start gap-3 px-4 py-3 {{ $notification->read_at ? '' : 'bg-indigo-50/40' }} hover:bg-slate-50 transition-colors duration-150">
+                {{-- Type icon --}}
+                <span class="flex-shrink-0 mt-0.5 w-8 h-8 rounded-lg {{ $nIcon['bg'] }} flex items-center justify-center">
+                    <svg class="w-4 h-4 {{ $nIcon['text'] }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ $nIcon['icon'] }}"/>
+                    </svg>
+                </span>
+
+                {{-- Content --}}
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-slate-800 leading-snug mb-0.5 {{ $notification->read_at ? 'font-normal text-slate-600' : '' }}">
                         {{ json_decode($notification->data)->message ?? 'Notification' }}
-                    </div>
-                    <small class="text-slate-600 text-base">
+                    </p>
+                    <p class="text-xs text-slate-400 m-0">
                         {{ json_decode($notification->data)->title ?? '' }} &middot; {{ $notification->created_at->diffForHumans() }}
-                    </small>
+                    </p>
                 </div>
+
+                {{-- Mark as read --}}
                 @if(!$notification->read_at)
                     <form method="POST" action="{{ route('notifications.read', $notification->id) }}" class="flex-shrink-0">
                         @csrf
-                        <button class="text-sm font-medium text-blue-600 hover:bg-blue-100 rounded-md px-4 py-2 transition-colors">
-                            Mark as Read
+                        <button class="text-xs font-medium text-indigo-600 hover:bg-indigo-50 rounded-md px-2 py-1 transition-colors"
+                                title="Mark as read">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
                         </button>
                     </form>
-                @endif            </li>
+                @endif
+            </li>
         @empty
-            <li class="text-center text-slate-400 py-16 px-8 text-lg flex items-center justify-center min-h-[150px]">
-                <div>
-                    <svg class="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+            <li class="flex flex-col items-center justify-center py-12 px-6 text-center">
+                <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                     </svg>
-                    <p>No notifications found.</p>
                 </div>
+                <p class="text-sm text-slate-400 m-0">No notifications yet</p>
             </li>
         @endforelse
     </ul>
