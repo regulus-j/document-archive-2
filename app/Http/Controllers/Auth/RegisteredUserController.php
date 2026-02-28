@@ -26,7 +26,7 @@ class RegisteredUserController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
+        $validationRules = [
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
@@ -49,7 +49,20 @@ class RegisteredUserController extends Controller
                     $fail('The reCAPTCHA verification failed. Please try again.');
                 }
             }],
-        ]);
+        ];
+
+        // Only require company contact and address fields when address details are included
+        if ($request->include_address === '1') {
+            $validationRules['company_email'] = ['required', 'string', 'email', 'max:255'];
+            $validationRules['company_phone'] = ['required', 'string', 'max:255'];
+            $validationRules['address'] = ['required', 'string', 'max:255'];
+            $validationRules['city'] = ['nullable', 'string', 'max:255'];
+            $validationRules['state'] = ['nullable', 'string', 'max:255'];
+            $validationRules['zip_code'] = ['nullable', 'string', 'max:20'];
+            $validationRules['country'] = ['nullable', 'string', 'max:255'];
+        }
+
+        $request->validate($validationRules);
 
         $user = User::create([
             'first_name' => $request->first_name,
@@ -70,7 +83,14 @@ class RegisteredUserController extends Controller
         $registeredName = $request->registered_name ?: $request->company_name;
 
         // Get company_email or default to user's email if not provided
-        $companyEmail = $request->company_email ?: $request->email;
+        $companyEmail = $request->include_address === '1' && $request->company_email
+            ? $request->company_email
+            : $request->email;
+
+        // Get company_phone or default to null if not provided
+        $companyPhone = $request->include_address === '1' && $request->company_phone
+            ? $request->company_phone
+            : null;
 
         // Company registration with required fields
         // This triggers auto-creation of default roles (company-admin, user) for the company
@@ -79,7 +99,7 @@ class RegisteredUserController extends Controller
             'company_name' => $request->company_name,
             'registered_name' => $registeredName,
             'company_email' => $companyEmail,
-            'company_phone' => $request->company_phone ?: '00000000000',
+            'company_phone' => $companyPhone,
         ]);
 
         // Assign the company-specific company-admin role

@@ -83,7 +83,7 @@ class CompanyAccount extends Model
             ],
             'company_name' => 'required|string|max:255',
             'registered_name' => 'required|string|max:255',
-            'company_email' => 'required|email|max:255',
+            'company_email' => 'nullable|email|max:255',
         ];
     }
 
