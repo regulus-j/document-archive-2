@@ -112,7 +112,7 @@
         </div>
 
         <!-- Step 2: Organization Information -->
-        <div class="step-content space-y-4 hidden" id="step2" x-data="{ showAddress: true }">
+        <div class="step-content space-y-4 hidden" id="step2" x-data="{ showAddress: {{ old('include_address', '0') === '1' ? 'true' : 'false' }} }">
             <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
                 <h2 class="text-xl font-semibold mb-6 text-gray-800 flex items-center">
                     <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -137,23 +137,6 @@
                             class="mt-2 block w-full p-3 rounded-md border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring focus:ring-blue-200 transition duration-150"
                             type="text" name="registered_name" :value="old('registered_name')" required placeholder="legal registered business name" />
                         <x-input-error :messages="$errors->get('registered_name')" class="mt-2" />
-                    </div>
-
-                    <div>
-                        <x-input-label for="company_email" :value="__('Company Email')" class="text-gray-700" />
-                        <x-text-input id="company_email"
-                            class="mt-2 block w-full p-3 rounded-md border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring focus:ring-blue-200 transition duration-150"
-                            type="email" name="company_email" :value="old('company_email')" required
-                            placeholder="company email address" />
-                        <x-input-error :messages="$errors->get('company_email')" class="mt-2" />
-                    </div>
-
-                    <div>
-                        <x-input-label for="company_phone" :value="__('Company Phone')" class="text-gray-700" />
-                        <x-text-input id="company_phone"
-                            class="mt-2 block w-full p-3 rounded-md border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring focus:ring-blue-200 transition duration-150"
-                            type="tel" name="company_phone" :value="old('company_phone')" required placeholder="company contact number" />
-                        <x-input-error :messages="$errors->get('company_phone')" class="mt-2" />
                     </div>
 
                     <!-- Address Toggle -->
@@ -189,6 +172,23 @@
                     <!-- Address Fields (Conditional) -->
                     <template x-if="showAddress">
                         <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                            <div>
+                                <x-input-label for="company_email" :value="__('Company Email')" class="text-gray-700" />
+                                <x-text-input id="company_email"
+                                    class="mt-2 block w-full p-3 rounded-md border-gray-200 bg-white focus:border-blue-500 focus:ring focus:ring-blue-200 transition duration-150"
+                                    type="email" name="company_email" :value="old('company_email')" required
+                                    placeholder="company email address" />
+                                <x-input-error :messages="$errors->get('company_email')" class="mt-2" />
+                            </div>
+
+                            <div>
+                                <x-input-label for="company_phone" :value="__('Company Phone')" class="text-gray-700" />
+                                <x-text-input id="company_phone"
+                                    class="mt-2 block w-full p-3 rounded-md border-gray-200 bg-white focus:border-blue-500 focus:ring focus:ring-blue-200 transition duration-150"
+                                    type="tel" name="company_phone" :value="old('company_phone')" required placeholder="company contact number" />
+                                <x-input-error :messages="$errors->get('company_phone')" class="mt-2" />
+                            </div>
+
                             <div class="md:col-span-2">
                                 <x-input-label for="address" :value="__('Address')" class="text-gray-700" />
                                 <x-text-input id="address"
@@ -402,9 +402,13 @@
             function validateStep(step) {
                 let isValid = true;
 
+                const includeAddress = document.querySelector('input[name="include_address"]');
+                const addressChecked = includeAddress && includeAddress.value === '1';
                 const requiredFields = {
                     1: ['first_name', 'last_name', 'email'],
-                    2: ['company_name', 'registered_name', 'company_email', 'company_phone', 'address', 'city', 'state', 'zip_code', 'country'],
+                    2: addressChecked
+                        ? ['company_name', 'registered_name', 'company_email', 'company_phone', 'address', 'city', 'state', 'zip_code', 'country']
+                        : ['company_name', 'registered_name'],
                     3: ['password', 'password_confirmation']
                 };
 
@@ -472,16 +476,20 @@
                 const allFields = ['first_name', 'last_name', 'email', 'password', 'password_confirmation', 'company_name'];
                 allFields.forEach(field => clearFieldError(field));
 
-                // Validate required fields
-                const requiredFields = [
+                // Determine which fields are required based on address toggle
+                const includeAddressInput = document.querySelector('input[name="include_address"]');
+                const isAddressIncluded = includeAddressInput && includeAddressInput.value === '1';
+                const requiredFieldsList = [
                     'first_name', 'last_name', 'email',
-                    'company_name', 'registered_name', 'company_email', 'company_phone',
-                    'address', 'city', 'state', 'zip_code', 'country',
+                    'company_name', 'registered_name',
                     'password', 'password_confirmation'
                 ];
-                requiredFields.forEach(field => {
+                if (isAddressIncluded) {
+                    requiredFieldsList.push('company_email', 'company_phone', 'address', 'city', 'state', 'zip_code', 'country');
+                }
+                requiredFieldsList.forEach(field => {
                     const input = document.getElementById(field);
-                    if (!input.value.trim()) {
+                    if (input && !input.value.trim()) {
                         isValid = false;
                         showFieldError(field, `${field.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} is required`);
                     }
@@ -513,9 +521,12 @@
                     recaptchaContainer.appendChild(errorMsg);
                 }
 
-                // Set company email to match personal email if provided
-                if (email.value.trim()) {
-                    document.querySelector('input[name="company_email"]').value = email.value.trim();
+                // If address is not included, no need to set company email
+                if (isAddressIncluded && email.value.trim()) {
+                    const companyEmailInput = document.querySelector('input[name="company_email"]');
+                    if (companyEmailInput && !companyEmailInput.value.trim()) {
+                        companyEmailInput.value = email.value.trim();
+                    }
                 }
 
                 if (!isValid) {
