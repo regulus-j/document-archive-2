@@ -7,11 +7,16 @@ services:
       - "8080:80"
     environment:
       - APP_KEY=${APP_KEY}
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen2.5:0.5b}
+      - OLLAMA_TIMEOUT=${OLLAMA_TIMEOUT:-120}
     env_file:
       - .env
     depends_on:
       mysql:
         condition: service_healthy
+      ollama-pull:
+        condition: service_completed_successfully
     volumes:
       - storage:/var/www/html/storage/app
     networks:
@@ -36,9 +41,50 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # ── Ollama LLM server ──────────────────────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - doc-archive-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:11434/api/tags || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    restart: unless-stopped
+    # Uncomment below to expose Ollama port to host for debugging
+    # ports:
+    #   - "11434:11434"
+
+  # Init container: pulls the model on first start, then exits
+  ollama-pull:
+    image: ollama/ollama:latest
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "Waiting for Ollama server..."
+        until curl -sf http://ollama:11434/api/tags > /dev/null 2>&1; do
+          sleep 2
+        done
+        echo "Pulling model ${OLLAMA_MODEL:-qwen2.5:0.5b}..."
+        OLLAMA_HOST=http://ollama:11434 ollama pull ${OLLAMA_MODEL:-qwen2.5:0.5b}
+        echo "Model ready."
+    environment:
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen2.5:0.5b}
+    depends_on:
+      ollama:
+        condition: service_healthy
+    networks:
+      - doc-archive-network
+    restart: "no"
+
 volumes:
   mysql-data:
   storage:
+  ollama-data:
 
 networks:
   doc-archive-network:

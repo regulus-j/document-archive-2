@@ -4,8 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\DocumentAccessService;
 use App\Services\DocumentContentExtractorService;
-use App\Services\TextSummarizationService;
-use GuzzleHttp\Client;
+use App\Services\OllamaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -15,8 +14,7 @@ class ChatbotController extends Controller
 {
     protected DocumentAccessService $documentAccessService;
     protected DocumentContentExtractorService $contentExtractor;
-    protected TextSummarizationService $summarizer;
-    protected Client $httpClient;
+    protected OllamaService $ollama;
 
     const MAX_CONTENT_CHARS = 1500;
     const MAX_FILE_CONTENT_CHARS = 4000;
@@ -26,12 +24,11 @@ class ChatbotController extends Controller
     public function __construct(
         DocumentAccessService $documentAccessService,
         DocumentContentExtractorService $contentExtractor,
-        TextSummarizationService $summarizer
+        OllamaService $ollama
     ) {
         $this->documentAccessService = $documentAccessService;
         $this->contentExtractor = $contentExtractor;
-        $this->summarizer = $summarizer;
-        $this->httpClient = new Client(['timeout' => 45.0]);
+        $this->ollama = $ollama;
     }
 
     public function ask(Request $request)
@@ -54,16 +51,23 @@ class ChatbotController extends Controller
 
         $intent = $this->detectIntent($userMessage);
 
-        // --- Handle summarize & read_content locally (NLP, no API call) ---
+        // --- Handle summarize & read_content locally (Ollama, no external API call) ---
         if ($intent === 'summarize') {
-            return $this->handleSummarizeLocally($userMessage);
+            return $this->handleSummarizeLocally($userMessage, $history);
         }
 
         if ($intent === 'read_content') {
-            return $this->handleReadContentLocally($userMessage);
+            return $this->handleReadContentLocally($userMessage, $history);
         }
 
-        // --- All other intents: build context → send to Gemini ---
+        // --- All other intents: build context → send to Ollama LLM ---
+        // Resolve follow-up references from conversation history for document-specific intents
+        $resolvedMessage = $userMessage;
+        $docSpecificIntents = ['workflow', 'question', 'search'];
+        if (in_array($intent, $docSpecificIntents)) {
+            $resolvedMessage = $this->resolveMessageFromHistory($userMessage, $history);
+        }
+
         $contextBlock  = '';
         $documentLinks = [];
 
@@ -78,22 +82,22 @@ class ChatbotController extends Controller
                 [$contextBlock, $documentLinks] = $this->buildRecentContext();
                 break;
             case 'search':
-                [$contextBlock, $documentLinks] = $this->buildSearchContext($userMessage);
+                [$contextBlock, $documentLinks] = $this->buildSearchContext($resolvedMessage);
                 break;
             case 'question':
-                [$contextBlock, $documentLinks] = $this->buildDocumentContext($userMessage, 'question');
+                [$contextBlock, $documentLinks] = $this->buildDocumentContext($resolvedMessage, 'question');
                 break;
             case 'workflow':
-                [$contextBlock, $documentLinks] = $this->buildWorkflowContext($userMessage);
+                [$contextBlock, $documentLinks] = $this->buildWorkflowContext($resolvedMessage);
                 break;
         }
 
         $fullPrompt = $this->buildFullPrompt($userMessage, $history, $contextBlock, $intent);
 
         try {
-            $reply = $this->callGemini($fullPrompt);
+            $reply = $this->ollama->chat($fullPrompt);
         } catch (\Exception $e) {
-            Log::error('Chatbot Gemini error: ' . $e->getMessage());
+            Log::error('Chatbot Ollama error: ' . $e->getMessage());
             return response()->json([
                 'reply'     => 'I encountered an error reaching the AI service. Please try again in a moment.',
                 'documents' => [],
@@ -107,22 +111,37 @@ class ChatbotController extends Controller
     }
 
     /* ----------------------------------------------------------------
-     *  LOCAL NLP HANDLERS (no API call)
+     *  LOCAL LLM HANDLERS (Ollama — no external API call)
      * ---------------------------------------------------------------- */
 
     /**
-     * Handle the "summarize" intent locally using extractive NLP summarization.
-     * No Gemini API call — runs entirely on-server.
+     * Handle the "summarize" intent using Ollama (local LLM).
+     * Falls back to returning raw content if Ollama is unavailable.
      */
-    private function handleSummarizeLocally(string $message): \Illuminate\Http\JsonResponse
+    private function handleSummarizeLocally(string $message, array $history = []): \Illuminate\Http\JsonResponse
     {
-        $docId      = $this->extractDocumentId($message);
-        $searchTerm = $this->extractSearchTerm($message);
+        $docId       = $this->extractDocumentId($message);
+        $trackingNo  = $this->extractTrackingNumber($message);
+        $searchTerm  = $this->extractSearchTerm($message);
+
+        // If message is a follow-up ("summarize it", "summarize"), resolve from history
+        if (!$docId && !$trackingNo && (empty($searchTerm) || $this->isFollowUpReference($message))) {
+            [$docId, $trackingNo] = $this->extractDocRefFromHistory($history);
+
+            // If still no reference, try using previous user search terms
+            if (!$docId && !$trackingNo) {
+                $searchTerm = $this->extractSearchTermFromHistory($history);
+            }
+        }
 
         $query = $this->documentAccessService->getAccessibleDocuments()
             ->with(['status', 'trackingNumber', 'categories', 'user', 'originatingOffice']);
 
-        if ($docId) {
+        if ($trackingNo) {
+            $query->whereHas('trackingNumber', function ($tq) use ($trackingNo) {
+                $tq->where('tracking_number', $trackingNo);
+            });
+        } elseif ($docId) {
             $query->where('id', $docId);
         } elseif ($searchTerm) {
             $query->where(function ($q) use ($searchTerm) {
@@ -154,9 +173,29 @@ class ChatbotController extends Controller
         $extraction = $this->contentExtractor->extract($doc);
 
         if (empty($extraction['content'])) {
+            // Even without file content, provide a metadata-based summary
+            $status   = $doc->status ? ucfirst($doc->status->status) : 'N/A';
+            $tracking = $doc->trackingNumber ? $doc->trackingNumber->tracking_number : 'N/A';
+            $uploader = $doc->user ? trim($doc->user->first_name . ' ' . $doc->user->last_name) : 'Unknown';
+            $cats     = $doc->categories->pluck('category')->implode(', ') ?: 'Uncategorized';
+            $office   = $doc->originatingOffice ? $doc->originatingOffice->name : 'N/A';
+            $fileExt  = strtolower(pathinfo($doc->path ?? '', PATHINFO_EXTENSION));
+
+            $reply = "**{$doc->title}** (ID: {$doc->id})\n";
+            $reply .= "Tracking #: **{$tracking}** | Status: **{$status}**\n";
+            $reply .= "By: {$uploader} | Office: {$office}\n";
+            $reply .= "Category: {$cats} | Type: .{$fileExt} | Date: {$doc->created_at->format('M d, Y')}\n";
+
+            if ($doc->description) {
+                $reply .= "Description: {$doc->description}\n";
+            }
+
             $errorMsg = $extraction['error'] ?? 'No text content could be extracted.';
+            $reply .= "\n*Note: {$errorMsg}*\n";
+            $reply .= "You can view or download the file directly from the document detail page.";
+
             return response()->json([
-                'reply'     => "**{$doc->title}** (ID: {$doc->id})\n\nI couldn't extract text content from this document. {$errorMsg}\n\nYou can view or download the file directly from the document detail page.",
+                'reply'     => $reply,
                 'documents' => [[
                     'id'    => $doc->id,
                     'title' => $doc->title,
@@ -165,11 +204,7 @@ class ChatbotController extends Controller
             ]);
         }
 
-        // Run NLP extractive summarization
-        $result = $this->summarizer->summarizeForChatbot($extraction['content'], $doc->title, 5);
-        $keyTerms = $this->summarizer->extractKeyTerms($extraction['content'], 6);
-
-        // Build formatted reply
+        // Build document header
         $status   = $doc->status ? ucfirst($doc->status->status) : 'N/A';
         $tracking = $doc->trackingNumber ? $doc->trackingNumber->tracking_number : 'N/A';
         $uploader = $doc->user ? trim($doc->user->first_name . ' ' . $doc->user->last_name) : 'Unknown';
@@ -179,13 +214,18 @@ class ChatbotController extends Controller
         $reply .= "Tracking #: **{$tracking}** | Status: **{$status}** | By: {$uploader}\n";
         $reply .= "Category: {$cats} | Date: {$doc->created_at->format('M d, Y')}\n\n";
 
-        $reply .= $result['summary'];
+        // Use Ollama for summarization
+        $result = $this->ollama->summarize($extraction['content'], $doc->title);
 
-        if (!empty($keyTerms)) {
-            $reply .= "\n\n**Key terms:** " . implode(', ', $keyTerms);
+        if (!empty($result['summary'])) {
+            $reply .= $result['summary'];
+        } else {
+            // Fallback: show truncated content if Ollama is down
+            $fallbackMsg = $result['error'] ?? 'Local AI is unavailable.';
+            Log::warning('Ollama summarize fallback', ['doc_id' => $doc->id, 'error' => $fallbackMsg]);
+            $reply .= "*({$fallbackMsg} Showing document excerpt instead.)*\n\n";
+            $reply .= Str::limit($extraction['content'], 1500);
         }
-
-        $reply .= "\n\n*Compressed {$result['original_sentences']} sentences → {$result['sentence_count']} ({$result['compression_ratio']}% reduction)*";
 
         return response()->json([
             'reply'     => $reply,
@@ -199,17 +239,31 @@ class ChatbotController extends Controller
 
     /**
      * Handle the "read_content" intent locally — returns extracted document
-     * content directly without calling the Gemini API.
+     * content directly without calling the LLM.
      */
-    private function handleReadContentLocally(string $message): \Illuminate\Http\JsonResponse
+    private function handleReadContentLocally(string $message, array $history = []): \Illuminate\Http\JsonResponse
     {
-        $docId      = $this->extractDocumentId($message);
-        $searchTerm = $this->extractSearchTerm($message);
+        $docId       = $this->extractDocumentId($message);
+        $trackingNo  = $this->extractTrackingNumber($message);
+        $searchTerm  = $this->extractSearchTerm($message);
+
+        // If message is a follow-up, resolve from history
+        if (!$docId && !$trackingNo && (empty($searchTerm) || $this->isFollowUpReference($message))) {
+            [$docId, $trackingNo] = $this->extractDocRefFromHistory($history);
+
+            if (!$docId && !$trackingNo) {
+                $searchTerm = $this->extractSearchTermFromHistory($history);
+            }
+        }
 
         $query = $this->documentAccessService->getAccessibleDocuments()
             ->with(['status', 'trackingNumber', 'categories', 'user', 'attachments', 'originatingOffice']);
 
-        if ($docId) {
+        if ($trackingNo) {
+            $query->whereHas('trackingNumber', function ($tq) use ($trackingNo) {
+                $tq->where('tracking_number', $trackingNo);
+            });
+        } elseif ($docId) {
             $query->where('id', $docId);
         } elseif ($searchTerm) {
             $query->where(function ($q) use ($searchTerm) {
@@ -857,123 +911,8 @@ class ChatbotController extends Controller
             }
         }
 
-        $systemPrompt = <<<SYSTEM
-You are DocBot, the AI assistant for DocTrack — a document tracking and archiving system.
-You are speaking with: {$userContext}
-
-Your capabilities:
-1. **Search** documents by keyword, category, or tracking number.
-2. **Summarize** document content and provide key details.
-3. **Answer questions** about specific documents (content, status, workflow, due dates, signatories).
-4. **Show pending documents** that need the user's attention or action.
-5. **Provide statistics** — document counts, activity breakdowns, top categories.
-6. **Show recent activity** — latest documents uploaded or received.
-7. **Track document workflow** — show who has a document, what step it's on, and its progress.
-8. **Read actual document content** — extract and display the full text content from document files (PDF, DOCX, TXT, RTF, CSV, ODT). Users can ask you to "read document #123" or "show content of Budget Report" and you will retrieve the actual file content.
-9. **Guide users** on how to use DocTrack features based on the accurate instructions below.
-
-=== ACCURATE NAVIGATION STRUCTURE ===
-
-Top navigation bar has these items:
-- **Dashboard** — the home page (shows stats: total documents, users, teams, incoming documents)
-- **Documents** — the main document list page with search bars for title/content and tracking number
-- **Reports** — analytics and report generation
-- **Actions** dropdown menu with:
-  • "Upload Document" — opens the upload form
-  • "Receive" — view and confirm receipt of incoming documents forwarded to you
-  • "Pending" — view all pending documents awaiting action
-  • "Completed" — view completed documents
-  • "Archive" — view archived documents
-  • "Workflows" — workflow management page showing all your workflow items
-- **Admin** dropdown (visible only to admins):
-  • For Company Admins: "Users", "Roles", "Teams", "Document Categories"
-  • For Super Admins: "Users", "Roles", "Companies", "Plans", "Subscriptions"
-- **Notifications** (bell icon) — view notifications
-- **User Profile** dropdown: "Profile", "Company Account" (if owner), "Subscription" (if company-admin), "Manual" (user guide), "Log Out"
-
-=== HOW TO USE DOCTRACK (ACCURATE INSTRUCTIONS) ===
-
-**Uploading a Document:**
-Go to the **Actions** dropdown in the top navigation bar and click **"Upload Document"**. Fill in the title, description, select categories/purpose, and attach your file(s). You can optionally check "Forward" during upload to immediately forward to recipients.
-
-**Forwarding a Document:**
-There are two ways: (1) Check "Forward" during upload to forward immediately, or (2) After upload, go to the document's detail page and click "Forward". Then select the recipients (users) and/or offices, set urgency, due date, and purpose.
-
-**Receiving a Document:**
-Go to **Actions → Receive** in the top nav. You will see documents forwarded to you. Click to confirm receipt of each document.
-
-**Viewing Pending Documents:**
-Go to **Actions → Pending** in the top nav. This shows all documents awaiting your action.
-
-**Viewing Completed Documents:**
-Go to **Actions → Completed** in the top nav.
-
-**Archiving a Document:**
-Go to **Actions → Archive** to view archived documents. To archive a specific document, use the document actions on the document detail page.
-
-**Searching for Documents:**
-Go to **Documents** in the top nav. The page has two search methods:
-1. A general search bar — search by title, content, or description
-2. A tracking number search bar — search by the unique tracking number
-
-**Workflow Actions:**
-Go to **Actions → Workflows** to see all workflow items. From there or from a document's detail page, you can:
-- **Approve** — approve the document
-- **Reject** — reject with remarks
-- **Return** — return the document to the sender
-- **Acknowledge** — acknowledge receipt
-- **Refer** — refer the document to another user
-- **Forward** — forward to another recipient
-- **Comment** — add a comment
-- **Review** — submit a formal review
-- **Sign** — add your electronic signature
-
-**Recalling / Cancelling a Document:**
-From the document detail page, you can "Recall" a forwarded document to pull it back, or "Cancel" the workflow.
-
-**Document Details Page:**
-Click any document title to view its detail page. Here you can see full content, attachments, workflow history, status, tracking number, and perform actions like forward, archive, download, preview, or edit.
-
-**Downloading / Previewing:**
-From the document detail page, click "Download" to download the file or "Preview" to view it in the browser.
-
-**Managing Teams/Offices (Company Admin):**
-Go to **Admin → Teams**. Create teams, assign users to teams, and set team leads. Teams represent offices or departments.
-
-**Managing Document Categories (Company Admin):**
-Go to **Admin → Document Categories**. Create, edit, or delete categories used to classify documents.
-
-**Managing Users (Admin):**
-Go to **Admin → Users** to view, create, edit, or remove users. Assign roles and teams.
-
-**Managing Roles (Admin):**
-Go to **Admin → Roles** to create and manage permission roles.
-
-**Reports:**
-Click **Reports** in the top nav. You can view analytics dashboards, generate reports by date range, and download reports.
-
-**Notifications:**
-Click the **bell icon** in the top nav to see notifications about documents forwarded to you, workflow actions, and other updates.
-
-**User Manual:**
-Click your **profile avatar** in the top-right, then **"Manual"** to view the built-in user guide.
-
-**Profile & Account:**
-Click your **profile avatar** → **"Profile"** to update your name, email, or password. Company owners can also access **"Company Account"** settings.
-
-=== RESPONSE GUIDELINES ===
-- Only discuss documents the current user has access to. NEVER invent document content.
-- When document content has been extracted and provided in the "Retrieved Data" section, use it to answer the user's questions accurately. Present the content in a well-organized manner.
-- If document content isn't extracted (e.g. Excel, scanned images, or secured PDFs), tell the user the file must be downloaded or previewed directly from the document detail page.
-- When the user asks to "read" a document, present the extracted text content clearly. If the content is long, provide a structured overview with key sections highlighted.
-- Be concise and friendly. Use bullet points and numbered lists where helpful.
-- Use **bold** for important items like document titles, statuses, and due dates.
-- When showing document lists, include tracking numbers and status when available.
-- For pending documents, highlight urgency and due dates to help the user prioritize.
-- Always refer to exact menu names as documented above (e.g. say "Actions → Pending" not "Documents list → Pending").
-- If a question is outside your knowledge, say so clearly rather than guessing.
-- Suggest follow-up actions when appropriate (e.g. "Would you like me to read or summarize any of these?").
-SYSTEM;
+        // Use a focused, concise prompt tailored per intent for the small LLM
+        $systemPrompt = $this->buildIntentSystemPrompt($intent, $userContext);
 
         $historyBlock = '';
         if (!empty($history)) {
@@ -1000,56 +939,100 @@ SYSTEM;
         return implode("\n", $parts);
     }
 
-    /* ----------------------------------------------------------------
-     *  GEMINI API CALL
-     * ---------------------------------------------------------------- */
-
-    private function callGemini(string $prompt): string
+    /**
+     * Build a focused, concise system prompt per intent to stay within
+     * the small model's effective context window.
+     */
+    private function buildIntentSystemPrompt(string $intent, string $userContext): string
     {
-        $apiKey    = config('services.gemini.api_key');
-        $baseUrl   = config('services.gemini.endpoint');
-        $maxTokens = config('services.gemini.max_output_tokens', 2048);
+        $base = "You are DocBot, the AI assistant for DocTrack (a document tracking system).\nUser: {$userContext}\n";
 
-        if (!$apiKey) {
-            throw new \RuntimeException('Gemini API key is not configured. Add GEMINI_API_KEY to your .env file.');
-        }
+        return match ($intent) {
+            'pending' => $base . <<<'PROMPT'
+Task: Present the user's pending documents from the Retrieved Data.
+Rules:
+- List each document with its title, tracking number, status, urgency, and due date
+- Highlight urgent items and approaching deadlines using **bold**
+- Be concise, use bullet points
+- Suggest the user can click on a document to take action
+PROMPT,
 
-        $url = $baseUrl . '?key=' . $apiKey;
+            'stats' => $base . <<<'PROMPT'
+Task: Present document statistics from the Retrieved Data in a clear format.
+Rules:
+- Use bullet points for each statistic
+- Highlight key numbers using **bold**
+- Be concise and informative
+PROMPT,
 
-        $payload = [
-            'contents' => [
-                ['parts' => [['text' => $prompt]]],
-            ],
-            'generationConfig' => [
-                'maxOutputTokens' => (int) $maxTokens,
-                'temperature'     => 0.4,
-                'topP'            => 0.85,
-            ],
-            'safetySettings' => [
-                ['category' => 'HARM_CATEGORY_HARASSMENT',        'threshold' => 'BLOCK_ONLY_HIGH'],
-                ['category' => 'HARM_CATEGORY_HATE_SPEECH',       'threshold' => 'BLOCK_ONLY_HIGH'],
-                ['category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT', 'threshold' => 'BLOCK_ONLY_HIGH'],
-                ['category' => 'HARM_CATEGORY_DANGEROUS_CONTENT', 'threshold' => 'BLOCK_ONLY_HIGH'],
-            ],
-        ];
+            'recent' => $base . <<<'PROMPT'
+Task: Present the recent documents from the Retrieved Data.
+Rules:
+- List each document with title, tracking number, status, and upload date
+- Use bullet points, be concise
+- Suggest follow-up actions like "summarize" or "read"
+PROMPT,
 
-        $response = $this->httpClient->post($url, [
-            'json'    => $payload,
-            'headers' => ['Content-Type' => 'application/json'],
-        ]);
+            'search' => $base . <<<'PROMPT'
+Task: Present search results from the Retrieved Data.
+Rules:
+- List matching documents with title, tracking number, status, and date
+- If no results found, suggest alternative search terms
+- Use bullet points, be concise
+- Suggest the user can ask to summarize or read any result
+PROMPT,
 
-        $body = json_decode($response->getBody()->getContents(), true);
-        $text = $body['candidates'][0]['content']['parts'][0]['text'] ?? null;
+            'question' => $base . <<<'PROMPT'
+Task: Answer the user's question about a document using the Retrieved Data.
+Rules:
+- Answer accurately using ONLY the provided data
+- Include relevant details: status, workflow steps, dates, content excerpts
+- If the answer isn't in the data, say so clearly
+- Be concise but thorough
+PROMPT,
 
-        if (!$text) {
-            $finishReason = $body['candidates'][0]['finishReason'] ?? 'UNKNOWN';
-            if ($finishReason === 'SAFETY') {
-                return 'I cannot respond to that request due to content safety restrictions.';
-            }
-            throw new \RuntimeException('Gemini returned no text content. Finish reason: ' . $finishReason);
-        }
+            'workflow' => $base . <<<'PROMPT'
+Task: Show the document's workflow/tracking information from the Retrieved Data.
+Rules:
+- Show each workflow step: sender → recipient, status, urgency, due date
+- Highlight the current step and pending actions using **bold**
+- Be concise, use a clear sequential format
+PROMPT,
 
-        return trim($text);
+            'howto' => $base . <<<'PROMPT'
+Task: Help the user navigate DocTrack. Use ONLY the instructions below.
+
+Navigation: Dashboard | Documents | Reports | Actions dropdown | Admin dropdown | Notifications (bell) | Profile
+Actions menu: Upload Document, Receive, Pending, Completed, Archive, Workflows
+Admin menu: Users, Roles, Teams, Document Categories (company-admin) or Companies, Plans, Subscriptions (super-admin)
+
+How to:
+- Upload: Actions → Upload Document. Fill title, description, categories, attach file
+- Forward: Check "Forward" during upload, OR go to document detail → Forward. Select recipients/offices
+- Receive: Actions → Receive. Confirm receipt of incoming documents
+- Pending: Actions → Pending. Shows documents awaiting your action
+- Search: Documents page. Use title/content search bar or tracking number search bar
+- Workflow actions: Actions → Workflows, or from document detail. Options: Approve, Reject, Return, Acknowledge, Refer, Forward, Comment, Review, Sign
+- Archive: Actions → Archive to view. Document detail page to archive a specific document
+- Reports: Click Reports in top nav
+- Profile: Click profile avatar → Profile
+- Manual: Profile avatar → Manual
+
+Rules:
+- Use exact menu names (e.g. "Actions → Pending" not "go to pending")
+- Be concise and direct
+- Only answer DocTrack usage questions
+PROMPT,
+
+            default => $base . <<<'PROMPT'
+Task: Help the user with their DocTrack question using the Retrieved Data if available.
+Rules:
+- Be concise, friendly, use bullet points and **bold** for important items
+- Only discuss documents the user has access to
+- Never invent document content
+- Suggest follow-up actions when appropriate
+PROMPT,
+        };
     }
 
     /* ----------------------------------------------------------------
@@ -1058,38 +1041,271 @@ SYSTEM;
 
     private function extractDocumentId(string $message): ?int
     {
-        if (preg_match('/(?:document|doc|id|#)\s*#?\s*(\d+)/i', $message, $matches)) {
+        // If the message contains a tracking number pattern, strip it out first
+        // to avoid matching the year portion (e.g. "2026") as a document ID
+        $cleaned = preg_replace('/[A-Z]{2,5}-[A-Z]{2,5}-[A-Z0-9]+-\d{4}/i', '', $message);
+
+        if (preg_match('/(?:document|doc|id|#)\s*#?\s*(\d+)/i', $cleaned, $matches)) {
             return (int) $matches[1];
         }
-        // Also match standalone numbers preceded by tracking context
-        if (preg_match('/\b(\d{3,})\b/', $message, $matches)) {
-            return (int) $matches[1];
+        // Also match standalone numbers (3+ digits) that aren't years
+        if (preg_match('/\b(\d{3,})\b/', $cleaned, $matches)) {
+            $num = (int) $matches[1];
+            // Skip if it looks like a year (2000-2099)
+            if ($num >= 2000 && $num <= 2099) {
+                return null;
+            }
+            return $num;
         }
         return null;
     }
 
+    /**
+     * Extract a meaningful search term from a user message by stripping
+     * noise words / phrases from anywhere in the string.
+     */
     private function extractSearchTerm(string $message): string
     {
         $lower = strtolower(trim($message));
 
-        $prefixes = [
-            'give me a summary of', 'summarize the document', 'summarize document',
-            'summarize the', 'summarize', 'summarise', 'summary of', 'summary',
-            'tell me about document', 'tell me about', 'content of', 'details of',
-            'what is in', 'documents related to', 'documents about',
-            'where is', 'track', 'tracking', 'status of', 'progress of', 'workflow of',
-            'who has', 'forwarded to', 'sent to',
-            'look for', 'get documents', 'show me', 'search for', 'search',
-            'find documents about', 'find documents', 'find', 'list',
-            'related to', 'regarding', 'about', 'on', 'the', 'for', 'document', 'doc',
+        // First try to pull out a tracking number — if found, use that directly
+        if ($tracking = $this->extractTrackingNumber($message)) {
+            return $tracking;
+        }
+
+        // Remove common noise phrases (order matters — longer/compound first)
+        $noisePatterns = [
+            'could you (please )?', 'can you (please )?', 'please ',
+            'give me a summary of ', 'give me the summary of ',
+            'summarize or describe ', 'summarise or describe ',
+            'summarize the document ', 'summarize document ', 'summarize the ',
+            'summarize ', 'summarise ', 'summary of ', 'summary ',
+            'or describe ', 'or summarize ', 'or summarise ',
+            'tell me about document ', 'tell me about the ', 'tell me about ',
+            'describe the document ', 'describe document ', 'describe the ', 'describe ',
+            'content of ', 'details of ', 'detail of ',
+            'what is in ', 'what\'s in ',
+            'documents related to ', 'documents about ',
+            'where is ', 'track ', 'tracking ', 'status of ', 'progress of ', 'workflow of ',
+            'who has ', 'forwarded to ', 'sent to ',
+            'look for ', 'get documents ', 'show me the ', 'show me ',
+            'search for ', 'search ',
+            'find documents about ', 'find documents ', 'find ', 'list ',
+            'read the content of ', 'read content of ', 'read the document ',
+            'read document ', 'read the ', 'read ',
+            'show content of ', 'show the content of ', 'open document ', 'open the document ',
+            'related to ', 'regarding ', 'about ',
+            'the document ', 'document ', 'the doc ', 'doc ',
+            'the ', 'a ', 'an ',
         ];
 
-        foreach ($prefixes as $prefix) {
-            if (str_starts_with($lower, $prefix . ' ')) {
-                $lower = substr($lower, strlen($prefix) + 1);
+        foreach ($noisePatterns as $pattern) {
+            $lower = preg_replace('/\b' . $pattern . '/i', ' ', $lower);
+        }
+
+        // Clean up extra whitespace
+        $lower = trim(preg_replace('/\s+/', ' ', $lower));
+
+        // If what remains is a follow-up reference like "it", "its content", discard
+        if (in_array($lower, ['it', 'its', 'its content', 'this', 'this document', 'that', 'that document', ''])) {
+            return '';
+        }
+
+        return $lower;
+    }
+
+    /**
+     * Extract a tracking number pattern from the message (e.g. ZIE-DOC-XXXXX-2026).
+     */
+    private function extractTrackingNumber(string $message): ?string
+    {
+        // Match patterns like ZIE-DOC-LZWF7DK1XP-2026 or similar tracking formats
+        if (preg_match('/[A-Z]{2,5}-DOC-[A-Z0-9]+-\d{4}/i', $message, $matches)) {
+            return strtoupper($matches[0]);
+        }
+        // Also match generic tracking patterns: PREFIX-XXXX-XXXX
+        if (preg_match('/\b[A-Z]{2,5}-[A-Z]{2,5}-[A-Z0-9]{5,}-\d{4}\b/i', $message, $matches)) {
+            return strtoupper($matches[0]);
+        }
+        return null;
+    }
+
+    /**
+     * Check if a user message is a follow-up reference to a previously mentioned document.
+     */
+    private function isFollowUpReference(string $message): bool
+    {
+        $lower = strtolower(trim($message));
+
+        // Exact-match short follow-ups (bare commands referencing a prior document)
+        $exactMatches = [
+            'summarize', 'summarise', 'summary', 'describe',
+            'read', 'read it', 'show', 'show it', 'open', 'open it', 'view', 'view it',
+            'yes', 'yes please', 'go ahead', 'do it', 'sure', 'ok', 'okay',
+        ];
+        if (in_array($lower, $exactMatches, true)) {
+            return true;
+        }
+
+        $followUpPhrases = [
+            'summarize it', 'summarize its content', 'summarise it', 'summarise its content',
+            'summarize this', 'summarize that', 'summarize the document',
+            'summarize this document', 'summarize that document',
+            'summary of it', 'its content', 'its summary', 'show its content',
+            'read it', 'read its content', 'read this document', 'read that document',
+            'show content', 'show the content', 'open it', 'view it', 'view its content',
+            'the first one', 'the second one', 'the last one', 'first one', 'second one',
+            'more details', 'tell me more', 'provide more details',
+        ];
+        foreach ($followUpPhrases as $phrase) {
+            if (str_contains($lower, $phrase)) {
+                return true;
+            }
+        }
+        // Check for pronoun references
+        if (preg_match('/\b(it|its|this|that)\b/', $lower)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Search conversation history (assistant messages) for a document ID, tracking number,
+     * or document title. Returns [docId, trackingNumber] — one or both may be null.
+     *
+     * When multiple documents are found in history, picks the first (most recent) one.
+     */
+    private function extractDocRefFromHistory(array $history): array
+    {
+        // Scan history in reverse (most recent first) for doc references in assistant replies
+        $reversedHistory = array_reverse($history);
+
+        foreach ($reversedHistory as $turn) {
+            if (($turn['role'] ?? '') !== 'assistant') continue;
+            $content = $turn['content'] ?? '';
+
+            // Look for tracking number pattern (XXX-DOC-XXXX-YYYY)
+            if (preg_match('/[A-Z]{2,5}-DOC-[A-Z0-9]+-\d{4}/i', $content, $m)) {
+                return [null, strtoupper($m[0])];
+            }
+            // Look for document ID pattern like "(ID: 42)" or "document #42" or "[42]"
+            if (preg_match('/(?:\(ID:\s*(\d+)\)|document\s*#(\d+)|\[(\d+)\])/i', $content, $m)) {
+                $id = (int) ($m[1] ?: ($m[2] ?: $m[3]));
+                return [$id, null];
+            }
+            // Look for document titles in assistant messages (e.g. "Document Title: Research Thesis"  or "**Research Thesis**")
+            if (preg_match_all('/(?:Document\s*Title:\s*(.+?)(?:\n|$)|\*\*(.+?)\*\*\s*(?:\(ID|\|))/i', $content, $titleMatches)) {
+                $title = trim($titleMatches[1][0] ?: $titleMatches[2][0]);
+                if ($title && strlen($title) >= 3) {
+                    // Try to find this document by title
+                    $doc = $this->documentAccessService->getAccessibleDocuments()
+                        ->where('title', 'like', "%{$title}%")
+                        ->latest()
+                        ->first();
+                    if ($doc) {
+                        return [$doc->id, null];
+                    }
+                }
             }
         }
 
-        return trim($lower);
+        // Also check user messages for tracking numbers they previously mentioned
+        foreach ($reversedHistory as $turn) {
+            if (($turn['role'] ?? '') !== 'user') continue;
+            $content = $turn['content'] ?? '';
+
+            if (preg_match('/[A-Z]{2,5}-DOC-[A-Z0-9]+-\d{4}/i', $content, $m)) {
+                return [null, strtoupper($m[0])];
+            }
+        }
+
+        // Last resort: search user messages for terms that might be document titles
+        foreach ($reversedHistory as $turn) {
+            if (($turn['role'] ?? '') !== 'user') continue;
+            $content = trim($turn['content'] ?? '');
+
+            // Skip very short or very long messages, pure commands
+            if (strlen($content) < 3 || strlen($content) > 100) continue;
+            $lower = strtolower($content);
+            $skipWords = ['yes', 'no', 'ok', 'okay', 'sure', 'summarize', 'summary', 'read', 'show', 'describe', 'help'];
+            if (in_array($lower, $skipWords, true)) continue;
+
+            // Try it as a title search
+            $doc = $this->documentAccessService->getAccessibleDocuments()
+                ->where('title', 'like', "%{$content}%")
+                ->latest()
+                ->first();
+            if ($doc) {
+                return [$doc->id, null];
+            }
+        }
+
+        return [null, null];
+    }
+
+    /**
+     * Extract a usable search term from prior user messages in conversation history.
+     * Skips bare commands and returns the most recent substantive search term.
+     */
+    private function extractSearchTermFromHistory(array $history): string
+    {
+        $skipWords = ['yes', 'no', 'ok', 'okay', 'sure', 'summarize', 'summarise', 'summary',
+                      'read', 'show', 'describe', 'help', 'go ahead', 'do it', 'yes please',
+                      'read it', 'summarize it', 'open', 'view', 'content'];
+
+        $reversedHistory = array_reverse($history);
+
+        foreach ($reversedHistory as $turn) {
+            if (($turn['role'] ?? '') !== 'user') continue;
+            $content = trim($turn['content'] ?? '');
+
+            if (strlen($content) < 3 || strlen($content) > 100) continue;
+            if (in_array(strtolower($content), $skipWords, true)) continue;
+
+            // Strip common prefixes to get the actual search term
+            $term = $this->extractSearchTerm($content);
+            if (!empty($term) && strlen($term) >= 3) {
+                return $term;
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * When the user message contains a follow-up reference (e.g. "where is it?"),
+     * resolve the actual document identifier from conversation history and return
+     * a rewritten message that the context builders can process.
+     */
+    private function resolveMessageFromHistory(string $message, array $history): string
+    {
+        // If the message already contains a doc ID or tracking number, keep it as-is
+        if ($this->extractDocumentId($message) || $this->extractTrackingNumber($message)) {
+            return $message;
+        }
+
+        // Check if the search term is substantive (not just "it", "that", etc.)
+        $searchTerm = $this->extractSearchTerm($message);
+        if (!empty($searchTerm) && !$this->isFollowUpReference($message)) {
+            return $message;
+        }
+
+        // Try to resolve a document reference from history
+        [$docId, $trackingNo] = $this->extractDocRefFromHistory($history);
+
+        if ($trackingNo) {
+            return $message . ' ' . $trackingNo;
+        }
+        if ($docId) {
+            return $message . ' document #' . $docId;
+        }
+
+        // Fall back to previous search terms
+        $historyTerm = $this->extractSearchTermFromHistory($history);
+        if (!empty($historyTerm)) {
+            return $message . ' ' . $historyTerm;
+        }
+
+        return $message;
     }
 }

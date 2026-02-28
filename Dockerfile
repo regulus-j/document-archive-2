@@ -88,8 +88,12 @@ COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 # Copy Supervisor configuration
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
+# Copy entrypoint script
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # Expose port
 EXPOSE 80
 
-# Start Supervisor (manages Nginx + PHP-FPM)
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# Start via entrypoint (runs migrations, seeds, then supervisor)
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

@@ -169,8 +169,45 @@ class DocumentAccessService
         }
 
         // Regular users can only see their own uploaded documents
+        // OR documents where they are a workflow recipient
+        // OR documents classified as accessible to them
         if (!$user->hasRole('company-admin')) {
-            return $query->where('uploader', $user->id);
+            $userId = $user->id;
+
+            // Get the user's company IDs for company-based classification access
+            $userCompanyIds = CompanyUser::where('user_id', $userId)
+                ->pluck('company_id')
+                ->toArray();
+
+            // Get the user's office IDs for office-based classification access
+            $userOfficeIds = $user->offices()->pluck('offices.id')->toArray();
+
+            return $query->where(function ($q) use ($userId, $userCompanyIds, $userOfficeIds) {
+                // Documents the user uploaded
+                $q->where('uploader', $userId)
+                  // Documents where the user is a workflow recipient
+                  ->orWhereHas('documentWorkflow', function ($wq) use ($userId) {
+                      $wq->where('recipient_id', $userId);
+                  })
+                  // Public documents from users in the same company
+                  ->orWhere(function ($cq) use ($userCompanyIds) {
+                      if (!empty($userCompanyIds)) {
+                          $cq->where('classification', 'Public')
+                             ->whereHas('user.companies', function ($uq) use ($userCompanyIds) {
+                                 $uq->whereIn('company_accounts.id', $userCompanyIds);
+                             });
+                      }
+                  })
+                  // Office Only documents from users in the same office
+                  ->orWhere(function ($oq) use ($userOfficeIds) {
+                      if (!empty($userOfficeIds)) {
+                          $oq->where('classification', 'Office Only')
+                             ->whereHas('user.offices', function ($uoq) use ($userOfficeIds) {
+                                 $uoq->whereIn('offices.id', $userOfficeIds);
+                             });
+                      }
+                  });
+            });
         }
 
         // For company admins, show all documents in their company

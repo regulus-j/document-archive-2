@@ -52,10 +52,10 @@ return [
         'secret_key' => env('RECAPTCHA_SECRET_KEY'),
     ],
 
-    'gemini' => [
-        'api_key'           => env('GEMINI_API_KEY'),
-        'endpoint'          => 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent',
-        'max_output_tokens' => 1024,
+    'ollama' => [
+        'base_url' => env('OLLAMA_BASE_URL', 'http://localhost:11434'),
+        'model'    => env('OLLAMA_MODEL', 'qwen2.5:0.5b'),
+        'timeout'  => (int) env('OLLAMA_TIMEOUT', 120),
     ],
 
 ];

@@ -19,6 +19,8 @@ class DocumentContentExtractorService
      */
     const SUPPORTED_EXTENSIONS = [
         'pdf', 'doc', 'docx', 'txt', 'rtf', 'csv', 'odt',
+        'xlsx', 'xls', 'pptx', 'ppt',
+        'jpg', 'jpeg', 'png', 'tiff', 'tif', 'bmp', 'webp',
     ];
 
     /**
@@ -76,6 +78,9 @@ class DocumentContentExtractorService
                 'doc', 'docx', 'odt' => $this->extractWord($fullPath),
                 'txt', 'csv' => $this->extractPlainText($fullPath),
                 'rtf'        => $this->extractRtf($fullPath),
+                'xlsx', 'xls' => $this->extractSpreadsheet($fullPath),
+                'pptx', 'ppt' => $this->extractPresentation($fullPath),
+                'jpg', 'jpeg', 'png', 'tiff', 'tif', 'bmp', 'webp' => $this->extractImageOcr($fullPath),
                 default      => '',
             };
 
@@ -155,6 +160,9 @@ class DocumentContentExtractorService
                     'doc', 'docx', 'odt' => $this->extractWord($fullPath),
                     'txt', 'csv' => $this->extractPlainText($fullPath),
                     'rtf'        => $this->extractRtf($fullPath),
+                    'xlsx', 'xls' => $this->extractSpreadsheet($fullPath),
+                    'pptx', 'ppt' => $this->extractPresentation($fullPath),
+                    'jpg', 'jpeg', 'png', 'tiff', 'tif', 'bmp', 'webp' => $this->extractImageOcr($fullPath),
                     default      => '',
                 };
 
@@ -297,6 +305,197 @@ class DocumentContentExtractorService
         $text = preg_replace('/\s+/', ' ', $text);
 
         return trim($text);
+    }
+
+    /**
+     * Extract text from Excel spreadsheets (xlsx, xls).
+     * Returns sheet names, column headers, and data rows.
+     */
+    private function extractSpreadsheet(string $fullPath): string
+    {
+        if (!class_exists(\PhpOffice\PhpSpreadsheet\IOFactory::class)) {
+            throw new \RuntimeException('PhpSpreadsheet is not installed. Cannot read Excel files.');
+        }
+
+        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($fullPath);
+        $content = '';
+
+        foreach ($spreadsheet->getAllSheets() as $sheet) {
+            $sheetName = $sheet->getTitle();
+            $content .= "=== Sheet: {$sheetName} ===\n";
+
+            $highestRow = min($sheet->getHighestDataRow(), 100); // Cap at 100 rows
+            $highestCol = $sheet->getHighestDataColumn();
+            $highestColIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestCol);
+
+            if ($highestRow < 1) {
+                $content .= "(empty sheet)\n\n";
+                continue;
+            }
+
+            // Extract header row (row 1) — treat as column names
+            $headers = [];
+            for ($col = 1; $col <= $highestColIndex; $col++) {
+                $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
+                $val = $sheet->getCell("{$colLetter}1")->getFormattedValue();
+                $headers[] = trim((string) $val) ?: "(Col {$colLetter})";
+            }
+            $content .= "Columns: " . implode(' | ', $headers) . "\n";
+
+            // Extract data rows (row 2 onward)
+            $rowCount = 0;
+            for ($row = 2; $row <= $highestRow; $row++) {
+                $cells = [];
+                $allEmpty = true;
+                for ($col = 1; $col <= $highestColIndex; $col++) {
+                    $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
+                    $val = trim((string) $sheet->getCell("{$colLetter}{$row}")->getFormattedValue());
+                    if ($val !== '') $allEmpty = false;
+                    $cells[] = $val;
+                }
+                if ($allEmpty) continue; // Skip empty rows
+                $content .= "Row {$row}: " . implode(' | ', $cells) . "\n";
+                $rowCount++;
+            }
+
+            $content .= "({$rowCount} data rows)\n\n";
+        }
+
+        $spreadsheet->disconnectWorksheets();
+        unset($spreadsheet);
+
+        return $content;
+    }
+
+    /**
+     * Extract text from PowerPoint presentations (pptx, ppt).
+     * Uses basic ZIP-based XML parsing since PhpPresentation is not installed.
+     */
+    private function extractPresentation(string $fullPath): string
+    {
+        $extension = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+
+        // Only PPTX (Open XML) can be read without PhpPresentation
+        if ($extension !== 'pptx') {
+            throw new \RuntimeException('Only .pptx files are supported. For .ppt files, please download and view directly.');
+        }
+
+        $zip = new \ZipArchive();
+        if ($zip->open($fullPath) !== true) {
+            throw new \RuntimeException('Could not open the presentation file.');
+        }
+
+        $content = '';
+        $slideNum = 1;
+
+        // PPTX stores slides as slide1.xml, slide2.xml, etc. in ppt/slides/
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+            if (preg_match('/^ppt\/slides\/slide(\d+)\.xml$/i', $name, $m)) {
+                $xml = $zip->getFromIndex($i);
+                if ($xml === false) continue;
+
+                // Strip XML tags to get raw text content
+                $text = strip_tags($xml);
+                $text = preg_replace('/\s+/', ' ', $text);
+                $text = trim($text);
+
+                if (!empty($text)) {
+                    $content .= "--- Slide {$m[1]} ---\n{$text}\n\n";
+                }
+                $slideNum++;
+            }
+        }
+
+        $zip->close();
+
+        if (empty(trim($content))) {
+            return '';
+        }
+
+        return "Presentation with " . ($slideNum - 1) . " slide(s):\n\n" . $content;
+    }
+
+    /**
+     * Extract text from images using Tesseract OCR (if available).
+     */
+    private function extractImageOcr(string $fullPath): string
+    {
+        // Check if Tesseract is available
+        $tesseractPath = $this->findTesseract();
+
+        if (!$tesseractPath) {
+            throw new \RuntimeException('Image text extraction requires Tesseract OCR which is not available. Please download the file to view it.');
+        }
+
+        $outputBase = storage_path('app/temp/chatbot_ocr_' . Str::random(8));
+        $outputFile = $outputBase . '.txt';
+
+        $tempDir = dirname($outputBase);
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+
+        $command = escapeshellarg($tesseractPath) . ' '
+                 . escapeshellarg($fullPath) . ' '
+                 . escapeshellarg($outputBase)
+                 . ' 2>&1';
+
+        shell_exec($command);
+
+        if (file_exists($outputFile)) {
+            $text = file_get_contents($outputFile);
+            @unlink($outputFile);
+            return trim($text ?: '');
+        }
+
+        return '';
+    }
+
+    /**
+     * Find Tesseract OCR binary path.
+     */
+    private function findTesseract(): ?string
+    {
+        // Check env variable
+        $path = env('TESSERACT_PATH');
+        if ($path && (file_exists($path) || $this->isCommandAvailable($path))) {
+            return $path;
+        }
+
+        // Common locations
+        $candidates = [
+            'tesseract',            // In PATH (Linux/Docker)
+            '/usr/bin/tesseract',   // Linux
+            'C:\\Program Files\\Tesseract-OCR\\tesseract.exe', // Windows
+            'C:\\Users\\' . (env('USERNAME', 'Admin')) . '\\AppData\\Local\\Programs\\Tesseract-OCR\\tesseract.exe',
+        ];
+
+        foreach ($candidates as $candidate) {
+            // For absolute paths, check file existence directly
+            if (preg_match('#^[/\\\\]|^[A-Z]:\\\\#i', $candidate) && file_exists($candidate)) {
+                return $candidate;
+            }
+            // For command names, check if they're in PATH
+            if ($this->isCommandAvailable($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if a command is available on the system.
+     */
+    private function isCommandAvailable(string $command): bool
+    {
+        $check = PHP_OS_FAMILY === 'Windows'
+            ? "where " . escapeshellarg($command) . " 2>NUL"
+            : "which " . escapeshellarg($command) . " 2>/dev/null";
+
+        $result = shell_exec($check);
+        return !empty(trim($result ?? ''));
     }
 
     /* ----------------------------------------------------------------
