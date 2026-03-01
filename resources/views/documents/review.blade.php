@@ -268,7 +268,7 @@
                                 @foreach($document->eSignatures as $sig)
                                     <div class="flex items-start gap-3 p-3 rounded-lg border border-slate-100 bg-slate-50/50">
                                         <div class="flex-shrink-0 w-20 h-14 rounded border border-slate-200 bg-white overflow-hidden">
-                                            <img src="{{ Storage::disk('public')->url($sig->signature_path) }}" alt="Signature" class="w-full h-full object-contain">
+                                            <img src="{{ asset('storage/' . $sig->signature_path) }}" alt="Signature" class="w-full h-full object-contain">
                                         </div>
                                         <div class="min-w-0 flex-1">
                                             <p class="text-sm font-medium text-slate-800">{{ $sig->full_name }}</p>

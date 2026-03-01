@@ -150,6 +150,7 @@
                                         'completed', 'complete' => 'bg-green-100 text-green-800',
                                         'acknowledged' => 'bg-indigo-100 text-indigo-800',
                                         'commented' => 'bg-cyan-100 text-cyan-800',
+                                        'rejected' => 'bg-red-100 text-red-800',
                                         default => 'bg-slate-100 text-slate-800'
                                     };
                                 @endphp

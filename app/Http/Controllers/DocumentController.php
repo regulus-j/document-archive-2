@@ -326,7 +326,7 @@ class DocumentController extends Controller
         // Base query with essential relations
         $query = Document::with(['status', 'documentWorkflow'])
             ->whereHas('status', function($q) {
-                $q->whereIn('status', ['complete', 'completed', 'acknowledged', 'commented']);
+                $q->whereIn('status', ['complete', 'completed', 'acknowledged', 'commented', 'rejected']);
             });
 
         // Filter by tab (sent/received)
@@ -334,12 +334,12 @@ class DocumentController extends Controller
 
         // Count documents for sent tab (documents user has uploaded and are complete)
         $sentCount = Document::whereHas('status', function($q) {
-            $q->whereIn('status', ['complete', 'completed', 'acknowledged', 'commented']);
+            $q->whereIn('status', ['complete', 'completed', 'acknowledged', 'commented', 'rejected']);
         })->where('uploader', $user->id)->count();
 
         // Count documents for received tab (documents where user is in workflow and are complete)
         $receivedCount = Document::whereHas('status', function($q) {
-            $q->whereIn('status', ['complete', 'completed', 'acknowledged', 'commented']);
+            $q->whereIn('status', ['complete', 'completed', 'acknowledged', 'commented', 'rejected']);
         })->whereHas('documentWorkflow', function($q) use ($user) {
             $q->where('recipient_id', $user->id);
         })->count();
@@ -364,6 +364,92 @@ class DocumentController extends Controller
             'receivedCount' => $receivedCount,
             'sentCount' => $sentCount
         ]);
+    }
+
+    /**
+     * Unified Workflow Dashboard — consolidates Receive, Pending, and Completed
+     * into a single page with Alpine.js tabs for instant switching.
+     */
+    public function workflowDashboard(Request $request): View
+    {
+        $currentUserId = auth()->id();
+        $user = Auth::user();
+        $userOfficeIds = $user->offices->pluck('id')->toArray();
+
+        // ── 1. RECEIVE: documents forwarded to user awaiting receipt ──
+        $receiveQuery = Document::with([
+            'user', 'status', 'transaction.fromOffice', 'transaction.toOffice',
+            'documentWorkflow.sender', 'documentWorkflow.recipient'
+        ])->where(function($query) use ($currentUserId, $userOfficeIds) {
+            $query->whereHas('documentWorkflow', function($wq) use ($currentUserId) {
+                $wq->where('recipient_id', $currentUserId)
+                   ->whereIn('status', ['pending']);
+            })->orWhere(function($officeQuery) use ($userOfficeIds) {
+                $officeQuery->whereHas('transaction', function($tq) use ($userOfficeIds) {
+                    $tq->whereIn('to_office', $userOfficeIds);
+                });
+            });
+        })->whereHas('status', function($q) {
+            $q->whereNotIn('status', ['complete', 'completed', 'recalled', 'archived']);
+        })->whereHas('documentWorkflow', function($q) use ($currentUserId) {
+            $q->where('recipient_id', $currentUserId)
+              ->where('status', 'pending');
+        });
+        $receiveDocuments = $receiveQuery->latest()->get();
+
+        // ── 2. PENDING: documents received but not yet actioned ──
+        $pendingReceivedDocs = Document::with(['user', 'status', 'transaction.fromOffice', 'transaction.toOffice', 'documentWorkflow'])
+            ->whereHas('documentWorkflow', function($q) use ($currentUserId) {
+                $q->where('recipient_id', $currentUserId)
+                  ->where('status', 'received');
+            })->whereHas('status', function($q) {
+                $q->whereNotIn('status', ['complete', 'archived', 'recalled']);
+            })->latest()->get();
+
+        $pendingSentDocs = Document::with(['user', 'status', 'transaction.fromOffice', 'transaction.toOffice', 'documentWorkflow'])
+            ->whereHas('documentWorkflow', function($q) use ($currentUserId) {
+                $q->where('sender_id', $currentUserId)
+                  ->where('status', 'received');
+            })->whereHas('status', function($q) {
+                $q->whereNotIn('status', ['complete', 'archived', 'recalled']);
+            })->latest()->get();
+
+        // Build recipients map for pending documents
+        $pendingRecipients = [];
+        foreach ($pendingReceivedDocs->merge($pendingSentDocs)->unique('id') as $doc) {
+            $pendingRecipients[$doc->id] = $doc->documentWorkflow()
+                ->with(['recipient:id,first_name,last_name', 'sender:id,first_name,last_name'])
+                ->get()
+                ->map(function ($workflow) {
+                    return [
+                        'name' => optional($workflow->recipient)->first_name . ' ' . optional($workflow->recipient)->last_name,
+                        'sender' => optional($workflow->sender)->first_name . ' ' . optional($workflow->sender)->last_name,
+                        'received_at' => $workflow->received_at,
+                        'received' => $workflow->status === 'received',
+                        'purpose' => $workflow->purpose ?? null,
+                        'status' => $workflow->status,
+                    ];
+                });
+        }
+
+        // ── 3. COMPLETED: documents that have been fully processed ──
+        $completedReceivedDocs = Document::with(['status', 'documentWorkflow', 'user'])
+            ->whereHas('status', function($q) {
+                $q->whereIn('status', ['complete', 'completed', 'acknowledged', 'commented', 'rejected']);
+            })->whereHas('documentWorkflow', function($q) use ($currentUserId) {
+                $q->where('recipient_id', $currentUserId);
+            })->latest()->get();
+
+        $completedSentDocs = Document::with(['status', 'documentWorkflow', 'user'])
+            ->whereHas('status', function($q) {
+                $q->whereIn('status', ['complete', 'completed', 'acknowledged', 'commented', 'rejected']);
+            })->where('uploader', $currentUserId)->latest()->get();
+
+        return view('documents.workflow-dashboard', compact(
+            'receiveDocuments',
+            'pendingReceivedDocs', 'pendingSentDocs', 'pendingRecipients',
+            'completedReceivedDocs', 'completedSentDocs'
+        ));
     }
 
     //Storing the document

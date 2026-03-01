@@ -154,6 +154,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/receive', [DocumentController::class, 'receiveIndex'])->name('documents.receive.index');
         Route::post('/receive/{document}', [DocumentController::class, 'receiveConfirm'])->name('documents.receive.confirm');
 
+        // Unified workflow dashboard (consolidates receive, pending, completed)
+        Route::get('/workflow-dashboard', [DocumentController::class, 'workflowDashboard'])->name('documents.workflow-dashboard');
+
         // Static routes
         Route::get('/archive', [DocumentController::class, 'showArchive'])->name('documents.archive');
         Route::post('/archive/{document}', [DocumentController::class, 'archiveDocument'])->name('documents.archive.store');
