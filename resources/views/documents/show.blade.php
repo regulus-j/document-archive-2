@@ -393,16 +393,33 @@
                     </div>
                     <!-- Attachments Card -->
                     <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                        <p class="text-sm font-medium text-slate-500 mb-2">Document File</p>
+                        @if($document->path)
+                        <button onclick="openDocViewer('{{ route('documents.preview', $document->id) }}', '{{ $document->title }}', '{{ route('documents.download', $document->id) }}')"
+                            class="flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 transition-colors font-medium mb-3 cursor-pointer">
+                            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            View Main Document
+                        </button>
+                        @endif
+
                         <p class="text-sm font-medium text-slate-500 mb-2">Attachments</p>
                         @if($document->attachments->isNotEmpty())
                         <div class="space-y-2">
                             @foreach($document->attachments as $attachment)
                             <div class="flex items-center justify-between">
                                 <div class="min-w-0 flex-1">
-                                    <a href="{{ route('documents.download', $attachment->id) }}"
-                                        class="text-sm text-indigo-600 hover:text-indigo-800 transition-colors font-medium truncate block">
-                                        {{ $attachment->filename }}
-                                    </a>
+                                    <button onclick="openDocViewer('{{ route('attachments.preview', $attachment->id) }}', '{{ addslashes($attachment->filename) }}', '{{ route('documents.download', $attachment->id) }}')"
+                                        class="text-sm text-indigo-600 hover:text-indigo-800 transition-colors font-medium truncate block text-left cursor-pointer">
+                                        <span class="flex items-center gap-1.5">
+                                            <svg class="w-4 h-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                            </svg>
+                                            {{ $attachment->filename }}
+                                        </span>
+                                    </button>
                                     <p class="text-xs text-slate-400 mt-0.5">
                                         @if($attachment->uploader)
                                             <span class="text-slate-600">{{ $attachment->uploader->first_name }} {{ $attachment->uploader->last_name }}</span>
@@ -867,9 +884,23 @@
                 @csrf
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">New Recipient</label>
-                    <select id="reroute-recipient" name="new_recipient_id" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 focus:border-amber-400">
-                        <option value="">Loading...</option>
-                    </select>
+                    <input type="hidden" id="reroute-recipient" name="new_recipient_id" required />
+                    <div class="relative">
+                        <input type="text" id="reroute-search" autocomplete="off"
+                            placeholder="Search by name or email..."
+                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 focus:border-amber-400 pr-8" />
+                        <svg class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <div id="reroute-results" class="mt-1 max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-white hidden">
+                        <!-- Populated by JS -->
+                    </div>
+                    <p id="reroute-selected-label" class="text-xs text-emerald-600 mt-1 hidden">
+                        <span class="font-medium">Selected:</span> <span id="reroute-selected-name"></span>
+                    </p>
+                    <p id="reroute-loading" class="text-xs text-slate-400 mt-1 hidden">Loading recipients...</p>
+                    <p id="reroute-error" class="text-xs text-red-500 mt-1 hidden">Failed to load recipients.</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Reason for Rerouting</label>
@@ -885,33 +916,127 @@
 </div>
 
 <script>
+let rerouteAllUsers = [];
+
 function openRerouteModal(workflowId, currentUser, documentId) {
     const modal = document.getElementById('reroute-modal');
     const form = document.getElementById('reroute-form');
-    const select = document.getElementById('reroute-recipient');
+    const searchInput = document.getElementById('reroute-search');
+    const hiddenInput = document.getElementById('reroute-recipient');
     const currentUserEl = document.getElementById('reroute-current-user');
+    const loadingEl = document.getElementById('reroute-loading');
+    const errorEl = document.getElementById('reroute-error');
+    const selectedLabel = document.getElementById('reroute-selected-label');
+    const resultsDiv = document.getElementById('reroute-results');
 
+    // Reset state
     currentUserEl.textContent = currentUser;
     form.action = `/documents/workflows/${workflowId}/reroute`;
+    searchInput.value = '';
+    hiddenInput.value = '';
+    selectedLabel.classList.add('hidden');
+    resultsDiv.classList.add('hidden');
+    errorEl.classList.add('hidden');
+    loadingEl.classList.remove('hidden');
+    rerouteAllUsers = [];
+
     modal.classList.remove('hidden');
 
-    // Load available recipients
-    select.innerHTML = '<option value="">Loading...</option>';
-    fetch(`/documents/workflows/${documentId}/reroute-recipients`)
-        .then(r => r.json())
-        .then(users => {
-            select.innerHTML = '<option value="">Select a recipient...</option>';
-            users.forEach(u => {
-                const opt = document.createElement('option');
-                opt.value = u.id;
-                opt.textContent = `${u.name} (${u.email})`;
-                select.appendChild(opt);
-            });
-        })
-        .catch(() => {
-            select.innerHTML = '<option value="">Failed to load recipients</option>';
-        });
+    // Fetch recipients with proper headers
+    fetch(`/documents/workflows/${documentId}/reroute-recipients`, {
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+    })
+    .then(users => {
+        loadingEl.classList.add('hidden');
+        rerouteAllUsers = users;
+        renderRerouteResults(users);
+        if (users.length === 0) {
+            resultsDiv.innerHTML = '<p class="px-3 py-2 text-sm text-slate-400">No recipients available.</p>';
+            resultsDiv.classList.remove('hidden');
+        }
+    })
+    .catch((err) => {
+        console.error('Reroute recipients fetch error:', err);
+        loadingEl.classList.add('hidden');
+        errorEl.classList.remove('hidden');
+    });
 }
+
+function renderRerouteResults(users) {
+    const resultsDiv = document.getElementById('reroute-results');
+    if (users.length === 0) {
+        resultsDiv.innerHTML = '<p class="px-3 py-2 text-sm text-slate-400">No matching recipients.</p>';
+        resultsDiv.classList.remove('hidden');
+        return;
+    }
+
+    resultsDiv.innerHTML = users.map(u => `
+        <button type="button"
+            onclick="selectRerouteRecipient(${u.id}, '${u.name.replace(/'/g, "\\'")} (${u.email})')"
+            class="w-full text-left px-3 py-2 text-sm hover:bg-amber-50 transition-colors flex items-center justify-between border-b border-slate-100 last:border-0">
+            <div class="min-w-0">
+                <span class="font-medium text-slate-700">${u.name}</span>
+                ${u.office ? `<span class="text-xs text-amber-600 ml-1.5 bg-amber-50 px-1.5 py-0.5 rounded">${u.office}</span>` : ''}
+                <p class="text-xs text-slate-400 truncate">${u.email}</p>
+            </div>
+            <svg class="w-4 h-4 text-slate-300 flex-shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+        </button>
+    `).join('');
+    resultsDiv.classList.remove('hidden');
+}
+
+function selectRerouteRecipient(id, label) {
+    const hiddenInput = document.getElementById('reroute-recipient');
+    const searchInput = document.getElementById('reroute-search');
+    const selectedLabel = document.getElementById('reroute-selected-label');
+    const selectedName = document.getElementById('reroute-selected-name');
+    const resultsDiv = document.getElementById('reroute-results');
+
+    hiddenInput.value = id;
+    searchInput.value = '';
+    selectedName.textContent = label;
+    selectedLabel.classList.remove('hidden');
+    resultsDiv.classList.add('hidden');
+}
+
+// Live search filter
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('reroute-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            if (!query) {
+                renderRerouteResults(rerouteAllUsers);
+                return;
+            }
+            const filtered = rerouteAllUsers.filter(u =>
+                u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query)
+            );
+            renderRerouteResults(filtered);
+        });
+
+        searchInput.addEventListener('focus', function() {
+            if (rerouteAllUsers.length > 0) {
+                const query = this.value.toLowerCase().trim();
+                const filtered = query
+                    ? rerouteAllUsers.filter(u => u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query))
+                    : rerouteAllUsers;
+                renderRerouteResults(filtered);
+            }
+        });
+    }
+});
 
 function closeRerouteModal(event) {
     if (event && event.target !== event.currentTarget) return;
@@ -919,4 +1044,188 @@ function closeRerouteModal(event) {
 }
 </script>
 @endif
+
+{{-- ═══ Document Viewer Modal ═══ --}}
+<div id="doc-viewer-modal" class="hidden fixed inset-0 z-[60] overflow-hidden">
+    {{-- Backdrop --}}
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeDocViewer()"></div>
+
+    {{-- Modal Content --}}
+    <div class="relative flex flex-col h-full max-w-6xl mx-auto p-4 sm:p-6">
+        {{-- Header --}}
+        <div class="flex items-center justify-between bg-white rounded-t-xl px-5 py-3 border-b border-slate-200 shadow-sm">
+            <div class="flex items-center gap-3 min-w-0">
+                <svg class="w-5 h-5 text-indigo-500 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 id="doc-viewer-title" class="text-sm font-semibold text-slate-800 truncate">Document</h3>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+                {{-- Open in new tab --}}
+                <a id="doc-viewer-newtab" href="#" target="_blank"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                    title="Open in new tab">
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    New Tab
+                </a>
+                {{-- Download --}}
+                <a id="doc-viewer-download" href="#"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+                    title="Download file">
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download
+                </a>
+                {{-- Close --}}
+                <button onclick="closeDocViewer()"
+                    class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors" title="Close">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        {{-- Viewer Body --}}
+        <div class="flex-1 bg-white rounded-b-xl overflow-hidden shadow-xl relative min-h-0">
+            {{-- Loading spinner --}}
+            <div id="doc-viewer-loading" class="absolute inset-0 flex items-center justify-center bg-white z-10">
+                <div class="flex flex-col items-center gap-3">
+                    <svg class="animate-spin h-8 w-8 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    <p class="text-sm text-slate-500">Loading document...</p>
+                </div>
+            </div>
+
+            {{-- iframe for PDF/documents --}}
+            <iframe id="doc-viewer-frame" class="w-full h-full border-0 hidden" sandbox="allow-same-origin allow-scripts allow-popups"></iframe>
+
+            {{-- Image viewer --}}
+            <div id="doc-viewer-image" class="hidden w-full h-full flex items-center justify-center overflow-auto p-4 bg-slate-100">
+                <img id="doc-viewer-img" class="max-w-full max-h-full object-contain rounded shadow-lg" alt="Document preview" />
+            </div>
+
+            {{-- Unsupported format fallback --}}
+            <div id="doc-viewer-unsupported" class="hidden w-full h-full flex items-center justify-center">
+                <div class="text-center p-8">
+                    <svg class="w-16 h-16 text-slate-300 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <p class="text-slate-600 font-medium mb-2">Preview not available for this file type</p>
+                    <p class="text-sm text-slate-400 mb-4">You can download the file to view it on your device.</p>
+                    <a id="doc-viewer-fallback-download" href="#"
+                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Download File
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'];
+    const previewableExts = ['pdf', ...imageExts];
+
+    function getExtension(filename) {
+        return (filename || '').split('.').pop().toLowerCase();
+    }
+
+    function openDocViewer(previewUrl, title, downloadUrl) {
+        const modal = document.getElementById('doc-viewer-modal');
+        const titleEl = document.getElementById('doc-viewer-title');
+        const frame = document.getElementById('doc-viewer-frame');
+        const imageDiv = document.getElementById('doc-viewer-image');
+        const imgEl = document.getElementById('doc-viewer-img');
+        const unsupported = document.getElementById('doc-viewer-unsupported');
+        const loading = document.getElementById('doc-viewer-loading');
+        const downloadBtn = document.getElementById('doc-viewer-download');
+        const newtabBtn = document.getElementById('doc-viewer-newtab');
+        const fallbackBtn = document.getElementById('doc-viewer-fallback-download');
+
+        // Set title and download links
+        titleEl.textContent = title;
+        downloadBtn.href = downloadUrl;
+        newtabBtn.href = previewUrl;
+        fallbackBtn.href = downloadUrl;
+
+        // Reset visibility
+        frame.classList.add('hidden');
+        imageDiv.classList.add('hidden');
+        unsupported.classList.add('hidden');
+        loading.classList.remove('hidden');
+
+        // Show modal
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+
+        const ext = getExtension(title);
+
+        if (imageExts.includes(ext)) {
+            // Image preview
+            imgEl.onload = () => loading.classList.add('hidden');
+            imgEl.onerror = () => {
+                loading.classList.add('hidden');
+                imageDiv.classList.add('hidden');
+                unsupported.classList.remove('hidden');
+            };
+            imgEl.src = previewUrl;
+            imageDiv.classList.remove('hidden');
+        } else if (ext === 'pdf') {
+            // PDF preview via iframe
+            frame.onload = () => loading.classList.add('hidden');
+            frame.src = previewUrl;
+            frame.classList.remove('hidden');
+        } else {
+            // Try iframe for other types (browser may handle doc/docx etc.)
+            // Use a timeout fallback — if it doesn't load, show unsupported
+            frame.onload = () => loading.classList.add('hidden');
+            frame.onerror = () => {
+                loading.classList.add('hidden');
+                frame.classList.add('hidden');
+                unsupported.classList.remove('hidden');
+            };
+            frame.src = previewUrl;
+            frame.classList.remove('hidden');
+
+            // Fallback timeout — if still loading after 8s, show download option
+            setTimeout(() => {
+                if (!loading.classList.contains('hidden')) {
+                    loading.classList.add('hidden');
+                    // Keep iframe visible — it might still work
+                }
+            }, 8000);
+        }
+
+        // Close on Escape key
+        document.addEventListener('keydown', docViewerEscHandler);
+    }
+
+    function closeDocViewer() {
+        const modal = document.getElementById('doc-viewer-modal');
+        const frame = document.getElementById('doc-viewer-frame');
+        const imgEl = document.getElementById('doc-viewer-img');
+
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+
+        // Clean up to stop loading
+        frame.src = '';
+        imgEl.src = '';
+
+        document.removeEventListener('keydown', docViewerEscHandler);
+    }
+
+    function docViewerEscHandler(e) {
+        if (e.key === 'Escape') closeDocViewer();
+    }
+</script>
 @endsection
