@@ -159,7 +159,21 @@ class WorkflowRerouteController extends Controller
     {
         $user = Auth::user();
 
+        // Resolve company ID from the document first, then fall back to the
+        // authenticated user's own company — never expose other companies' users.
         $companyId = $document->company_id;
+
+        if (!$companyId) {
+            $companyId = $user->companies()->first()?->id;
+        }
+
+        if (!$companyId) {
+            Log::warning('Reroute: Could not determine company for document', [
+                'document_id' => $document->id,
+                'user_id'     => $user->id,
+            ]);
+            return response()->json([]);
+        }
 
         $users = User::whereHas('companies', fn($q) => $q->where('company_accounts.id', $companyId))
             ->where('id', '!=', $user->id)
@@ -174,26 +188,11 @@ class WorkflowRerouteController extends Controller
                 'office' => $u->offices->first()?->name ?? '',
             ]);
 
-        // Fallback: if company-based query returns empty, try all users in the system
-        // (this handles cases where company_id is null or pivot table is unpopulated)
         if ($users->isEmpty()) {
-            \Log::warning('Reroute: No company users found', [
+            Log::warning('Reroute: No company users found for rerouting', [
                 'document_id' => $document->id,
                 'company_id'  => $companyId,
             ]);
-
-            $users = User::where('id', '!=', $user->id)
-                ->with('offices:id,name')
-                ->select('id', 'first_name', 'last_name', 'email')
-                ->orderBy('first_name')
-                ->limit(100)
-                ->get()
-                ->map(fn($u) => [
-                    'id'     => $u->id,
-                    'name'   => $u->first_name . ' ' . $u->last_name,
-                    'email'  => $u->email,
-                    'office' => $u->offices->first()?->name ?? '',
-                ]);
         }
 
         return response()->json($users);

@@ -452,6 +452,22 @@ class UserController extends Controller
 
         $officeId = $request->query('office_id');
 
+        // Ensure the requested office belongs to the authenticated user's company.
+        // This prevents cross-company user enumeration via this AJAX endpoint.
+        $userCompany = auth()->user()->companies()->first();
+
+        if (!$userCompany) {
+            return response()->json([]);
+        }
+
+        $officeExists = \App\Models\Office::where('id', $officeId)
+            ->where('company_id', $userCompany->id)
+            ->exists();
+
+        if (!$officeExists) {
+            return response()->json([], 403);
+        }
+
         // B-07 FIX: select only display-safe columns; never serialise password hash,
         // remember_token, verification_code, etc. to a JSON response.
         $users = User::whereHas('offices', function ($query) use ($officeId) {
