@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -34,6 +35,12 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('chatbot', function ($request) {
             return Limit::perMinute(15)->by(optional($request->user())->id ?: $request->ip());
+        });
+
+        // Urgency Matrix: Schedule the urgency monitoring command every 30 minutes
+        $this->app->booted(function () {
+            $schedule = $this->app->make(Schedule::class);
+            $schedule->command('documents:monitor-urgency')->everyThirtyMinutes();
         });
     }
 }

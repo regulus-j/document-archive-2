@@ -435,6 +435,56 @@
                     <p class="text-base text-slate-600">{{ $document->description }}</p>
                 </div>
 
+                <!-- Urgency Analysis Panel -->
+                @if($document->urgency_level)
+                <div class="bg-{{ $document->urgency_color }}-50/60 p-4 rounded-lg border border-{{ $document->urgency_color }}-200/60 transition-all duration-300 hover:border-{{ $document->urgency_color }}-300/80 mb-8">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-lg">{{ $document->urgency_icon }}</span>
+                            <p class="text-sm font-semibold text-{{ $document->urgency_color }}-800">Urgency Analysis</p>
+                        </div>
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-{{ $document->urgency_color }}-100 text-{{ $document->urgency_color }}-700 ring-1 ring-{{ $document->urgency_color }}-200">
+                            {{ $document->urgency_level }}
+                        </span>
+                    </div>
+                    <div class="space-y-2">
+                        @if($document->urgency_reasoning)
+                        <div class="flex items-start gap-2">
+                            <svg class="w-4 h-4 text-{{ $document->urgency_color }}-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <p class="text-sm text-slate-600">{{ $document->urgency_reasoning }}</p>
+                        </div>
+                        @endif
+                        <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                            @if($document->urgency_confidence)
+                            <span class="flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                {{ $document->urgency_confidence }}% confidence
+                            </span>
+                            @endif
+                            @if($document->urgency_analyzed_at)
+                            <span class="flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Analyzed {{ $document->urgency_analyzed_at->diffForHumans() }}
+                            </span>
+                            @endif
+                            @if($document->escalation_count > 0)
+                            <span class="flex items-center gap-1 text-red-500 font-medium">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                                {{ $document->escalation_count }} escalation(s)
+                            </span>
+                            @endif
+                        </div>
+                        @if($document->urgency_keywords && is_array(json_decode($document->urgency_keywords, true)))
+                        <div class="flex flex-wrap gap-1.5 mt-1">
+                            @foreach(array_slice(json_decode($document->urgency_keywords, true), 0, 8) as $kw)
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-{{ $document->urgency_color }}-100/80 text-{{ $document->urgency_color }}-600">{{ $kw }}</span>
+                            @endforeach
+                        </div>
+                        @endif
+                    </div>
+                </div>
+                @endif
+
                 <!-- E-Signatures -->
                 <div class="bg-indigo-50/60 p-4 rounded-lg border border-indigo-200/60 transition-all duration-300 hover:border-indigo-300/80 mb-8">
                     <div class="flex items-center justify-between mb-3">
@@ -612,51 +662,25 @@
                                             <span class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $cfg['color'] }}-100 text-{{ $cfg['color'] }}-700">
                                                 {{ $cfg['label'] }}
                                             </span>
+                                            @if(($canReroute ?? false) && $isActive && $wf->status !== 'received')
+                                            <button type="button"
+                                                onclick="openRerouteModal({{ $wf->id }}, '{{ addslashes($wf->recipient ? ($wf->recipient->first_name . ' ' . $wf->recipient->last_name) : 'Unknown') }}', {{ $document->id }})"
+                                                class="flex-shrink-0 ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors cursor-pointer"
+                                                title="Reroute this workflow step">
+                                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                                Reroute
+                                            </button>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
 
-                                {{-- Sub-workflows (forwarded-from-review) --}}
-                                @if($wf->childWorkflows && $wf->childWorkflows->count())
-                                <div class="ml-4 pl-4 border-l-2 border-purple-300 space-y-2 my-1">
-                                    <div class="flex items-center gap-1.5 mb-1">
-                                        <svg class="w-3.5 h-3.5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                                        <span class="text-xs font-semibold text-purple-600 uppercase tracking-wider">Forwarded for Review</span>
-                                        <span class="text-xs text-purple-400">({{ $wf->childWorkflows->count() }})</span>
-                                    </div>
-                                    @foreach($wf->childWorkflows as $subWf)
-                                        @php
-                                            $subCfg = $wfStatusConfig[$subWf->status] ?? ['icon' => 'minus', 'color' => 'slate', 'label' => ucfirst($subWf->status), 'ring' => 'ring-slate-200'];
-                                        @endphp
-                                        <div class="bg-purple-50/60 rounded-lg border {{ 'border-'.$subCfg['color'].'-200' }} border-dashed p-2.5">
-                                            <div class="flex items-start justify-between gap-2">
-                                                <div class="flex items-start gap-2.5 min-w-0">
-                                                    <div class="flex-shrink-0 h-6 w-6 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold shadow-sm">
-                                                        {{ $subWf->recipient ? strtoupper(substr($subWf->recipient->first_name ?? '?', 0, 1)) : '?' }}
-                                                    </div>
-                                                    <div class="min-w-0">
-                                                        <p class="text-xs font-medium text-slate-700">
-                                                            {{ $subWf->recipient ? ($subWf->recipient->first_name . ' ' . $subWf->recipient->last_name) : 'Unknown' }}
-                                                        </p>
-                                                        @if($subWf->recipientOffice)
-                                                            <span class="text-[10px] text-slate-400">{{ $subWf->recipientOffice->name }}</span>
-                                                        @endif
-                                                        @if($subWf->remarks)
-                                                            <p class="text-[10px] text-slate-400 mt-1 italic">&ldquo;{{ $subWf->remarks }}&rdquo;</p>
-                                                        @endif
-                                                        @if($subWf->received_at)
-                                                            <p class="text-[10px] text-slate-400 mt-0.5">Responded: {{ \Carbon\Carbon::parse($subWf->received_at)->format('M d, Y g:ia') }}</p>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                                <span class="flex-shrink-0 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-{{ $subCfg['color'] }}-100 text-{{ $subCfg['color'] }}-700">
-                                                    {{ $subCfg['label'] }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                                @endif
+                                {{-- Sub-workflows (forwarded-from-review) — recursive --}}
+                                @include('documents.partials.sub-workflows', [
+                                    'childWorkflows' => $wf->childWorkflows,
+                                    'wfStatusConfig' => $wfStatusConfig,
+                                    'depth' => 1,
+                                ])
                             @endforeach
 
                             {{-- Connector arrow between steps --}}
@@ -712,6 +736,33 @@
                 </div>
                 @endif
 
+
+                <!-- Reroute History -->
+                @if(isset($rerouteLogs) && $rerouteLogs->count())
+                <div class="bg-amber-50/60 p-4 rounded-lg border border-amber-200/60 mb-8">
+                    <div class="flex items-center gap-2 mb-3">
+                        <svg class="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <p class="text-sm font-semibold text-amber-800">Reroute History</p>
+                        <span class="text-xs text-amber-500">({{ $rerouteLogs->count() }})</span>
+                    </div>
+                    <div class="space-y-2">
+                        @foreach($rerouteLogs as $log)
+                        <div class="bg-white rounded-lg border border-amber-100 p-3">
+                            <div class="flex items-start justify-between">
+                                <div class="text-sm">
+                                    <span class="text-slate-600">From</span>
+                                    <span class="font-medium text-slate-800">{{ $log->old_recipient_name }}</span>
+                                    <span class="text-slate-600">to</span>
+                                    <span class="font-medium text-slate-800">{{ $log->new_recipient_name }}</span>
+                                </div>
+                                <span class="text-xs text-slate-400">{{ \Carbon\Carbon::parse($log->created_at)->diffForHumans() }}</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">By {{ $log->rerouted_by_name }} &mdash; {{ $log->reason }}</p>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
 
             </div>
             </div>
@@ -793,4 +844,79 @@
         </div>
     </div>
 </div>
+
+<!-- Reroute Modal -->
+@if($canReroute ?? false)
+<div id="reroute-modal" class="fixed inset-0 z-50 hidden" onclick="closeRerouteModal(event)">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div class="relative flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden" onclick="event.stopPropagation()">
+            <div class="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-amber-50 to-orange-50">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <h3 class="text-lg font-semibold text-slate-800">Reroute Workflow Step</h3>
+                    </div>
+                    <button onclick="closeRerouteModal()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <p class="text-sm text-slate-500 mt-1">Reassign from <strong id="reroute-current-user" class="text-slate-700"></strong></p>
+            </div>
+            <form id="reroute-form" method="POST" class="p-6 space-y-4">
+                @csrf
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">New Recipient</label>
+                    <select id="reroute-recipient" name="new_recipient_id" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 focus:border-amber-400">
+                        <option value="">Loading...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Reason for Rerouting</label>
+                    <textarea name="reason" required rows="3" maxlength="500" placeholder="Explain why this step is being rerouted..." class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 focus:border-amber-400 resize-none"></textarea>
+                </div>
+                <div class="flex items-center justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeRerouteModal()" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow-sm transition">Reroute</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openRerouteModal(workflowId, currentUser, documentId) {
+    const modal = document.getElementById('reroute-modal');
+    const form = document.getElementById('reroute-form');
+    const select = document.getElementById('reroute-recipient');
+    const currentUserEl = document.getElementById('reroute-current-user');
+
+    currentUserEl.textContent = currentUser;
+    form.action = `/documents/workflows/${workflowId}/reroute`;
+    modal.classList.remove('hidden');
+
+    // Load available recipients
+    select.innerHTML = '<option value="">Loading...</option>';
+    fetch(`/documents/workflows/${documentId}/reroute-recipients`)
+        .then(r => r.json())
+        .then(users => {
+            select.innerHTML = '<option value="">Select a recipient...</option>';
+            users.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.id;
+                opt.textContent = `${u.name} (${u.email})`;
+                select.appendChild(opt);
+            });
+        })
+        .catch(() => {
+            select.innerHTML = '<option value="">Failed to load recipients</option>';
+        });
+}
+
+function closeRerouteModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('reroute-modal').classList.add('hidden');
+}
+</script>
+@endif
 @endsection

@@ -22,6 +22,14 @@ class Document extends Model
         'category',
         'classification', // A-03 FIX: was silently ignored on mass-assignment; access control depends on this value.
         'from_office',
+        // Urgency Matrix fields
+        'urgency_level',
+        'urgency_reasoning',
+        'urgency_keywords',
+        'urgency_analyzed_at',
+        'urgency_confidence',
+        'urgency_escalated_at',
+        'escalation_count',
     ];
 
     protected $attributes = [
@@ -29,8 +37,41 @@ class Document extends Model
     ];
 
     protected $casts = [
-        'purpose' => 'string',
+        'purpose'             => 'string',
+        'urgency_keywords'    => 'array',
+        'urgency_analyzed_at' => 'datetime',
+        'urgency_escalated_at'=> 'datetime',
+        'escalation_count'    => 'integer',
+        'urgency_confidence'  => 'integer',
     ];
+
+    /**
+     * Get the Tailwind color class for the urgency level.
+     */
+    public function getUrgencyColorAttribute(): string
+    {
+        return match ($this->urgency_level) {
+            'critical' => 'red',
+            'high'     => 'orange',
+            'medium'   => 'yellow',
+            'low'      => 'green',
+            default    => 'gray',
+        };
+    }
+
+    /**
+     * Get the icon for the urgency level.
+     */
+    public function getUrgencyIconAttribute(): string
+    {
+        return match ($this->urgency_level) {
+            'critical' => '🚨',
+            'high'     => '⚠️',
+            'medium'   => '📋',
+            'low'      => 'ℹ️',
+            default    => '❓',
+        };
+    }
 
     public function user()
     {

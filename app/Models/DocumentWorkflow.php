@@ -24,6 +24,18 @@ class DocumentWorkflow extends Model
         'remarks',
         'is_paused',
         'parent_workflow_id',
+        // Urgency Matrix activity tracking
+        'last_activity_at',
+        'inactivity_notified_at',
+        'is_rerouted',
+    ];
+
+    protected $casts = [
+        'due_date'               => 'datetime',
+        'last_activity_at'       => 'datetime',
+        'inactivity_notified_at' => 'datetime',
+        'is_rerouted'            => 'boolean',
+        'is_paused'              => 'boolean',
     ];
 
     public function document()
@@ -454,5 +466,49 @@ class DocumentWorkflow extends Model
     public function scopeWaiting($query)
     {
         return $query->where('status', 'waiting');
+    }
+
+    /**
+     * Get reroute logs for this workflow step.
+     */
+    public function rerouteLogs()
+    {
+        return \Illuminate\Support\Facades\DB::table('workflow_reroute_logs')
+            ->where('workflow_id', $this->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+
+    /**
+     * Check if this workflow step is inactive based on its document urgency.
+     */
+    public function isInactive(): bool
+    {
+        $document = $this->document;
+        if (!$document || !$document->urgency_level) {
+            return false;
+        }
+
+        $thresholds = \App\Services\DocumentUrgencyAnalyzer::getThresholds($document->urgency_level);
+        $lastActivity = $this->last_activity_at ?? $this->created_at;
+        $hours = $lastActivity->diffInHours(now());
+
+        return $hours >= $thresholds['warning'];
+    }
+
+    /**
+     * Alias for recipient (used in urgency system).
+     */
+    public function recipientUser()
+    {
+        return $this->belongsTo(User::class, 'recipient_id');
+    }
+
+    /**
+     * Alias for sender (used in urgency system).
+     */
+    public function senderUser()
+    {
+        return $this->belongsTo(User::class, 'sender_id');
     }
 }

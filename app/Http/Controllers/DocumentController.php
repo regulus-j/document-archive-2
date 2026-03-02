@@ -583,6 +583,20 @@ class DocumentController extends Controller
             $data = $this->generateTrackingSlip($document->id, auth()->id(), $tracking_number);
             \Log::info('Tracking slip generated', ['document_id' => $document->id]);
 
+            // === Urgency Matrix: Automatically analyze document urgency ===
+            try {
+                $urgencyAnalyzer = app(\App\Services\DocumentUrgencyAnalyzer::class);
+                $urgencyResult = $urgencyAnalyzer->analyze($document);
+                \Log::info('Document urgency analyzed', [
+                    'document_id' => $document->id,
+                    'level' => $urgencyResult['level'],
+                    'confidence' => $urgencyResult['confidence'],
+                ]);
+            } catch (\Throwable $e) {
+                \Log::warning('Urgency analysis failed (non-blocking)', ['error' => $e->getMessage()]);
+            }
+            // === End Urgency Matrix ===
+
             if ($request->forward == '1') {
                 \Log::info('Redirecting to forward route', ['document_id' => $document->id]);
                 // Document is already created with 'uploaded' status, now redirect to forward page
@@ -888,7 +902,13 @@ class DocumentController extends Controller
         }
 
         // Get workflows and organize by step order for display
-        $workflows = DocumentWorkflow::with(['sender', 'recipient', 'recipientOffice', 'childWorkflows.recipient', 'childWorkflows.recipientOffice'])
+        // Recursive eager loading to support N-level deep forwarded sub-workflows
+        $workflows = DocumentWorkflow::with([
+                'sender', 'recipient', 'recipientOffice',
+                'childWorkflows.recipient', 'childWorkflows.recipientOffice',
+                'childWorkflows.childWorkflows.recipient', 'childWorkflows.childWorkflows.recipientOffice',
+                'childWorkflows.childWorkflows.childWorkflows.recipient', 'childWorkflows.childWorkflows.childWorkflows.recipientOffice',
+            ])
             ->where('document_id', $document->id)
             ->orderBy('step_order')
             ->get();
@@ -953,7 +973,27 @@ class DocumentController extends Controller
         $document->load('eSignatures.user');
         $document->load('originatingOffice');
 
-        return view('documents.show', compact('document', 'auditLogs', 'attachments', 'docRoute', 'workflows'));
+        // === Urgency Matrix: Load reroute logs and check reroute permission ===
+        $rerouteLogs = \Illuminate\Support\Facades\DB::table('workflow_reroute_logs')
+            ->where('document_id', $document->id)
+            ->join('users as old_user', 'workflow_reroute_logs.old_recipient_id', '=', 'old_user.id')
+            ->join('users as new_user', 'workflow_reroute_logs.new_recipient_id', '=', 'new_user.id')
+            ->join('users as rerouter', 'workflow_reroute_logs.rerouted_by', '=', 'rerouter.id')
+            ->select(
+                'workflow_reroute_logs.*',
+                \Illuminate\Support\Facades\DB::raw("CONCAT(old_user.first_name, ' ', old_user.last_name) as old_recipient_name"),
+                \Illuminate\Support\Facades\DB::raw("CONCAT(new_user.first_name, ' ', new_user.last_name) as new_recipient_name"),
+                \Illuminate\Support\Facades\DB::raw("CONCAT(rerouter.first_name, ' ', rerouter.last_name) as rerouted_by_name")
+            )
+            ->orderBy('workflow_reroute_logs.created_at', 'desc')
+            ->get();
+
+        $canReroute = $document->uploader === auth()->id()
+            || auth()->user()->hasRole('super-admin')
+            || auth()->user()->hasRole('company-admin');
+        // === End Urgency Matrix ===
+
+        return view('documents.show', compact('document', 'auditLogs', 'attachments', 'docRoute', 'workflows', 'rerouteLogs', 'canReroute'));
     }
 
     /**
