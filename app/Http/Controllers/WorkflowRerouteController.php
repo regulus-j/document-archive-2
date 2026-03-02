@@ -159,18 +159,42 @@ class WorkflowRerouteController extends Controller
     {
         $user = Auth::user();
 
-        // Get users in the same company
         $companyId = $document->company_id;
+
         $users = User::whereHas('companies', fn($q) => $q->where('company_accounts.id', $companyId))
             ->where('id', '!=', $user->id)
+            ->with('offices:id,name')
             ->select('id', 'first_name', 'last_name', 'email')
             ->orderBy('first_name')
             ->get()
             ->map(fn($u) => [
-                'id'    => $u->id,
-                'name'  => $u->first_name . ' ' . $u->last_name,
-                'email' => $u->email,
+                'id'     => $u->id,
+                'name'   => $u->first_name . ' ' . $u->last_name,
+                'email'  => $u->email,
+                'office' => $u->offices->first()?->name ?? '',
             ]);
+
+        // Fallback: if company-based query returns empty, try all users in the system
+        // (this handles cases where company_id is null or pivot table is unpopulated)
+        if ($users->isEmpty()) {
+            \Log::warning('Reroute: No company users found', [
+                'document_id' => $document->id,
+                'company_id'  => $companyId,
+            ]);
+
+            $users = User::where('id', '!=', $user->id)
+                ->with('offices:id,name')
+                ->select('id', 'first_name', 'last_name', 'email')
+                ->orderBy('first_name')
+                ->limit(100)
+                ->get()
+                ->map(fn($u) => [
+                    'id'     => $u->id,
+                    'name'   => $u->first_name . ' ' . $u->last_name,
+                    'email'  => $u->email,
+                    'office' => $u->offices->first()?->name ?? '',
+                ]);
+        }
 
         return response()->json($users);
     }
