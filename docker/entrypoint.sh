@@ -25,6 +25,10 @@ fi
 echo "Running migrations..."
 php artisan migrate --force
 
+# Ensure storage symlink exists (needed for file serving)
+echo "Creating storage symlink..."
+php artisan storage:link --force 2>/dev/null || true
+
 # Run seeders (IDEMPOTENTLY)
 echo "Running seeders..."
 # Critical seeders for app functionality
