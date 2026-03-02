@@ -3,8 +3,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "8080:80"
     environment:
       - APP_KEY=${APP_KEY}
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://localhost:11434}
@@ -17,9 +15,6 @@ services:
         condition: service_healthy
     volumes:
       - storage:/var/www/html/storage/app
-    networks:
-      - doc-archive-network
-      - dokploy-network
     restart: unless-stopped
 
   mysql:
@@ -31,8 +26,6 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD:-password}
     volumes:
       - mysql-data:/var/lib/mysql
-    networks:
-      - doc-archive-network
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -43,9 +36,3 @@ services:
 volumes:
   mysql-data:
   storage:
-
-networks:
-  doc-archive-network:
-    driver: bridge
-  dokploy-network:
-    external: true
