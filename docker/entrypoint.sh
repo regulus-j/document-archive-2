@@ -3,6 +3,24 @@
 # Exit on fail
 set -e
 
+# Wait for MySQL to be resolvable and accepting connections
+echo "Waiting for MySQL..."
+MAX_DB_RETRIES=30
+DB_RETRY=0
+while [ "$DB_RETRY" -lt "$MAX_DB_RETRIES" ]; do
+    if php -r "try { new PDO('mysql:host='.getenv('DB_HOST').';port='.getenv('DB_PORT'), getenv('DB_USERNAME'), getenv('DB_PASSWORD')); echo 'OK'; exit(0); } catch(Exception \$e) { exit(1); }" 2>/dev/null; then
+        echo "MySQL is ready."
+        break
+    fi
+    DB_RETRY=$((DB_RETRY + 1))
+    echo "  Attempt ${DB_RETRY}/${MAX_DB_RETRIES} — waiting for MySQL..."
+    sleep 3
+done
+
+if [ "$DB_RETRY" -ge "$MAX_DB_RETRIES" ]; then
+    echo "ERROR: MySQL not reachable after ${MAX_DB_RETRIES} attempts. Continuing anyway..."
+fi
+
 # Run standard migrations (safe)
 echo "Running migrations..."
 php artisan migrate --force

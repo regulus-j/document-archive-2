@@ -28,6 +28,8 @@ services:
         condition: service_healthy
     volumes:
       - storage:/var/www/html/storage/app
+    networks:
+      - internal
     restart: unless-stopped
 
   mysql:
@@ -39,6 +41,8 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD:-password}
     volumes:
       - mysql-data:/var/lib/mysql
+    networks:
+      - internal
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -49,3 +53,7 @@ services:
 volumes:
   mysql-data:
   storage:
+
+networks:
+  internal:
+    driver: bridge
