@@ -30,6 +30,7 @@ services:
       - storage:/var/www/html/storage/app
     networks:
       - internal
+      - dokploy-network
     restart: unless-stopped
 
   mysql:
@@ -57,3 +58,5 @@ volumes:
 networks:
   internal:
     driver: bridge
+  dokploy-network:
+    external: true
