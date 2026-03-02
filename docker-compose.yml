@@ -19,6 +19,7 @@ services:
       - storage:/var/www/html/storage/app
     networks:
       - doc-archive-network
+      - dokploy-network
     restart: unless-stopped
 
   mysql:
@@ -46,3 +47,5 @@ volumes:
 networks:
   doc-archive-network:
     driver: bridge
+  dokploy-network:
+    external: true
