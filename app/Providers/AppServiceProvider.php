@@ -41,6 +41,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('documents:monitor-urgency')->everyThirtyMinutes();
+            // Auto-archive: check office schedules every 6 hours
+            $schedule->command('documents:auto-archive')->everySixHours();
         });
     }
 }

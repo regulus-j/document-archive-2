@@ -160,6 +160,7 @@ Route::middleware('auth')->group(function () {
         // Static routes
         Route::get('/archive', [DocumentController::class, 'showArchive'])->name('documents.archive');
         Route::post('/archive/{document}', [DocumentController::class, 'archiveDocument'])->name('documents.archive.store');
+        Route::post('/archive-schedule', [DocumentController::class, 'saveArchiveSchedule'])->name('documents.archive.schedule');
         Route::get('/released', [DocumentController::class, 'showReleased'])->name('documents.released');
         Route::get('/pending', [DocumentController::class, 'showPending'])->name('documents.pending');
         Route::get('/complete', [DocumentController::class, 'showComplete'])->name('documents.complete');

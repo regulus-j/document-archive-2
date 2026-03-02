@@ -15,6 +15,12 @@ class Office extends Model
         'name',
         'parent_office_id',
         'office_lead',
+        'archive_schedule_days',
+        'archive_last_run_at',
+    ];
+
+    protected $casts = [
+        'archive_last_run_at' => 'datetime',
     ];
 
     public function childOffices()

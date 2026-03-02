@@ -293,6 +293,25 @@ class DocumentController extends Controller
             });
         }
 
+        // Apply filter params
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->input('date_from'));
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->input('date_to'));
+        }
+        if ($request->filled('uploader')) {
+            $query->where('uploader', $request->input('uploader'));
+        }
+
+        $sortMap = [
+            'oldest'     => ['created_at', 'asc'],
+            'title'      => ['title', 'asc'],
+            'title_desc' => ['title', 'desc'],
+            'latest'     => ['created_at', 'desc'],
+        ];
+        [$sortCol, $sortDir] = $sortMap[$request->input('sort', 'latest')] ?? ['created_at', 'desc'];
+
         // For non-company admins, further restrict to only their office's documents
         if (!$user->hasRole('company-admin')) {
             $userOfficeIds = $user->offices->pluck('id')->toArray();
@@ -301,7 +320,16 @@ class DocumentController extends Controller
             });
         }
 
-        $documents = $query->latest()->paginate(5);
+        $documents = $query->orderBy($sortCol, $sortDir)->paginate(15);
+
+        // Uploaders list for the filter sidebar
+        $uploaders = User::whereHas('companies', function ($q) use ($userCompany) {
+            $q->where('company_accounts.id', $userCompany->id);
+        })->orderBy('first_name')->get();
+
+        // Detect if the current user is an office lead
+        $ledOffice = Office::where('office_lead', $user->id)->first();
+        $isOfficeLead = $ledOffice !== null;
 
         // B-08 FIX: scope audit logs to documents in the current company only, not all companies.
         $companyDocumentIds = Document::whereHas('user.companies', function ($q) use ($userCompany) {
@@ -311,10 +339,13 @@ class DocumentController extends Controller
         $auditLogs = DocumentAudit::whereIn('document_id', $companyDocumentIds)->latest()->paginate(15);
 
         return view('documents.archive', array_merge([
-            'documents' => $documents,
+            'documents'    => $documents,
             'archivedDocuments' => $documents,
-            'i' => (request()->input('page', 1) - 1) * 5,
-            'search' => $search,
+            'i'            => (request()->input('page', 1) - 1) * 15,
+            'search'       => $search,
+            'uploaders'    => $uploaders,
+            'isOfficeLead' => $isOfficeLead,
+            'ledOffice'    => $ledOffice,
         ], compact('auditLogs')));
     }
 
@@ -1800,5 +1831,35 @@ public function receiveConfirm(Document $document)
 
         return redirect()->route('documents.index')
             ->with('success', 'Document has been archived successfully.');
+    }
+
+    /**
+     * Save (or clear) the auto-archive schedule for the current user's led office.
+     * Only the office lead may call this.
+     */
+    public function saveArchiveSchedule(Request $request): RedirectResponse
+    {
+        $user = auth()->user();
+        $office = Office::where('office_lead', $user->id)->first();
+
+        if (!$office) {
+            return back()->with('error', 'Only team leaders can configure an archiving schedule.');
+        }
+
+        $days = $request->input('archive_schedule_days');
+
+        if ($days === null || $days === '') {
+            // Disable the schedule
+            $office->update(['archive_schedule_days' => null]);
+            return back()->with('success', 'Auto-archive schedule disabled.');
+        }
+
+        $validated = $request->validate([
+            'archive_schedule_days' => ['required', 'integer', 'min:1', 'max:365'],
+        ]);
+
+        $office->update(['archive_schedule_days' => $validated['archive_schedule_days']]);
+
+        return back()->with('success', "Auto-archive schedule set: resolved documents will be archived every {$validated['archive_schedule_days']} day(s).");
     }
 }

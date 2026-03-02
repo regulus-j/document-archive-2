@@ -47,12 +47,12 @@
                             <div>
                                 <label for="text-search" class="block text-sm font-medium text-slate-700 mb-1">Keywords</label>
                                 <div class="relative">
-                                    <input type="text" id="text-search" name="search" value="{{ $search ?? '' }}" class="mt-1 block w-full px-3 py-2 border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" placeholder="Search in title, description...">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <svg class="h-5 w-5 text-indigo-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <svg class="h-4 w-4 text-indigo-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
                                         </svg>
                                     </div>
+                                    <input type="text" id="text-search" name="search" value="{{ $search ?? '' }}" class="block w-full pl-9 pr-3 py-2 border border-slate-300 rounded-md text-sm placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Search title, description…">
                                 </div>
                             </div>
 
@@ -127,6 +127,94 @@
                                 </button>
                             </div>
                         </div>
+
+                        @if($isOfficeLead && $ledOffice)
+                        {{-- Auto-Archive Schedule (team leaders only) --}}
+                        <div class="border-t border-slate-200 pt-5 mt-5">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="p-1.5 bg-amber-100 rounded-md">
+                                    <svg class="h-4 w-4 text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <h3 class="text-sm font-semibold text-slate-800">Auto-Archive Schedule</h3>
+                            </div>
+                            <p class="text-xs text-slate-500 mb-3 leading-relaxed">
+                                Resolved documents (approved, rejected, or completed) submitted by your team members will be archived automatically every <span class="font-medium text-slate-700">N</span> days.
+                            </p>
+
+                            @if(session('success'))
+                                <div class="mb-3 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2">
+                                    {{ session('success') }}
+                                </div>
+                            @endif
+                            @if(session('error'))
+                                <div class="mb-3 text-xs text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+                                    {{ session('error') }}
+                                </div>
+                            @endif
+
+                            <form action="{{ route('documents.archive.schedule') }}" method="POST" class="space-y-3">
+                                @csrf
+                                <div>
+                                    <label for="archive_schedule_days" class="block text-xs font-medium text-slate-600 mb-1">Archive every</label>
+                                    <div class="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            id="archive_schedule_days"
+                                            name="archive_schedule_days"
+                                            min="1"
+                                            max="365"
+                                            value="{{ $ledOffice->archive_schedule_days ?? '' }}"
+                                            placeholder="e.g. 7"
+                                            class="w-24 px-3 py-2 border border-slate-300 rounded-md text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500"
+                                        >
+                                        <span class="text-sm text-slate-500">day(s)</span>
+                                    </div>
+                                    @error('archive_schedule_days')
+                                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                @if($ledOffice->archive_schedule_days)
+                                    <div class="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-md px-3 py-2">
+                                        <svg class="h-3.5 w-3.5 text-slate-400 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>
+                                            Currently: every <strong>{{ $ledOffice->archive_schedule_days }}</strong> day(s).
+                                            @if($ledOffice->archive_last_run_at)
+                                                Last run {{ $ledOffice->archive_last_run_at->diffForHumans() }}.
+                                            @else
+                                                Not yet run.
+                                            @endif
+                                        </span>
+                                    </div>
+                                @endif
+
+                                <div class="flex gap-2 pt-1">
+                                    <button type="submit" class="flex-1 inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-white bg-amber-500 hover:bg-amber-600 border border-transparent rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-amber-400 transition-colors">
+                                        <svg class="h-3.5 w-3.5 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        Save Schedule
+                                    </button>
+                                    @if($ledOffice->archive_schedule_days)
+                                    <button
+                                        type="submit"
+                                        name="archive_schedule_days"
+                                        value=""
+                                        class="inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-slate-600 bg-white hover:bg-slate-50 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-slate-300 transition-colors"
+                                        title="Disable auto-archive">
+                                        <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                    @endif
+                                </div>
+                            </form>
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>

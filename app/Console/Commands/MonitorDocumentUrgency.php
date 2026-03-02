@@ -53,7 +53,7 @@ class MonitorDocumentUrgency extends Command
 
             // Check for escalation (deadline exceeded)
             if ($hoursSince >= $thresholds['escalation']) {
-                if ($this->shouldNotify($document->id, $workflow->id, 'escalation')) {
+                if ($this->shouldNotify($document->id, $workflow->id, 'escalation', $document->urgency_level)) {
                     $this->sendAlert($document, $workflow, 'escalation');
                     $this->incrementEscalation($document);
                     $escalations++;
@@ -61,7 +61,7 @@ class MonitorDocumentUrgency extends Command
             }
             // Check for warning (approaching deadline)
             elseif ($hoursSince >= $thresholds['warning']) {
-                if ($this->shouldNotify($document->id, $workflow->id, 'warning')) {
+                if ($this->shouldNotify($document->id, $workflow->id, 'warning', $document->urgency_level)) {
                     $this->sendAlert($document, $workflow, 'warning');
                     $warnings++;
                 }
@@ -83,15 +83,29 @@ class MonitorDocumentUrgency extends Command
     }
 
     /**
-     * Check if a notification of this type was already sent recently.
+     * Resolve the notification cooldown (in hours) based on urgency level.
+     *
+     * The higher the urgency, the shorter the cooldown so alerts repeat more often.
+     * The minimum cooldown is 6 hours regardless of urgency level.
      */
-    protected function shouldNotify(int $documentId, int $workflowId, string $type): bool
+    protected function getNotificationCooldownHours(string $urgencyLevel): int
     {
-        $cooldownHours = match ($type) {
-            'escalation' => 4,
-            'warning'    => 8,
-            default      => 24,
+        return match ($urgencyLevel) {
+            'critical' => 6,   // Most frequent — minimum allowed
+            'high'     => 8,
+            'medium'   => 12,
+            'low'      => 24,
+            default    => 12,
         };
+    }
+
+    /**
+     * Check if a notification of this type was already sent recently.
+     * Cooldown period is driven by the document's urgency level.
+     */
+    protected function shouldNotify(int $documentId, int $workflowId, string $type, string $urgencyLevel): bool
+    {
+        $cooldownHours = $this->getNotificationCooldownHours($urgencyLevel);
 
         return !DB::table('document_urgency_notifications')
             ->where('document_id', $documentId)
@@ -102,25 +116,38 @@ class MonitorDocumentUrgency extends Command
     }
 
     /**
-     * Send an urgency alert email and in-app notification.
+     * Whether a document's urgency level warrants email delivery.
+     * Only critical and high urgency documents trigger emails;
+     * medium and low receive in-app notifications only.
+     */
+    protected function shouldSendEmail(string $urgencyLevel): bool
+    {
+        return in_array($urgencyLevel, ['critical', 'high'], true);
+    }
+
+    /**
+     * Send an urgency alert — email (critical/high only) and in-app notification.
      */
     protected function sendAlert(Document $document, DocumentWorkflow $workflow, string $type): void
     {
-        $recipient = $workflow->recipientUser;
-        $sender    = $workflow->senderUser;
-        $viewUrl   = url("/documents/{$document->id}");
+        $recipient   = $workflow->recipientUser;
+        $sender      = $workflow->senderUser;
+        $viewUrl     = url("/documents/{$document->id}");
+        $sendEmail   = $this->shouldSendEmail($document->urgency_level);
 
         // Notify the assigned recipient
         if ($recipient && $recipient->email) {
-            try {
-                Mail::to($recipient->email)->send(new DocumentUrgencyAlert(
-                    $document,
-                    $workflow,
-                    $type,
-                    ['view_url' => $viewUrl]
-                ));
-            } catch (\Throwable $e) {
-                Log::warning("Failed to send urgency email to {$recipient->email}", ['error' => $e->getMessage()]);
+            if ($sendEmail) {
+                try {
+                    Mail::to($recipient->email)->send(new DocumentUrgencyAlert(
+                        $document,
+                        $workflow,
+                        $type,
+                        ['view_url' => $viewUrl]
+                    ));
+                } catch (\Throwable $e) {
+                    Log::warning("Failed to send urgency email to {$recipient->email}", ['error' => $e->getMessage()]);
+                }
             }
 
             Notifications::create([
@@ -138,7 +165,7 @@ class MonitorDocumentUrgency extends Command
 
         // For escalations, also notify the sender/uploader
         if ($type === 'escalation' && $sender && $sender->id !== ($recipient->id ?? 0)) {
-            if ($sender->email) {
+            if ($sendEmail && $sender->email) {
                 try {
                     Mail::to($sender->email)->send(new DocumentUrgencyAlert(
                         $document,
