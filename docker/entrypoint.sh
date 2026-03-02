@@ -23,7 +23,14 @@ echo "Clearing caches..."
 php artisan optimize:clear
 php artisan view:cache
 php artisan config:cache
-php artisan route:cache
+
+# Route cache — may fail if duplicate route names exist; non-fatal
+echo "Attempting route cache..."
+if php artisan route:cache 2>&1; then
+    echo "Route cache created."
+else
+    echo "WARNING: route:cache failed (likely duplicate route names). Skipping — app will work without it."
+fi
 
 # Verify external Ollama connectivity
 echo "Checking external Ollama connection..."
