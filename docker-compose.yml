@@ -4,8 +4,21 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
+      # ── Overrides for Docker context (take precedence over .env) ──
       - APP_KEY=${APP_KEY}
-      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://localhost:11434}
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_URL=${APP_URL:-https://site.doctrack.systems}
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-doc_archive}
+      - DB_USERNAME=${DB_USERNAME:-docarchive}
+      - DB_PASSWORD=${DB_PASSWORD:-password}
+      - SESSION_DRIVER=database
+      - CACHE_STORE=database
+      - QUEUE_CONNECTION=database
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://100.113.183.2:11434}
       - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen2.5:0.5b}
       - OLLAMA_TIMEOUT=${OLLAMA_TIMEOUT:-120}
     env_file:
