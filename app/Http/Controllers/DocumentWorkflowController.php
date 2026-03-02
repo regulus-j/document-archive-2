@@ -449,6 +449,26 @@ class DocumentWorkflowController extends Controller
             'Document forwarded successfully with sequential workflow. Recipients will process in order.' :
             'Document forwarded successfully with parallel workflow.';
         
+        // === Urgency Matrix: Analyze document urgency after forwarding (deferred) ===
+        // Runs after the HTTP response so the user isn't blocked
+        $docId = $document->id;
+        app()->terminating(function () use ($docId) {
+            try {
+                $doc = \App\Models\Document::find($docId);
+                if (!$doc) return;
+                $urgencyAnalyzer = app(\App\Services\DocumentUrgencyAnalyzer::class);
+                $urgencyResult = $urgencyAnalyzer->analyze($doc);
+                \Log::info('Document urgency analyzed after forwarding (deferred)', [
+                    'document_id' => $docId,
+                    'level' => $urgencyResult['level'],
+                    'confidence' => $urgencyResult['confidence'],
+                ]);
+            } catch (\Throwable $e) {
+                \Log::warning('Urgency analysis failed (non-blocking)', ['document_id' => $docId, 'error' => $e->getMessage()]);
+            }
+        });
+        // === End Urgency Matrix ===
+
         return redirect()->route('documents.index')
         ->with('data', $qrCodeData)
         ->with('success', $successMessage);
@@ -960,6 +980,25 @@ class DocumentWorkflowController extends Controller
             'forwarded',
             'Document forwarded from review: ' . ($request->remarks ? $request->remarks : 'No remarks')
         );
+
+        // === Urgency Matrix: Analyze document urgency after re-forwarding (deferred) ===
+        $docId = $document->id;
+        app()->terminating(function () use ($docId) {
+            try {
+                $doc = \App\Models\Document::find($docId);
+                if (!$doc) return;
+                $urgencyAnalyzer = app(\App\Services\DocumentUrgencyAnalyzer::class);
+                $urgencyResult = $urgencyAnalyzer->analyze($doc);
+                \Log::info('Document urgency analyzed after re-forwarding (deferred)', [
+                    'document_id' => $docId,
+                    'level' => $urgencyResult['level'],
+                    'confidence' => $urgencyResult['confidence'],
+                ]);
+            } catch (\Throwable $e) {
+                \Log::warning('Urgency analysis failed (non-blocking)', ['document_id' => $docId, 'error' => $e->getMessage()]);
+            }
+        });
+        // === End Urgency Matrix ===
 
         return redirect()->route('documents.index')
             ->with('success', 'Document forwarded to new recipients successfully.');

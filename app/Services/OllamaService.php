@@ -38,7 +38,8 @@ class OllamaService
     {
         try {
             $response = $this->client->get("{$this->baseUrl}/api/tags", [
-                'timeout' => 3,
+                'timeout'         => 2,
+                'connect_timeout' => 1,
             ]);
             return $response->getStatusCode() === 200;
         } catch (\Throwable $e) {

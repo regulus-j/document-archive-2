@@ -571,6 +571,17 @@
                                 <span class="text-xs font-medium text-slate-500">{{ $completedStepsCount }}/{{ $totalStepsCount }}</span>
                             </div>
                             <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{{ $workflows->first()->workflow_type ?? 'parallel' }}</span>
+                            {{-- Expand / Collapse All --}}
+                            <div class="flex items-center gap-1 border-l border-slate-200 pl-3">
+                                <button type="button" onclick="window.dispatchEvent(new CustomEvent('expand-all-workflows'))" class="px-2 py-0.5 text-[10px] font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded transition-colors" title="Expand all steps and sub-workflows">
+                                    <svg class="w-3 h-3 inline -mt-0.5 mr-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                                    Expand
+                                </button>
+                                <button type="button" onclick="window.dispatchEvent(new CustomEvent('collapse-all-workflows'))" class="px-2 py-0.5 text-[10px] font-medium text-slate-500 bg-slate-50 hover:bg-slate-100 rounded transition-colors" title="Collapse all steps and sub-workflows">
+                                    <svg class="w-3 h-3 inline -mt-0.5 mr-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25"/></svg>
+                                    Collapse
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -612,26 +623,45 @@
                     {{-- Pipeline steps --}}
                     <div class="relative ml-4 pl-6 border-l-2 border-slate-200 space-y-1 py-2">
                         @foreach($workflowsByStep->sortKeys() as $step => $stepWorkflows)
-                            {{-- Step header for sequential workflows --}}
+                            @php
+                                $stepDone = $stepWorkflows->every(fn($w) => in_array($w->status, ['approved','rejected','acknowledged','commented','returned','forwarded']));
+                                $stepActive = $stepWorkflows->contains(fn($w) => in_array($w->status, ['received','pending']));
+                                $stepId = 'pipeline-step-' . $step;
+                            @endphp
+
+                            {{-- Step header for sequential workflows (collapsible) --}}
                             @if($isSequentialWorkflow)
-                            <div class="flex items-center gap-2 -ml-[31px] mb-2 mt-3 first:mt-0">
-                                @php
-                                    $stepDone = $stepWorkflows->every(fn($w) => in_array($w->status, ['approved','rejected','acknowledged','commented','returned','forwarded']));
-                                    $stepActive = $stepWorkflows->contains(fn($w) => in_array($w->status, ['received','pending']));
-                                @endphp
-                                <div class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
-                                    {{ $stepDone ? 'bg-emerald-500 text-white' : ($stepActive ? 'bg-indigo-500 text-white ring-4 ring-indigo-100' : 'bg-slate-200 text-slate-500') }}">
-                                    @if($stepDone)
-                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                                    @else
-                                        {{ $step }}
-                                    @endif
+                            <div x-data="{ stepOpen: {{ $stepDone ? 'false' : 'true' }} }"
+                                 @expand-all-workflows.window="stepOpen = true"
+                                 @collapse-all-workflows.window="stepOpen = false"
+                                 id="{{ $stepId }}">
+                                <div class="flex items-center gap-2 -ml-[31px] mb-2 mt-3 first:mt-0 cursor-pointer select-none" @click="stepOpen = !stepOpen">
+                                    <div class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
+                                        {{ $stepDone ? 'bg-emerald-500 text-white' : ($stepActive ? 'bg-indigo-500 text-white ring-4 ring-indigo-100' : 'bg-slate-200 text-slate-500') }}">
+                                        @if($stepDone)
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                        @else
+                                            {{ $step }}
+                                        @endif
+                                    </div>
+                                    <span class="text-xs font-semibold uppercase tracking-wider {{ $stepDone ? 'text-emerald-700' : ($stepActive ? 'text-indigo-700' : 'text-slate-400') }}">
+                                        Step {{ $step }}
+                                        @if($stepDone) — Completed @elseif($stepActive) — In Progress @else — Waiting @endif
+                                    </span>
+                                    {{-- Toggle chevron --}}
+                                    <svg class="w-3 h-3 transition-transform duration-200 {{ $stepDone ? 'text-emerald-400' : ($stepActive ? 'text-indigo-400' : 'text-slate-300') }}"
+                                         :class="stepOpen && 'rotate-90'"
+                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                    {{-- Collapsed summary --}}
+                                    <template x-if="!stepOpen">
+                                        <span class="text-[10px] text-slate-400 ml-1">{{ $stepWorkflows->count() }} recipient{{ $stepWorkflows->count() > 1 ? 's' : '' }}</span>
+                                    </template>
                                 </div>
-                                <span class="text-xs font-semibold uppercase tracking-wider {{ $stepDone ? 'text-emerald-700' : ($stepActive ? 'text-indigo-700' : 'text-slate-400') }}">
-                                    Step {{ $step }}
-                                    @if($stepDone) — Completed @elseif($stepActive) — In Progress @else — Waiting @endif
-                                </span>
-                            </div>
+
+                                {{-- Collapsible step content --}}
+                                <div x-show="stepOpen" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
                             @endif
 
                             @foreach($stepWorkflows as $wf)
@@ -699,6 +729,11 @@
                                     'depth' => 1,
                                 ])
                             @endforeach
+
+                            @if($isSequentialWorkflow)
+                                </div>{{-- /x-show stepOpen --}}
+                            </div>{{-- /x-data step --}}
+                            @endif
 
                             {{-- Connector arrow between steps --}}
                             @if($isSequentialWorkflow && $step < $maxStep)
@@ -1226,6 +1261,123 @@ function closeRerouteModal(event) {
 
     function docViewerEscHandler(e) {
         if (e.key === 'Escape') closeDocViewer();
+    }
+</script>
+
+{{-- ═══ Workflow Zoom / Focus Modal ═══ --}}
+<div id="workflow-zoom-modal" class="hidden fixed inset-0 z-[55] overflow-hidden">
+    {{-- Backdrop --}}
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeWorkflowZoom()"></div>
+    {{-- Panel --}}
+    <div class="relative flex flex-col max-w-5xl mx-auto my-[3vh] h-[94vh] bg-white rounded-2xl shadow-2xl overflow-hidden" onclick="event.stopPropagation()">
+        {{-- Header --}}
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0 bg-gradient-to-r from-purple-50 to-indigo-50">
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
+                </svg>
+                <h3 class="text-lg font-semibold text-slate-800">Sub-Workflow Detail View</h3>
+                <span id="workflow-zoom-badge" class="text-xs font-medium text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full"></span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="zoomExpandAll()" class="px-3 py-1.5 text-xs font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors">
+                    <svg class="w-3.5 h-3.5 inline -mt-0.5 mr-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                    Expand All
+                </button>
+                <button type="button" onclick="zoomCollapseAll()" class="px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors">
+                    <svg class="w-3.5 h-3.5 inline -mt-0.5 mr-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25"/></svg>
+                    Collapse All
+                </button>
+                <button onclick="closeWorkflowZoom()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+        </div>
+        {{-- Scrollable content --}}
+        <div id="workflow-zoom-content" class="flex-1 overflow-y-auto p-6">
+            <p class="text-sm text-slate-400">Select a sub-workflow to zoom in.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ── Workflow Zoom/Focus ──
+    let _zoomSourceEl = null;
+    let _zoomPlaceholder = null;
+    let _zoomOriginalClasses = '';
+
+    function openWorkflowZoom(sourceId) {
+        const source = document.getElementById(sourceId);
+        if (!source) return;
+
+        const modal = document.getElementById('workflow-zoom-modal');
+        const container = document.getElementById('workflow-zoom-content');
+        const badge = document.getElementById('workflow-zoom-badge');
+
+        // Create a placeholder to hold the element's position
+        _zoomPlaceholder = document.createElement('div');
+        _zoomPlaceholder.id = 'zoom-ph-' + sourceId;
+        _zoomPlaceholder.style.display = 'none';
+        source.parentNode.insertBefore(_zoomPlaceholder, source);
+
+        // Save references
+        _zoomSourceEl = source;
+        _zoomOriginalClasses = source.className;
+
+        // Move the actual DOM element into the modal (preserves Alpine.js state)
+        container.innerHTML = '';
+        container.appendChild(source);
+
+        // Remove nested indentation for full-width display
+        source.classList.remove('ml-4', 'pl-4', 'border-l-2', 'border-purple-300', 'border-indigo-300', 'my-1');
+        source.classList.add('w-full');
+
+        // Count items for badge
+        const cards = source.querySelectorAll('[class*="rounded-lg border"]');
+        badge.textContent = cards.length + ' workflow' + (cards.length !== 1 ? 's' : '');
+
+        // Show modal
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+
+        // Expand all nested sub-workflows in the zoomed view
+        window.dispatchEvent(new CustomEvent('expand-all-workflows'));
+
+        document.addEventListener('keydown', _workflowZoomEsc);
+    }
+
+    function closeWorkflowZoom() {
+        const modal = document.getElementById('workflow-zoom-modal');
+
+        if (_zoomSourceEl && _zoomPlaceholder && _zoomPlaceholder.parentNode) {
+            // Restore original classes
+            _zoomSourceEl.className = _zoomOriginalClasses;
+
+            // Move back to original position
+            _zoomPlaceholder.parentNode.insertBefore(_zoomSourceEl, _zoomPlaceholder);
+            _zoomPlaceholder.remove();
+        }
+
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+
+        _zoomSourceEl = null;
+        _zoomPlaceholder = null;
+        _zoomOriginalClasses = '';
+
+        document.removeEventListener('keydown', _workflowZoomEsc);
+    }
+
+    function zoomExpandAll() {
+        window.dispatchEvent(new CustomEvent('expand-all-workflows'));
+    }
+
+    function zoomCollapseAll() {
+        window.dispatchEvent(new CustomEvent('collapse-all-workflows'));
+    }
+
+    function _workflowZoomEsc(e) {
+        if (e.key === 'Escape') closeWorkflowZoom();
     }
 </script>
 @endsection
