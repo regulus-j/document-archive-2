@@ -192,12 +192,14 @@ class CompanyAccount extends Model
         }
 
         // Check which team limit feature the plan has
-        if ($plan->hasFeature('users-20')) {
+        if ($plan->hasFeature('teams-20')) {
             return 20;
-        } elseif ($plan->hasFeature('users-10')) {
+        } elseif ($plan->hasFeature('teams-10')) {
             return 10;
-        } elseif ($plan->hasFeature('users-3')) {
+        } elseif ($plan->hasFeature('teams-3')) {
             return 3;
+        } elseif ($plan->hasFeature('teams-1')) {
+            return 1;
         } else {
             // Fallback to free tier limit if no team limit feature found
             return 1;
