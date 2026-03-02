@@ -41,6 +41,13 @@ RUN apk add --no-cache \
     poppler-utils \
     ghostscript
 
+# Configure PHP upload limits and memory
+RUN echo 'upload_max_filesize = 50M' > /usr/local/etc/php/conf.d/uploads.ini \
+    && echo 'post_max_size = 60M' >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo 'memory_limit = 256M' >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo 'max_execution_time = 120' >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo 'max_input_time = 120' >> /usr/local/etc/php/conf.d/uploads.ini
+
 # Configure and install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \

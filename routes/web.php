@@ -230,6 +230,7 @@ Route::middleware('auth')->group(function () {
 
         // Parameterized routes
         Route::get('/{document}/show', [DocumentController::class, 'show'])->name('documents.show');
+        Route::get('/{document}/qr-code', [DocumentController::class, 'showQrCode'])->name('documents.qrcode');
         Route::get('/{document}/edit', [DocumentController::class, 'edit'])->name('documents.edit');
         Route::put('/{document}', [DocumentController::class, 'update'])->name('documents.update');
         Route::delete('/{document}/delete', [DocumentController::class, 'destroy'])->name('documents.destroy');

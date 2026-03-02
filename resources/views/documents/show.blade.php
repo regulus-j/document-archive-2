@@ -322,9 +322,18 @@
                             </svg>
                             <p class="text-sm font-medium text-indigo-900">Tracking Number</p>
                         </div>
-                        <p class="text-base font-medium text-indigo-700">
-                            {{ $document->trackingNumber->tracking_number ?? 'N/A' }}
-                        </p>
+                        <div class="flex items-center justify-between">
+                            <p class="text-base font-medium text-indigo-700">
+                                {{ $document->trackingNumber->tracking_number ?? 'N/A' }}
+                            </p>
+                            @if($document->trackingNumber)
+                            <button onclick="openQrModal()" class="ml-2 p-1.5 rounded-lg bg-indigo-100 hover:bg-indigo-200 text-indigo-600 hover:text-indigo-800 transition-colors" title="View QR Code">
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                                </svg>
+                            </button>
+                            @endif
+                        </div>
                     </div>
                     <!-- Classification Card -->
                     <div class="bg-indigo-50/60 p-4 rounded-lg border border-indigo-200/60 transition-all duration-300 hover:border-indigo-300/80">
@@ -1166,6 +1175,40 @@ function closeRerouteModal(event) {
     </div>
 </div>
 
+<!-- QR Code Modal -->
+<div id="qrCodeModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onclick="closeQrModal()"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 relative">
+            <button onclick="closeQrModal()" class="absolute top-3 right-3 p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+            <h3 class="text-lg font-semibold text-slate-800 mb-1 flex items-center">
+                <svg class="h-5 w-5 text-indigo-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                </svg>
+                QR Code
+            </h3>
+            <p class="text-sm text-slate-500 mb-4">{{ $document->trackingNumber->tracking_number ?? '' }}</p>
+            <div class="flex justify-center mb-5">
+                <div class="bg-white p-3 rounded-xl border border-indigo-100 shadow-sm">
+                    <img id="qrCodeImage" src="" alt="QR Code" class="w-48 h-48">
+                </div>
+            </div>
+            <div class="flex justify-center gap-3">
+                <a id="qrDownloadLink" href="" download="qr-{{ $document->trackingNumber->tracking_number ?? 'code' }}.png"
+                   class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white text-sm font-medium rounded-lg hover:from-emerald-600 hover:to-green-700 shadow-sm transition-all">
+                    <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Download PNG
+                </a>
+                <button onclick="closeQrModal()" class="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'];
     const previewableExts = ['pdf', ...imageExts];
@@ -1378,6 +1421,28 @@ function closeRerouteModal(event) {
 
     function _workflowZoomEsc(e) {
         if (e.key === 'Escape') closeWorkflowZoom();
+    }
+
+    // === QR Code Modal ===
+    function openQrModal() {
+        const modal = document.getElementById('qrCodeModal');
+        const img = document.getElementById('qrCodeImage');
+        const downloadLink = document.getElementById('qrDownloadLink');
+        const qrUrl = "{{ route('documents.qrcode', $document->id) }}";
+
+        img.src = qrUrl;
+        downloadLink.href = qrUrl;
+        modal.classList.remove('hidden');
+        document.addEventListener('keydown', _qrModalEsc);
+    }
+
+    function closeQrModal() {
+        document.getElementById('qrCodeModal').classList.add('hidden');
+        document.removeEventListener('keydown', _qrModalEsc);
+    }
+
+    function _qrModalEsc(e) {
+        if (e.key === 'Escape') closeQrModal();
     }
 </script>
 @endsection

@@ -16,6 +16,8 @@ use App\Models\Office;
 use App\Models\User;
 use App\Services\DocumentAccessService;
 use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
+use chillerlan\QRCode\Output\QROutputInterface;
 use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -1408,11 +1410,42 @@ class DocumentController extends Controller
         $document = Document::findOrFail($docid);
         $uploader = User::findOrFail($uploaderid);
 
-        $qr = new QRCode;
+        $options = new QROptions([
+            'outputType' => QROutputInterface::GDIMAGE_PNG,
+            'outputBase64' => true,
+            'scale' => 10,
+        ]);
 
+        $qr = new QRCode($options);
         $data = $qr->render($tracking_number);
 
         return $data;
+    }
+
+    /**
+     * Show QR code for a document (used in show page).
+     */
+    public function showQrCode(Document $document)
+    {
+        $trackingNumber = $document->trackingNumber->tracking_number ?? null;
+
+        if (!$trackingNumber) {
+            abort(404, 'No tracking number found.');
+        }
+
+        $options = new QROptions([
+            'outputType' => QROutputInterface::GDIMAGE_PNG,
+            'outputBase64' => false,
+            'scale' => 10,
+        ]);
+
+        $qr = new QRCode($options);
+        $pngData = $qr->render($trackingNumber);
+
+        return Response::make($pngData, 200, [
+            'Content-Type' => 'image/png',
+            'Content-Disposition' => 'inline; filename="qr-' . $trackingNumber . '.png"',
+        ]);
     }
 
     public function scanQr($image)
