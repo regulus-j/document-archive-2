@@ -91,18 +91,24 @@ class PaymentController extends Controller
                 $paymentStatus = $result['data'][0]['attributes']['status'] ?? 'pending';
 
                 if ($paymentStatus === 'paid') {
+                    // Check if payment was already recorded (avoid duplicate inserts on re-poll)
+                    $existingPayment = SubscriptionPayment::where('transaction_reference', $referenceNumber)->first();
+                    if ($existingPayment) {
+                        return response('successful', 200)->header('Content-Type', 'text/plain');
+                    }
+
                     DB::beginTransaction();
                     try {
                         $user = auth()->user();
                         if (!$user) {
                             \Log::error('No authenticated user found.');
-                            return 'error';
+                            return response('error', 200)->header('Content-Type', 'text/plain');
                         }
 
                         $company = $user->companies()->first();
                         if (!$company) {
                             \Log::error('No company associated with user: ' . $user->id);
-                            return 'error';
+                            return response('error', 200)->header('Content-Type', 'text/plain');
                         }
 
                         $subscription = $this->createOrUpdateSubscription($company);
@@ -116,24 +122,24 @@ class PaymentController extends Controller
                         $this->createPaymentRecord($subscription, $paymentData);
 
                         DB::commit();
-                        return 'successful';
+                        return response('successful', 200)->header('Content-Type', 'text/plain');
                     } catch (\Exception $e) {
                         DB::rollBack();
                         \Log::error('Payment processing error: ' . $e->getMessage());
                         \Log::error('Stack trace: ' . $e->getTraceAsString());
-                        return 'error';
+                        return response('error', 200)->header('Content-Type', 'text/plain');
                     }
                 }
 
-                return $paymentStatus;
+                return response($paymentStatus, 200)->header('Content-Type', 'text/plain');
             }
 
             \Log::warning('Empty PayMongo response for reference: ' . $referenceNumber);
-            return 'pending';
+            return response('pending', 200)->header('Content-Type', 'text/plain');
         } catch (\Exception $e) {
             \Log::error('PayMongo Error: ' . $e->getMessage());
             \Log::error('Stack trace: ' . $e->getTraceAsString());
-            return 'error';
+            return response('error', 200)->header('Content-Type', 'text/plain');
         }
     }
 
@@ -295,6 +301,25 @@ class PaymentController extends Controller
             DB::rollBack();
             return back()->with('error', 'Payment processing failed. Please try again.');
         }
+    }
+
+    public function handleCallback(Request $request)
+    {
+        $referenceNumber = $request->query('reference');
+
+        if (!$referenceNumber) {
+            return redirect()->route('dashboard')->with('error', 'Invalid payment callback.');
+        }
+
+        // Check if payment record already exists
+        $payment = SubscriptionPayment::where('transaction_reference', $referenceNumber)->first();
+
+        if ($payment && $payment->status === 'successful') {
+            return redirect()->route('payment.success', ['reference' => $referenceNumber]);
+        }
+
+        // Payment not yet processed — redirect back to the polling page
+        return redirect()->route('dashboard')->with('info', 'Payment is still being processed. You will be notified once confirmed.');
     }
 
     private function calculatePrice($basePrice, $billing)

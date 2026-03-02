@@ -58,7 +58,7 @@ Route::get('/register/{plan}', [PlanController::class, 'register'])->name('plans
 Route::post('/plans/{plan}/subscribe', [PlanController::class, 'subscribe'])->name('plans.subscribe');
 
 Route::middleware(['auth'])->group(function () {
-    Route::post('/plans/store', [PlanSelectionController::class, 'store'])->name('plans.store');
+    Route::post('/plans/store', [PlanSelectionController::class, 'store'])->name('plans.selection.store');
 
     // Subscription management for company admins
     Route::get('/subscriptions/status', [SubscriptionController::class, 'showStatus'])->name('subscriptions.status');
