@@ -128,99 +128,152 @@
                             </div>
                         </div>
 
-                        @if($isOfficeLead && $ledOffice)
-                        {{-- Auto-Archive Schedule (team leaders only) --}}
-                        <div class="border-t border-slate-200 pt-5 mt-5">
-                            <div class="flex items-center gap-2 mb-3">
-                                <div class="p-1.5 bg-amber-100 rounded-md">
-                                    <svg class="h-4 w-4 text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <h3 class="text-sm font-semibold text-slate-800">Auto-Archive Schedule</h3>
-                            </div>
-                            <p class="text-xs text-slate-500 mb-3 leading-relaxed">
-                                Resolved documents (approved, rejected, or completed) submitted by your team members will be archived automatically every <span class="font-medium text-slate-700">N</span> days.
-                            </p>
-
-                            @if(session('success'))
-                                <div class="mb-3 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2">
-                                    {{ session('success') }}
-                                </div>
-                            @endif
-                            @if(session('error'))
-                                <div class="mb-3 text-xs text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
-                                    {{ session('error') }}
-                                </div>
-                            @endif
-
-                            <form action="{{ route('documents.archive.schedule') }}" method="POST" class="space-y-3">
-                                @csrf
-                                <div>
-                                    <label for="archive_schedule_days" class="block text-xs font-medium text-slate-600 mb-1">Archive every</label>
-                                    <div class="flex items-center gap-2">
-                                        <input
-                                            type="number"
-                                            id="archive_schedule_days"
-                                            name="archive_schedule_days"
-                                            min="1"
-                                            max="365"
-                                            value="{{ $ledOffice->archive_schedule_days ?? '' }}"
-                                            placeholder="e.g. 7"
-                                            class="w-24 px-3 py-2 border border-slate-300 rounded-md text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500"
-                                        >
-                                        <span class="text-sm text-slate-500">day(s)</span>
-                                    </div>
-                                    @error('archive_schedule_days')
-                                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                @if($ledOffice->archive_schedule_days)
-                                    <div class="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-md px-3 py-2">
-                                        <svg class="h-3.5 w-3.5 text-slate-400 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        <span>
-                                            Currently: every <strong>{{ $ledOffice->archive_schedule_days }}</strong> day(s).
-                                            @if($ledOffice->archive_last_run_at)
-                                                Last run {{ $ledOffice->archive_last_run_at->diffForHumans() }}.
-                                            @else
-                                                Not yet run.
-                                            @endif
-                                        </span>
-                                    </div>
-                                @endif
-
-                                <div class="flex gap-2 pt-1">
-                                    <button type="submit" class="flex-1 inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-white bg-amber-500 hover:bg-amber-600 border border-transparent rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-amber-400 transition-colors">
-                                        <svg class="h-3.5 w-3.5 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                        Save Schedule
-                                    </button>
-                                    @if($ledOffice->archive_schedule_days)
-                                    <button
-                                        type="submit"
-                                        name="archive_schedule_days"
-                                        value=""
-                                        class="inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-slate-600 bg-white hover:bg-slate-50 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-slate-300 transition-colors"
-                                        title="Disable auto-archive">
-                                        <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                    @endif
-                                </div>
-                            </form>
-                        </div>
-                        @endif
                     </div>
                 </div>
             </div>
 
             <!-- Documents List -->
-            <div class="lg:col-span-3">
+            <div
+                class="lg:col-span-3"
+                x-data="{ open: {{ $errors->has('archive_schedule_days') || session('success') || session('error') ? 'true' : 'false' }} }"
+            >
+                @if($isOfficeLead && $ledOffice)
+                {{-- Auto-Archive Schedule Modal --}}
+                    {{-- Backdrop --}}
+                    <div
+                        x-show="open"
+                        x-cloak
+                        x-transition:enter="ease-out duration-200"
+                        x-transition:enter-start="opacity-0"
+                        x-transition:enter-end="opacity-100"
+                        x-transition:leave="ease-in duration-150"
+                        x-transition:leave-start="opacity-100"
+                        x-transition:leave-end="opacity-0"
+                        class="fixed inset-0 bg-black/50 z-40"
+                        @click="open = false"
+                    ></div>
+
+                    {{-- Modal Panel --}}
+                    <div
+                        x-show="open"
+                        x-cloak
+                        x-transition:enter="ease-out duration-200"
+                        x-transition:enter-start="opacity-0 scale-95"
+                        x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="ease-in duration-150"
+                        x-transition:leave-start="opacity-100 scale-100"
+                        x-transition:leave-end="opacity-0 scale-95"
+                        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        @click.self="open = false"
+                        @keydown.escape.window="open = false"
+                    >
+                        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+                            {{-- Modal Header --}}
+                            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-gradient-to-r from-amber-50 to-white">
+                                <div class="flex items-center gap-3">
+                                    <div class="p-2 bg-amber-100 rounded-lg">
+                                        <svg class="h-5 w-5 text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-base font-semibold text-slate-800">Auto-Archive Schedule</h3>
+                                        <p class="text-xs text-slate-500">{{ $ledOffice->name }}</p>
+                                    </div>
+                                </div>
+                                <button @click="open = false" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            {{-- Modal Body --}}
+                            <div class="px-6 py-5 space-y-4">
+                                <p class="text-sm text-slate-600 leading-relaxed">
+                                    Resolved documents&mdash;approved, rejected, or completed&mdash;submitted by members of your team will be automatically archived on this interval.
+                                </p>
+
+                                @if(session('success'))
+                                    <div class="flex items-start gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
+                                        <svg class="h-4 w-4 mt-0.5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        {{ session('success') }}
+                                    </div>
+                                @endif
+                                @if(session('error'))
+                                    <div class="flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+                                        <svg class="h-4 w-4 mt-0.5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        {{ session('error') }}
+                                    </div>
+                                @endif
+
+                                <form action="{{ route('documents.archive.schedule') }}" method="POST" class="space-y-4">
+                                    @csrf
+                                    <div>
+                                        <label for="archive_schedule_days" class="block text-sm font-medium text-slate-700 mb-2">Archive every</label>
+                                        <div class="flex items-center gap-3">
+                                            <input
+                                                type="number"
+                                                id="archive_schedule_days"
+                                                name="archive_schedule_days"
+                                                min="1"
+                                                max="365"
+                                                value="{{ old('archive_schedule_days', $ledOffice->archive_schedule_days ?? '') }}"
+                                                placeholder="e.g. 7"
+                                                class="w-28 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 @error('archive_schedule_days') border-red-400 @enderror"
+                                            >
+                                            <span class="text-sm text-slate-500">day(s)</span>
+                                        </div>
+                                        @error('archive_schedule_days')
+                                            <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    @if($ledOffice->archive_schedule_days)
+                                        <div class="flex items-center gap-2 text-sm text-slate-600 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
+                                            <svg class="h-4 w-4 text-amber-500 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <span>
+                                                Active: every <strong>{{ $ledOffice->archive_schedule_days }}</strong> day(s).
+                                                @if($ledOffice->archive_last_run_at)
+                                                    Last run {{ $ledOffice->archive_last_run_at->diffForHumans() }}.
+                                                @else
+                                                    Not yet run.
+                                                @endif
+                                            </span>
+                                        </div>
+                                    @endif
+
+                                    <div class="flex items-center justify-between pt-1">
+                                        @if($ledOffice->archive_schedule_days)
+                                            <button
+                                                type="submit"
+                                                name="archive_schedule_days"
+                                                value=""
+                                                class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-slate-300 transition-colors"
+                                            >
+                                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                                                Disable
+                                            </button>
+                                        @else
+                                            <span></span>
+                                        @endif
+                                        <button
+                                            type="submit"
+                                            class="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 border border-transparent rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-amber-400 transition-colors"
+                                        >
+                                            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                            Save Schedule
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                @endif
+
                 <div class="bg-white rounded-xl overflow-hidden border border-indigo-200/80 transition-all duration-300 hover:border-indigo-300/80">
                     <div class="bg-gradient-to-r from-indigo-50 to-white p-6 border-b border-indigo-200/60">
                         <div class="flex justify-between items-center">
@@ -230,7 +283,25 @@
                                 </svg>
                                 <h3 class="text-lg font-semibold text-slate-800">Archived Documents</h3>
                             </div>
-                            <span class="text-sm text-indigo-600 bg-indigo-50 py-1 px-3 rounded-full border border-indigo-200/60">{{ $documents->total() ?? 0 }} documents</span>
+                            <div class="flex items-center gap-2">
+                                @if($isOfficeLead && $ledOffice)
+                                <button
+                                    @click="open = true"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg transition-colors"
+                                    title="Configure auto-archive schedule for your team"
+                                >
+                                    <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    @if($ledOffice->archive_schedule_days)
+                                        Every {{ $ledOffice->archive_schedule_days }}d
+                                    @else
+                                        Set Schedule
+                                    @endif
+                                </button>
+                                @endif
+                                <span class="text-sm text-indigo-600 bg-indigo-50 py-1 px-3 rounded-full border border-indigo-200/60">{{ $documents->total() ?? 0 }} documents</span>
+                            </div>
                         </div>
                     </div>
 
