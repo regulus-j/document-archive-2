@@ -326,9 +326,9 @@
                     </div>
 
                     @if (isset($data) && $data->count())
-                    <div class="overflow-x-auto rounded-lg border border-slate-200">
+                    <div class="overflow-auto max-h-[480px] rounded-lg border border-slate-200">
                         <table class="w-full">
-                            <thead>
+                            <thead class="sticky top-0 z-10">
                                 <tr class="bg-slate-50 border-b border-slate-100">
                                     <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">ID</th>
                                     <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created At</th>

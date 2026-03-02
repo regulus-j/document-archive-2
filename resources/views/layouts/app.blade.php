@@ -78,6 +78,51 @@
         });
     </script>
 
+    {{-- Global: Prevent button spam / duplicate form submissions --}}
+    <script>
+    (function() {
+        var SPINNER = '<svg class="animate-spin h-4 w-4 mr-1.5 inline" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>';
+        var RESET_MS = 15000; // safety re-enable after 15s if page hasn't navigated
+
+        document.addEventListener('submit', function(e) {
+            var form = e.target;
+            if (!form || form.tagName !== 'FORM') return;
+
+            var btns = form.querySelectorAll('[type="submit"]');
+            btns.forEach(function(btn) {
+                if (btn.disabled) {
+                    // Already submitted — prevent spam
+                    e.preventDefault();
+                    return;
+                }
+                btn.disabled = true;
+                btn.dataset.originalHtml = btn.innerHTML;
+                // Show spinner + text based on button context
+                var label = btn.textContent.trim();
+                btn.innerHTML = SPINNER + (label || 'Processing...');
+
+                // Safety net: re-enable after RESET_MS in case of network error
+                setTimeout(function() {
+                    if (btn.disabled) {
+                        btn.disabled = false;
+                        btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML;
+                    }
+                }, RESET_MS);
+            });
+        }, true);
+
+        // Re-enable buttons if user navigates back (bfcache)
+        window.addEventListener('pageshow', function(e) {
+            if (e.persisted) {
+                document.querySelectorAll('[type="submit"][disabled]').forEach(function(btn) {
+                    btn.disabled = false;
+                    if (btn.dataset.originalHtml) btn.innerHTML = btn.dataset.originalHtml;
+                });
+            }
+        });
+    })();
+    </script>
+
     {{-- DocBot AI Chatbot Widget --}}
     @auth
         <x-chatbot-widget />
