@@ -25,13 +25,28 @@ php artisan view:cache
 php artisan config:cache
 php artisan route:cache
 
-# Verify Ollama connectivity
-echo "Checking Ollama connection..."
-OLLAMA_URL="${OLLAMA_BASE_URL:-http://ollama:11434}"
-if curl -sf "${OLLAMA_URL}/api/tags" > /dev/null 2>&1; then
+# Verify external Ollama connectivity
+echo "Checking external Ollama connection..."
+OLLAMA_URL="${OLLAMA_BASE_URL:-http://localhost:11434}"
+RETRIES=0
+MAX_RETRIES=3
+OLLAMA_OK=false
+while [ "$RETRIES" -lt "$MAX_RETRIES" ]; do
+    if curl -sf "${OLLAMA_URL}/api/tags" > /dev/null 2>&1; then
+        OLLAMA_OK=true
+        break
+    fi
+    RETRIES=$((RETRIES + 1))
+    echo "  Attempt ${RETRIES}/${MAX_RETRIES} — Ollama not yet reachable..."
+    sleep 5
+done
+
+if [ "$OLLAMA_OK" = true ]; then
     echo "Ollama is reachable at ${OLLAMA_URL}"
 else
-    echo "WARNING: Ollama is not reachable at ${OLLAMA_URL}. Summarization will fall back to text excerpts."
+    echo "WARNING: Ollama is not reachable at ${OLLAMA_URL}."
+    echo "  Ensure the Ollama droplet is running and OLLAMA_BASE_URL is set correctly."
+    echo "  Summarization / AI features will fall back to text excerpts."
 fi
 
 # Start Supervisor
