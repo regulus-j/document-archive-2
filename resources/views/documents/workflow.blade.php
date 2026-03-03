@@ -93,7 +93,7 @@
                                 <span class="font-medium text-orange-600">{{ $pendingReceive->count() }}</span> document(s) awaiting receipt
                             </p>
                         </div>
-                        <a href="{{ route('documents.receive.index') }}" class="inline-flex items-center px-3 py-1.5 border border-orange-600 text-sm font-medium rounded-md text-orange-600 hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors">
+                        <a href="{{ route('documents.workflow-dashboard') }}" class="inline-flex items-center px-3 py-1.5 border border-orange-600 text-sm font-medium rounded-md text-orange-600 hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors">
                             Go to Receive
                         </a>
                     </div>

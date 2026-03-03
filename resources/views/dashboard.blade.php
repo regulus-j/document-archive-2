@@ -138,7 +138,7 @@
                         <svg class="w-5 h-5 text-slate-500 mb-2 group-hover:text-indigo-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         <span class="text-sm font-medium text-slate-700 group-hover:text-slate-900">Browse Documents</span>
                     </a>
-                    <a href="{{ route('documents.receive.index') }}" class="flex flex-col items-center p-4 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 hover:border-slate-300 transition group shadow-card">
+                    <a href="{{ route('documents.workflow-dashboard') }}" class="flex flex-col items-center p-4 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 hover:border-slate-300 transition group shadow-card">
                         <svg class="w-5 h-5 text-slate-500 mb-2 group-hover:text-indigo-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         <span class="text-sm font-medium text-slate-700 group-hover:text-slate-900">Receive Documents</span>
                     </a>

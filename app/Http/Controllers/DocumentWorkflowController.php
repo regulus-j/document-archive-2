@@ -117,7 +117,7 @@ class DocumentWorkflowController extends Controller
                 }
             }
             
-            return redirect()->route('documents.receive.index')
+            return redirect()->route('documents.workflow-dashboard')
                 ->with('error', 'You must receive this document first before accessing the workflow. Please check the "Receive Documents" section.');
         }
         
@@ -678,7 +678,7 @@ class DocumentWorkflowController extends Controller
         }
         
         // For parallel workflows or other cases, use receive documents feature
-        return redirect()->route('documents.receive.index')
+        return redirect()->route('documents.workflow-dashboard')
             ->with('info', 'Please use the "Receive Documents" feature to receive documents first, then access them in the workflow.');
     }
 
@@ -1032,7 +1032,7 @@ class DocumentWorkflowController extends Controller
             $workflow->save();
         }
 
-        return redirect()->route('documents.receive.index')->with('success', 'Document status updated to received.');
+        return redirect()->route('documents.workflow-dashboard')->with('success', 'Document status updated to received.');
     }
 
     /**

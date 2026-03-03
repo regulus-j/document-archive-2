@@ -1773,7 +1773,7 @@ public function receiveConfirm(Document $document)
 
         // Check if document has been recalled
         if ($document->status && $document->status->status === 'recalled') {
-            return redirect()->route('documents.receive.index')
+            return redirect()->route('documents.workflow-dashboard')
                 ->with('error', 'This document has been recalled by the sender and cannot be received.');
         }
 
@@ -1828,7 +1828,7 @@ public function receiveConfirm(Document $document)
             );
         }
 
-        return redirect()->route('documents.receive.index')
+        return redirect()->route('documents.workflow-dashboard')
             ->with('success', 'Document has been successfully received.');
 
     } catch (\Exception $e) {
