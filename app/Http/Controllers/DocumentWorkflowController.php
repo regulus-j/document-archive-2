@@ -690,7 +690,7 @@ class DocumentWorkflowController extends Controller
         
         $workflow = DocumentWorkflow::findOrFail($id);
         $document = $workflow->document;
-        $document->load(['attachments.uploader', 'eSignatures.user']);
+        $document->load(['attachments.uploader', 'eSignatures.user', 'versions.uploader']);
         
         // Check if user can view this document based on classification
         if (!$this->documentAccessService->canViewDocument($document)) {

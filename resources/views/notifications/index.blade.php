@@ -36,7 +36,14 @@
     {{-- Notifications card --}}
     <div class="bg-white shadow-card rounded-lg border border-slate-200/80 divide-y divide-slate-100">
         @forelse($notifications as $notification)
-            @php $nIcon = $iconMap[$notification->type] ?? $defaultIcon; @endphp
+            @php
+                $nIcon   = $iconMap[$notification->type] ?? $defaultIcon;
+                $nData   = json_decode($notification->data);
+                $docId   = $nData->document_id ?? null;
+                $docUrl  = $docId ? route('documents.show', $docId) : null;
+                $message = $nData->message ?? 'Notification';
+                $title   = $nData->title   ?? '';
+            @endphp
             <div class="flex items-start gap-3 px-5 py-4 {{ $notification->read_at ? '' : 'bg-indigo-50/40' }} hover:bg-slate-50 transition-colors duration-150">
                 {{-- Type icon --}}
                 <span class="flex-shrink-0 mt-0.5 w-9 h-9 rounded-lg {{ $nIcon['bg'] }} flex items-center justify-center">
@@ -48,24 +55,50 @@
                 {{-- Content --}}
                 <div class="flex-1 min-w-0">
                     <p class="text-sm {{ $notification->read_at ? 'text-slate-600' : 'font-medium text-slate-800' }} leading-snug mb-0.5">
-                        {{ json_decode($notification->data)->message ?? 'Notification' }}
+                        {{ $message }}
                     </p>
                     <p class="text-xs text-slate-400 m-0">
-                        {{ json_decode($notification->data)->title ?? '' }}
+                        {{ $title }}
                         <span class="mx-1">&middot;</span>
                         {{ $notification->created_at->diffForHumans() }}
                     </p>
+                    {{-- Document link (for already-read notifications) --}}
+                    @if($docUrl && $notification->read_at)
+                        <a href="{{ $docUrl }}"
+                            class="inline-flex items-center gap-1 mt-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            View Document &rarr;
+                        </a>
+                    @endif
                 </div>
 
-                {{-- Mark as read --}}
-                @if(!$notification->read_at)
-                    <form method="POST" action="{{ route('notifications.read', $notification->id) }}" class="flex-shrink-0">
-                        @csrf
-                        <button class="text-xs font-medium text-indigo-600 hover:bg-indigo-50 border border-indigo-200 rounded-md px-3 py-1.5 transition-colors">
-                            Mark as Read
-                        </button>
-                    </form>
-                @endif
+                {{-- Actions --}}
+                <div class="flex-shrink-0 flex items-center gap-2">
+                    @if(!$notification->read_at)
+                        {{-- Mark as read + go to document --}}
+                        @if($docUrl)
+                            <form method="POST" action="{{ route('notifications.read', $notification->id) }}">
+                                @csrf
+                                <input type="hidden" name="document_id" value="{{ $docId }}">
+                                <button class="inline-flex items-center gap-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md px-3 py-1.5 transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    View Document
+                                </button>
+                            </form>
+                        @endif
+                        {{-- Mark as read only --}}
+                        <form method="POST" action="{{ route('notifications.read', $notification->id) }}">
+                            @csrf
+                            <button class="text-xs font-medium text-slate-500 hover:text-slate-700 border border-slate-200 hover:bg-slate-50 rounded-md px-3 py-1.5 transition-colors">
+                                Mark Read
+                            </button>
+                        </form>
+                    @endif
+                </div>
             </div>
         @empty
             <div class="flex flex-col items-center justify-center py-16 px-6 text-center">

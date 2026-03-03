@@ -22,6 +22,7 @@ use App\Http\Controllers\UserManualController;
 use App\Http\Controllers\UserManagedController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\DocumentAuditController;
 use App\Models\Plan;
 
 
@@ -229,11 +230,18 @@ Route::middleware('auth')->group(function () {
         Route::post('/{document}/forward', [DocumentWorkflowController::class, 'forwardDocumentSubmit'])
             ->name('documents.forward.submit');
 
+        // Audit log routes
+        Route::get('/{document}/audit/export', [DocumentAuditController::class, 'exportCsv'])->name('documents.audit.export');
+        Route::get('/{document}/audit/print', [DocumentAuditController::class, 'printView'])->name('documents.audit.print');
+
         // Parameterized routes
         Route::get('/{document}/show', [DocumentController::class, 'show'])->name('documents.show');
         Route::get('/{document}/qr-code', [DocumentController::class, 'showQrCode'])->name('documents.qrcode');
         Route::get('/{document}/edit', [DocumentController::class, 'edit'])->name('documents.edit');
         Route::put('/{document}', [DocumentController::class, 'update'])->name('documents.update');
+        Route::post('/{document}/upload-version', [DocumentController::class, 'uploadVersion'])->name('documents.uploadVersion');
+        Route::get('/{document}/versions/{version}/preview', [DocumentController::class, 'previewVersion'])->name('documents.versionPreview');
+        Route::get('/{document}/preview-current', [DocumentController::class, 'previewCurrent'])->name('documents.previewCurrent');
         Route::delete('/{document}/delete', [DocumentController::class, 'destroy'])->name('documents.destroy');
         Route::delete('/{document}/delete-attachment', [DocumentController::class, 'deleteAttachment'])->name('documents.attachments.destroy');
         // B-05 FIX: Removed erroneous inner '/documents/' prefix—these routes are already

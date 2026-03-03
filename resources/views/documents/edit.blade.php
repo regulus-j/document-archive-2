@@ -265,6 +265,16 @@
                                 </div>
                             </div>
                             <div class="upload-feedback hidden mt-2 text-sm text-indigo-600"></div>
+                            <div id="version-notes-wrapper" class="hidden mt-3">
+                                <label for="version_notes" class="block text-sm font-medium text-slate-700 mb-1">
+                                    <svg class="inline w-4 h-4 text-indigo-500 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    Version Notes
+                                </label>
+                                <textarea name="version_notes" id="version_notes" rows="2"
+                                    class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 text-sm"
+                                    placeholder="What changed in this version? (optional)"></textarea>
+                                <p class="text-xs text-slate-500 mt-1">The current file will be saved as a previous version.</p>
+                            </div>
                         </div>
                     </div>
 
@@ -734,6 +744,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Main document upload handling
     if (mainDocInput && mainDocFeedback) {
         mainDocInput.addEventListener('change', function() {
+            const versionNotesWrapper = document.getElementById('version-notes-wrapper');
             if (this.files.length > 0) {
                 const file = this.files[0];
                 const maxSize = 8 * 1024 * 1024; // 8MB in bytes
@@ -743,11 +754,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     this.value = '';
                     mainDocFeedback.textContent = '';
                     mainDocFeedback.classList.add('hidden');
+                    if (versionNotesWrapper) versionNotesWrapper.classList.add('hidden');
                     return;
                 }
 
                 mainDocFeedback.textContent = `Selected: ${file.name} (${formatFileSize(file.size)})`;
                 mainDocFeedback.classList.remove('hidden');
+                if (versionNotesWrapper) versionNotesWrapper.classList.remove('hidden');
             } else {
                 mainDocFeedback.textContent = '';
                 mainDocFeedback.classList.add('hidden');

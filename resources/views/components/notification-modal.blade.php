@@ -29,31 +29,67 @@
     {{-- Notification list --}}
     <ul class="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">
         @forelse($notifications as $notification)
-            @php $nIcon = $iconMap[$notification->type] ?? $defaultIcon; @endphp
+            @php
+                $nIcon   = $iconMap[$notification->type] ?? $defaultIcon;
+                $nData   = json_decode($notification->data);
+                $docId   = $nData->document_id ?? null;
+                $docUrl  = $docId ? route('documents.show', $docId) : null;
+                $message = $nData->message ?? 'Notification';
+                $title   = $nData->title   ?? '';
+            @endphp
             <li class="flex items-start gap-3 px-4 py-3 {{ $notification->read_at ? '' : 'bg-indigo-50/40' }} hover:bg-slate-50 transition-colors duration-150">
-                {{-- Type icon --}}
-                <span class="flex-shrink-0 mt-0.5 w-8 h-8 rounded-lg {{ $nIcon['bg'] }} flex items-center justify-center">
-                    <svg class="w-4 h-4 {{ $nIcon['text'] }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ $nIcon['icon'] }}"/>
-                    </svg>
-                </span>
+                {{-- Type icon (clickable if has document) --}}
+                @if($docUrl)
+                    <a href="{{ $docUrl }}" class="flex-shrink-0 mt-0.5">
+                @else
+                    <span class="flex-shrink-0 mt-0.5">
+                @endif
+                    <span class="w-8 h-8 rounded-lg {{ $nIcon['bg'] }} flex items-center justify-center">
+                        <svg class="w-4 h-4 {{ $nIcon['text'] }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="{{ $nIcon['icon'] }}"/>
+                        </svg>
+                    </span>
+                @if($docUrl)
+                    </a>
+                @else
+                    </span>
+                @endif
 
                 {{-- Content --}}
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-slate-800 leading-snug mb-0.5 {{ $notification->read_at ? 'font-normal text-slate-600' : '' }}">
-                        {{ json_decode($notification->data)->message ?? 'Notification' }}
-                    </p>
+                    @if($docUrl)
+                        <a href="{{ $docUrl }}" class="block group">
+                            <p class="text-sm leading-snug mb-0.5 group-hover:text-indigo-700 transition-colors {{ $notification->read_at ? 'text-slate-600' : 'font-medium text-slate-800' }}">
+                                {{ $message }}
+                            </p>
+                        </a>
+                    @else
+                        <p class="text-sm leading-snug mb-0.5 {{ $notification->read_at ? 'text-slate-600' : 'font-medium text-slate-800' }}">
+                            {{ $message }}
+                        </p>
+                    @endif
                     <p class="text-xs text-slate-400 m-0">
-                        {{ json_decode($notification->data)->title ?? '' }} &middot; {{ $notification->created_at->diffForHumans() }}
+                        {{ $title }} &middot; {{ $notification->created_at->diffForHumans() }}
                     </p>
+                    @if($docUrl)
+                        <a href="{{ $docUrl }}" class="inline-flex items-center gap-1 mt-1 text-[11px] font-medium text-indigo-500 hover:text-indigo-700 transition-colors">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            View Document
+                        </a>
+                    @endif
                 </div>
 
                 {{-- Mark as read --}}
                 @if(!$notification->read_at)
                     <form method="POST" action="{{ route('notifications.read', $notification->id) }}" class="flex-shrink-0">
                         @csrf
-                        <button class="text-xs font-medium text-indigo-600 hover:bg-indigo-50 rounded-md px-2 py-1 transition-colors"
-                                title="Mark as read">
+                        @if($docId)
+                            <input type="hidden" name="document_id" value="{{ $docId }}">
+                        @endif
+                        <button class="text-xs font-medium text-indigo-600 hover:bg-indigo-50 rounded-md p-1 transition-colors"
+                                title="{{ $docId ? 'Mark as read and view document' : 'Mark as read' }}">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                             </svg>

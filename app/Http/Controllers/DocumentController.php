@@ -6,6 +6,7 @@ use App\Models\Document;
 use App\Models\DocumentAttachment;
 use App\Models\DocumentAudit;
 use App\Models\DocumentCategory;
+use App\Models\DocumentVersion;
 
 use App\Models\DocumentTrackingNumber;
 use App\Models\DocumentTransaction;
@@ -1020,7 +1021,13 @@ class DocumentController extends Controller
             || auth()->user()->hasRole('company-admin');
         // === End Urgency Matrix ===
 
-        return view('documents.show', compact('document', 'auditLogs', 'attachments', 'docRoute', 'workflows', 'rerouteLogs', 'canReroute'));
+        // === Document Versioning ===
+        $document->load('versions.uploader');
+        $canUploadVersion = $document->uploader === auth()->id()
+            || auth()->user()->hasRole('super-admin')
+            || auth()->user()->hasRole('company-admin');
+
+        return view('documents.show', compact('document', 'auditLogs', 'attachments', 'docRoute', 'workflows', 'rerouteLogs', 'canReroute', 'canUploadVersion'));
     }
 
     /**
@@ -1122,9 +1129,37 @@ class DocumentController extends Controller
                 ]);
             }
 
-            // Handle file upload if new file is provided
+            // Handle file upload if new file is provided — snapshot old file as a version first
             if ($request->hasFile('main_document')) {
-                Storage::disk('public')->delete($document->path);
+                // Snapshot current file as a previous version before replacing
+                $latestVersionNum = $document->versions()->max('version_number') ?? 0;
+                $newVersionNum = $latestVersionNum + 1;
+
+                try {
+                    $oldMimeType = Storage::disk('public')->exists($document->path)
+                        ? Storage::disk('public')->mimeType($document->path)
+                        : null;
+                    $oldFileSize = Storage::disk('public')->exists($document->path)
+                        ? Storage::disk('public')->size($document->path)
+                        : null;
+                } catch (\Throwable $e) {
+                    $oldMimeType = null;
+                    $oldFileSize = null;
+                }
+
+                DocumentVersion::create([
+                    'doc_id'            => $document->id,
+                    'version_number'    => $newVersionNum,
+                    'file_path'         => $document->path,
+                    'original_filename' => basename($document->path),
+                    'mime_type'         => $oldMimeType,
+                    'file_size'         => $oldFileSize,
+                    'uploaded_by'       => auth()->id(),
+                    'change_notes'      => $request->input('version_notes'),
+                ]);
+                \Log::info('Document version snapshot created', ['document_id' => $document->id, 'version' => $newVersionNum]);
+
+                // Upload the new file (old file is kept — it's referenced by the version record)
                 $companyId = auth()->user()->companies()->first()->id ?? 'default';
                 $companyPath = $companyId;
 
@@ -1136,6 +1171,15 @@ class DocumentController extends Controller
 
                 $document->update(['path' => $filePath]);
                 \Log::info('Document file updated', ['document_id' => $document->id]);
+
+                // Log version upload in audit trail
+                DocumentAudit::logDocumentAction(
+                    $document->id,
+                    auth()->id(),
+                    'version_uploaded',
+                    $document->status?->status ?? 'uploaded',
+                    "New version uploaded (v{$newVersionNum} archived)"
+                );
             }
 
             // Update document categories
@@ -1254,6 +1298,140 @@ class DocumentController extends Controller
 
         return redirect()->route('documents.index')
             ->with('success', 'Document deleted successfully');
+    }
+
+    /**
+     * Upload a new version of a document.
+     * Snapshots the current file as a version and replaces it with the uploaded file.
+     */
+    public function uploadVersion(Request $request, Document $document): RedirectResponse
+    {
+        // Authorization: only uploader, company-admin, or super-admin
+        if ($document->uploader !== auth()->id()
+            && !auth()->user()->hasRole('super-admin')
+            && !auth()->user()->hasRole('company-admin')) {
+            abort(403, 'You are not authorized to upload versions for this document.');
+        }
+
+        $request->validate([
+            'version_file'  => 'required|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,odt,ods,odp,rtf,jpg,jpeg,png',
+            'version_notes' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            // Snapshot current file as a version
+            $latestVersionNum = $document->versions()->max('version_number') ?? 0;
+            $newVersionNum = $latestVersionNum + 1;
+
+            try {
+                $oldMimeType = Storage::disk('public')->exists($document->path)
+                    ? Storage::disk('public')->mimeType($document->path)
+                    : null;
+                $oldFileSize = Storage::disk('public')->exists($document->path)
+                    ? Storage::disk('public')->size($document->path)
+                    : null;
+            } catch (\Throwable $e) {
+                $oldMimeType = null;
+                $oldFileSize = null;
+            }
+
+            DocumentVersion::create([
+                'doc_id'            => $document->id,
+                'version_number'    => $newVersionNum,
+                'file_path'         => $document->path,
+                'original_filename' => basename($document->path),
+                'mime_type'         => $oldMimeType,
+                'file_size'         => $oldFileSize,
+                'uploaded_by'       => auth()->id(),
+                'change_notes'      => $request->input('version_notes'),
+            ]);
+
+            // Upload the new file
+            $companyId = auth()->user()->companies()->first()->id ?? 'default';
+            $file = $request->file('version_file');
+            $fileName = Str::random(40) . '.' . $file->getClientOriginalExtension();
+            $filePath = $file->storeAs($companyId . '/documents', $fileName, 'public');
+
+            $document->update(['path' => $filePath]);
+
+            // Audit log
+            DocumentAudit::logDocumentAction(
+                $document->id,
+                auth()->id(),
+                'version_uploaded',
+                $document->status?->status ?? 'uploaded',
+                "New version uploaded (v{$newVersionNum} archived)"
+            );
+
+            \Log::info('New document version uploaded', [
+                'document_id' => $document->id,
+                'version'     => $newVersionNum,
+                'uploader'    => auth()->id(),
+            ]);
+
+            return redirect()->route('documents.show', $document->id)
+                ->with('success', "New version uploaded successfully. Previous version saved as v{$newVersionNum}.");
+
+        } catch (Exception $e) {
+            \Log::error('Error uploading document version', [
+                'document_id' => $document->id,
+                'error'       => $e->getMessage(),
+            ]);
+            return redirect()->back()
+                ->with('error', 'An error occurred while uploading the new version. Please try again.');
+        }
+    }
+
+    /**
+     * Preview a specific document version file inline in the browser.
+     */
+    public function previewVersion(Document $document, DocumentVersion $version)
+    {
+        // Ensure the version belongs to this document
+        if ($version->doc_id !== $document->id) {
+            abort(404, 'Version not found for this document.');
+        }
+
+        // Authorization: user can view the parent document
+        if (!$this->documentAccessService->canViewDocument($document)) {
+            abort(403, 'Access denied.');
+        }
+
+        $filePath = storage_path('app/public/' . $version->file_path);
+
+        if (!file_exists($filePath)) {
+            abort(404, 'Version file not found.');
+        }
+
+        $mimeType = mime_content_type($filePath);
+
+        return response()->file($filePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $version->original_filename . '"',
+        ]);
+    }
+
+    /**
+     * Preview the current (latest) version of a document inline in the browser.
+     */
+    public function previewCurrent(Document $document)
+    {
+        if (!$this->documentAccessService->canViewDocument($document)) {
+            abort(403, 'Access denied.');
+        }
+
+        $filePath = storage_path('app/public/' . $document->path);
+
+        if (!file_exists($filePath)) {
+            abort(404, 'Document file not found.');
+        }
+
+        $mimeType = mime_content_type($filePath);
+
+        return response()->file($filePath, [
+            'Content-Type'        => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . basename($document->path) . '"',
+        ]);
     }
 
     /**

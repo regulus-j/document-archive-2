@@ -124,6 +124,11 @@ class Document extends Model
         return $this->hasMany(DocumentAttachment::class);
     }
 
+    public function versions()
+    {
+        return $this->hasMany(DocumentVersion::class, 'doc_id')->orderBy('version_number', 'desc');
+    }
+
     public function eSignatures()
     {
         return $this->hasMany(ESignature::class);

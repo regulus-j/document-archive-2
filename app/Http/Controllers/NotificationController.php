@@ -18,13 +18,20 @@ class NotificationController extends Controller
         return view('notifications.index', compact('notifications'));
     }
 
-    // Mark a notification as read
-    public function markAsRead($id)
+    // Mark a notification as read, then optionally redirect to the document
+    public function markAsRead(Request $request, $id)
     {
         $notification = Notifications::where('id', $id)
             ->where('user_id', Auth::id())
             ->firstOrFail();
         $notification->markAsRead();
+
+        // If a document_id was passed, redirect directly to that document
+        $documentId = $request->input('document_id');
+        if ($documentId) {
+            return redirect()->route('documents.show', $documentId);
+        }
+
         return redirect()->back();
     }
 }
