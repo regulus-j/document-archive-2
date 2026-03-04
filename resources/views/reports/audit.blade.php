@@ -62,7 +62,7 @@
                     <div x-show="auditTarget === 'user'" x-cloak>
                         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Select User</label>
                         <div class="relative" x-data="searchableSelect({
-                            items: {{ Js::from($users->map(fn($u) => ['id' => $u->id, 'name' => $u->first_name . ' ' . ($u->middle_name ? $u->middle_name . ' ' : '') . $u->last_name, 'email' => $u->email])) }},
+                            items: {{ \Illuminate\Support\Js::from($users->map(fn($u) => ['id' => $u->id, 'name' => $u->first_name . ' ' . ($u->middle_name ? $u->middle_name . ' ' : '') . $u->last_name, 'email' => $u->email])) }},
                             fieldName: 'user_id',
                             selectedId: '{{ old('user_id', request('user_id')) }}'
                         })">
@@ -98,7 +98,7 @@
                     <div x-show="auditTarget === 'office'" x-cloak>
                         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Select Office</label>
                         <div class="relative" x-data="searchableSelect({
-                            items: {{ Js::from($offices->map(fn($o) => ['id' => $o->id, 'name' => $o->name, 'email' => ''])) }},
+                            items: {{ \Illuminate\Support\Js::from($offices->map(fn($o) => ['id' => $o->id, 'name' => $o->name, 'email' => ''])) }},
                             fieldName: 'office_id',
                             selectedId: '{{ old('office_id', request('office_id')) }}'
                         })">
@@ -160,7 +160,7 @@
                                       hover:border-{{ $option['color'] }}-300 hover:bg-{{ $option['color'] }}-50/50 transition-all
                                       has-[:checked]:border-{{ $option['color'] }}-400 has-[:checked]:bg-{{ $option['color'] }}-50 has-[:checked]:ring-1 has-[:checked]:ring-{{ $option['color'] }}-300">
                             <input type="checkbox" name="filters[]" value="{{ $value }}"
-                                   {{ in_array($value, old('filters', ['actions', 'uploads', 'received', 'attachments', 'reviewed'])) ? 'checked' : '' }}
+                                   {{ in_array($value, old('filters', $filters ?? ['actions', 'uploads', 'received', 'attachments', 'reviewed'])) ? 'checked' : '' }}
                                    class="rounded border-slate-300 text-{{ $option['color'] }}-600 focus:ring-{{ $option['color'] }}-500">
                             <svg class="w-4 h-4 text-{{ $option['color'] }}-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $option['icon'] }}"/>
@@ -171,18 +171,14 @@
                     </div>
                 </div>
 
-                {{-- Submit Buttons --}}
+                {{-- Submit Button --}}
                 <div class="mt-6 flex flex-wrap items-center gap-3 pt-4 border-t border-slate-200">
                     <button type="submit" name="output" value="view"
                             class="inline-flex items-center px-5 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                         <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                         Preview Report
                     </button>
-                    <button type="submit" name="output" value="pdf"
-                            class="inline-flex items-center px-5 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition shadow-sm focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                        <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        Export as PDF (Landscape)
-                    </button>
+                    <p class="text-xs text-slate-400">Preview first, then export as PDF or Excel from the results.</p>
                 </div>
             </form>
         </div>
@@ -202,6 +198,48 @@
                             <span class="mx-2 text-slate-300">|</span>
                             Generated {{ $generated_at }}
                         </p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        {{-- Export PDF button --}}
+                        <form action="{{ route('reports.audit.generate') }}" method="POST" class="inline" target="_blank">
+                            @csrf
+                            <input type="hidden" name="audit_target" value="{{ $audit_target }}">
+                            @if($audit_target === 'user')
+                                <input type="hidden" name="user_id" value="{{ $target_id }}">
+                            @else
+                                <input type="hidden" name="office_id" value="{{ $target_id }}">
+                            @endif
+                            <input type="hidden" name="start_date" value="{{ $start_date }}">
+                            <input type="hidden" name="end_date" value="{{ $end_date }}">
+                            @foreach($filters as $f)
+                                <input type="hidden" name="filters[]" value="{{ $f }}">
+                            @endforeach
+                            <input type="hidden" name="output" value="pdf">
+                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition shadow-sm">
+                                <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                PDF
+                            </button>
+                        </form>
+                        {{-- Export Excel button --}}
+                        <form action="{{ route('reports.audit.generate') }}" method="POST" class="inline" target="_blank">
+                            @csrf
+                            <input type="hidden" name="audit_target" value="{{ $audit_target }}">
+                            @if($audit_target === 'user')
+                                <input type="hidden" name="user_id" value="{{ $target_id }}">
+                            @else
+                                <input type="hidden" name="office_id" value="{{ $target_id }}">
+                            @endif
+                            <input type="hidden" name="start_date" value="{{ $start_date }}">
+                            <input type="hidden" name="end_date" value="{{ $end_date }}">
+                            @foreach($filters as $f)
+                                <input type="hidden" name="filters[]" value="{{ $f }}">
+                            @endforeach
+                            <input type="hidden" name="output" value="excel">
+                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition shadow-sm">
+                                <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                Excel
+                            </button>
+                        </form>
                     </div>
                 </div>
 
