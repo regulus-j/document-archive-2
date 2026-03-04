@@ -200,46 +200,27 @@
                         </p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
-                        {{-- Export PDF button --}}
-                        <form action="{{ route('reports.audit.generate') }}" method="POST" class="inline" target="_blank">
-                            @csrf
-                            <input type="hidden" name="audit_target" value="{{ $audit_target }}">
-                            @if($audit_target === 'user')
-                                <input type="hidden" name="user_id" value="{{ $target_id }}">
-                            @else
-                                <input type="hidden" name="office_id" value="{{ $target_id }}">
-                            @endif
-                            <input type="hidden" name="start_date" value="{{ $start_date }}">
-                            <input type="hidden" name="end_date" value="{{ $end_date }}">
-                            @foreach($filters as $f)
-                                <input type="hidden" name="filters[]" value="{{ $f }}">
-                            @endforeach
-                            <input type="hidden" name="output" value="pdf">
-                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition shadow-sm">
-                                <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                PDF
-                            </button>
-                        </form>
-                        {{-- Export Excel button --}}
-                        <form action="{{ route('reports.audit.generate') }}" method="POST" class="inline" target="_blank">
-                            @csrf
-                            <input type="hidden" name="audit_target" value="{{ $audit_target }}">
-                            @if($audit_target === 'user')
-                                <input type="hidden" name="user_id" value="{{ $target_id }}">
-                            @else
-                                <input type="hidden" name="office_id" value="{{ $target_id }}">
-                            @endif
-                            <input type="hidden" name="start_date" value="{{ $start_date }}">
-                            <input type="hidden" name="end_date" value="{{ $end_date }}">
-                            @foreach($filters as $f)
-                                <input type="hidden" name="filters[]" value="{{ $f }}">
-                            @endforeach
-                            <input type="hidden" name="output" value="excel">
-                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition shadow-sm">
-                                <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                Excel
-                            </button>
-                        </form>
+                        {{-- Export PDF link (GET, opens in new tab) --}}
+                        @php
+                            $exportParams = http_build_query([
+                                'audit_target' => $audit_target,
+                                'target_id' => $target_id,
+                                'start_date' => $start_date,
+                                'end_date' => $end_date,
+                                'filters' => $filters,
+                            ]);
+                        @endphp
+                        <a href="{{ route('reports.audit.export-pdf') }}?{{ $exportParams }}" target="_blank"
+                           class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition shadow-sm">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            PDF
+                        </a>
+                        {{-- Export Excel link (GET, opens in new tab) --}}
+                        <a href="{{ route('reports.audit.export-excel') }}?{{ $exportParams }}" target="_blank"
+                           class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition shadow-sm">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            Excel
+                        </a>
                     </div>
                 </div>
 

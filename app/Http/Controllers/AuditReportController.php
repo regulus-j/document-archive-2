@@ -55,7 +55,6 @@ class AuditReportController extends Controller
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
         $filters = $request->input('filters', []);
-        $outputFormat = $request->input('output', 'view'); // 'view' or 'pdf'
 
         $targetLabel = '';
         $data = [];
@@ -95,14 +94,6 @@ class AuditReportController extends Controller
         $data['filters'] = $filters;
         $data['generated_at'] = now()->format('F d, Y h:i A');
         $data['generated_by'] = auth()->user()->first_name . ' ' . auth()->user()->last_name;
-
-        if ($outputFormat === 'pdf') {
-            return $this->exportPdf($data);
-        }
-
-        if ($outputFormat === 'excel') {
-            return $this->exportExcel($data);
-        }
 
         // Reload users/offices for the form
         $users = $companyUsers;
@@ -227,10 +218,11 @@ class AuditReportController extends Controller
     }
 
     /**
-     * Export audit data to landscape PDF.
+     * Export audit data to landscape PDF (GET route — opens in new tab).
      */
-    private function exportPdf(array $data)
+    public function exportPdf(Request $request)
     {
+        $data = $this->gatherExportData($request);
         $branding = $this->getCompanyBranding();
 
         $pdf = Pdf::loadView('reports.audit_pdf', array_merge($data, $branding))
@@ -242,10 +234,11 @@ class AuditReportController extends Controller
     }
 
     /**
-     * Export audit data to Excel.
+     * Export audit data to Excel (GET route — triggers download).
      */
-    private function exportExcel(array $data)
+    public function exportExcel(Request $request)
     {
+        $data = $this->gatherExportData($request);
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $sheetIndex = 0;
 
@@ -410,6 +403,63 @@ class AuditReportController extends Controller
         $writer->save($tempPath);
 
         return response()->download($tempPath, $filename)->deleteFileAfterSend();
+    }
+
+    /**
+     * Gather all audit data from GET query params for export.
+     */
+    private function gatherExportData(Request $request): array
+    {
+        $request->validate([
+            'audit_target' => 'required|in:user,office',
+            'target_id' => 'required|integer',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'filters' => 'required|array|min:1',
+            'filters.*' => 'in:actions,uploads,received,attachments,reviewed',
+        ]);
+
+        $company = $this->resolveCompany();
+        $companyUsers = $this->getCompanyUsers($company);
+        $companyUserIds = $companyUsers->pluck('id');
+
+        $auditTarget = $request->input('audit_target');
+        $targetId = $request->input('target_id');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $filters = $request->input('filters', []);
+
+        $targetLabel = '';
+        $data = [];
+
+        if ($auditTarget === 'user') {
+            $user = User::findOrFail($targetId);
+            $targetLabel = $user->full_name ?? ($user->first_name . ' ' . $user->last_name);
+            if (!$companyUserIds->contains($targetId)) {
+                abort(403, 'User does not belong to your company.');
+            }
+            $data = $this->gatherUserAuditData($targetId, $startDate, $endDate, $filters, $companyUserIds);
+        } else {
+            $office = Office::findOrFail($targetId);
+            $targetLabel = $office->name;
+            if ($company && $office->company_id != $company->id) {
+                abort(403, 'Office does not belong to your company.');
+            }
+            $officeUserIds = $office->users()->pluck('users.id');
+            $data = $this->gatherOfficeAuditData($targetId, $officeUserIds, $startDate, $endDate, $filters, $companyUserIds);
+            $data['office_users'] = User::whereIn('id', $officeUserIds)->get();
+        }
+
+        $data['audit_target'] = $auditTarget;
+        $data['target_label'] = $targetLabel;
+        $data['target_id'] = $targetId;
+        $data['start_date'] = $startDate;
+        $data['end_date'] = $endDate;
+        $data['filters'] = $filters;
+        $data['generated_at'] = now()->format('F d, Y h:i A');
+        $data['generated_by'] = auth()->user()->first_name . ' ' . auth()->user()->last_name;
+
+        return $data;
     }
 
     /** Write title rows to an Excel sheet. */

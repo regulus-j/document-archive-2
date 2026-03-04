@@ -312,6 +312,8 @@ Route::middleware('auth')->group(function () {
         // Audit Reports
         Route::get('/audit', [AuditReportController::class, 'index'])->name('reports.audit');
         Route::post('/audit/generate', [AuditReportController::class, 'generate'])->name('reports.audit.generate');
+        Route::get('/audit/export-pdf', [AuditReportController::class, 'exportPdf'])->name('reports.audit.export-pdf');
+        Route::get('/audit/export-excel', [AuditReportController::class, 'exportExcel'])->name('reports.audit.export-excel');
         Route::get('/audit/search-users', [AuditReportController::class, 'searchUsers'])->name('reports.audit.search-users');
         Route::get('/audit/search-offices', [AuditReportController::class, 'searchOffices'])->name('reports.audit.search-offices');
         // Wildcard routes MUST come last to avoid catching named routes above
