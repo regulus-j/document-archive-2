@@ -41,8 +41,6 @@ class PaymentController extends Controller
 
     public function linkCreate($plan)
     {
-        $client = new \GuzzleHttp\Client();
-
         $plan = Plan::findOrFail($plan);
         session(['selected_plan' => $plan]);
 
@@ -56,24 +54,38 @@ class PaymentController extends Controller
                 ]
             ]
         ];
-        
-        $response = $client->request('POST', 'https://api.paymongo.com/v1/links', [
-            'json' => $body,
-            'headers' => [
-                'accept' => 'application/json',
-                'authorization' => 'Basic ' . base64_encode(config('services.paymongo.secret_key') . ':'),
-                'content-type' => 'application/json',
-            ],
-        ]);
 
-        $responseData = $response->getBody()->getContents();
+        try {
+            $client = new \GuzzleHttp\Client([
+                'timeout'         => 15,
+                'connect_timeout' => 10,
+            ]);
 
-        return view('payments.out', ['responseData' => $responseData]);
+            $response = $client->request('POST', 'https://api.paymongo.com/v1/links', [
+                'json' => $body,
+                'headers' => [
+                    'accept' => 'application/json',
+                    'authorization' => 'Basic ' . base64_encode(config('services.paymongo.secret_key') . ':'),
+                    'content-type' => 'application/json',
+                ],
+            ]);
+
+            $responseData = $response->getBody()->getContents();
+
+            return view('payments.out', ['responseData' => $responseData]);
+        } catch (\Throwable $e) {
+            \Log::error('PayMongo link creation failed: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Unable to generate payment link. Please try again later or contact support.');
+        }
     }
     
     public function checkPaymentStatus($referenceNumber)
     {
-        $client = new \GuzzleHttp\Client();
+        $client = new \GuzzleHttp\Client([
+            'timeout'         => 15,
+            'connect_timeout' => 10,
+        ]);
         $baseUrl = 'https://api.paymongo.com/v1/links';
 
         try {
@@ -82,7 +94,14 @@ class PaymentController extends Controller
                     'accept' => 'application/json',
                     'authorization' => 'Basic ' . base64_encode(config('services.paymongo.secret_key') . ':'),
                 ],
+                'http_errors' => false,
             ]);
+
+            // Handle non-200 API responses gracefully
+            if ($response->getStatusCode() !== 200) {
+                \Log::warning('PayMongo API returned HTTP ' . $response->getStatusCode() . ' for reference: ' . $referenceNumber);
+                return response('pending', 200)->header('Content-Type', 'text/plain');
+            }
 
             $result = json_decode($response->getBody(), true);
             \Log::info('PayMongo Response:', ['data' => $result]);
@@ -136,7 +155,7 @@ class PaymentController extends Controller
 
             \Log::warning('Empty PayMongo response for reference: ' . $referenceNumber);
             return response('pending', 200)->header('Content-Type', 'text/plain');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Log::error('PayMongo Error: ' . $e->getMessage());
             \Log::error('Stack trace: ' . $e->getTraceAsString());
             return response('error', 200)->header('Content-Type', 'text/plain');
@@ -215,7 +234,10 @@ class PaymentController extends Controller
         ];
 
         try {
-            $client = new \GuzzleHttp\Client();
+            $client = new \GuzzleHttp\Client([
+                'timeout'         => 15,
+                'connect_timeout' => 10,
+            ]);
             $response = $client->request('POST', 'https://api.paymongo.com/v1/links', [
                 'json' => $body,
                 'headers' => [
