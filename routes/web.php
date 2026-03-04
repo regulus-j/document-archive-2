@@ -23,6 +23,7 @@ use App\Http\Controllers\UserManagedController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DocumentAuditController;
+use App\Http\Controllers\AuditReportController;
 use App\Models\Plan;
 
 
@@ -307,6 +308,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/generate', [ReportController::class, 'generate'])->name('reports.generate');
         Route::get('/office-dashboard', [ReportController::class, 'officeLeadDashboard'])->name('reports.office-dashboard');
         Route::get('/office-user-dashboard', [ReportController::class, 'officeUserDashboard'])->name('reports.office-user-dashboard');
+
+        // Audit Reports
+        Route::get('/audit', [AuditReportController::class, 'index'])->name('reports.audit');
+        Route::post('/audit/generate', [AuditReportController::class, 'generate'])->name('reports.audit.generate');
+        Route::get('/audit/search-users', [AuditReportController::class, 'searchUsers'])->name('reports.audit.search-users');
+        Route::get('/audit/search-offices', [AuditReportController::class, 'searchOffices'])->name('reports.audit.search-offices');
         // Wildcard routes MUST come last to avoid catching named routes above
         Route::get('/{report}', [ReportController::class, 'show'])->name('reports.show');
         Route::get('/{report}/edit', [ReportController::class, 'edit'])->name('reports.edit');

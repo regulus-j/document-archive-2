@@ -56,19 +56,39 @@
                     </x-nav-link>
                     @endcan
 
-                    {{-- Reports --}}
-                    <x-nav-link
-                        :href="route('reports.index')"
-                        :active="request()->routeIs('reports.index')"
-                        class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium
-                               text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/60
-                               transition-colors duration-150">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                        </svg>
-                        {{ __('Reports') }}
-                    </x-nav-link>
+                    {{-- Reports Dropdown --}}
+                    <x-dropdown align="right" width="48">
+                        <x-slot name="trigger">
+                            <button class="flex items-center gap-2 text-sm font-medium text-slate-600
+                                           hover:text-indigo-600 rounded-lg px-3 py-2
+                                           hover:bg-indigo-50/60 transition-colors duration-150
+                                           focus:outline-none focus:ring-2 focus:ring-indigo-500/30
+                                           {{ request()->routeIs('reports.*') ? 'text-indigo-600 bg-indigo-50/60' : '' }}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                </svg>
+                                {{ __('Reports') }}
+                                <svg class="w-4 h-4 opacity-50" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </x-slot>
+                        <x-slot name="content">
+                            <x-dropdown-link :href="route('reports.index')">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                                    {{ __('Analytics & Reports') }}
+                                </div>
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('reports.audit')">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                                    {{ __('Audit Report') }}
+                                </div>
+                            </x-dropdown-link>
+                        </x-slot>
+                    </x-dropdown>
 
                     {{-- Document Actions Dropdown --}}
                     @can('document-list')
@@ -286,7 +306,8 @@
             @endcan
 
             <div class="px-3 pt-3 pb-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Reports</div>
-            <x-responsive-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.index')">{{ __('View Reports') }}</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.index')">{{ __('Analytics & Reports') }}</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('reports.audit')" :active="request()->routeIs('reports.audit')">{{ __('Audit Report') }}</x-responsive-nav-link>
 
             @if(auth()->user()->isSuperAdmin())
                 <div class="px-3 pt-3 pb-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Administration</div>
