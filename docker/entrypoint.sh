@@ -61,13 +61,13 @@ RETRIES=0
 MAX_RETRIES=3
 OLLAMA_OK=false
 while [ "$RETRIES" -lt "$MAX_RETRIES" ]; do
-    if curl -sf "${OLLAMA_URL}/api/tags" > /dev/null 2>&1; then
+    if curl -sf --connect-timeout 5 --max-time 10 "${OLLAMA_URL}/api/tags" > /dev/null 2>&1; then
         OLLAMA_OK=true
         break
     fi
     RETRIES=$((RETRIES + 1))
     echo "  Attempt ${RETRIES}/${MAX_RETRIES} — Ollama not yet reachable..."
-    sleep 5
+    sleep 2
 done
 
 if [ "$OLLAMA_OK" = true ]; then
