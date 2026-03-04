@@ -10,9 +10,11 @@ use App\Models\User;
 use App\Models\CompanyUser;
 use App\Models\DocumentAttachment;
 use App\Models\DocumentAudit;
+use App\Models\DocumentVersion;
 use App\Models\ESignature;
 use App\Services\DocumentAccessService;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 
 class DocumentWorkflowController extends Controller
@@ -1431,5 +1433,95 @@ class DocumentWorkflowController extends Controller
         );
 
         return redirect()->back()->with('success', count($uploaded) . ' attachment(s) uploaded successfully.');
+    }
+
+    /**
+     * Upload a new version of a document from the review page.
+     * Snapshots the current file as a version and replaces it with the uploaded file.
+     */
+    public function uploadVersionFromReview(Request $request, $workflowId): RedirectResponse
+    {
+        $accessCheck = $this->ensureWorkflowAccess($workflowId);
+        if ($accessCheck) return $accessCheck;
+
+        $workflow = DocumentWorkflow::findOrFail($workflowId);
+
+        // Only allow version uploads on actionable workflows
+        if (!in_array($workflow->status, ['received', 'pending'])) {
+            return redirect()->back()->with('error', 'You cannot upload a new version at this stage.');
+        }
+
+        $request->validate([
+            'version_file'  => 'required|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,odt,ods,odp,rtf,jpg,jpeg,png',
+            'version_notes' => 'nullable|string|max:500',
+        ]);
+
+        $document = $workflow->document;
+        $user = auth()->user();
+
+        try {
+            // Snapshot current file as a version
+            $latestVersionNum = $document->versions()->max('version_number') ?? 0;
+            $newVersionNum = $latestVersionNum + 1;
+
+            try {
+                $oldMimeType = Storage::disk('public')->exists($document->path)
+                    ? Storage::disk('public')->mimeType($document->path)
+                    : null;
+                $oldFileSize = Storage::disk('public')->exists($document->path)
+                    ? Storage::disk('public')->size($document->path)
+                    : null;
+            } catch (\Throwable $e) {
+                $oldMimeType = null;
+                $oldFileSize = null;
+            }
+
+            DocumentVersion::create([
+                'doc_id'            => $document->id,
+                'version_number'    => $newVersionNum,
+                'file_path'         => $document->path,
+                'original_filename' => basename($document->path),
+                'mime_type'         => $oldMimeType,
+                'file_size'         => $oldFileSize,
+                'uploaded_by'       => $user->id,
+                'change_notes'      => $request->input('version_notes'),
+            ]);
+
+            // Upload the new file
+            $companyId = $document->company_id ?? 'default';
+            $file = $request->file('version_file');
+            $fileName = Str::random(40) . '.' . $file->getClientOriginalExtension();
+            $filePath = $file->storeAs($companyId . '/documents', $fileName, 'public');
+
+            $document->update(['path' => $filePath]);
+
+            // Audit log
+            DocumentAudit::logDocumentAction(
+                $document->id,
+                $user->id,
+                'version_uploaded',
+                $document->status?->status ?? 'uploaded',
+                "New version uploaded during review by {$user->first_name} {$user->last_name} (v{$newVersionNum} archived)"
+            );
+
+            \Log::info('New document version uploaded during review', [
+                'workflow_id' => $workflow->id,
+                'document_id' => $document->id,
+                'version'     => $newVersionNum,
+                'uploader'    => $user->id,
+            ]);
+
+            return redirect()->route('documents.review', $workflow->id)
+                ->with('success', "New version uploaded successfully. Previous version saved as v{$newVersionNum}.");
+
+        } catch (\Exception $e) {
+            \Log::error('Error uploading document version during review', [
+                'workflow_id' => $workflow->id,
+                'document_id' => $document->id,
+                'error'       => $e->getMessage(),
+            ]);
+            return redirect()->back()
+                ->with('error', 'An error occurred while uploading the new version. Please try again.');
+        }
     }
 }

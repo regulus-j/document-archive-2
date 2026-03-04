@@ -125,8 +125,26 @@
                 {{-- Document Viewer (right, spans 2 cols) --}}
                 <div class="lg:col-span-2 bg-white rounded-xl border border-indigo-200/80 overflow-hidden">
                     <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-200/60 flex items-center justify-between">
-                        <h2 class="text-lg font-semibold text-slate-700">Document Viewer</h2>
-                        <div id="viewer-controls" class="flex items-center gap-2" style="display:none;">
+                        <div class="flex items-center gap-3">
+                            <h2 class="text-lg font-semibold text-slate-700">Document Viewer</h2>
+                            <span id="version-badge" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">
+                                v{{ $document->versions->count() + 1 }} (Current)
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            @if($document->versions->count() > 0)
+                            <select id="version-selector" onchange="switchVersion(this.value)"
+                                class="text-xs rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 py-1.5 pr-8">
+                                <option value="current" data-ext="{{ $ext }}">Current (v{{ $document->versions->count() + 1 }})</option>
+                                @foreach($document->versions->sortByDesc('version_number') as $ver)
+                                    @php $verExt = strtolower(pathinfo($ver->file_path, PATHINFO_EXTENSION)); @endphp
+                                    <option value="{{ route('documents.versionPreview', [$document->id, $ver->id]) }}" data-ext="{{ $verExt }}">
+                                        v{{ $ver->version_number }} &mdash; {{ $ver->uploader->first_name ?? 'Unknown' }} {{ $ver->uploader->last_name ?? '' }} ({{ $ver->created_at->format('M d, Y') }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            @endif
+                            <div id="viewer-controls" class="flex items-center gap-2" style="display:none;">
                             <button onclick="zoomViewer(-1)" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500" title="Zoom Out">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"/></svg>
                             </button>
@@ -167,6 +185,142 @@
                             </div>
                         @endif
                     </div>
+                </div>
+            </div>
+
+            {{-- ============================================= --}}
+            {{-- ROW 1.5: Version History & Upload New Version --}}
+            {{-- ============================================= --}}
+            <div class="bg-white rounded-xl border border-indigo-200/80 overflow-hidden" x-data="{ showVersions: {{ $document->versions->count() > 0 ? 'true' : 'false' }} }">
+                <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-200/60 flex items-center justify-between cursor-pointer" @click="showVersions = !showVersions">
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-lg font-semibold text-slate-700">Version History</h2>
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                            {{ $document->versions->count() + 1 }} version(s)
+                        </span>
+                    </div>
+                    <svg class="w-5 h-5 text-slate-400 transition-transform" :class="showVersions ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </div>
+                <div x-show="showVersions" x-transition class="p-4">
+                    {{-- Current Version --}}
+                    <div class="mb-3">
+                        <h4 class="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Current Version</h4>
+                        <div class="flex items-center justify-between p-3 rounded-lg border-2 border-indigo-200 bg-indigo-50/30">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="flex-shrink-0 w-9 h-9 rounded-lg bg-indigo-100 flex items-center justify-center">
+                                    <span class="text-xs font-bold text-indigo-600">v{{ $document->versions->count() + 1 }}</span>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-medium text-slate-800">{{ basename($document->path) }}</p>
+                                    <p class="text-xs text-slate-400">
+                                        Latest version
+                                        @php
+                                            $currentSize = null;
+                                            try {
+                                                if (Storage::disk('public')->exists($document->path)) {
+                                                    $currentSize = Storage::disk('public')->size($document->path);
+                                                }
+                                            } catch (\Throwable $e) {}
+                                        @endphp
+                                        @if($currentSize)
+                                            <span class="mx-1">&middot;</span>
+                                            {{ number_format($currentSize / 1024, 1) }} KB
+                                        @endif
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                @if($previewable)
+                                <button onclick="switchVersion('current')" class="p-1.5 rounded-lg hover:bg-indigo-100 text-indigo-600" title="Preview Current">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                </button>
+                                @endif
+                                <a href="{{ route('documents.download', $document->id) }}" class="p-1.5 rounded-lg hover:bg-indigo-100 text-indigo-600" title="Download">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Previous Versions --}}
+                    @if($document->versions->count() > 0)
+                    <div class="mb-3">
+                        <h4 class="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Previous Versions</h4>
+                        <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                            @foreach($document->versions->sortByDesc('version_number') as $ver)
+                                @php
+                                    $verExt = strtolower(pathinfo($ver->file_path, PATHINFO_EXTENSION));
+                                    $verPreviewable = in_array($verExt, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'doc', 'docx', 'xls', 'xlsx', 'csv']);
+                                @endphp
+                                <div class="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:bg-slate-50 transition group">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <div class="flex-shrink-0 w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center">
+                                            <span class="text-xs font-bold text-slate-500">v{{ $ver->version_number }}</span>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-sm font-medium text-slate-700 truncate">{{ $ver->original_filename }}</p>
+                                            <p class="text-xs text-slate-400">
+                                                @if($ver->uploader)
+                                                    <span class="text-indigo-600">{{ $ver->uploader->first_name }} {{ $ver->uploader->last_name }}</span>
+                                                    <span class="mx-1">&middot;</span>
+                                                @endif
+                                                {{ $ver->created_at->format('M d, Y g:ia') }}
+                                                @if($ver->file_size)
+                                                    <span class="mx-1">&middot;</span>
+                                                    {{ number_format($ver->file_size / 1024, 1) }} KB
+                                                @endif
+                                            </p>
+                                            @if($ver->change_notes)
+                                                <p class="text-xs text-slate-500 mt-0.5 italic">"{{ Str::limit($ver->change_notes, 80) }}"</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                                        @if($verPreviewable)
+                                        <button onclick="switchVersion('{{ route('documents.versionPreview', [$document->id, $ver->id]) }}')"
+                                            class="p-1.5 rounded-lg hover:bg-indigo-100 text-indigo-600" title="Preview v{{ $ver->version_number }}">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        </button>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
+                    {{-- Upload New Version (for actionable workflows only) --}}
+                    @if(in_array($workflow->status, ['received', 'pending']))
+                    <div class="mt-4 pt-4 border-t border-slate-100">
+                        <h4 class="text-sm font-medium text-slate-700 mb-2 flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                            Upload New Version
+                        </h4>
+                        <p class="text-xs text-slate-400 mb-3">Upload a revised version of this document. The current file will be preserved in the version history.</p>
+                        <form action="{{ route('documents.reviewUploadVersion', $workflow->id) }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <div class="space-y-3">
+                                <label class="flex items-center justify-center px-4 py-3 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition">
+                                    <svg class="w-5 h-5 text-slate-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                    <span class="text-sm text-slate-500" id="version-file-label">Choose file...</span>
+                                    <input type="file" name="version_file" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.odt,.ods,.odp,.rtf,.jpg,.jpeg,.png"
+                                           onchange="document.getElementById('version-file-label').textContent = this.files.length ? this.files[0].name : 'Choose file...'">
+                                </label>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-500 mb-1">Change Notes (Optional)</label>
+                                    <textarea name="version_notes" rows="2" class="w-full text-sm rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200" placeholder="What changed in this version..."></textarea>
+                                </div>
+                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm">
+                                    <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                    Upload New Version
+                                </button>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-2">Max 10MB &middot; PDF, Office docs, Images</p>
+                        </form>
+                    </div>
+                    @endif
                 </div>
             </div>
 
@@ -748,6 +902,46 @@ document.addEventListener('DOMContentLoaded', function() {
         viewer.querySelectorAll('.sheet-content').forEach(function(s) {
             s.style.display = parseInt(s.dataset.sheet) === index ? '' : 'none';
         });
+    };
+
+    // ===== Version Switching =====
+    var currentDocUrl = '{{ route('documents.preview', $document->id) }}';
+    var currentDocExt = '{{ $ext }}';
+
+    window.switchVersion = function(value) {
+        var url, ext;
+        var selector = document.getElementById('version-selector');
+        var badge = document.getElementById('version-badge');
+
+        if (value === 'current') {
+            url = currentDocUrl;
+            ext = currentDocExt;
+            if (selector) selector.value = 'current';
+            if (badge) {
+                badge.textContent = 'v{{ $document->versions->count() + 1 }} (Current)';
+                badge.className = 'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700';
+            }
+        } else {
+            url = value;
+            // Find the selected option to get the extension
+            if (selector) {
+                selector.value = value;
+                var selectedOpt = selector.options[selector.selectedIndex];
+                ext = selectedOpt ? selectedOpt.getAttribute('data-ext') : 'pdf';
+                if (badge) {
+                    badge.textContent = selectedOpt ? selectedOpt.textContent.trim() : 'Previous Version';
+                    badge.className = 'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700';
+                }
+            } else {
+                ext = value.split('.').pop().split('?')[0] || 'pdf';
+                if (badge) {
+                    badge.textContent = 'Previous Version';
+                    badge.className = 'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700';
+                }
+            }
+        }
+
+        openDocumentViewer(url, ext);
     };
 
     // ===== Document Viewer =====

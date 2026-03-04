@@ -214,6 +214,9 @@ Route::middleware('auth')->group(function () {
             Route::post('/{workflow}/upload-attachment', [DocumentWorkflowController::class, 'uploadProcessorAttachment'])
                 ->name('documents.uploadProcessorAttachment');
 
+            Route::post('/{workflow}/upload-version', [DocumentWorkflowController::class, 'uploadVersionFromReview'])
+                ->name('documents.reviewUploadVersion');
+
             // Urgency Matrix: Workflow rerouting
             Route::post('/{workflow}/reroute', [\App\Http\Controllers\WorkflowRerouteController::class, 'reroute'])
                 ->name('documents.workflows.reroute');
