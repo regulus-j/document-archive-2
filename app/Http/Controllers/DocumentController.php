@@ -1408,6 +1408,8 @@ class DocumentController extends Controller
         return response()->file($filePath, [
             'Content-Type' => $mimeType,
             'Content-Disposition' => 'inline; filename="' . $version->original_filename . '"',
+            'X-Frame-Options' => 'SAMEORIGIN',
+            'Content-Security-Policy' => 'frame-ancestors \'self\'',
         ]);
     }
 
@@ -1431,6 +1433,8 @@ class DocumentController extends Controller
         return response()->file($filePath, [
             'Content-Type'        => $mimeType,
             'Content-Disposition' => 'inline; filename="' . basename($document->path) . '"',
+            'X-Frame-Options' => 'SAMEORIGIN',
+            'Content-Security-Policy' => 'frame-ancestors \'self\'',
         ]);
     }
 

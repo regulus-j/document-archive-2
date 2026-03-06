@@ -25,7 +25,7 @@ class ArchivedDocumentController extends Controller
                     ->where('company_id', $company->id)
                     ->where('is_archived', true)
                     ->orderByDesc('updated_at')
-                    ->get()
+                    ->paginate(15)->appends(['team_id' => $selectedTeamId])
                 : collect();
         }
         return view('archived_documents.index', compact('teams', 'documents', 'selectedTeamId'));

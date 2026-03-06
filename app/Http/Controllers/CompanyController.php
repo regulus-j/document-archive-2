@@ -19,10 +19,10 @@ class CompanyController extends Controller
 
         if (auth()->user()->isSuperAdmin()) {
             $companies = CompanyAccount::with(['subscriptions.plan', 'user'])
-                ->get()
-                ->map(function ($company) {
+                ->paginate(15)
+                ->through(function ($company) {
                     $subscription = $company->subscriptions->first();
-                    return [
+                    return (object) [
                         'id' => $company->id,
                         'name' => $company->company_name,
                         'owner' => $company->user->first_name . ' ' . $company->user->last_name,

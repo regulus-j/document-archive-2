@@ -1304,6 +1304,8 @@ class DocumentWorkflowController extends Controller
         return response()->file($filePath, [
             'Content-Type' => $mimeType,
             'Content-Disposition' => 'inline; filename="' . basename($document->path) . '"',
+            'X-Frame-Options' => 'SAMEORIGIN',
+            'Content-Security-Policy' => 'frame-ancestors \'self\'',
         ]);
     }
 
@@ -1330,7 +1332,95 @@ class DocumentWorkflowController extends Controller
         return response()->file($filePath, [
             'Content-Type' => $mimeType,
             'Content-Disposition' => 'inline; filename="' . $attachment->filename . '"',
+            'X-Frame-Options' => 'SAMEORIGIN',
+            'Content-Security-Policy' => 'frame-ancestors \'self\'',
         ]);
+    }
+
+    /**
+     * Download an attachment with access checks.
+     */
+    public function downloadAttachment($id)
+    {
+        $attachment = DocumentAttachment::findOrFail($id);
+        $document = $attachment->document;
+
+        if (!$this->documentAccessService->canViewDocument($document)) {
+            abort(403, 'Access denied.');
+        }
+
+        $filePath = storage_path('app/public/' . $attachment->path);
+
+        if (!file_exists($filePath)) {
+            abort(404, 'File not found.');
+        }
+
+        return response()->download($filePath, $attachment->filename ?: basename($attachment->path));
+    }
+
+    /**
+     * Download a specific archived version from review page.
+     */
+    public function downloadReviewVersion($workflowId, $versionId)
+    {
+        $accessCheck = $this->ensureWorkflowAccess($workflowId);
+        if ($accessCheck) return $accessCheck;
+
+        $workflow = DocumentWorkflow::findOrFail($workflowId);
+        $version = DocumentVersion::findOrFail($versionId);
+
+        if ((int)$version->doc_id !== (int)$workflow->document_id) {
+            abort(404, 'Version not found for this workflow document.');
+        }
+
+        $filePath = storage_path('app/public/' . $version->file_path);
+        if (!file_exists($filePath)) {
+            abort(404, 'Version file not found.');
+        }
+
+        $downloadName = $version->original_filename ?: basename($version->file_path);
+
+        return response()->download($filePath, $downloadName);
+    }
+
+    /**
+     * Delete an archived version uploaded by the current user.
+     */
+    public function deleteReviewVersion($workflowId, $versionId): RedirectResponse
+    {
+        $accessCheck = $this->ensureWorkflowAccess($workflowId);
+        if ($accessCheck) return $accessCheck;
+
+        $workflow = DocumentWorkflow::findOrFail($workflowId);
+        $version = DocumentVersion::findOrFail($versionId);
+
+        if ((int)$version->doc_id !== (int)$workflow->document_id) {
+            return redirect()->back()->with('error', 'Version does not belong to this document.');
+        }
+
+        $isOwner = (int)$version->uploaded_by === (int)auth()->id();
+        $isAdmin = auth()->user()->hasRole('super-admin') || auth()->user()->hasRole('company-admin');
+        if (!$isOwner && !$isAdmin) {
+            return redirect()->back()->with('error', 'You may only delete versions that you uploaded.');
+        }
+
+        if ($version->file_path) {
+            Storage::disk('public')->delete($version->file_path);
+        }
+
+        $deletedVersionNumber = $version->version_number;
+        $version->delete();
+
+        DocumentAudit::logDocumentAction(
+            $workflow->document_id,
+            auth()->id(),
+            'version_deleted',
+            'deleted',
+            "Archived version v{$deletedVersionNumber} deleted during review"
+        );
+
+        return redirect()->route('documents.review', $workflow->id)
+            ->with('success', "Version v{$deletedVersionNumber} deleted successfully.");
     }
 
     /**
