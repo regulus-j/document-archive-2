@@ -14,7 +14,7 @@
                     </svg>
                     <div>
                         <h1 class="text-xl font-semibold text-slate-900">{{ __('Teams') }}</h1>
-                        <p class="text-sm text-slate-500">Manage Team locations and hierarchies</p>
+                        <p class="text-sm text-slate-500">Manage your teams and members</p>
                     </div>
                 </div>
                 <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
@@ -26,15 +26,6 @@
                         </svg>
                         {{ __('Add New Team') }}
                     </a>
-
-                    <button id="viewToggle"
-                        class="inline-flex items-center px-4 py-2 bg-[#EEF2FF] text-[#0066FF] text-sm font-medium rounded-md hover:bg-[#0066FF]/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0066FF] transition-colors duration-150 shadow-sm">
-                        <svg class="h-5 w-5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                        </svg>
-                        {{ __('Toggle View') }}
-                    </button>
                 </div>
             </div>
         </div>
@@ -82,8 +73,8 @@
         </div>
         @endif
 
-        <!-- Default View -->
-        <div id="defaultView" class="mb-6 bg-white relative border border-indigo-100">
+        <!-- Teams Table -->
+        <div class="mb-6 bg-white relative border border-indigo-100">
             <div class="overflow-visible">
                 <table id="officesTable" class="min-w-full divide-y divide-slate-200">
                     <thead>
@@ -91,6 +82,14 @@
                             <th scope="col"
                                 class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">
                                 {{ __('Team Name') }}
+                            </th>
+                            <th scope="col"
+                                class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">
+                                {{ __('Team Leader') }}
+                            </th>
+                            <th scope="col"
+                                class="bg-white px-6 py-3 text-center text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">
+                                {{ __('Members') }}
                             </th>
                             <th scope="col"
                                 class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">
@@ -106,9 +105,28 @@
                         @foreach ($offices as $office)
                         <tr class="office-row hover:bg-slate-50 transition-colors">
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-slate-900 office-name">
-                                    {{ $office->name }}
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-8 w-8 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                                        {{ strtoupper(substr($office->name, 0, 1)) }}
+                                    </div>
+                                    <div class="ml-3 text-sm font-medium text-slate-900 office-name">
+                                        {{ $office->name }}
+                                    </div>
                                 </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-slate-700 office-leader">
+                                    @if($office->lead)
+                                        {{ $office->lead->first_name }} {{ $office->lead->last_name }}
+                                    @else
+                                        <span class="text-slate-400 italic">No leader assigned</span>
+                                    @endif
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $office->users_count > 0 ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-100 text-slate-600' }}">
+                                    {{ $office->users_count }} {{ Str::plural('member', $office->users_count) }}
+                                </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm text-slate-500 office-created">
@@ -166,123 +184,12 @@
             </div>
         </div>
 
-        <!-- Hierarchical View -->
-        <div id="hierarchicalView" class="mb-6 bg-white rounded-lg shadow-xl relative border border-indigo-100 hidden">
-            <div class="overflow-visible">
-                <table class="min-w-full divide-y divide-slate-200">
-                    <thead>
-                        <tr>
-                            <th scope="col"
-                                class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">
-                                {{ __('Name') }}
-                            </th>
-                            <th scope="col"
-                                class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">
-                                {{ __('Teams') }}
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-slate-200">
-                        @php
-                        $officesByParent = $offices->groupBy(function ($office) {
-                        return $office->parentOffice ? $office->parentOffice->id : null;
-                        });
-
-                        $topLevelOffices = $officesByParent->get(null, collect());
-                        $childOfficeGroups = $officesByParent->except(null);
-                        @endphp
-
-                        @foreach ($topLevelOffices as $office)
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div
-                                        class="flex-shrink-0 h-8 w-8 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold shadow-sm">
-                                        {{ substr($office->name, 0, 1) }}
-                                    </div>
-                                    <div class="ml-3 text-sm font-medium text-slate-900">
-                                        <a href="{{ route('office.show', $office->id) }}" class="hover:text-indigo-600">
-                                            {{ $office->name }}
-                                        </a>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                @php
-                                $childOffices = $childOfficeGroups->first(function ($group, $parentId) use ($office) {
-                                $firstOffice = $group->first();
-                                return $firstOffice && $firstOffice->parentOffice && $firstOffice->parentOffice->id === $office->id;
-                                });
-                                @endphp
-
-                                @if ($childOffices && $childOffices->count() > 0)
-                                <ul class="space-y-2">
-                                    @foreach ($childOffices as $childOffice)
-                                    <li class="flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-400 mr-2"
-                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9 5l7 7-7 7" />
-                                        </svg>
-                                        <a href="{{ route('office.show', $childOffice->id) }}"
-                                            class="text-sm text-slate-700 hover:text-indigo-600">
-                                            {{ $childOffice->name }}
-                                        </a>
-                                    </li>
-                                    @endforeach
-                                </ul>
-                                @else
-                                <span class="text-sm text-slate-500">{{ __('N/A') }}</span>
-                                @endif
-                            </td>
-                        </tr>
-                        @endforeach
-
-                        @foreach ($childOfficeGroups as $parentId => $childOffices)
-                        @php
-                        $parentOffice = $offices->firstWhere('id', $parentId);
-                        @endphp
-
-                        @if ($parentOffice && !$topLevelOffices->contains($parentOffice))
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div
-                                        class="flex-shrink-0 h-8 w-8 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold shadow-sm">
-                                        {{ substr($parentOffice->name, 0, 1) }}
-                                    </div>
-                                    <div class="ml-3 text-sm font-medium text-slate-900">
-                                        <a href="{{ route('office.show', $parentOffice->id) }}"
-                                            class="hover:text-indigo-600">
-                                            {{ $parentOffice->name }}
-                                        </a>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <ul class="space-y-2">
-                                    @foreach ($childOffices as $childOffice)
-                                    <li class="flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-400 mr-2"
-                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9 5l7 7-7 7" />
-                                        </svg>
-                                        <a href="{{ route('office.show', $childOffice->id) }}"
-                                            class="text-sm text-slate-700 hover:text-indigo-600">
-                                            {{ $childOffice->name }}
-                                        </a>
-                                    </li>
-                                    @endforeach
-                                </ul>
-                            </td>
-                        </tr>
-                        @endif
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+        <!-- Pagination -->
+        @if($offices->hasPages())
+        <div class="mt-4 mb-8">
+            {{ $offices->links() }}
         </div>
+        @endif
     </div>
 </div>
 
@@ -290,9 +197,6 @@
     document.addEventListener('DOMContentLoaded', function() {
         const searchInput = document.getElementById('officeSearch');
         const officeRows = document.querySelectorAll('.office-row');
-        const defaultView = document.getElementById('defaultView');
-        const hierarchicalView = document.getElementById('hierarchicalView');
-        const viewToggle = document.getElementById('viewToggle');
 
         searchInput.addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase().trim();
@@ -300,20 +204,10 @@
             officeRows.forEach(row => {
                 const officeName = row.querySelector('.office-name').textContent.toLowerCase();
                 const officeCreated = row.querySelector('.office-created').textContent.toLowerCase();
+                const officeLeader = row.querySelector('.office-leader') ? row.querySelector('.office-leader').textContent.toLowerCase() : '';
 
-                row.style.display = (officeName.includes(searchTerm) || officeCreated.includes(searchTerm)) ? '' : 'none';
+                row.style.display = (officeName.includes(searchTerm) || officeCreated.includes(searchTerm) || officeLeader.includes(searchTerm)) ? '' : 'none';
             });
-        });
-
-        viewToggle.addEventListener('click', function() {
-            const isDefaultView = !defaultView.classList.contains('hidden');
-
-            defaultView.classList.toggle('hidden');
-            hierarchicalView.classList.toggle('hidden');
-
-            this.innerHTML = isDefaultView ?
-                '<svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>{{ __("Table View") }}' :
-                '<svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>{{ __("Hierarchical View") }}';
         });
     });
 </script>

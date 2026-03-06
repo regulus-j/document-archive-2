@@ -65,16 +65,6 @@
                             </div>
                         </div>
 
-                        <!-- Parent Office -->
-                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                            <p class="text-sm font-medium text-slate-500 mb-1">{{ __('Main Team') }}</p>
-                            @if ($office->parentOffice)
-                                <p class="text-lg font-semibold text-slate-900">{{ $office->parentOffice->name }}</p>
-                            @else
-                                <p class="text-lg font-semibold text-slate-400">{{ __('N/A') }}</p>
-                            @endif
-                        </div>
-
                         <!-- Company -->
                         <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
                             <p class="text-sm font-medium text-slate-500 mb-1">{{ __('Organization') }}</p>

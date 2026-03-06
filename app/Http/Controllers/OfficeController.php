@@ -20,7 +20,10 @@ class OfficeController extends Controller
                 ->with('error', 'Please create a company first.');
         }
 
-        $offices = Office::where('company_id', $company->id)->get();
+        $offices = Office::where('company_id', $company->id)
+            ->withCount('users')
+            ->with('lead')
+            ->paginate(15);
 
         return view('offices.index', compact('offices'));
     }
@@ -42,20 +45,16 @@ class OfficeController extends Controller
                 ->with('error', 'Max teams reached, upgrade your plan to create more.');
         }
 
-        // Only show offices from the user's company
-        $offices = Office::where('company_id', $company->id)->pluck('name', 'id');
-
         // Get users from the current company for office lead selection
         $users = $company->employees()->get(['id', 'first_name', 'last_name']);
 
-        return view('offices.create', compact('offices', 'users'));
+        return view('offices.create', compact('users'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'parent_office_id' => 'nullable|exists:offices,id',
             'office_lead' => 'nullable|exists:users,id',
         ]);
 
@@ -82,7 +81,6 @@ class OfficeController extends Controller
                 $office = Office::create([
                     'company_id' => $company->id,
                     'name' => $request->name,
-                    'parent_office_id' => $request->parent_office_id,
                     'office_lead' => $request->office_lead,
                 ]);
 
@@ -105,7 +103,7 @@ class OfficeController extends Controller
      */
     public function show(Office $office)
     {
-        $office = Office::with(['parentOffice', 'company'])->find($office->id);
+        $office = Office::with(['company'])->find($office->id);
         return view('offices.show', compact('office'));
     }
 
@@ -114,7 +112,7 @@ class OfficeController extends Controller
      */
     public function edit(Office $office)
     {
-        $office = Office::with('parentOffice', 'lead')->find($office->id);
+        $office = Office::with('lead')->find($office->id);
 
         // Get the current user's company
         $company = auth()->user()->companies()->first();
@@ -124,15 +122,10 @@ class OfficeController extends Controller
                 ->with('error', 'Please create a company first.');
         }
 
-        // Only show offices from the same company and exclude the current office
-        $offices = Office::where('company_id', $company->id)
-            ->where('id', '!=', $office->id)
-            ->get();
-
         // Get users from the current company for office lead selection
         $users = $company->employees()->get(['id', 'first_name', 'last_name']);
 
-        return view('offices.edit', compact('office', 'offices', 'users'));
+        return view('offices.edit', compact('office', 'users'));
     }
     /**
      * Update the specified resource in storage.
@@ -141,14 +134,12 @@ class OfficeController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'parent_office_id' => 'nullable|exists:offices,id',
             'office_lead' => 'nullable|exists:users,id',
         ]);
 
         try {
             $office->update([
                 'name' => $request->name,
-                'parent_office_id' => $request->parent_office_id,
                 'office_lead' => $request->office_lead,
             ]);
 
@@ -169,9 +160,6 @@ class OfficeController extends Controller
     public function destroy(Office $office)
     {
         try {
-            if ($office->childOffices()->count() > 0) {
-                return back()->with('error', 'Cannot delete office with child offices.');
-            }
             if ($office->users()->count() > 0) {
                 return back()->with('error', 'Cannot delete office with associated users.');
             }

@@ -62,36 +62,6 @@
                                 @enderror
                             </div>
 
-                            <!-- Parent Office -->
-                            <div>
-                                <label for="parent_office_id" class="block text-sm font-medium text-slate-700 mb-1">
-                                    {{ __('Main Team') }}
-                                </label>
-                                <div class="relative">
-                                    <select id="parent_office_id" name="parent_office_id"
-                                        class="block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 @error('parent_office_id') border-red-500 @enderror">
-                                        <option value="">{{ __('None (Top-level Team)') }}</option>
-                                        @foreach($offices as $id => $name)
-                                            <option value="{{ $id }}" {{ old('parent_office_id') == $id ? 'selected' : '' }}>
-                                                {{ $name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <div
-                                        class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-700">
-                                        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </div>
-                                </div>
-                                <p class="mt-1 text-xs text-slate-500">Select a main team if this is a sub-team</p>
-                                @error('parent_office_id')
-                                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-
                             <!-- Office Lead -->
                             <div>
                                 <label for="office_lead" class="block text-sm font-medium text-slate-700 mb-1">
