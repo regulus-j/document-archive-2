@@ -147,7 +147,8 @@ class DocumentWorkflow extends Model
             return;
         }
 
-        $allWorkflows = $document->documentWorkflow;
+        // Only consider top-level workflows (exclude sub-workflows) for document status
+        $allWorkflows = $document->documentWorkflow()->whereNull('parent_workflow_id')->get();
         
         // If no workflows exist, keep current status
         if ($allWorkflows->isEmpty()) {
@@ -156,6 +157,9 @@ class DocumentWorkflow extends Model
 
         // Check if this is a sequential workflow
         $isSequential = $allWorkflows->where('workflow_type', 'sequential')->isNotEmpty();
+        
+        // Terminal/completed action statuses (forwarded counts because it means the step is done — sub-workflow handles the rest)
+        $completedStatuses = ['approved', 'commented', 'acknowledged', 'forwarded'];
         
         // Determine overall document status based on workflow states
         $statuses = $allWorkflows->pluck('status')->unique();
@@ -166,7 +170,6 @@ class DocumentWorkflow extends Model
             $document->status()->update(['status' => 'returned']);
         } elseif ($isSequential) {
             // For sequential workflows, be more nuanced about status
-            $completedStatuses = ['approved', 'commented', 'acknowledged'];
             $allComplete = $allWorkflows->every(fn($w) => in_array($w->status, $completedStatuses));
             $hasWaiting = $allWorkflows->where('status', 'waiting')->isNotEmpty();
             $hasPending = $allWorkflows->where('status', 'pending')->isNotEmpty();
@@ -191,8 +194,8 @@ class DocumentWorkflow extends Model
             }
         } elseif ($allWorkflows->every(fn($w) => $w->status === 'received')) {
             $document->status()->update(['status' => 'received']);
-        } elseif ($allWorkflows->every(fn($w) => in_array($w->status, ['approved', 'received', 'commented', 'acknowledged']))) {
-            // For parallel workflows, mark complete when all are processed
+        } elseif ($allWorkflows->every(fn($w) => in_array($w->status, $completedStatuses))) {
+            // For parallel workflows, mark complete when all are processed (includes forwarded)
             $document->status()->update(['status' => 'complete']);
         } elseif ($statuses->contains('commented')) {
             $document->status()->update(['status' => 'commented']);

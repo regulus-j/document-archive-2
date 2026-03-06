@@ -144,6 +144,11 @@ class Document extends Model
         return $this->hasMany(DocumentPrint::class);
     }
 
+    public function allowedOffices()
+    {
+        return $this->hasMany(DocumentOfficePermission::class);
+    }
+
     /**
      * Get total copies printed across all print events.
      */

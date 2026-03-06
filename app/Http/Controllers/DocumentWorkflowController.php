@@ -143,8 +143,9 @@ class DocumentWorkflowController extends Controller
         }
 
         // Check if ALL child workflows of the parent are now completed
+        $terminalStatuses = ['approved', 'rejected', 'acknowledged', 'commented', 'returned', 'forwarded'];
         $pendingChildren = DocumentWorkflow::where('parent_workflow_id', $parentWorkflow->id)
-            ->whereIn('status', ['pending', 'received', 'waiting'])
+            ->whereNotIn('status', $terminalStatuses)
             ->count();
 
         if ($pendingChildren > 0) {
@@ -194,6 +195,42 @@ class DocumentWorkflowController extends Controller
             '. Document returned to ' . ($parentWorkflow->recipient ? $parentWorkflow->recipient->first_name . ' ' . $parentWorkflow->recipient->last_name : 'original reviewer') .
             ' for continued processing.'
         );
+
+        // Re-sync document status now that the parent is reactivated
+        // This ensures the document reflects the current state of top-level workflows
+        $parentWorkflow->refresh();
+        if ($parentWorkflow->document && $parentWorkflow->document->status) {
+            // Trigger syncDocumentStatus via the parent's receive method won't work here
+            // since we manually set status. Instead, fire sync from the model.
+            // We call receive() on the parent to properly set received_at and sync status
+            // But the status is already 'received', so just trigger sync manually:
+            $document = $parentWorkflow->document;
+            $topLevelWorkflows = $document->documentWorkflow()->whereNull('parent_workflow_id')->get();
+            $isSequential = $topLevelWorkflows->where('workflow_type', 'sequential')->isNotEmpty();
+            $statuses = $topLevelWorkflows->pluck('status')->unique();
+            $completedActions = ['approved', 'commented', 'acknowledged', 'forwarded'];
+
+            if (!$statuses->contains('rejected') && !$statuses->contains('returned')) {
+                if ($isSequential) {
+                    $allComplete = $topLevelWorkflows->every(fn($w) => in_array($w->status, $completedActions));
+                    if ($allComplete) {
+                        $document->status()->update(['status' => 'complete']);
+                    }
+                } else {
+                    $allComplete = $topLevelWorkflows->every(fn($w) => in_array($w->status, $completedActions));
+                    if ($allComplete) {
+                        $document->status()->update(['status' => 'complete']);
+                    }
+                }
+            }
+        }
+
+        // If the parent workflow itself is a sub-workflow, cascade upward
+        if ($parentWorkflow->parent_workflow_id) {
+            // The parent was reactivated to 'received', check if IT should also complete
+            // This handles the case where a sub-workflow's parent is itself a sub-workflow
+            $this->handleSubWorkflowCompletion($parentWorkflow);
+        }
     }
 
     /**

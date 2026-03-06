@@ -119,7 +119,7 @@ class DocumentController extends Controller
 
         // ── User (uploader) filter ──
         if ($request->filled('user_id')) {
-            $query->where('user_id', $request->user_id);
+            $query->where('uploader', $request->user_id);
         }
 
         // ── Category filter ──
@@ -1085,10 +1085,20 @@ class DocumentController extends Controller
         $totalPrintCopies = $document->prints->sum('copies');
         $printHistory = $document->prints->sortByDesc('created_at');
 
+        // === Attachment Deletion Permission ===
+        // Allow uploader, admins, or users with an active workflow step on this document
+        $canDeleteAttachments = $document->uploader === auth()->id()
+            || auth()->user()->hasRole('super-admin')
+            || auth()->user()->hasRole('company-admin')
+            || $document->documentWorkflow()
+                ->where('recipient_id', auth()->id())
+                ->whereIn('status', ['received', 'pending'])
+                ->exists();
+
         return view('documents.show', compact(
             'document', 'auditLogs', 'attachments', 'docRoute', 'workflows',
             'rerouteLogs', 'canReroute', 'canUploadVersion',
-            'totalPrintCopies', 'printHistory'
+            'totalPrintCopies', 'printHistory', 'canDeleteAttachments'
         ));
     }
 
@@ -1538,6 +1548,20 @@ class DocumentController extends Controller
         $attachmentId = $request->query('attachment_id');
         $attachment = DocumentAttachment::findOrFail($attachmentId);
         $document = Document::findOrFail($documentId);
+
+        // Allow uploader, admins, or users with an active workflow step
+        $canDelete = $document->uploader === auth()->id()
+            || auth()->user()->hasRole('super-admin')
+            || auth()->user()->hasRole('company-admin')
+            || $document->documentWorkflow()
+                ->where('recipient_id', auth()->id())
+                ->whereIn('status', ['received', 'pending'])
+                ->exists();
+
+        if (!$canDelete) {
+            return redirect()->back()->with('error', 'You are not authorized to delete this attachment.');
+        }
+
         $real_status = $document->status()->get();
 
         // Delete the file from storage
