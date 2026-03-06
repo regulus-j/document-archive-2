@@ -107,6 +107,12 @@
                         </table>
                     </div>
                 </div>
+
+                @if($subscriptions->hasPages())
+                <div class="mt-4 px-6 pb-4">
+                    {{ $subscriptions->links() }}
+                </div>
+                @endif
             </div>
         </div>
     </div>

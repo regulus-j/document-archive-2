@@ -13,8 +13,7 @@ class NotificationController extends Controller
     {
         $notifications = Notifications::where('user_id', Auth::id())
             ->orderBy('created_at', 'desc')
-            ->take(20)
-            ->get();
+            ->paginate(20);
         return view('notifications.index', compact('notifications'));
     }
 

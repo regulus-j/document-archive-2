@@ -111,6 +111,12 @@
                 <p class="text-xs text-slate-400 m-0 mt-1">You'll see updates here when something happens</p>
             </div>
         @endforelse
+
+        @if($notifications->hasPages())
+        <div class="mt-4">
+            {{ $notifications->links() }}
+        </div>
+        @endif
     </div>
 </div>
 @endsection

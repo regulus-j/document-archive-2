@@ -70,6 +70,12 @@
                 </div>
             @endforeach
         </div>
+
+        @if($plans->hasPages())
+        <div class="mt-8">
+            {{ $plans->links() }}
+        </div>
+        @endif
     </div>
 </div>
 

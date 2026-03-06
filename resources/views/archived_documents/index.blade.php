@@ -55,6 +55,12 @@
                             @endforeach
                         </tbody>
                     </table>
+
+                    @if(method_exists($documents, 'hasPages') && $documents->hasPages())
+                    <div class="mt-4">
+                        {{ $documents->links() }}
+                    </div>
+                    @endif
                 @else
                     <div class="text-slate-400">No archived documents found for this team.</div>
                 @endif

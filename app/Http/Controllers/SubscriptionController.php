@@ -18,7 +18,7 @@ class SubscriptionController extends Controller
 
     public function indexAdmin()
     {
-        $subscriptions = CompanySubscription::with(['company', 'plan'])->get();
+        $subscriptions = CompanySubscription::with(['company', 'plan'])->paginate(15);
         return view('admin.subscriptions-index', compact('subscriptions'));
     }
 

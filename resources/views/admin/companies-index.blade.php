@@ -33,11 +33,11 @@
                             <tbody id="companiesTableBody">
                                 @forelse ($companies as $company)
                                     <tr class="hover:bg-gradient-to-r hover:from-indigo-50 hover:to-indigo-50 transition-colors">
-                                        <td class="px-4 py-2">{{ $company['id'] }}</td>
-                                        <td class="px-4 py-2">{{ $company['name'] }}</td>
-                                        <td class="px-4 py-2">{{ $company['owner'] }}</td>
-                                        <td class="px-4 py-2">{{ $company['status'] }}</td>
-                                        <td class="px-4 py-2">{{ $company['plan'] }}</td>
+                                        <td class="px-4 py-2">{{ $company->id }}</td>
+                                        <td class="px-4 py-2">{{ $company->name }}</td>
+                                        <td class="px-4 py-2">{{ $company->owner }}</td>
+                                        <td class="px-4 py-2">{{ $company->status }}</td>
+                                        <td class="px-4 py-2">{{ $company->plan }}</td>
                                     </tr>
                                 @empty
                                     <tr>
@@ -48,6 +48,12 @@
                         </table>
                     </div>
                 </div>
+
+                @if($companies->hasPages())
+                <div class="mt-4 px-6 pb-4">
+                    {{ $companies->links() }}
+                </div>
+                @endif
             </div>
         </div>
     </div>

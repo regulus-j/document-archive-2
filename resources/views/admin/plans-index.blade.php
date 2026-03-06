@@ -139,6 +139,12 @@
                         </tbody>
                     </table>
                 </div>
+
+                @if($plans->hasPages())
+                <div class="mt-4 px-6 pb-4">
+                    {{ $plans->links() }}
+                </div>
+                @endif
             </div>
         </div>
     </div>
