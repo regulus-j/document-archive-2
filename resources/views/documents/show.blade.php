@@ -2,6 +2,8 @@
 
 @push('scripts')
 <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
     function openSignatureModal(imgUrl, name, position, action, date) {
         document.getElementById('sig-modal-img').src = imgUrl;
@@ -1296,12 +1298,18 @@ function closeRerouteModal(event) {
             </div>
 
             {{-- iframe for PDF/documents --}}
-            <iframe id="doc-viewer-frame" class="w-full h-full border-0 hidden" sandbox="allow-same-origin allow-scripts allow-popups"></iframe>
+            <iframe id="doc-viewer-frame" class="w-full h-full border-0 hidden"></iframe>
 
             {{-- Image viewer --}}
             <div id="doc-viewer-image" class="hidden w-full h-full flex items-center justify-center overflow-auto p-4 bg-slate-100">
                 <img id="doc-viewer-img" class="max-w-full max-h-full object-contain rounded shadow-lg" alt="Document preview" />
             </div>
+
+            {{-- DOCX viewer (mammoth.js) --}}
+            <div id="doc-viewer-docx" class="hidden w-full h-full overflow-auto p-6 bg-white"></div>
+
+            {{-- XLSX/CSV viewer (SheetJS) --}}
+            <div id="doc-viewer-xlsx" class="hidden w-full h-full overflow-auto p-4 bg-white"></div>
 
             {{-- Unsupported format fallback --}}
             <div id="doc-viewer-unsupported" class="hidden w-full h-full flex items-center justify-center">
@@ -1360,11 +1368,72 @@ function closeRerouteModal(event) {
 
 <script>
     const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'];
-    const previewableExts = ['pdf', ...imageExts];
+    const docExts = ['doc', 'docx'];
+    const sheetExts = ['xls', 'xlsx', 'csv'];
+    const previewableExts = ['pdf', ...imageExts, ...docExts, ...sheetExts];
 
     function getExtension(filename) {
         return (filename || '').split('.').pop().toLowerCase();
     }
+
+    function renderDocxInModal(url, container) {
+        container.innerHTML = '<div class="flex items-center justify-center py-12"><svg class="animate-spin h-8 w-8 text-indigo-500 mr-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg><span class="text-sm text-slate-500">Loading document...</span></div>';
+        fetch(url)
+            .then(function(res) { return res.arrayBuffer(); })
+            .then(function(buf) { return mammoth.convertToHtml({ arrayBuffer: buf }); })
+            .then(function(result) {
+                container.innerHTML = '<div class="prose prose-sm max-w-none">' + result.value + '</div>';
+            })
+            .catch(function(err) {
+                container.innerHTML = '<div class="text-center py-12"><p class="text-sm text-red-500">Failed to render document.</p><p class="text-xs text-slate-400 mt-1">' + err.message + '</p></div>';
+            });
+    }
+
+    function renderXlsxInModal(url, container) {
+        container.innerHTML = '<div class="flex items-center justify-center py-12"><svg class="animate-spin h-8 w-8 text-green-500 mr-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg><span class="text-sm text-slate-500">Loading spreadsheet...</span></div>';
+        fetch(url)
+            .then(function(res) { return res.arrayBuffer(); })
+            .then(function(buf) {
+                var wb = XLSX.read(buf, { type: 'array' });
+                var html = '';
+                if (wb.SheetNames.length > 1) {
+                    html += '<div class="flex gap-1 mb-3 flex-wrap">';
+                    wb.SheetNames.forEach(function(name, i) {
+                        html += '<button onclick="modalSwitchSheet(this, ' + i + ')" class="px-3 py-1 text-xs rounded-md border ' + (i === 0 ? 'bg-indigo-100 border-indigo-300 text-indigo-700 font-medium' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100') + '">' + name + '</button>';
+                    });
+                    html += '</div>';
+                }
+                wb.SheetNames.forEach(function(name, i) {
+                    var sheet = wb.Sheets[name];
+                    var tableHtml = XLSX.utils.sheet_to_html(sheet, { editable: false });
+                    html += '<div class="modal-sheet-content" data-sheet="' + i + '" style="' + (i > 0 ? 'display:none;' : '') + '">' + tableHtml + '</div>';
+                });
+                container.innerHTML = html;
+                container.querySelectorAll('table').forEach(function(t) {
+                    t.className = 'w-full text-xs border-collapse';
+                    t.querySelectorAll('td, th').forEach(function(cell) {
+                        cell.className = 'border border-slate-200 px-2 py-1 text-slate-700';
+                    });
+                    t.querySelectorAll('th').forEach(function(th) {
+                        th.className += ' bg-slate-100 font-medium text-slate-800';
+                    });
+                });
+            })
+            .catch(function(err) {
+                container.innerHTML = '<div class="text-center py-12"><p class="text-sm text-red-500">Failed to render spreadsheet.</p><p class="text-xs text-slate-400 mt-1">' + err.message + '</p></div>';
+            });
+    }
+
+    window.modalSwitchSheet = function(btn, index) {
+        btn.parentElement.querySelectorAll('button').forEach(function(b) {
+            b.className = 'px-3 py-1 text-xs rounded-md border bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100';
+        });
+        btn.className = 'px-3 py-1 text-xs rounded-md border bg-indigo-100 border-indigo-300 text-indigo-700 font-medium';
+        var viewer = btn.closest('#doc-viewer-xlsx') || document.getElementById('doc-viewer-xlsx');
+        viewer.querySelectorAll('.modal-sheet-content').forEach(function(s) {
+            s.style.display = parseInt(s.dataset.sheet) === index ? '' : 'none';
+        });
+    };
 
     function openDocViewer(previewUrl, title, downloadUrl) {
         const modal = document.getElementById('doc-viewer-modal');
@@ -1372,6 +1441,8 @@ function closeRerouteModal(event) {
         const frame = document.getElementById('doc-viewer-frame');
         const imageDiv = document.getElementById('doc-viewer-image');
         const imgEl = document.getElementById('doc-viewer-img');
+        const docxDiv = document.getElementById('doc-viewer-docx');
+        const xlsxDiv = document.getElementById('doc-viewer-xlsx');
         const unsupported = document.getElementById('doc-viewer-unsupported');
         const loading = document.getElementById('doc-viewer-loading');
         const downloadBtn = document.getElementById('doc-viewer-download');
@@ -1387,6 +1458,8 @@ function closeRerouteModal(event) {
         // Reset visibility
         frame.classList.add('hidden');
         imageDiv.classList.add('hidden');
+        docxDiv.classList.add('hidden');
+        xlsxDiv.classList.add('hidden');
         unsupported.classList.add('hidden');
         loading.classList.remove('hidden');
 
@@ -1407,29 +1480,24 @@ function closeRerouteModal(event) {
             imgEl.src = previewUrl;
             imageDiv.classList.remove('hidden');
         } else if (ext === 'pdf') {
-            // PDF preview via iframe
+            // PDF preview via iframe (no sandbox for better compatibility)
             frame.onload = () => loading.classList.add('hidden');
             frame.src = previewUrl;
             frame.classList.remove('hidden');
+        } else if (docExts.includes(ext)) {
+            // DOCX preview via mammoth.js
+            loading.classList.add('hidden');
+            docxDiv.classList.remove('hidden');
+            renderDocxInModal(previewUrl, docxDiv);
+        } else if (sheetExts.includes(ext)) {
+            // Excel/CSV preview via SheetJS
+            loading.classList.add('hidden');
+            xlsxDiv.classList.remove('hidden');
+            renderXlsxInModal(previewUrl, xlsxDiv);
         } else {
-            // Try iframe for other types (browser may handle doc/docx etc.)
-            // Use a timeout fallback — if it doesn't load, show unsupported
-            frame.onload = () => loading.classList.add('hidden');
-            frame.onerror = () => {
-                loading.classList.add('hidden');
-                frame.classList.add('hidden');
-                unsupported.classList.remove('hidden');
-            };
-            frame.src = previewUrl;
-            frame.classList.remove('hidden');
-
-            // Fallback timeout — if still loading after 8s, show download option
-            setTimeout(() => {
-                if (!loading.classList.contains('hidden')) {
-                    loading.classList.add('hidden');
-                    // Keep iframe visible — it might still work
-                }
-            }, 8000);
+            // Unsupported — show download fallback
+            loading.classList.add('hidden');
+            unsupported.classList.remove('hidden');
         }
 
         // Close on Escape key
@@ -1440,6 +1508,8 @@ function closeRerouteModal(event) {
         const modal = document.getElementById('doc-viewer-modal');
         const frame = document.getElementById('doc-viewer-frame');
         const imgEl = document.getElementById('doc-viewer-img');
+        const docxDiv = document.getElementById('doc-viewer-docx');
+        const xlsxDiv = document.getElementById('doc-viewer-xlsx');
 
         modal.classList.add('hidden');
         document.body.style.overflow = '';
@@ -1447,6 +1517,8 @@ function closeRerouteModal(event) {
         // Clean up to stop loading
         frame.src = '';
         imgEl.src = '';
+        docxDiv.innerHTML = '';
+        xlsxDiv.innerHTML = '';
 
         document.removeEventListener('keydown', docViewerEscHandler);
     }
