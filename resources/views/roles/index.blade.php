@@ -129,7 +129,7 @@
                 <div>
                     <p class="mb-2 text-sm font-medium text-slate-600">Total Roles</p>
                     <p class="text-3xl font-bold text-slate-700">
-                        {{ $roles->filter(fn($role) => !(auth()->user()->hasRole('company-admin') && $role->name === 'super-admin'))->count() }}
+                        {{ $totalRoles }}
                     </p>
                 </div>
             </div>
@@ -147,7 +147,7 @@
                 <div>
                     <p class="mb-2 text-sm font-medium text-slate-600">Active Roles</p>
                     <p class="text-3xl font-bold text-slate-700">
-                        {{ $roles->filter(fn($role) => !(auth()->user()->hasRole('company-admin') && $role->name === 'super-admin'))->count() }}
+                        {{ $totalRoles }}
                     </p>
                 </div>
             </div>
@@ -158,7 +158,7 @@
                     <div class="text-center">
                         <p class="text-sm font-medium text-slate-600">Found</p>
                         <p class="text-3xl font-bold text-[#0066FF]">
-                             {{ $roles->filter(fn($role) => !(auth()->user()->hasRole('company-admin') && $role->name === 'super-admin'))->count() }}
+                             {{ $foundRoles }}
                         </p>
                         <p class="text-sm text-slate-500">roles</p>
                     </div>

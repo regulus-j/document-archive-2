@@ -59,9 +59,16 @@ class RoleController extends Controller
             }
         }
 
+        // Get total roles count (company-scoped) before pagination
+        $totalRolesQuery = clone $query;
+        $totalRoles = $totalRolesQuery->count();
+
         $roles = $query->paginate(5)->withQueryString();
 
-        return view('roles.index', compact('roles'))
+        // For "found" count, use total() from paginator (total matching records across all pages)
+        $foundRoles = $roles->total();
+
+        return view('roles.index', compact('roles', 'totalRoles', 'foundRoles'))
             ->with('i', ($request->input('page', 1) - 1) * 5);
     }
     public function create(): View
