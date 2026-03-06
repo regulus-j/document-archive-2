@@ -217,6 +217,12 @@ Route::middleware('auth')->group(function () {
             Route::post('/{workflow}/upload-version', [DocumentWorkflowController::class, 'uploadVersionFromReview'])
                 ->name('documents.reviewUploadVersion');
 
+            Route::get('/{workflow}/versions/{version}/download', [DocumentWorkflowController::class, 'downloadReviewVersion'])
+                ->name('documents.reviewVersionDownload');
+
+            Route::delete('/{workflow}/versions/{version}', [DocumentWorkflowController::class, 'deleteReviewVersion'])
+                ->name('documents.reviewVersionDelete');
+
             // Urgency Matrix: Workflow rerouting
             Route::post('/{workflow}/reroute', [\App\Http\Controllers\WorkflowRerouteController::class, 'reroute'])
                 ->name('documents.workflows.reroute');
@@ -230,6 +236,9 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/attachments/{id}/preview', [DocumentWorkflowController::class, 'previewAttachment'])
             ->name('attachments.preview');
+
+        Route::get('/attachments/{id}/download', [DocumentWorkflowController::class, 'downloadAttachment'])
+            ->name('attachments.download');
 
         Route::post('/{document}/forward', [DocumentWorkflowController::class, 'forwardDocumentSubmit'])
             ->name('documents.forward.submit');
