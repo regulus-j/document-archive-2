@@ -1,7 +1,31 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white p-4 md:p-8">
+<style>
+/* ── Custom scrollbars scoped to the review page ──────────────────────── */
+.review-page ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.review-page ::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 999px;
+}
+.review-page ::-webkit-scrollbar-thumb {
+    background: #c7d2fe; /* indigo-200 */
+    border-radius: 999px;
+    transition: background 0.2s;
+}
+.review-page ::-webkit-scrollbar-thumb:hover {
+    background: #818cf8; /* indigo-400 */
+}
+/* Firefox */
+.review-page * {
+    scrollbar-width: thin;
+    scrollbar-color: #c7d2fe transparent;
+}
+</style>
+<div class="review-page min-h-screen bg-gradient-to-b from-indigo-50 to-white p-4 md:p-8">
     <div class="max-w-7xl mx-auto px-6">
 
         {{-- Success/Error Messages --}}
@@ -42,18 +66,29 @@
         </div>
 
         <!-- Main Content -->
+        @php
+            // Use max version_number (not count) so the current version label is always
+            // one above the highest archived version, regardless of any deletions.
+            $currentVersionNum = ($document->versions->max('version_number') ?? 0) + 1;
+        @endphp
         <div class="space-y-6">
 
             {{-- ============================================= --}}
-            {{-- ROW 1: Document Info + Document Viewer --}}
+            {{-- ROW 1: Document Info (22vw) + Document Viewer (rest) --}}
             {{-- ============================================= --}}
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {{-- Document Information (left) --}}
-                <div class="bg-white rounded-xl border border-indigo-200/80 overflow-hidden">
+            <div class="flex gap-6 items-start">
+                {{-- Document Information (left, ~22vw) --}}
+                <div class="bg-white rounded-xl border border-indigo-200/80 overflow-hidden flex-shrink-0" style="width: 22vw; min-width: 220px;">
                     <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-200/60">
                         <h2 class="text-lg font-semibold text-slate-700">Document Information</h2>
                     </div>
-                    <div class="p-5 space-y-4">
+                    <div class="p-5 space-y-4 overflow-y-auto" style="min-height: 200px; max-height: 70vh;">
+                        @if($workflow->tracking_number)
+                        <div>
+                            <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Tracking No.</label>
+                            <p class="text-sm font-mono font-semibold text-indigo-700 mt-1 bg-indigo-50 px-2 py-1 rounded">{{ $workflow->tracking_number }}</p>
+                        </div>
+                        @endif
                         <div>
                             <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Title</label>
                             <p class="text-sm font-medium text-slate-800 mt-1">{{ $document->title ?? 'Untitled' }}</p>
@@ -62,6 +97,24 @@
                             <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Description</label>
                             <p class="text-sm text-slate-600 mt-1">{{ $document->description ?? 'No description' }}</p>
                         </div>
+                        @if($document->content)
+                        <div>
+                            <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Summary</label>
+                            <p class="text-sm text-slate-600 mt-1 leading-relaxed">{{ $document->content }}</p>
+                        </div>
+                        @endif
+                        @if($document->classification)
+                        <div>
+                            <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Classification</label>
+                            <p class="text-sm text-slate-700 mt-1">{{ $document->classification }}</p>
+                        </div>
+                        @endif
+                        @if($document->category)
+                        <div>
+                            <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Category</label>
+                            <p class="text-sm text-slate-700 mt-1">{{ $document->category }}</p>
+                        </div>
+                        @endif
                         <div>
                             <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Purpose</label>
                             <div class="mt-1">
@@ -98,61 +151,55 @@
                             <p class="text-sm text-slate-700 mt-1">{{ \Carbon\Carbon::parse($workflow->due_date)->format('M d, Y') }}</p>
                         </div>
                         @endif
-                        <div class="pt-3 flex gap-2">
-                            <a class="inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-indigo-600 hover:from-indigo-700 hover:to-indigo-700 transition shadow-sm"
-                               href="{{ route('documents.download', $document->id) }}">
-                                <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                Download
-                            </a>
-                            @php
-                                $ext = strtolower(pathinfo($document->path, PATHINFO_EXTENSION));
-                                $previewable = in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'doc', 'docx', 'xls', 'xlsx', 'csv']);
-                                $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg']);
-                                $isOfficeDoc = in_array($ext, ['doc', 'docx']);
-                                $isSpreadsheet = in_array($ext, ['xls', 'xlsx', 'csv']);
-                            @endphp
-                            @if($previewable)
-                            <button type="button" onclick="openDocumentViewer('{{ route('documents.preview', $document->id) }}', '{{ $ext }}')"
-                                class="inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg text-indigo-700 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 transition">
-                                <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                View
-                            </button>
-                            @endif
-                        </div>
+                        @php
+                            $ext = strtolower(pathinfo($document->path, PATHINFO_EXTENSION));
+                            $previewable = in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'doc', 'docx', 'xls', 'xlsx', 'csv']);
+                            $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg']);
+                            $isOfficeDoc = in_array($ext, ['doc', 'docx']);
+                            $isSpreadsheet = in_array($ext, ['xls', 'xlsx', 'csv']);
+                        @endphp
                     </div>
                 </div>
 
-                {{-- Document Viewer (right, spans 2 cols) --}}
-                <div class="lg:col-span-2 bg-white rounded-xl border border-indigo-200/80 overflow-hidden">
+                {{-- Document Viewer (flex-grow, takes remaining width) --}}
+                <div class="flex-1 min-w-0 bg-white rounded-xl border border-indigo-200/80 overflow-hidden">
+                    {{-- Viewer: title + version selector --}}
                     <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-200/60 flex items-center justify-between">
                         <div class="flex items-center gap-3">
                             <h2 class="text-lg font-semibold text-slate-700">Document Viewer</h2>
                             <span id="version-badge" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">
-                                v{{ $document->versions->count() + 1 }} (Current)
+                                v{{ $currentVersionNum }} (Current)
                             </span>
                         </div>
-                        <div class="flex items-center gap-2">
-                            @if($document->versions->count() > 0)
-                            <select id="version-selector" onchange="switchVersion(this.value)"
-                                class="text-xs rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 py-1.5 pr-8">
-                                <option value="current" data-ext="{{ $ext }}">Current (v{{ $document->versions->count() + 1 }})</option>
-                                @foreach($document->versions->sortByDesc('version_number') as $ver)
-                                    @php $verExt = strtolower(pathinfo($ver->file_path, PATHINFO_EXTENSION)); @endphp
-                                    <option value="{{ route('documents.versionPreview', [$document->id, $ver->id]) }}" data-ext="{{ $verExt }}">
-                                        v{{ $ver->version_number }} &mdash; {{ $ver->uploader->first_name ?? 'Unknown' }} {{ $ver->uploader->last_name ?? '' }} ({{ $ver->created_at->format('M d, Y') }})
-                                    </option>
-                                @endforeach
-                            </select>
-                            @endif
-                            <div id="viewer-controls" class="flex items-center gap-2" style="display:none;">
-                            <button onclick="zoomViewer(-1)" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500" title="Zoom Out">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"/></svg>
-                            </button>
-                            <span id="zoom-level" class="text-xs text-slate-500 min-w-[3rem] text-center">100%</span>
-                            <button onclick="zoomViewer(1)" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500" title="Zoom In">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
-                            </button>
-                        </div>
+                        @if($document->versions->count() > 0)
+                        <select id="version-selector" onchange="switchVersion(this.value)"
+                            class="text-xs rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 py-1.5 pr-8">
+                            <option value="current" data-ext="{{ $ext }}">Current (v{{ $currentVersionNum }})</option>
+                            @foreach($document->versions->sortByDesc('version_number') as $ver)
+                                @php $verExt = strtolower(pathinfo($ver->file_path, PATHINFO_EXTENSION)); @endphp
+                                <option value="{{ route('documents.versionPreview', [$document->id, $ver->id]) }}" data-ext="{{ $verExt }}">
+                                    v{{ $ver->version_number }} &mdash; {{ $ver->uploader->first_name ?? 'Unknown' }} {{ $ver->uploader->last_name ?? '' }} ({{ $ver->created_at->format('M d, Y') }})
+                                </option>
+                            @endforeach
+                        </select>
+                        @endif
+                    </div>
+                    {{-- Viewer: toolbar (download + zoom) above the document --}}
+                    <div class="px-4 py-2 border-b border-indigo-100 bg-white flex items-center gap-2">
+                        <a href="{{ route('documents.download', $document->id) }}"
+                           class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-sm">
+                            <svg class="w-3.5 h-3.5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            Download
+                        </a>
+                        <div class="w-px h-5 bg-slate-200"></div>
+                        <button onclick="zoomViewer(-1)" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500" title="Zoom Out">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"/></svg>
+                        </button>
+                        <span id="zoom-level" class="text-xs text-slate-500 min-w-[3rem] text-center">100%</span>
+                        <button onclick="zoomViewer(1)" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500" title="Zoom In">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
+                        </button>
+                        <button onclick="zoomViewer(0, true)" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 text-xs font-medium" title="Reset Zoom">Reset</button>
                     </div>
                     <div id="document-viewer-container" class="bg-slate-50 flex items-center justify-center" style="min-height: 500px;">
                         @if($previewable)
@@ -189,28 +236,28 @@
             </div>
 
             {{-- ============================================= --}}
-            {{-- ROW 1.5: Version History & Upload New Version --}}
+            {{-- ROW 2: Version History (flex-1) + Signatures (30vw) --}}
             {{-- ============================================= --}}
-            <div class="bg-white rounded-xl border border-indigo-200/80 overflow-hidden" x-data="{ showVersions: {{ $document->versions->count() > 0 ? 'true' : 'false' }} }">
-                <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-200/60 flex items-center justify-between cursor-pointer" @click="showVersions = !showVersions">
+            <div class="flex gap-6 items-start">
+
+            {{-- Version History (flex-1) --}}
+            <div class="flex-1 min-w-0 bg-white rounded-xl border border-indigo-200/80 overflow-hidden">
+                <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-200/60 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <h2 class="text-lg font-semibold text-slate-700">Version History</h2>
                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
                             {{ $document->versions->count() + 1 }} version(s)
                         </span>
                     </div>
-                    <svg class="w-5 h-5 text-slate-400 transition-transform" :class="showVersions ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                    </svg>
                 </div>
-                <div x-show="showVersions" x-transition class="p-4">
+                <div class="p-4 overflow-y-auto" style="min-height: 120px; max-height: 420px;">
                     {{-- Current Version --}}
                     <div class="mb-3">
                         <h4 class="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Current Version</h4>
                         <div class="flex items-center justify-between p-3 rounded-lg border-2 border-indigo-200 bg-indigo-50/30">
                             <div class="flex items-center gap-3 min-w-0">
                                 <div class="flex-shrink-0 w-9 h-9 rounded-lg bg-indigo-100 flex items-center justify-center">
-                                    <span class="text-xs font-bold text-indigo-600">v{{ $document->versions->count() + 1 }}</span>
+                                    <span class="text-xs font-bold text-indigo-600">v{{ $currentVersionNum }}</span>
                                 </div>
                                 <div class="min-w-0">
                                     <p class="text-sm font-medium text-slate-800">{{ basename($document->path) }}</p>
@@ -324,19 +371,60 @@
                 </div>
             </div>
 
+            {{-- E-Signatures (30vw) --}}
+            <div class="bg-white rounded-xl border border-indigo-200/80 overflow-hidden flex-shrink-0" style="width: 30vw; min-width: 280px;">
+                <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-200/60">
+                    <h2 class="text-lg font-semibold text-slate-700">E-Signatures</h2>
+                </div>
+                <div class="p-4 overflow-y-auto" style="min-height: 120px; max-height: 420px;">
+                    @if($document->eSignatures->count())
+                        <div class="space-y-3">
+                            @foreach($document->eSignatures as $sig)
+                                <div class="flex items-start gap-3 p-3 rounded-lg border border-slate-100 bg-slate-50/50 cursor-pointer hover:bg-indigo-50 hover:border-indigo-200 transition"
+                                     onclick="openSigModal('{{ addslashes($sig->signature_path) }}', '{{ addslashes($sig->full_name) }}', '{{ addslashes($sig->position ?? '') }}', '{{ $sig->action }}', '{{ $sig->signed_at->format('M d, Y g:ia') }}')">
+                                    <div class="flex-shrink-0 w-20 h-14 rounded border border-slate-200 bg-white overflow-hidden">
+                                        <img src="{{ asset('storage/' . $sig->signature_path) }}" alt="Signature" class="w-full h-full object-contain">
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-sm font-medium text-slate-800">{{ $sig->full_name }}</p>
+                                        @if($sig->position)
+                                            <p class="text-xs text-slate-500">{{ $sig->position }}</p>
+                                        @endif
+                                        <div class="flex items-center gap-2 mt-1">
+                                            @php
+                                                $actionColors = ['approved'=>'green','rejected'=>'red','acknowledged'=>'blue','commented'=>'indigo','returned'=>'yellow'];
+                                                $ac = $actionColors[$sig->action] ?? 'gray';
+                                            @endphp
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $ac }}-100 text-{{ $ac }}-700">{{ ucfirst($sig->action) }}</span>
+                                            <span class="text-xs text-slate-400">{{ $sig->signed_at->format('M d, Y g:ia') }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="text-center py-8">
+                            <svg class="mx-auto h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                            <p class="mt-2 text-sm text-slate-500">No signatures yet</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+            </div>{{-- end ROW 2 flex --}}
+
             {{-- ============================================= --}}
-            {{-- ROW 2: Attachments + E-Signatures --}}
+            {{-- ROW 3: Attachments (flex-1) + Available Actions (30vw) --}}
             {{-- ============================================= --}}
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="flex gap-6 items-start">
                 {{-- Attachments --}}
-                <div class="bg-white rounded-xl border border-indigo-200/80 overflow-hidden">
+                <div class="flex-1 min-w-0 bg-white rounded-xl border border-indigo-200/80 overflow-hidden">
                     <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-200/60 flex items-center justify-between">
                         <h2 class="text-lg font-semibold text-slate-700">Attachments</h2>
                         <span class="text-xs font-medium text-slate-400">{{ $document->attachments->count() }} file(s)</span>
                     </div>
-                    <div class="p-4">
+                    <div class="p-4 overflow-y-auto" style="min-height: 120px; max-height: 420px;">
                         @if($document->attachments->count())
-                            <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                            <div class="space-y-2">
                                 @foreach($document->attachments as $attachment)
                                     @php
                                         $attExt = strtolower(pathinfo($attachment->filename, PATHINFO_EXTENSION));
@@ -344,7 +432,8 @@
                                         $iconColors = ['pdf'=>'red','doc'=>'blue','docx'=>'blue','xls'=>'green','xlsx'=>'green','csv'=>'green','jpg'=>'amber','jpeg'=>'amber','png'=>'purple','gif'=>'pink','webp'=>'amber','bmp'=>'amber','svg'=>'indigo'];
                                         $ic = $iconColors[$attExt] ?? 'gray';
                                     @endphp
-                                    <div class="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:bg-slate-50 transition group">
+                                    <div class="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:bg-indigo-50 hover:border-indigo-200 transition {{ $attPreviewable ? 'cursor-pointer' : '' }}"
+                                         @if($attPreviewable) onclick="openAttachmentModal('{{ route('attachments.preview', $attachment->id) }}', '{{ $attExt }}', '{{ addslashes($attachment->filename) }}')" @endif>
                                         <div class="flex items-center gap-3 min-w-0">
                                             <div class="flex-shrink-0 w-9 h-9 rounded-lg bg-{{ $ic }}-100 flex items-center justify-center">
                                                 <span class="text-xs font-bold text-{{ $ic }}-600 uppercase">{{ $attExt }}</span>
@@ -362,15 +451,15 @@
                                                 </p>
                                             </div>
                                         </div>
-                                        <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                                        <div class="flex items-center gap-1 flex-shrink-0 ml-2">
                                             @if($attPreviewable)
-                                            <button onclick="openDocumentViewer('{{ route('attachments.preview', $attachment->id) }}', '{{ $attExt }}')"
-                                                class="p-1.5 rounded-lg hover:bg-indigo-100 text-indigo-600" title="Preview">
+                                            <span class="p-1.5 rounded-lg text-indigo-400" title="Click to preview">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                            </button>
+                                            </span>
                                             @endif
                                             <a href="{{ Storage::disk('public')->url($attachment->path) }}" download
-                                               class="p-1.5 rounded-lg hover:bg-indigo-100 text-indigo-600" title="Download">
+                                               onclick="event.stopPropagation()"
+                                               class="p-1.5 rounded-lg hover:bg-indigo-100 text-indigo-500" title="Download">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                             </a>
                                         </div>
@@ -411,305 +500,312 @@
                     </div>
                 </div>
 
-                {{-- E-Signatures --}}
-                <div class="bg-white rounded-xl border border-indigo-200/80 overflow-hidden">
+                {{-- Available Actions (30vw) --}}
+                <div class="bg-white rounded-xl border border-indigo-200/80 overflow-hidden flex-shrink-0" style="width: 30vw; min-width: 280px;">
                     <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-200/60">
-                        <h2 class="text-lg font-semibold text-slate-700">E-Signatures</h2>
+                        <h2 class="text-lg font-semibold text-slate-700">Available Actions</h2>
                     </div>
-                    <div class="p-4">
-                        @if($document->eSignatures->count())
-                            <div class="space-y-3 max-h-72 overflow-y-auto pr-1">
-                                @foreach($document->eSignatures as $sig)
-                                    <div class="flex items-start gap-3 p-3 rounded-lg border border-slate-100 bg-slate-50/50">
-                                        <div class="flex-shrink-0 w-20 h-14 rounded border border-slate-200 bg-white overflow-hidden">
-                                            <img src="{{ asset('storage/' . $sig->signature_path) }}" alt="Signature" class="w-full h-full object-contain">
-                                        </div>
-                                        <div class="min-w-0 flex-1">
-                                            <p class="text-sm font-medium text-slate-800">{{ $sig->full_name }}</p>
-                                            @if($sig->position)
-                                                <p class="text-xs text-slate-500">{{ $sig->position }}</p>
-                                            @endif
-                                            <div class="flex items-center gap-2 mt-1">
-                                                @php
-                                                    $actionColors = ['approved'=>'green','rejected'=>'red','acknowledged'=>'blue','commented'=>'indigo','returned'=>'yellow'];
-                                                    $ac = $actionColors[$sig->action] ?? 'gray';
-                                                @endphp
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $ac }}-100 text-{{ $ac }}-700">{{ ucfirst($sig->action) }}</span>
-                                                <span class="text-xs text-slate-400">{{ $sig->signed_at->format('M d, Y g:ia') }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endforeach
+                    <div class="p-4 overflow-y-auto" style="min-height: 120px; max-height: 420px;">
+
+                        @php
+                            $actionableStatuses = ['received', 'pending'];
+                            $isActionable = in_array($workflow->status, $actionableStatuses);
+                            $completedStatuses = ['approved', 'rejected', 'returned', 'acknowledged', 'commented', 'forwarded'];
+                            $isCompleted = in_array($workflow->status, $completedStatuses);
+                            $isWaiting = $workflow->status === 'waiting';
+                        @endphp
+
+                        @if($isCompleted)
+                            <div class="flex items-center gap-3 p-4 rounded-lg border
+                                @switch($workflow->status)
+                                    @case('approved') border-green-200 bg-green-50 @break
+                                    @case('rejected') border-red-200 bg-red-50 @break
+                                    @case('returned') border-yellow-200 bg-yellow-50 @break
+                                    @case('acknowledged') border-indigo-200 bg-indigo-50 @break
+                                    @case('commented') border-indigo-200 bg-indigo-50 @break
+                                    @case('forwarded') border-purple-200 bg-purple-50 @break
+                                    @default border-slate-200 bg-slate-50
+                                @endswitch
+                            ">
+                                <svg class="w-5 h-5 flex-shrink-0
+                                    @switch($workflow->status)
+                                        @case('approved') text-green-600 @break
+                                        @case('rejected') text-red-600 @break
+                                        @case('returned') text-yellow-600 @break
+                                        @case('acknowledged') text-indigo-600 @break
+                                        @case('commented') text-indigo-600 @break
+                                        @case('forwarded') text-purple-600 @break
+                                        @default text-slate-600
+                                    @endswitch
+                                " fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <div>
+                                    <p class="text-sm font-medium text-slate-800">Action already completed</p>
+                                    <p class="text-xs text-slate-500 mt-0.5">This workflow has been <strong>{{ $workflow->status }}</strong>. No further actions are available.</p>
+                                    @if($workflow->remarks)
+                                        <p class="text-xs text-slate-500 mt-1"><strong>Remarks:</strong> {{ $workflow->remarks }}</p>
+                                    @endif
+                                </div>
                             </div>
-                        @else
-                            <div class="text-center py-8">
-                                <svg class="mx-auto h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                                <p class="mt-2 text-sm text-slate-500">No signatures yet</p>
+                        @elseif($isWaiting)
+                            <div class="flex items-center gap-3 p-4 rounded-lg border border-amber-200 bg-amber-50">
+                                <svg class="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <div>
+                                    <p class="text-sm font-medium text-amber-800">Waiting for your turn</p>
+                                    <p class="text-xs text-amber-600 mt-0.5">This is a sequential workflow. Previous steps must be completed before you can take action.</p>
+                                </div>
+                            </div>
+                        @elseif($isActionable)
+                        @if($workflow->purpose === 'appropriate_action')
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium border border-green-200 text-green-700 bg-white hover:bg-green-50 rounded-lg transition-colors" onclick="showActionForm('approval-form')">
+                                    <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    Approve
+                                </button>
+                                <button type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium border border-red-200 text-red-700 bg-white hover:bg-red-50 rounded-lg transition-colors" onclick="showActionForm('rejection-form')">
+                                    <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    Reject
+                                </button>
+                                <button type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium border border-yellow-200 text-yellow-700 bg-white hover:bg-yellow-50 rounded-lg transition-colors" onclick="showActionForm('return-form')">
+                                    <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+                                    Return
+                                </button>
+                                <button type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium border border-purple-200 text-purple-700 bg-white hover:bg-purple-50 rounded-lg transition-colors" onclick="showActionForm('forward-form')">
+                                    <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                                    Forward
+                                </button>
                             </div>
                         @endif
+                        @if($workflow->purpose === 'for_comment')
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium border border-indigo-200 text-indigo-700 bg-white hover:bg-indigo-50 rounded-lg transition-colors" onclick="showActionForm('comment-form')">
+                                    <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.955 8.955 0 01-3.647-.756L3 21l1.756-6.353A8.955 8.955 0 013 12c0-4.418 3.582-8 8-8s8 3.582 8 8z"/></svg>
+                                    Add Comment
+                                </button>
+                            </div>
+                        @endif
+                        @if($workflow->purpose === 'dissemination')
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium border border-green-200 text-green-700 bg-white hover:bg-green-50 rounded-lg transition-colors" onclick="showActionForm('acknowledge-form')">
+                                    <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    Acknowledge
+                                </button>
+                                <button type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium border border-purple-200 text-purple-700 bg-white hover:bg-purple-50 rounded-lg transition-colors" onclick="showActionForm('forward-form')">
+                                    <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                                    Forward
+                                </button>
+                            </div>
+                        @endif
+                        @if(!$workflow->purpose)
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium border border-green-200 text-green-700 bg-white hover:bg-green-50 rounded-lg transition-colors" onclick="showActionForm('approval-form')">
+                                    <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    Approve
+                                </button>
+                                <button type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium border border-red-200 text-red-700 bg-white hover:bg-red-50 rounded-lg transition-colors" onclick="showActionForm('rejection-form')">
+                                    <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    Reject
+                                </button>
+                                <button type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium border border-purple-200 text-purple-700 bg-white hover:bg-purple-50 rounded-lg transition-colors" onclick="showActionForm('forward-form')">
+                                    <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                                    Forward
+                                </button>
+                            </div>
+                        @endif
+                        @endif {{-- end isActionable --}}
+
+                        @if($isActionable)
+                        <div class="mt-4 space-y-4">
+                            {{-- E-Signature Pad --}}
+                            <div id="signature-pad-section" class="hidden p-4 border border-indigo-200 rounded-lg bg-indigo-50/50">
+                                <h4 class="font-medium text-indigo-800 mb-3 flex items-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                    E-Signature (Optional)
+                                </h4>
+                                <p class="text-xs text-slate-500 mb-3">Draw your signature below.</p>
+                                <div class="bg-white rounded-lg border-2 border-slate-200 overflow-hidden" style="touch-action: none;">
+                                    <canvas id="signature-canvas" width="500" height="150" class="w-full cursor-crosshair" style="height: 150px;"></canvas>
+                                </div>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <button type="button" onclick="clearSignature()" class="text-xs text-slate-500 hover:text-red-600 transition">Clear Signature</button>
+                                    <span class="text-xs text-slate-300">|</span>
+                                    <span id="sig-status" class="text-xs text-slate-400">No signature drawn</span>
+                                </div>
+                            </div>
+
+                            {{-- Approval Form --}}
+                            <div id="approval-form" class="hidden p-4 border border-green-200 rounded-lg bg-green-50">
+                                <h3 class="font-medium text-green-800 mb-3">Approve Document</h3>
+                                <form action="{{ route('documents.approveWorkflow', $workflow->id) }}" method="POST" onsubmit="return injectSignature(this)">
+                                    @csrf
+                                    <input type="hidden" name="signature_data" value="">
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Approval Remarks (Optional)</label>
+                                        <textarea name="remarks" rows="3" class="w-full rounded-md border-slate-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200" placeholder="Add any comments..."></textarea>
+                                    </div>
+                                    <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition">
+                                        Confirm Approval
+                                    </button>
+                                </form>
+                            </div>
+
+                            {{-- Rejection Form --}}
+                            <div id="rejection-form" class="hidden p-4 border border-red-200 rounded-lg bg-red-50">
+                                <h3 class="font-medium text-red-800 mb-3">Reject Document</h3>
+                                <form method="POST" action="{{ route('documents.rejectWorkflow', $workflow->id) }}" onsubmit="return injectSignature(this)">
+                                    @csrf
+                                    <input type="hidden" name="signature_data" value="">
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Rejection Remarks (Required)</label>
+                                        <textarea name="remarks" rows="3" class="w-full rounded-md border-slate-300 shadow-sm focus:border-red-500 focus:ring focus:ring-red-200" required placeholder="Explain why this document needs revision..."></textarea>
+                                    </div>
+                                    <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition">
+                                        Confirm Rejection
+                                    </button>
+                                </form>
+                            </div>
+
+                            {{-- Return Form --}}
+                            <div id="return-form" class="hidden p-4 border border-yellow-200 rounded-lg bg-yellow-50">
+                                <h3 class="font-medium text-yellow-800 mb-3">Return Document</h3>
+                                <form method="POST" action="{{ route('documents.returnWorkflow', $workflow->id) }}" onsubmit="return injectSignature(this)">
+                                    @csrf
+                                    <input type="hidden" name="signature_data" value="">
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Return Remarks (Required)</label>
+                                        <textarea name="remarks" rows="3" class="w-full rounded-md border-slate-300 shadow-sm focus:border-yellow-500 focus:ring focus:ring-yellow-200" required placeholder="Explain why this document is being returned..."></textarea>
+                                    </div>
+                                    <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600 transition">
+                                        Confirm Return
+                                    </button>
+                                </form>
+                            </div>
+
+                            {{-- Forward Form --}}
+                            <div id="forward-form" class="hidden p-4 border border-purple-200 rounded-lg bg-purple-50">
+                                <h3 class="font-medium text-purple-800 mb-3">Forward Document</h3>
+                                <form method="POST" action="{{ route('documents.forwardFromWorkflow', $workflow->id) }}">
+                                    @csrf
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Forward To</label>
+                                        <select name="recipients[]" multiple class="w-full rounded-md border-slate-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-200" required>
+                                            @foreach($companyUsers as $user)
+                                                <option value="{{ $user->id }}">{{ $user->first_name }} {{ $user->last_name }}</option>
+                                            @endforeach
+                                        </select>
+                                        <p class="text-xs text-slate-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Forward Remarks</label>
+                                        <textarea name="remarks" rows="3" class="w-full rounded-md border-slate-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-200" placeholder="Additional instructions..."></textarea>
+                                    </div>
+                                    <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-purple-500 hover:bg-purple-600 transition">
+                                        Confirm Forward
+                                    </button>
+                                </form>
+                            </div>
+
+                            {{-- Comment Form --}}
+                            <div id="comment-form" class="hidden p-4 border border-indigo-200 rounded-lg bg-indigo-50">
+                                <h3 class="font-medium text-indigo-800 mb-3">Add Your Comment</h3>
+                                <form method="POST" action="{{ route('documents.addComment', $workflow->id) }}" onsubmit="return injectSignature(this)">
+                                    @csrf
+                                    <input type="hidden" name="signature_data" value="">
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Comments / Feedback</label>
+                                        <textarea name="remarks" rows="5" class="w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200" required placeholder="Please provide your comments..."></textarea>
+                                    </div>
+                                    <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition">
+                                        Submit Comment
+                                    </button>
+                                </form>
+                            </div>
+
+                            {{-- Acknowledge Form --}}
+                            <div id="acknowledge-form" class="hidden p-4 border border-green-200 rounded-lg bg-green-50">
+                                <h3 class="font-medium text-green-800 mb-3">Acknowledge Receipt</h3>
+                                <form method="POST" action="{{ route('documents.acknowledgeWorkflow', $workflow->id) }}" onsubmit="return injectSignature(this)">
+                                    @csrf
+                                    <input type="hidden" name="signature_data" value="">
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Acknowledgment Notes (Optional)</label>
+                                        <textarea name="remarks" rows="3" class="w-full rounded-md border-slate-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200" placeholder="Any notes..."></textarea>
+                                    </div>
+                                    <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition">
+                                        Confirm Acknowledgment
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        @endif {{-- end action forms isActionable --}}
+
                     </div>
                 </div>
-            </div>
-
-            {{-- ============================================= --}}
-            {{-- ROW 3: Actions + Signature Pad --}}
-            {{-- ============================================= --}}
-            <div class="bg-white rounded-xl border border-indigo-200/80 overflow-hidden">
-                <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-200/60">
-                    <h2 class="text-lg font-semibold text-slate-700">Available Actions</h2>
-                </div>
-                <div class="p-4">
-
-                    @php
-                        // Determine if actions can be taken on this workflow
-                        $actionableStatuses = ['received', 'pending'];
-                        $isActionable = in_array($workflow->status, $actionableStatuses);
-                        $completedStatuses = ['approved', 'rejected', 'returned', 'acknowledged', 'commented', 'forwarded'];
-                        $isCompleted = in_array($workflow->status, $completedStatuses);
-                        $isWaiting = $workflow->status === 'waiting';
-                    @endphp
-
-                    @if($isCompleted)
-                        {{-- Show completed status banner instead of action buttons --}}
-                        <div class="flex items-center gap-3 p-4 rounded-lg border
-                            @switch($workflow->status)
-                                @case('approved') border-green-200 bg-green-50 @break
-                                @case('rejected') border-red-200 bg-red-50 @break
-                                @case('returned') border-yellow-200 bg-yellow-50 @break
-                                @case('acknowledged') border-indigo-200 bg-indigo-50 @break
-                                @case('commented') border-indigo-200 bg-indigo-50 @break
-                                @case('forwarded') border-purple-200 bg-purple-50 @break
-                                @default border-slate-200 bg-slate-50
-                            @endswitch
-                        ">
-                            <svg class="w-5 h-5 flex-shrink-0
-                                @switch($workflow->status)
-                                    @case('approved') text-green-600 @break
-                                    @case('rejected') text-red-600 @break
-                                    @case('returned') text-yellow-600 @break
-                                    @case('acknowledged') text-indigo-600 @break
-                                    @case('commented') text-indigo-600 @break
-                                    @case('forwarded') text-purple-600 @break
-                                    @default text-slate-600
-                                @endswitch
-                            " fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <div>
-                                <p class="text-sm font-medium text-slate-800">Action already completed</p>
-                                <p class="text-xs text-slate-500 mt-0.5">This workflow has been <strong>{{ $workflow->status }}</strong>. No further actions are available.</p>
-                                @if($workflow->remarks)
-                                    <p class="text-xs text-slate-500 mt-1"><strong>Remarks:</strong> {{ $workflow->remarks }}</p>
-                                @endif
-                            </div>
-                        </div>
-                    @elseif($isWaiting)
-                        {{-- Show waiting status for sequential workflows --}}
-                        <div class="flex items-center gap-3 p-4 rounded-lg border border-amber-200 bg-amber-50">
-                            <svg class="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <div>
-                                <p class="text-sm font-medium text-amber-800">Waiting for your turn</p>
-                                <p class="text-xs text-amber-600 mt-0.5">This is a sequential workflow. Previous steps must be completed before you can take action.</p>
-                            </div>
-                        </div>
-                    @elseif($isActionable)
-                    {{-- Action Buttons - only show when workflow is actionable --}}
-                    @if($workflow->purpose === 'appropriate_action')
-                        <div class="inline-flex rounded-md shadow-sm flex-wrap gap-y-2">
-                            <button type="button" class="relative inline-flex items-center px-3 py-2 text-sm font-medium border border-r-0 border-green-200 text-green-700 bg-white hover:bg-green-50 rounded-l-lg transition-colors" onclick="showActionForm('approval-form')">
-                                <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                Approve
-                            </button>
-                            <button type="button" class="relative inline-flex items-center px-3 py-2 text-sm font-medium border border-r-0 border-red-200 text-red-700 bg-white hover:bg-red-50 transition-colors" onclick="showActionForm('rejection-form')">
-                                <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                Reject
-                            </button>
-                            <button type="button" class="relative inline-flex items-center px-3 py-2 text-sm font-medium border border-r-0 border-yellow-200 text-yellow-700 bg-white hover:bg-yellow-50 transition-colors" onclick="showActionForm('return-form')">
-                                <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
-                                Return
-                            </button>
-                            <button type="button" class="relative inline-flex items-center px-3 py-2 text-sm font-medium border border-purple-200 text-purple-700 bg-white hover:bg-purple-50 rounded-r-lg transition-colors" onclick="showActionForm('forward-form')">
-                                <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                                Forward
-                            </button>
-                        </div>
-                    @endif
-
-                    @if($workflow->purpose === 'for_comment')
-                        <div class="inline-flex rounded-md shadow-sm">
-                            <button type="button" class="relative inline-flex items-center px-3 py-2 text-sm font-medium border border-indigo-200 text-indigo-700 bg-white hover:bg-indigo-50 rounded-lg transition-colors" onclick="showActionForm('comment-form')">
-                                <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.955 8.955 0 01-3.647-.756L3 21l1.756-6.353A8.955 8.955 0 013 12c0-4.418 3.582-8 8-8s8 3.582 8 8z"/></svg>
-                                Add Comment
-                            </button>
-                        </div>
-                    @endif
-
-                    @if($workflow->purpose === 'dissemination')
-                        <div class="inline-flex rounded-md shadow-sm">
-                            <button type="button" class="relative inline-flex items-center px-3 py-2 text-sm font-medium border border-r-0 border-green-200 text-green-700 bg-white hover:bg-green-50 rounded-l-lg transition-colors" onclick="showActionForm('acknowledge-form')">
-                                <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                Acknowledge
-                            </button>
-                            <button type="button" class="relative inline-flex items-center px-3 py-2 text-sm font-medium border border-purple-200 text-purple-700 bg-white hover:bg-purple-50 rounded-r-lg transition-colors" onclick="showActionForm('forward-form')">
-                                <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                                Forward
-                            </button>
-                        </div>
-                    @endif
-
-                    @if(!$workflow->purpose)
-                        <div class="inline-flex rounded-md shadow-sm flex-wrap gap-y-2">
-                            <button type="button" class="relative inline-flex items-center px-3 py-2 text-sm font-medium border border-r-0 border-green-200 text-green-700 bg-white hover:bg-green-50 rounded-l-lg transition-colors" onclick="showActionForm('approval-form')">
-                                <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                Approve
-                            </button>
-                            <button type="button" class="relative inline-flex items-center px-3 py-2 text-sm font-medium border border-r-0 border-red-200 text-red-700 bg-white hover:bg-red-50 transition-colors" onclick="showActionForm('rejection-form')">
-                                <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                Reject
-                            </button>
-                            <button type="button" class="relative inline-flex items-center px-3 py-2 text-sm font-medium border border-purple-200 text-purple-700 bg-white hover:bg-purple-50 rounded-r-lg transition-colors" onclick="showActionForm('forward-form')">
-                                <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                                Forward
-                            </button>
-                        </div>
-                    @endif
-
-                    @endif {{-- End of @elseif($isActionable) --}}
-
-                    {{-- Action Forms - only rendered when workflow is actionable --}}
-                    @if($isActionable)
-                    <div class="mt-6 space-y-4">
-
-                        {{-- E-Signature Pad (shared across all actions) --}}
-                        <div id="signature-pad-section" class="hidden p-4 border border-indigo-200 rounded-lg bg-indigo-50/50">
-                            <h4 class="font-medium text-indigo-800 mb-3 flex items-center gap-2">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                                E-Signature (Optional)
-                            </h4>
-                            <p class="text-xs text-slate-500 mb-3">Draw your signature below. It will be attached to this action.</p>
-                            <div class="bg-white rounded-lg border-2 border-slate-200 overflow-hidden" style="touch-action: none;">
-                                <canvas id="signature-canvas" width="500" height="150" class="w-full cursor-crosshair" style="height: 150px;"></canvas>
-                            </div>
-                            <div class="flex items-center gap-2 mt-2">
-                                <button type="button" onclick="clearSignature()" class="text-xs text-slate-500 hover:text-red-600 transition">Clear Signature</button>
-                                <span class="text-xs text-slate-300">|</span>
-                                <span id="sig-status" class="text-xs text-slate-400">No signature drawn</span>
-                            </div>
-                        </div>
-
-                        {{-- Approval Form --}}
-                        <div id="approval-form" class="hidden p-4 border border-green-200 rounded-lg bg-green-50">
-                            <h3 class="font-medium text-green-800 mb-3">Approve Document</h3>
-                            <form action="{{ route('documents.approveWorkflow', $workflow->id) }}" method="POST" onsubmit="return injectSignature(this)">
-                                @csrf
-                                <input type="hidden" name="signature_data" value="">
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium text-slate-700 mb-2">Approval Remarks (Optional)</label>
-                                    <textarea name="remarks" rows="3" class="w-full rounded-md border-slate-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200" placeholder="Add any comments about this document..."></textarea>
-                                </div>
-                                <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition">
-                                    Confirm Approval
-                                </button>
-                            </form>
-                        </div>
-
-                        {{-- Rejection Form --}}
-                        <div id="rejection-form" class="hidden p-4 border border-red-200 rounded-lg bg-red-50">
-                            <h3 class="font-medium text-red-800 mb-3">Reject Document</h3>
-                            <form method="POST" action="{{ route('documents.rejectWorkflow', $workflow->id) }}" onsubmit="return injectSignature(this)">
-                                @csrf
-                                <input type="hidden" name="signature_data" value="">
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium text-slate-700 mb-2">Rejection Remarks (Required)</label>
-                                    <textarea name="remarks" rows="3" class="w-full rounded-md border-slate-300 shadow-sm focus:border-red-500 focus:ring focus:ring-red-200" required placeholder="Explain why this document needs revision..."></textarea>
-                                </div>
-                                <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition">
-                                    Confirm Rejection
-                                </button>
-                            </form>
-                        </div>
-
-                        {{-- Return Form --}}
-                        <div id="return-form" class="hidden p-4 border border-yellow-200 rounded-lg bg-yellow-50">
-                            <h3 class="font-medium text-yellow-800 mb-3">Return Document</h3>
-                            <form method="POST" action="{{ route('documents.returnWorkflow', $workflow->id) }}" onsubmit="return injectSignature(this)">
-                                @csrf
-                                <input type="hidden" name="signature_data" value="">
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium text-slate-700 mb-2">Return Remarks (Required)</label>
-                                    <textarea name="remarks" rows="3" class="w-full rounded-md border-slate-300 shadow-sm focus:border-yellow-500 focus:ring focus:ring-yellow-200" required placeholder="Explain why this document is being returned..."></textarea>
-                                </div>
-                                <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600 transition">
-                                    Confirm Return
-                                </button>
-                            </form>
-                        </div>
-
-                        {{-- Forward Form --}}
-                        <div id="forward-form" class="hidden p-4 border border-purple-200 rounded-lg bg-purple-50">
-                            <h3 class="font-medium text-purple-800 mb-3">Forward Document</h3>
-                            <form method="POST" action="{{ route('documents.forwardFromWorkflow', $workflow->id) }}">
-                                @csrf
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium text-slate-700 mb-2">Forward To</label>
-                                    <select name="recipients[]" multiple class="w-full rounded-md border-slate-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-200" required>
-                                        @foreach($companyUsers as $user)
-                                            <option value="{{ $user->id }}">{{ $user->first_name }} {{ $user->last_name }}</option>
-                                        @endforeach
-                                    </select>
-                                    <p class="text-xs text-slate-500 mt-1">Hold Ctrl/Cmd key to select multiple users</p>
-                                </div>
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium text-slate-700 mb-2">Forward Remarks</label>
-                                    <textarea name="remarks" rows="3" class="w-full rounded-md border-slate-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-200" placeholder="Additional instructions for the recipients..."></textarea>
-                                </div>
-                                <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-purple-500 hover:bg-purple-600 transition">
-                                    Confirm Forward
-                                </button>
-                            </form>
-                        </div>
-
-                        {{-- Comment Form --}}
-                        <div id="comment-form" class="hidden p-4 border border-indigo-200 rounded-lg bg-indigo-50">
-                            <h3 class="font-medium text-indigo-800 mb-3">Add Your Comment</h3>
-                            <form method="POST" action="{{ route('documents.addComment', $workflow->id) }}" onsubmit="return injectSignature(this)">
-                                @csrf
-                                <input type="hidden" name="signature_data" value="">
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium text-slate-700 mb-2">Comments / Feedback</label>
-                                    <textarea name="remarks" rows="5" class="w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200" required placeholder="Please provide your comments, feedback, or suggestions..."></textarea>
-                                </div>
-                                <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition">
-                                    Submit Comment
-                                </button>
-                            </form>
-                        </div>
-
-                        {{-- Acknowledge Form --}}
-                        <div id="acknowledge-form" class="hidden p-4 border border-green-200 rounded-lg bg-green-50">
-                            <h3 class="font-medium text-green-800 mb-3">Acknowledge Receipt</h3>
-                            <form method="POST" action="{{ route('documents.acknowledgeWorkflow', $workflow->id) }}" onsubmit="return injectSignature(this)">
-                                @csrf
-                                <input type="hidden" name="signature_data" value="">
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium text-slate-700 mb-2">Acknowledgment Notes (Optional)</label>
-                                    <textarea name="remarks" rows="3" class="w-full rounded-md border-slate-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200" placeholder="Any notes regarding your acknowledgment..."></textarea>
-                                </div>
-                                <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition">
-                                    Confirm Acknowledgment
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    @endif {{-- End of action forms isActionable --}}
-                </div>
-            </div>
+            </div>{{-- end ROW 3 flex --}}
 
         </div>
     </div>
 </div>
+
+{{-- ============================================= --}}
+{{-- Signature View Modal                          --}}
+{{-- ============================================= --}}
+<div id="sig-modal" class="fixed inset-0 z-50 hidden items-center justify-center">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeSigModal()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full mx-4 overflow-hidden" style="max-width:420px;">
+        <div class="bg-gradient-to-r from-indigo-600 to-indigo-500 px-5 py-4 flex items-center justify-between">
+            <h3 class="text-white font-semibold text-lg">E-Signature</h3>
+            <button onclick="closeSigModal()" class="text-white/80 hover:text-white transition">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="p-6">
+            <div class="bg-slate-50 rounded-xl border border-slate-200 p-6 flex items-center justify-center mb-5" style="min-height:140px;">
+                <img id="sig-modal-img" src="" alt="Signature" class="max-w-full object-contain" style="max-height:130px;">
+            </div>
+            <dl class="space-y-2 text-sm">
+                <div class="flex items-start gap-3">
+                    <dt class="w-24 flex-shrink-0 text-xs font-medium text-slate-400 uppercase tracking-wide pt-0.5">Signer</dt>
+                    <dd id="sig-modal-name" class="font-semibold text-slate-800"></dd>
+                </div>
+                <div id="sig-modal-position-row" class="flex items-start gap-3">
+                    <dt class="w-24 flex-shrink-0 text-xs font-medium text-slate-400 uppercase tracking-wide pt-0.5">Position</dt>
+                    <dd id="sig-modal-position" class="text-slate-600"></dd>
+                </div>
+                <div class="flex items-start gap-3">
+                    <dt class="w-24 flex-shrink-0 text-xs font-medium text-slate-400 uppercase tracking-wide pt-0.5">Action</dt>
+                    <dd id="sig-modal-action"></dd>
+                </div>
+                <div class="flex items-start gap-3">
+                    <dt class="w-24 flex-shrink-0 text-xs font-medium text-slate-400 uppercase tracking-wide pt-0.5">Signed</dt>
+                    <dd id="sig-modal-date" class="text-slate-600"></dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+</div>
+
+{{-- ============================================= --}}
+{{-- Attachment Preview Modal                      --}}
+{{-- ============================================= --}}
+<div id="att-modal" class="fixed inset-0 z-50 hidden items-center justify-center">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeAttModal()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl flex flex-col mx-4 overflow-hidden" style="max-width:960px; width:100%; max-height:92vh;">
+        <div class="bg-gradient-to-r from-indigo-600 to-indigo-500 px-5 py-4 flex items-center justify-between flex-shrink-0">
+            <h3 id="att-modal-title" class="text-white font-semibold truncate pr-4">Attachment</h3>
+            <button onclick="closeAttModal()" class="flex-shrink-0 text-white/80 hover:text-white transition">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div id="att-modal-body" class="flex-1 overflow-auto min-h-0" style="min-height:400px;">
+            {{-- content injected by JS --}}
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -835,8 +931,8 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // ===== DOCX Renderer (mammoth.js) =====
-    window.renderDocx = function(url) {
-        var viewer = document.getElementById('docx-viewer');
+    window.renderDocx = function(url, targetEl) {
+        var viewer = targetEl || document.getElementById('docx-viewer');
         if (!viewer) return;
         fetch(url)
             .then(function(res) { return res.arrayBuffer(); })
@@ -852,8 +948,8 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // ===== Excel/CSV Renderer (SheetJS) =====
-    window.renderXlsx = function(url) {
-        var viewer = document.getElementById('xlsx-viewer');
+    window.renderXlsx = function(url, targetEl) {
+        var viewer = targetEl || document.getElementById('xlsx-viewer');
         if (!viewer) return;
         fetch(url)
             .then(function(res) { return res.arrayBuffer(); })
@@ -918,7 +1014,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ext = currentDocExt;
             if (selector) selector.value = 'current';
             if (badge) {
-                badge.textContent = 'v{{ $document->versions->count() + 1 }} (Current)';
+                badge.textContent = 'v{{ $currentVersionNum }} (Current)';
                 badge.className = 'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700';
             }
         } else {
@@ -995,10 +1091,6 @@ document.addEventListener('DOMContentLoaded', function() {
             container.innerHTML = '<div class="text-center py-16"><svg class="mx-auto h-16 w-16 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><p class="mt-3 text-sm text-slate-500">Preview not available for .' + ext + '</p></div>';
         }
 
-        // Show zoom controls
-        var controls = document.getElementById('viewer-controls');
-        if (controls) controls.style.display = 'flex';
-
         container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     };
 
@@ -1012,12 +1104,78 @@ document.addEventListener('DOMContentLoaded', function() {
         renderXlsx(xlsxViewer.dataset.url);
     }
 
+    // ===== Signature Modal =====
+    window.openSigModal = function(sigPath, fullName, position, action, signedAt) {
+        document.getElementById('sig-modal-img').src = '/storage/' + sigPath;
+        document.getElementById('sig-modal-name').textContent = fullName;
+        document.getElementById('sig-modal-date').textContent = signedAt;
+        var posRow = document.getElementById('sig-modal-position-row');
+        if (position) {
+            document.getElementById('sig-modal-position').textContent = position;
+            posRow.style.display = '';
+        } else {
+            posRow.style.display = 'none';
+        }
+        var actionColors = {approved:'green',rejected:'red',acknowledged:'blue',commented:'indigo',returned:'yellow'};
+        var ac = actionColors[action] || 'gray';
+        document.getElementById('sig-modal-action').innerHTML =
+            '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-' + ac + '-100 text-' + ac + '-700">' +
+            action.charAt(0).toUpperCase() + action.slice(1) + '</span>';
+        var modal = document.getElementById('sig-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    };
+    window.closeSigModal = function() {
+        var modal = document.getElementById('sig-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    };
+
+    // ===== Attachment Preview Modal =====
+    window.openAttachmentModal = function(url, ext, filename) {
+        document.getElementById('att-modal-title').textContent = filename || 'Attachment Preview';
+        var body = document.getElementById('att-modal-body');
+        body.innerHTML = '<div class="flex items-center justify-center py-16"><svg class="animate-spin h-8 w-8 text-indigo-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg></div>';
+        var modal = document.getElementById('att-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        var imgExts = ['jpg','jpeg','png','gif','webp','bmp','svg'];
+        var docExts = ['doc','docx'];
+        var sheetExts = ['xls','xlsx','csv'];
+        if (ext === 'pdf') {
+            body.innerHTML = '<iframe src="' + url + '" class="w-full border-0" style="height:80vh;"></iframe>';
+        } else if (imgExts.indexOf(ext) !== -1) {
+            body.innerHTML = '<div class="flex items-center justify-center p-6 bg-slate-50" style="min-height:400px;"><img src="' + url + '" class="max-w-full object-contain rounded shadow" style="max-height:75vh;"></div>';
+        } else if (docExts.indexOf(ext) !== -1) {
+            body.innerHTML = '<div id="att-docx-viewer" class="p-6 overflow-auto bg-white prose prose-sm max-w-none" style="min-height:400px;max-height:80vh;"></div>';
+            renderDocx(url, document.getElementById('att-docx-viewer'));
+        } else if (sheetExts.indexOf(ext) !== -1) {
+            body.innerHTML = '<div id="att-xlsx-viewer" class="p-4 overflow-auto bg-white" style="min-height:400px;max-height:80vh;"></div>';
+            renderXlsx(url, document.getElementById('att-xlsx-viewer'));
+        } else {
+            body.innerHTML = '<div class="text-center py-16"><svg class="mx-auto h-16 w-16 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><p class="mt-3 text-sm text-slate-500">Preview not available for .' + ext + '</p></div>';
+        }
+    };
+    window.closeAttModal = function() {
+        var modal = document.getElementById('att-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.getElementById('att-modal-body').innerHTML = '';
+    };
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') { closeSigModal(); closeAttModal(); }
+    });
+
     // ===== Zoom Controls =====
     var currentZoom = 100;
-    window.zoomViewer = function(direction) {
-        currentZoom += direction * 25;
-        if (currentZoom < 25) currentZoom = 25;
-        if (currentZoom > 300) currentZoom = 300;
+    window.zoomViewer = function(direction, reset) {
+        if (reset) {
+            currentZoom = 100;
+        } else {
+            currentZoom += direction * 25;
+            if (currentZoom < 25) currentZoom = 25;
+            if (currentZoom > 300) currentZoom = 300;
+        }
         var zoomLabel = document.getElementById('zoom-level');
         if (zoomLabel) zoomLabel.textContent = currentZoom + '%';
         var iframe = document.getElementById('doc-viewer-frame');
