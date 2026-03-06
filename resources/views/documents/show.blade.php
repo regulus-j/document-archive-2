@@ -364,9 +364,9 @@
                                 {{ $document->trackingNumber->tracking_number ?? 'N/A' }}
                             </p>
                             @if($document->trackingNumber)
-                            <button onclick="openQrModal()" class="ml-2 p-1.5 rounded-lg bg-indigo-100 hover:bg-indigo-200 text-indigo-600 hover:text-indigo-800 transition-colors" title="View QR Code">
+                            <button onclick="openBarcodeModal()" class="ml-2 p-1.5 rounded-lg bg-indigo-100 hover:bg-indigo-200 text-indigo-600 hover:text-indigo-800 transition-colors" title="View Barcode">
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1z" />
                                 </svg>
                             </button>
                             @endif
@@ -688,15 +688,40 @@
                                 <svg class="w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                                 Upload New Version
                             </h4>
-                            <form action="{{ route('documents.uploadVersion', $document->id) }}" method="POST" enctype="multipart/form-data">
+                            <form id="show-version-upload-form" action="{{ route('documents.uploadVersion', $document->id) }}" method="POST" enctype="multipart/form-data">
                                 @csrf
                                 <label class="flex items-center justify-center px-4 py-3 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition mb-2">
                                     <svg class="w-5 h-5 text-slate-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                                     <span class="text-sm text-slate-500" id="version-file-label">Choose a file...</span>
-                                    <input type="file" name="version_file" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.odt,.ods,.odp,.rtf,.jpg,.jpeg,.png"
+                                    <input type="file" name="version_file" id="show-version-file-input" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.odt,.ods,.odp,.rtf,.jpg,.jpeg,.png"
                                            onchange="document.getElementById('version-file-label').textContent = this.files[0]?.name || 'Choose a file...'">
                                 </label>
                                 <textarea name="version_notes" rows="2" class="w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 text-sm mb-2" placeholder="What changed in this version? (optional)"></textarea>
+                                
+                                {{-- Print/Copy Tracking Prompt --}}
+                                <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-2" x-data="{ recordPrint: false }">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="record_print" value="1" x-model="recordPrint"
+                                               class="rounded border-amber-300 text-amber-600 focus:ring-amber-500">
+                                        <span class="text-xs font-medium text-amber-800">
+                                            <svg class="w-3.5 h-3.5 inline-block mr-0.5 -mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                            Record print/copy before uploading
+                                        </span>
+                                    </label>
+                                    @if(($totalPrintCopies ?? 0) > 0)
+                                    <p class="text-xs text-amber-600 mt-1 ml-6">{{ $totalPrintCopies }} recorded {{ $totalPrintCopies === 1 ? 'copy' : 'copies' }} so far.</p>
+                                    @endif
+                                    <div x-show="recordPrint" x-collapse class="mt-2 ml-6 space-y-2">
+                                        <div class="flex items-center gap-2">
+                                            <label class="text-xs text-slate-500">Copies:</label>
+                                            <input type="number" name="print_copies" value="1" min="1" max="999"
+                                                   class="w-16 text-xs rounded-md border-slate-300 shadow-sm focus:border-amber-500 focus:ring focus:ring-amber-200">
+                                        </div>
+                                        <input type="text" name="print_reason" placeholder="Reason (optional)"
+                                               class="w-full text-xs rounded-md border-slate-300 shadow-sm focus:border-amber-500 focus:ring focus:ring-amber-200">
+                                    </div>
+                                </div>
+                                
                                 <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm">
                                     <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                                     Upload New Version
@@ -707,6 +732,135 @@
                         @endif
                     </div>
                 </div>
+
+                <!-- Print/Copy Tracking -->
+                <div x-data="{ printOpen: false }" class="bg-white p-4 rounded-lg border border-slate-200 mb-8">
+                    <div class="flex items-center justify-between mb-3 cursor-pointer" @click="printOpen = !printOpen">
+                        <div class="flex items-center gap-2">
+                            <svg class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                            </svg>
+                            <h3 class="text-base font-semibold text-slate-800">Print Tracking</h3>
+                            <span class="text-xs font-medium text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full">{{ $totalPrintCopies ?? 0 }} total copies</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="event.stopPropagation(); openPrintModal()" class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm">
+                                <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                                Record Print
+                            </button>
+                            <svg class="w-4 h-4 text-slate-400 transition-transform" :class="printOpen && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div x-show="printOpen" x-transition>
+                        @if(isset($printHistory) && $printHistory->count() > 0)
+                            <div class="space-y-2 max-h-60 overflow-y-auto">
+                                @foreach($printHistory as $print)
+                                <div class="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:bg-slate-50 transition">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-medium text-slate-700">
+                                                {{ $print->printer->first_name ?? '' }} {{ $print->printer->last_name ?? '' }}
+                                            </p>
+                                            <p class="text-xs text-slate-500">
+                                                {{ $print->created_at->format('M d, Y g:ia') }}
+                                                @if($print->print_reason)
+                                                    &middot; <span class="italic">{{ $print->print_reason }}</span>
+                                                @endif
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700">
+                                            {{ $print->copies }} {{ Str::plural('copy', $print->copies) }}
+                                        </span>
+                                        @if($print->version)
+                                            <span class="block text-xs text-slate-400 mt-0.5">v{{ $print->version->version_number }}</span>
+                                        @else
+                                            <span class="block text-xs text-slate-400 mt-0.5">Current</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-sm text-slate-500 text-center py-3">No print records yet.</p>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Barcode Overlay (for PDF documents) -->
+                @if($canUploadVersion && strtolower(pathinfo($document->path, PATHINFO_EXTENSION)) === 'pdf')
+                <div class="bg-white p-4 rounded-lg border border-slate-200 mb-8">
+                    <div class="flex items-center gap-2 mb-3">
+                        <svg class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                        </svg>
+                        <h3 class="text-base font-semibold text-slate-800">Barcode Overlay</h3>
+                        @if($document->barcode_applied)
+                            <span class="text-xs font-medium text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">Applied</span>
+                        @else
+                            <span class="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">Not applied</span>
+                        @endif
+                    </div>
+
+                    <p class="text-xs text-slate-500 mb-3">Overlay the tracking number barcode directly onto the PDF document.</p>
+
+                    <form action="{{ route('documents.barcodeOverlay', $document->id) }}" method="POST">
+                        @csrf
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                            <div>
+                                <label class="block text-xs text-slate-500 mb-1">X (mm)</label>
+                                <input type="number" name="barcode_x" value="{{ $document->barcode_settings['x'] ?? 10 }}" min="0" max="500"
+                                    class="w-full text-xs rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-500 mb-1">Y (mm)</label>
+                                <input type="number" name="barcode_y" value="{{ $document->barcode_settings['y'] ?? 10 }}" min="0" max="800"
+                                    class="w-full text-xs rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-500 mb-1">Width (mm)</label>
+                                <input type="number" name="barcode_width" value="{{ $document->barcode_settings['width'] ?? 60 }}" min="10" max="200"
+                                    class="w-full text-xs rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-500 mb-1">Height (mm)</label>
+                                <input type="number" name="barcode_height" value="{{ $document->barcode_settings['height'] ?? 15 }}" min="5" max="100"
+                                    class="w-full text-xs rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="block text-xs text-slate-500 mb-1">Page</label>
+                                <select name="barcode_page" class="w-full text-xs rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200">
+                                    <option value="1" {{ ($document->barcode_settings['page'] ?? 1) == 1 ? 'selected' : '' }}>First page</option>
+                                    <option value="0" {{ ($document->barcode_settings['page'] ?? 1) == 0 ? 'selected' : '' }}>All pages</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-500 mb-1">Show text</label>
+                                <select name="barcode_show_text" class="w-full text-xs rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200">
+                                    <option value="1" {{ ($document->barcode_settings['show_text'] ?? true) ? 'selected' : '' }}>Yes</option>
+                                    <option value="0" {{ !($document->barcode_settings['show_text'] ?? true) ? 'selected' : '' }}>No</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm"
+                            onclick="return confirm('{{ $document->barcode_applied ? 'A barcode has already been applied. This will re-apply it with new settings. Continue?' : 'This will permanently modify the PDF file. Continue?' }}')">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                            {{ $document->barcode_applied ? 'Re-apply Barcode' : 'Apply Barcode Overlay' }}
+                        </button>
+                    </form>
+                </div>
+                @endif
 
                 <!-- Workflow Pipeline — Full Document Workflow (all steps, completed or not) -->
                 @if(isset($workflows) && $workflows->isNotEmpty())
@@ -1332,35 +1486,141 @@ function closeRerouteModal(event) {
     </div>
 </div>
 
-<!-- QR Code Modal -->
-<div id="qrCodeModal" class="fixed inset-0 z-50 hidden">
-    <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onclick="closeQrModal()"></div>
+<!-- Barcode Modal (replaces QR Code Modal) -->
+<div id="barcodeModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onclick="closeBarcodeModal()"></div>
     <div class="absolute inset-0 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 relative">
-            <button onclick="closeQrModal()" class="absolute top-3 right-3 p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
+            <button onclick="closeBarcodeModal()" class="absolute top-3 right-3 p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
             <h3 class="text-lg font-semibold text-slate-800 mb-1 flex items-center">
                 <svg class="h-5 w-5 text-indigo-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1z" />
                 </svg>
-                QR Code
+                Barcode
             </h3>
-            <p class="text-sm text-slate-500 mb-4">{{ $document->trackingNumber->tracking_number ?? '' }}</p>
+            <p class="text-sm text-slate-500 mb-4 font-mono">{{ $document->trackingNumber->tracking_number ?? '' }}</p>
             <div class="flex justify-center mb-5">
-                <div class="bg-white p-3 rounded-xl border border-indigo-100 shadow-sm">
-                    <img id="qrCodeImage" src="" alt="QR Code" class="w-48 h-48">
+                <div class="bg-white p-4 rounded-xl border border-indigo-100 shadow-sm">
+                    <img id="barcodeImage" src="" alt="Barcode" class="max-w-full h-auto" style="min-width: 200px; min-height: 50px;">
+                    <p class="text-center text-xs text-slate-500 font-mono mt-2">{{ $document->trackingNumber->tracking_number ?? '' }}</p>
                 </div>
             </div>
+            @if($document->barcode_applied)
+                <div class="mb-4 p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-center">
+                    <span class="text-xs text-emerald-700 font-medium">Barcode has been overlaid on the document PDF</span>
+                </div>
+            @endif
             <div class="flex justify-center gap-3">
-                <a id="qrDownloadLink" href="" download="qr-{{ $document->trackingNumber->tracking_number ?? 'code' }}.png"
+                <a id="barcodeDownloadLink" href="" download="barcode-{{ $document->trackingNumber->tracking_number ?? 'code' }}.png"
                    class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white text-sm font-medium rounded-lg hover:from-emerald-600 hover:to-green-700 shadow-sm transition-all">
                     <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     Download PNG
                 </a>
-                <button onclick="closeQrModal()" class="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors">
+                <button onclick="closeBarcodeModal()" class="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors">
                     Close
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Print Tracking Modal -->
+<div id="printTrackingModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onclick="closePrintModal()"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full relative overflow-hidden" style="max-height: 85vh;">
+            <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-white/20 rounded-lg">
+                        <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Record Print</h3>
+                        <p class="text-xs text-indigo-100">Track copies printed for this document</p>
+                    </div>
+                </div>
+                <button onclick="closePrintModal()" class="text-white/70 hover:text-white p-1 rounded-lg hover:bg-white/20 transition-colors">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="p-6">
+                <!-- Print Summary -->
+                <div class="mb-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200/60 flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-indigo-900">Total Copies Printed</p>
+                        <p class="text-xs text-indigo-600">Across {{ $printHistory->count() ?? 0 }} print event(s)</p>
+                    </div>
+                    <span class="text-2xl font-bold text-indigo-700">{{ $totalPrintCopies ?? 0 }}</span>
+                </div>
+
+                <!-- Record New Print Form -->
+                <form action="{{ route('documents.recordPrint', $document->id) }}" method="POST" class="mb-4">
+                    @csrf
+                    <div class="grid grid-cols-2 gap-4 mb-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Number of Copies</label>
+                            <input type="number" name="copies" value="1" min="1" max="999" required
+                                class="w-full text-sm rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Version</label>
+                            <select name="version_id" class="w-full text-sm rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200">
+                                <option value="">Current version</option>
+                                @foreach($document->versions as $ver)
+                                    <option value="{{ $ver->id }}">v{{ $ver->version_number }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Reason (optional)</label>
+                        <input type="text" name="print_reason" maxlength="500" placeholder="e.g., For office distribution, For filing..."
+                            class="w-full text-sm rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200">
+                    </div>
+                    <button type="submit" class="w-full inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        Record Print
+                    </button>
+                </form>
+
+                <!-- Print History -->
+                @if(isset($printHistory) && $printHistory->count() > 0)
+                <div class="border-t border-slate-100 pt-4">
+                    <h4 class="text-sm font-semibold text-slate-700 mb-2">Print History</h4>
+                    <div class="max-h-48 overflow-y-auto space-y-2">
+                        @foreach($printHistory as $print)
+                        <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg text-sm">
+                            <div>
+                                <p class="font-medium text-slate-700">
+                                    {{ $print->printer->first_name ?? '' }} {{ $print->printer->last_name ?? '' }}
+                                </p>
+                                <p class="text-xs text-slate-500">
+                                    {{ $print->created_at->format('M d, Y g:ia') }}
+                                    @if($print->print_reason)
+                                        &middot; {{ $print->print_reason }}
+                                    @endif
+                                </p>
+                            </div>
+                            <div class="text-right">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">
+                                    {{ $print->copies }} {{ Str::plural('copy', $print->copies) }}
+                                </span>
+                                @if($print->version)
+                                    <span class="block text-xs text-slate-400 mt-0.5">v{{ $print->version->version_number }}</span>
+                                @else
+                                    <span class="block text-xs text-slate-400 mt-0.5">Current</span>
+                                @endif
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
     </div>
@@ -1644,26 +1904,168 @@ function closeRerouteModal(event) {
         if (e.key === 'Escape') closeWorkflowZoom();
     }
 
-    // === QR Code Modal ===
-    function openQrModal() {
-        const modal = document.getElementById('qrCodeModal');
-        const img = document.getElementById('qrCodeImage');
-        const downloadLink = document.getElementById('qrDownloadLink');
-        const qrUrl = "{{ route('documents.qrcode', $document->id) }}";
+    // === Barcode Modal ===
+    function openBarcodeModal() {
+        const modal = document.getElementById('barcodeModal');
+        const img = document.getElementById('barcodeImage');
+        const downloadLink = document.getElementById('barcodeDownloadLink');
+        const barcodeUrl = "{{ route('documents.barcode', $document->id) }}";
 
-        img.src = qrUrl;
-        downloadLink.href = qrUrl;
+        img.src = barcodeUrl;
+        downloadLink.href = barcodeUrl;
         modal.classList.remove('hidden');
-        document.addEventListener('keydown', _qrModalEsc);
+        document.addEventListener('keydown', _barcodeModalEsc);
     }
 
-    function closeQrModal() {
-        document.getElementById('qrCodeModal').classList.add('hidden');
-        document.removeEventListener('keydown', _qrModalEsc);
+    function closeBarcodeModal() {
+        document.getElementById('barcodeModal').classList.add('hidden');
+        document.removeEventListener('keydown', _barcodeModalEsc);
     }
 
-    function _qrModalEsc(e) {
-        if (e.key === 'Escape') closeQrModal();
+    function _barcodeModalEsc(e) {
+        if (e.key === 'Escape') closeBarcodeModal();
+    }
+
+    // === Print Tracking Modal ===
+    function openPrintModal() {
+        const modal = document.getElementById('printTrackingModal');
+        modal.classList.remove('hidden');
+        document.addEventListener('keydown', _printModalEsc);
+        loadPrintHistory();
+    }
+
+    function closePrintModal() {
+        document.getElementById('printTrackingModal').classList.add('hidden');
+        document.removeEventListener('keydown', _printModalEsc);
+    }
+
+    function _printModalEsc(e) {
+        if (e.key === 'Escape') closePrintModal();
+    }
+
+    function loadPrintHistory() {
+        const historyContainer = document.getElementById('printHistoryList');
+        if (!historyContainer) return;
+        
+        fetch("{{ route('documents.printHistory', $document->id) }}", {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.prints && data.prints.length > 0) {
+                historyContainer.innerHTML = data.prints.map(p => `
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                        <div>
+                            <span class="font-medium text-gray-800">${p.printer_name || 'Unknown'}</span>
+                            <span class="text-sm text-gray-500 ml-2">${p.printed_at || ''}</span>
+                            ${p.version_number ? `<span class="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded ml-1">v${p.version_number}</span>` : ''}
+                        </div>
+                        <div class="text-right">
+                            <span class="font-semibold text-gray-700">${p.copies} ${p.copies === 1 ? 'copy' : 'copies'}</span>
+                            ${p.print_reason ? `<div class="text-xs text-gray-500">${p.print_reason}</div>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                historyContainer.innerHTML = '<p class="text-gray-400 text-sm text-center py-4">No print records yet.</p>';
+            }
+        })
+        .catch(() => {
+            historyContainer.innerHTML = '<p class="text-red-400 text-sm text-center py-4">Failed to load print history.</p>';
+        });
+    }
+
+    function submitPrintRecord(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                // Update the total copies display
+                const totalEl = document.getElementById('totalPrintCopies');
+                if (totalEl) totalEl.textContent = data.total_copies;
+                
+                // Reset form
+                form.reset();
+                form.querySelector('[name="copies"]').value = 1;
+                
+                // Reload history
+                loadPrintHistory();
+                
+                // Show brief success
+                const successMsg = document.createElement('div');
+                successMsg.className = 'bg-green-50 text-green-700 text-sm p-2 rounded mt-2';
+                successMsg.textContent = 'Print record saved successfully!';
+                form.appendChild(successMsg);
+                setTimeout(() => successMsg.remove(), 3000);
+            }
+        })
+        .catch(() => {
+            alert('Failed to save print record. Please try again.');
+        });
+    }
+
+    // === Barcode Overlay ===
+    function submitBarcodeOverlay(e) {
+        e.preventDefault();
+        if (!confirm('This will permanently overlay a barcode on the document PDF. Continue?')) return;
+        
+        const form = e.target;
+        const formData = new FormData(form);
+        const btn = form.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.textContent = 'Applying...';
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.textContent = 'Apply Barcode Overlay';
+            if (data.success) {
+                alert('Barcode overlay applied successfully!');
+                location.reload();
+            } else {
+                alert(data.message || 'Failed to apply barcode overlay.');
+            }
+        })
+        .catch(() => {
+            btn.disabled = false;
+            btn.textContent = 'Apply Barcode Overlay';
+            alert('Failed to apply barcode overlay. Please try again.');
+        });
     }
 </script>
+
+{{-- ═══════ Barcode Preview Modal for Version Upload ═══════ --}}
+@include('documents.partials.barcode-preview-modal', [
+    'modalId'        => 'showBarcodeModal',
+    'formSelector'   => '#show-version-upload-form',
+    'trackingNumber' => $document->tracking_number ?? null,
+])
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var versionInput = document.getElementById('show-version-file-input');
+    if (versionInput) {
+        bindBarcodePreviewToFileInput('#show-version-file-input', 'showBarcodeModal', @json($document->tracking_number ?? null));
+    }
+});
+</script>
+
+{{-- ═══════ Print Prompt Modal ═══════ --}}
+@include('documents.partials.print-prompt-modal')
+
 @endsection

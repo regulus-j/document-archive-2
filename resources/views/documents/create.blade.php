@@ -320,6 +320,30 @@
                             <div class="upload-feedback hidden mt-2 text-sm text-indigo-600"></div>
                         </div>
 
+                        <!-- Barcode Overlay — opens modal on PDF file select -->
+                        <div class="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200" id="barcode-settings-section">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                                    </svg>
+                                    Barcode Overlay
+                                </h4>
+                                <button type="button" onclick="openBarcodePreviewModal('createBarcodeModal')"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-100 rounded-lg hover:bg-indigo-200 transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    Preview &amp; Configure
+                                </button>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-2">When you select a PDF file, the barcode overlay preview will open automatically. You can also click the button above to configure it manually.</p>
+                            <div id="barcode-confirmed-badge" class="hidden mt-2">
+                                <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    Barcode overlay configured
+                                </span>
+                            </div>
+                        </div>
+
                         <!-- Attachments Upload -->
                         <div>
                             <label for="attachments" class="block text-sm font-medium text-slate-700 mb-2">Upload
@@ -683,6 +707,44 @@
         // Trigger change event to update the preview
         attachmentsInput.dispatchEvent(new Event('change'));
     }
+    </script>
+
+    {{-- ═══════ Barcode Preview Modal (reusable partial) ═══════ --}}
+    @include('documents.partials.barcode-preview-modal', [
+        'modalId'        => 'createBarcodeModal',
+        'trackingNumber' => null,
+    ])
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const mainDocInput = document.getElementById('main-document');
+
+        // Auto-open barcode preview modal when a PDF file is selected
+        if (mainDocInput) {
+            bindBarcodePreviewToFileInput('#main-document', 'createBarcodeModal', null);
+        }
+
+        // Watch for modal confirmation to show a badge
+        const createModal = document.getElementById('createBarcodeModal');
+        if (createModal) {
+            const observer = new MutationObserver(function() {
+                const badge = document.getElementById('barcode-confirmed-badge');
+                if (badge && createModal.dataset.barcodeConfirmed === '1') {
+                    badge.classList.remove('hidden');
+                }
+            });
+            observer.observe(createModal, { attributes: true, attributeFilter: ['data-barcode-confirmed'] });
+
+            // Also listen for class changes (modal hide)
+            const classObserver = new MutationObserver(function() {
+                if (createModal.classList.contains('hidden') && createModal.dataset.barcodeConfirmed === '1') {
+                    const badge = document.getElementById('barcode-confirmed-badge');
+                    if (badge) badge.classList.remove('hidden');
+                }
+            });
+            classObserver.observe(createModal, { attributes: true, attributeFilter: ['class'] });
+        }
+    });
     </script>
 
     {{-- ═══════ Category Manager Script (company-admin only) ═══════ --}}

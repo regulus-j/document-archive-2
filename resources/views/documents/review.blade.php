@@ -89,6 +89,19 @@
                             <p class="text-sm font-mono font-semibold text-indigo-700 mt-1 bg-indigo-50 px-2 py-1 rounded">{{ $workflow->tracking_number }}</p>
                         </div>
                         @endif
+                        
+                        {{-- Print/Copy Tracking Summary --}}
+                        @if(isset($totalPrintCopies))
+                        <div>
+                            <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Print Copies</label>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-semibold {{ $totalPrintCopies > 0 ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500' }}">
+                                    <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                    {{ $totalPrintCopies }} {{ $totalPrintCopies === 1 ? 'copy' : 'copies' }}
+                                </span>
+                            </div>
+                        </div>
+                        @endif
                         <div>
                             <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Title</label>
                             <p class="text-sm font-medium text-slate-800 mt-1">{{ $document->title ?? 'Untitled' }}</p>
@@ -346,18 +359,46 @@
                             Upload New Version
                         </h4>
                         <p class="text-xs text-slate-400 mb-3">Upload a revised version of this document. The current file will be preserved in the version history.</p>
-                        <form action="{{ route('documents.reviewUploadVersion', $workflow->id) }}" method="POST" enctype="multipart/form-data">
+                        <form id="review-version-upload-form" action="{{ route('documents.reviewUploadVersion', $workflow->id) }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <div class="space-y-3">
                                 <label class="flex items-center justify-center px-4 py-3 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition">
                                     <svg class="w-5 h-5 text-slate-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                                     <span class="text-sm text-slate-500" id="version-file-label">Choose file...</span>
-                                    <input type="file" name="version_file" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.odt,.ods,.odp,.rtf,.jpg,.jpeg,.png"
+                                    <input type="file" name="version_file" id="review-version-file-input" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.odt,.ods,.odp,.rtf,.jpg,.jpeg,.png"
                                            onchange="document.getElementById('version-file-label').textContent = this.files.length ? this.files[0].name : 'Choose file...'">
                                 </label>
                                 <div>
                                     <label class="block text-xs font-medium text-slate-500 mb-1">Change Notes (Optional)</label>
                                     <textarea name="version_notes" rows="2" class="w-full text-sm rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200" placeholder="What changed in this version..."></textarea>
+                                </div>
+                                
+                                {{-- Print/Copy Tracking Prompt --}}
+                                <div class="bg-amber-50 border border-amber-200 rounded-lg p-3" x-data="{ recordPrint: false }">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="record_print" value="1" x-model="recordPrint"
+                                               class="rounded border-amber-300 text-amber-600 focus:ring-amber-500">
+                                        <span class="text-sm font-medium text-amber-800">
+                                            <svg class="w-4 h-4 inline-block mr-0.5 -mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                            Record print/copy of current version before uploading new one
+                                        </span>
+                                    </label>
+                                    @if(isset($totalPrintCopies) && $totalPrintCopies > 0)
+                                    <p class="text-xs text-amber-600 mt-1 ml-6">This document has {{ $totalPrintCopies }} recorded {{ $totalPrintCopies === 1 ? 'copy' : 'copies' }} so far.</p>
+                                    @endif
+                                    
+                                    <div x-show="recordPrint" x-collapse class="mt-2 ml-6 space-y-2">
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-500 mb-0.5">Number of Copies</label>
+                                            <input type="number" name="print_copies" value="1" min="1" max="999"
+                                                   class="w-20 text-sm rounded-md border-slate-300 shadow-sm focus:border-amber-500 focus:ring focus:ring-amber-200">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-500 mb-0.5">Reason (Optional)</label>
+                                            <input type="text" name="print_reason" placeholder="e.g., For filing, distribution..."
+                                                   class="w-full text-sm rounded-md border-slate-300 shadow-sm focus:border-amber-500 focus:ring focus:ring-amber-200">
+                                        </div>
+                                    </div>
                                 </div>
                                 <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm">
                                     <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
@@ -806,6 +847,16 @@
     </div>
 </div>
 
+{{-- ═══════ Barcode Preview Modal for Version Upload ═══════ --}}
+@include('documents.partials.barcode-preview-modal', [
+    'modalId'        => 'reviewBarcodeModal',
+    'formSelector'   => '#review-version-upload-form',
+    'trackingNumber' => $workflow->tracking_number ?? null,
+])
+
+{{-- ═══════ Print Prompt Modal ═══════ --}}
+@include('documents.partials.print-prompt-modal')
+
 @endsection
 
 @push('scripts')
@@ -1183,6 +1234,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if (iframe) iframe.style.height = (500 * currentZoom / 100) + 'px';
         if (img) img.style.transform = 'scale(' + (currentZoom / 100) + ')';
     };
+});
+</script>
+
+{{-- ═══════ Barcode Preview Modal Trigger for Version Upload ═══════ --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var reviewInput = document.getElementById('review-version-file-input');
+    if (reviewInput) {
+        bindBarcodePreviewToFileInput('#review-version-file-input', 'reviewBarcodeModal', @json($workflow->tracking_number ?? null));
+    }
 });
 </script>
 @endpush
