@@ -22,6 +22,9 @@ class Document extends Model
         'category',
         'classification', // A-03 FIX: was silently ignored on mass-assignment; access control depends on this value.
         'from_office',
+        // Barcode overlay settings
+        'barcode_settings',
+        'barcode_applied',
         // Urgency Matrix fields
         'urgency_level',
         'urgency_reasoning',
@@ -38,6 +41,8 @@ class Document extends Model
 
     protected $casts = [
         'purpose'             => 'string',
+        'barcode_settings'    => 'array',
+        'barcode_applied'     => 'boolean',
         'urgency_keywords'    => 'array',
         'urgency_analyzed_at' => 'datetime',
         'urgency_escalated_at'=> 'datetime',
@@ -132,6 +137,27 @@ class Document extends Model
     public function eSignatures()
     {
         return $this->hasMany(ESignature::class);
+    }
+
+    public function prints()
+    {
+        return $this->hasMany(DocumentPrint::class);
+    }
+
+    /**
+     * Get total copies printed across all print events.
+     */
+    public function getTotalPrintCopiesAttribute(): int
+    {
+        return $this->prints()->sum('copies');
+    }
+
+    /**
+     * Get total print events count.
+     */
+    public function getPrintCountAttribute(): int
+    {
+        return $this->prints()->count();
     }
 
     public function documentWorkflow()
