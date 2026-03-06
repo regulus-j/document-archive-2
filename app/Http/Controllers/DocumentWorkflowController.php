@@ -445,7 +445,7 @@ class DocumentWorkflowController extends Controller
         }
 
         $docQR = $document->trackingNumber();
-        $qrCodeData = app(DocumentController::class)->generateTrackingSlip($document->id, auth()->id(), $trackingNumber);
+        $barcodeData = app(DocumentController::class)->generateTrackingSlip($document->id, auth()->id(), $trackingNumber);
         
         $successMessage = $isSequential ? 
             'Document forwarded successfully with sequential workflow. Recipients will process in order.' :
@@ -472,7 +472,12 @@ class DocumentWorkflowController extends Controller
         // === End Urgency Matrix ===
 
         return redirect()->route('documents.index')
-        ->with('data', $qrCodeData)
+        ->with('data', $barcodeData)
+        ->with('prompt_print', [
+            'id'              => $document->id,
+            'title'           => $document->title,
+            'tracking_number' => $trackingNumber,
+        ])
         ->with('success', $successMessage);
     }
 
@@ -721,7 +726,21 @@ class DocumentWorkflowController extends Controller
             $companyUsers = User::whereIn('id', $companyUserIds)->get();
         }
 
-        return view('documents.review', compact('workflow', 'document', 'companyUsers'));
+        // Get print tracking data
+        $document->load('prints.printer');
+        $totalPrintCopies = \App\Models\DocumentPrint::totalCopiesForDocument($document->id);
+        $printHistory = $document->prints()->with('printer')->latest()->take(20)->get()->map(function($p) {
+            return [
+                'id' => $p->id,
+                'copies' => $p->copies,
+                'printer_name' => $p->printer ? ($p->printer->first_name . ' ' . $p->printer->last_name) : 'Unknown',
+                'printed_at' => $p->created_at->format('M d, Y g:ia'),
+                'print_reason' => $p->print_reason,
+                'version_number' => $p->version ? $p->version->version_number : null,
+            ];
+        });
+
+        return view('documents.review', compact('workflow', 'document', 'companyUsers', 'totalPrintCopies', 'printHistory'));
     }
 
     public function reviewSubmit(Request $request)
@@ -1601,8 +1620,25 @@ class DocumentWorkflowController extends Controller
                 'uploader'    => $user->id,
             ]);
 
+            // Record print/copy if requested
+            if ($request->input('record_print')) {
+                $copies = max(1, intval($request->input('print_copies', 1)));
+                \App\Models\DocumentPrint::create([
+                    'document_id'  => $document->id,
+                    'version_id'   => $document->versions()->where('version_number', $newVersionNum)->value('id'),
+                    'printed_by'   => $user->id,
+                    'copies'       => $copies,
+                    'print_reason' => $request->input('print_reason', 'Printed before new version upload'),
+                ]);
+            }
+
             return redirect()->route('documents.review', $workflow->id)
-                ->with('success', "New version uploaded successfully. Previous version saved as v{$newVersionNum}.");
+                ->with('success', "New version uploaded successfully. Previous version saved as v{$newVersionNum}.")
+                ->with('prompt_print', [
+                    'id'              => $document->id,
+                    'title'           => $document->title,
+                    'tracking_number' => $document->trackingNumber->tracking_number ?? null,
+                ]);
 
         } catch (\Exception $e) {
             \Log::error('Error uploading document version during review', [

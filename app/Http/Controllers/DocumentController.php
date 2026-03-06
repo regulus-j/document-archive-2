@@ -16,9 +16,8 @@ use App\Models\DocumentCategories;
 use App\Models\Office;
 use App\Models\User;
 use App\Services\DocumentAccessService;
-use chillerlan\QRCode\QRCode;
-use chillerlan\QRCode\QROptions;
-use chillerlan\QRCode\Output\QROutputInterface;
+use App\Services\BarcodeService;
+use App\Models\DocumentPrint;
 use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,10 +34,12 @@ use Spatie\PdfToText\Pdf;
 class DocumentController extends Controller
 {
     protected $documentAccessService;
+    protected $barcodeService;
 
-    public function __construct(DocumentAccessService $documentAccessService)
+    public function __construct(DocumentAccessService $documentAccessService, BarcodeService $barcodeService)
     {
         $this->documentAccessService = $documentAccessService;
+        $this->barcodeService = $barcodeService;
     }
     // B-09 FIX: Removed commented-out duplicate __construct() block that contained
     // permission middleware. Access control is now handled via DocumentAccessService
@@ -509,6 +510,14 @@ class DocumentController extends Controller
             'attachments.*'  => 'file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,odt,ods,odp,rtf,jpeg,png,jpg,gif,webp,bmp,svg|max:10240',
             'archive'        => 'nullable|string',
             'forward'        => 'nullable|string',
+            // Barcode overlay settings
+            'barcode_enabled'   => 'nullable|boolean',
+            'barcode_x'         => 'nullable|numeric|min:0|max:500',
+            'barcode_y'         => 'nullable|numeric|min:0|max:800',
+            'barcode_width'     => 'nullable|numeric|min:10|max:200',
+            'barcode_height'    => 'nullable|numeric|min:5|max:100',
+            'barcode_page'      => 'nullable|integer|min:0',
+            'barcode_show_text'  => 'nullable',
         ]);
 
         // Custom validation for Custom Offices classification
@@ -578,6 +587,40 @@ class DocumentController extends Controller
             ]);
             \Log::info('Tracking number record created', ['document_id' => $document->id]);
 
+            // Apply barcode overlay to PDF documents if enabled
+            if ($request->input('barcode_enabled')) {
+                $barcodeOptions = [
+                    'x'         => (float) ($request->input('barcode_x', 10)),
+                    'y'         => (float) ($request->input('barcode_y', 10)),
+                    'width'     => (float) ($request->input('barcode_width', 60)),
+                    'height'    => (float) ($request->input('barcode_height', 15)),
+                    'page'      => (int) ($request->input('barcode_page', 1)),
+                    'show_text' => (bool) ($request->input('barcode_show_text', true)),
+                ];
+
+                try {
+                    $overlayResult = $this->barcodeService->overlayBarcodeOnStoredDocument(
+                        $document->path,
+                        $tracking_number,
+                        $barcodeOptions
+                    );
+
+                    $document->update([
+                        'barcode_settings' => $barcodeOptions,
+                        'barcode_applied' => $overlayResult !== null,
+                    ]);
+
+                    if ($overlayResult) {
+                        \Log::info('Barcode overlay applied to document', ['document_id' => $document->id]);
+                    }
+                } catch (\Exception $e) {
+                    \Log::warning('Barcode overlay failed during upload, continuing without overlay', [
+                        'document_id' => $document->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
             // Only create transaction if to_office is provided AND forwarding is enabled
             if ($request->has('to_office') && $request->forward == '1') {
                 DocumentTransaction::create([
@@ -620,16 +663,24 @@ class DocumentController extends Controller
             // Urgency analysis is now triggered after forwarding (DocumentWorkflowController)
             // since that's when due_date and urgency metadata are set by the user.
 
+            $promptPrintData = [
+                'id'              => $document->id,
+                'title'           => $document->title,
+                'tracking_number' => $tracking_number,
+            ];
+
             if ($request->forward == '1') {
                 \Log::info('Redirecting to forward route', ['document_id' => $document->id]);
                 // Document is already created with 'uploaded' status, now redirect to forward page
                 return redirect()->route('documents.forward', $document->id)
                     ->with('data', $data)
+                    ->with('prompt_print', $promptPrintData)
                     ->with('success', 'Document uploaded successfully. Please select users to forward to.');
             } else {
                 \Log::info('Redirecting to index route', ['document_id' => $document->id]);
                 return redirect()->route('documents.index')
                     ->with('data', $data)
+                    ->with('prompt_print', $promptPrintData)
                     ->with('success', 'Document uploaded successfully');
             }
         } catch (Exception $e) {
@@ -1027,7 +1078,16 @@ class DocumentController extends Controller
             || auth()->user()->hasRole('super-admin')
             || auth()->user()->hasRole('company-admin');
 
-        return view('documents.show', compact('document', 'auditLogs', 'attachments', 'docRoute', 'workflows', 'rerouteLogs', 'canReroute', 'canUploadVersion'));
+        // === Print/Copy Tracking ===
+        $document->load('prints.printer');
+        $totalPrintCopies = $document->prints->sum('copies');
+        $printHistory = $document->prints->sortByDesc('created_at');
+
+        return view('documents.show', compact(
+            'document', 'auditLogs', 'attachments', 'docRoute', 'workflows',
+            'rerouteLogs', 'canReroute', 'canUploadVersion',
+            'totalPrintCopies', 'printHistory'
+        ));
     }
 
     /**
@@ -1369,8 +1429,25 @@ class DocumentController extends Controller
                 'uploader'    => auth()->id(),
             ]);
 
+            // Record print/copy if requested
+            if ($request->input('record_print')) {
+                $copies = max(1, intval($request->input('print_copies', 1)));
+                DocumentPrint::create([
+                    'document_id'  => $document->id,
+                    'version_id'   => $document->versions()->where('version_number', $newVersionNum)->value('id'),
+                    'printed_by'   => auth()->id(),
+                    'copies'       => $copies,
+                    'print_reason' => $request->input('print_reason', 'Printed before new version upload'),
+                ]);
+            }
+
             return redirect()->route('documents.show', $document->id)
-                ->with('success', "New version uploaded successfully. Previous version saved as v{$newVersionNum}.");
+                ->with('success', "New version uploaded successfully. Previous version saved as v{$newVersionNum}.")
+                ->with('prompt_print', [
+                    'id'              => $document->id,
+                    'title'           => $document->title,
+                    'tracking_number' => $document->trackingNumber->tracking_number ?? null,
+                ]);
 
         } catch (Exception $e) {
             \Log::error('Error uploading document version', [
@@ -1618,27 +1695,20 @@ class DocumentController extends Controller
         return $trackingNumber;
     }
 
-    public function generateTrackingSlip($docid = 0, $uploaderid = 0, $tracking_number = 5)
+    public function generateTrackingSlip($docid = 0, $uploaderid = 0, $tracking_number = '')
     {
         $document = Document::findOrFail($docid);
         $uploader = User::findOrFail($uploaderid);
 
-        $options = new QROptions([
-            'outputType' => QROutputInterface::GDIMAGE_PNG,
-            'outputBase64' => true,
-            'scale' => 10,
-        ]);
-
-        $qr = new QRCode($options);
-        $data = $qr->render($tracking_number);
-
-        return $data;
+        // Generate barcode instead of QR code
+        return $this->barcodeService->generateBarcodePng($tracking_number, 2, 60);
     }
 
     /**
-     * Show QR code for a document (used in show page).
+     * Show barcode for a document (used in show page).
+     * Replaces the old QR code endpoint.
      */
-    public function showQrCode(Document $document)
+    public function showBarcode(Document $document)
     {
         $trackingNumber = $document->trackingNumber->tracking_number ?? null;
 
@@ -1646,18 +1716,157 @@ class DocumentController extends Controller
             abort(404, 'No tracking number found.');
         }
 
-        $options = new QROptions([
-            'outputType' => QROutputInterface::GDIMAGE_PNG,
-            'outputBase64' => false,
-            'scale' => 10,
-        ]);
-
-        $qr = new QRCode($options);
-        $pngData = $qr->render($trackingNumber);
+        $pngData = $this->barcodeService->generateBarcodeRaw($trackingNumber, 2, 60);
 
         return Response::make($pngData, 200, [
             'Content-Type' => 'image/png',
-            'Content-Disposition' => 'inline; filename="qr-' . $trackingNumber . '.png"',
+            'Content-Disposition' => 'inline; filename="barcode-' . $trackingNumber . '.png"',
+        ]);
+    }
+
+    /**
+     * Show QR code for a document — LEGACY, redirects to barcode.
+     */
+    public function showQrCode(Document $document)
+    {
+        return $this->showBarcode($document);
+    }
+
+    /**
+     * Generate barcode preview for a given tracking number (AJAX endpoint).
+     * Used by the upload page for live preview.
+     */
+    public function barcodePreview(Request $request)
+    {
+        $request->validate([
+            'tracking_number' => 'required|string|max:100',
+            'width_factor' => 'nullable|integer|min:1|max:5',
+            'height' => 'nullable|integer|min:20|max:200',
+        ]);
+
+        $trackingNumber = $request->input('tracking_number');
+        $widthFactor = $request->input('width_factor', 2);
+        $height = $request->input('height', 60);
+
+        $dataUri = $this->barcodeService->generateBarcodePng($trackingNumber, $widthFactor, $height);
+
+        return response()->json([
+            'barcode' => $dataUri,
+            'tracking_number' => $trackingNumber,
+        ]);
+    }
+
+    /**
+     * Apply barcode overlay to an existing document's PDF.
+     */
+    public function applyBarcodeOverlay(Request $request, Document $document)
+    {
+        $request->validate([
+            'barcode_x' => 'required|numeric|min:0|max:500',
+            'barcode_y' => 'required|numeric|min:0|max:800',
+            'barcode_width' => 'required|numeric|min:10|max:200',
+            'barcode_height' => 'required|numeric|min:5|max:100',
+            'barcode_page' => 'nullable|integer|min:0',
+            'barcode_show_text' => 'nullable|boolean',
+        ]);
+
+        $trackingNumber = $document->trackingNumber->tracking_number ?? null;
+        if (!$trackingNumber) {
+            return redirect()->back()->with('error', 'No tracking number found for this document.');
+        }
+
+        // Check file is PDF
+        $ext = strtolower(pathinfo($document->path, PATHINFO_EXTENSION));
+        if ($ext !== 'pdf') {
+            return redirect()->back()->with('error', 'Barcode overlay is only supported for PDF documents.');
+        }
+
+        $options = [
+            'x' => (float) $request->barcode_x,
+            'y' => (float) $request->barcode_y,
+            'width' => (float) $request->barcode_width,
+            'height' => (float) $request->barcode_height,
+            'page' => (int) ($request->barcode_page ?? 1),
+            'show_text' => (bool) ($request->barcode_show_text ?? true),
+        ];
+
+        try {
+            $this->barcodeService->overlayBarcodeOnStoredDocument(
+                $document->path,
+                $trackingNumber,
+                $options
+            );
+
+            $document->update([
+                'barcode_settings' => $options,
+                'barcode_applied' => true,
+            ]);
+
+            $this->logDocumentAction($document, 'barcode_applied', null, 'Barcode overlay applied to document');
+
+            return redirect()->back()->with('success', 'Barcode overlay applied successfully.');
+        } catch (\Exception $e) {
+            Log::error('Barcode overlay error', ['document_id' => $document->id, 'error' => $e->getMessage()]);
+            return redirect()->back()->with('error', 'Failed to apply barcode overlay. ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Record a document print event.
+     */
+    public function recordPrint(Request $request, Document $document)
+    {
+        $request->validate([
+            'copies' => 'required|integer|min:1|max:999',
+            'print_reason' => 'nullable|string|max:500',
+            'version_id' => 'nullable|exists:document_versions,id',
+        ]);
+
+        DocumentPrint::create([
+            'document_id' => $document->id,
+            'version_id' => $request->version_id,
+            'printed_by' => auth()->id(),
+            'copies' => $request->copies,
+            'print_reason' => $request->print_reason,
+        ]);
+
+        $this->logDocumentAction(
+            $document,
+            'printed',
+            null,
+            "Printed {$request->copies} copy(ies)" . ($request->print_reason ? ": {$request->print_reason}" : '')
+        );
+
+        return redirect()->back()->with('success', "Print recorded: {$request->copies} copy(ies).");
+    }
+
+    /**
+     * Get print history for a document (AJAX).
+     */
+    public function printHistory(Document $document)
+    {
+        $prints = $document->prints()
+            ->with(['printer:id,first_name,last_name', 'version:id,version_number'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($print) {
+                return [
+                    'id' => $print->id,
+                    'copies' => $print->copies,
+                    'reason' => $print->print_reason,
+                    'printed_by' => ($print->printer->first_name ?? '') . ' ' . ($print->printer->last_name ?? ''),
+                    'version' => $print->version ? 'v' . $print->version->version_number : 'Current',
+                    'printed_at' => $print->created_at->format('M d, Y g:ia'),
+                ];
+            });
+
+        $totalCopies = $document->prints()->sum('copies');
+        $totalEvents = $document->prints()->count();
+
+        return response()->json([
+            'prints' => $prints,
+            'total_copies' => $totalCopies,
+            'total_events' => $totalEvents,
         ]);
     }
 

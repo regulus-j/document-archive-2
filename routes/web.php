@@ -250,6 +250,11 @@ Route::middleware('auth')->group(function () {
         // Parameterized routes
         Route::get('/{document}/show', [DocumentController::class, 'show'])->name('documents.show');
         Route::get('/{document}/qr-code', [DocumentController::class, 'showQrCode'])->name('documents.qrcode');
+        Route::get('/{document}/barcode', [DocumentController::class, 'showBarcode'])->name('documents.barcode');
+        Route::post('/{document}/barcode-overlay', [DocumentController::class, 'applyBarcodeOverlay'])->name('documents.barcodeOverlay');
+        Route::post('/barcode-preview', [DocumentController::class, 'barcodePreview'])->name('documents.barcodePreview');
+        Route::post('/{document}/record-print', [DocumentController::class, 'recordPrint'])->name('documents.recordPrint');
+        Route::get('/{document}/print-history', [DocumentController::class, 'printHistory'])->name('documents.printHistory');
         Route::get('/{document}/edit', [DocumentController::class, 'edit'])->name('documents.edit');
         Route::put('/{document}', [DocumentController::class, 'update'])->name('documents.update');
         Route::post('/{document}/upload-version', [DocumentController::class, 'uploadVersion'])->name('documents.uploadVersion');
