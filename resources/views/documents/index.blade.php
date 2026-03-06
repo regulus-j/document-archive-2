@@ -73,7 +73,7 @@
             </div>
         @endif
 
-        <!-- QR Code Modal -->
+        <!-- Barcode Modal -->
         @if (session('data'))
             <div class="fixed inset-0 flex items-center justify-center z-50">
                 <div class="bg-slate-900 bg-opacity-70 absolute inset-0"></div>
@@ -84,22 +84,22 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                         </svg>
-                        QR Code Generated
+                        Barcode Generated
                     </h2>
                     <div class="flex justify-center mb-6">
                         <div class="bg-white p-4 rounded-lg shadow-md border border-indigo-100">
-                            <img src="{{ session('data') }}" alt="QR Code" class="w-48 h-48">
+                            <img src="{{ session('data') }}" alt="Barcode" class="w-64 h-24 object-contain">
                         </div>
                     </div>
                     <div class="flex justify-center space-x-4">
-                        <a href="{{ session('data') }}" download="qr-code.png"
+                        <a href="{{ session('data') }}" download="barcode.png"
                             class="px-4 py-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg hover:from-emerald-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-md transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
-                            Save QR Code
+                            Save Barcode
                         </a>
                         <button onclick="document.querySelector('.fixed.inset-0').remove()"
                             class="px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-lg hover:from-indigo-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md transition-colors">
@@ -1916,4 +1916,8 @@
             return false;
         }
     </script>
+
+{{-- ═══════ Print Prompt Modal ═══════ --}}
+@include('documents.partials.print-prompt-modal')
+
 @endsection

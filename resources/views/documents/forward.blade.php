@@ -20,7 +20,7 @@
                             <p class="text-sm text-slate-500">Select recipients to forward this document</p>
                         </div>
                     </div>
-                    <a href="{{ route('documents.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors duration-200">
+                    <a href="{{ route('documents.show', $document->id) }}?prompt_print=1" class="inline-flex items-center px-4 py-2 bg-white border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors duration-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
                         </svg>
@@ -1027,4 +1027,8 @@
             });
         });
     </script>
+
+{{-- ═══════ Print Prompt Modal ═══════ --}}
+@include('documents.partials.print-prompt-modal')
+
 @endsection
