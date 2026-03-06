@@ -459,7 +459,9 @@ class DocumentController extends Controller
                     return [
                         'name' => optional($workflow->recipient)->first_name . ' ' . optional($workflow->recipient)->last_name,
                         'sender' => optional($workflow->sender)->first_name . ' ' . optional($workflow->sender)->last_name,
+                        'forwarded_at' => $workflow->created_at,
                         'received_at' => $workflow->received_at,
+                        'actioned_at' => in_array($workflow->status, ['approved','rejected','acknowledged','commented','returned','forwarded']) ? $workflow->updated_at : null,
                         'received' => $workflow->status === 'received',
                         'purpose' => $workflow->purpose ?? null,
                         'status' => $workflow->status,
@@ -468,14 +470,14 @@ class DocumentController extends Controller
         }
 
         // ── 3. COMPLETED: documents that have been fully processed ──
-        $completedReceivedDocs = Document::with(['status', 'documentWorkflow', 'user'])
+        $completedReceivedDocs = Document::with(['status', 'documentWorkflow.recipient', 'documentWorkflow.sender', 'user'])
             ->whereHas('status', function($q) {
                 $q->whereIn('status', ['complete', 'completed', 'acknowledged', 'commented', 'rejected']);
             })->whereHas('documentWorkflow', function($q) use ($currentUserId) {
                 $q->where('recipient_id', $currentUserId);
             })->latest()->get();
 
-        $completedSentDocs = Document::with(['status', 'documentWorkflow', 'user'])
+        $completedSentDocs = Document::with(['status', 'documentWorkflow.recipient', 'documentWorkflow.sender', 'user'])
             ->whereHas('status', function($q) {
                 $q->whereIn('status', ['complete', 'completed', 'acknowledged', 'commented', 'rejected']);
             })->where('uploader', $currentUserId)->latest()->get();

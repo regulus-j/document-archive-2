@@ -1018,6 +1018,62 @@
                                                     @elseif($wf->created_at)
                                                         <p class="text-xs text-slate-400 mt-1">Sent: {{ $wf->created_at->format('M d, Y g:ia') }}</p>
                                                     @endif
+                                                    @php
+                                                        // Time metrics for this workflow step
+                                                        $wfFwdAt  = $wf->created_at;
+                                                        $wfRcvAt  = $wf->received_at ? \Carbon\Carbon::parse($wf->received_at) : null;
+                                                        $wfIsDone = in_array($wf->status, ['approved','rejected','acknowledged','commented','returned','forwarded']);
+                                                        $wfActAt  = ($wfIsDone && $wf->updated_at) ? $wf->updated_at : null;
+
+                                                        $wfTimeDiff = function($start, $end = null) {
+                                                            if (!$start) return ['label' => 'N/A', 'color' => 'slate'];
+                                                            $s = \Carbon\Carbon::parse($start);
+                                                            $e = $end ? \Carbon\Carbon::parse($end) : now();
+                                                            $totalMins = max(0, $s->diffInMinutes($e));
+                                                            $totalHrs  = (int)floor($totalMins / 60);
+                                                            $days      = (int)floor($totalHrs / 24);
+                                                            $hrs       = $totalHrs % 24;
+                                                            $mins      = $totalMins % 60;
+                                                            if ($days >= 7)       $label = $days.'d';
+                                                            elseif ($days >= 1)   $label = $days.'d '.($hrs > 0 ? $hrs.'h' : '');
+                                                            elseif ($totalHrs>=1) $label = $totalHrs.'h '.($mins > 0 ? $mins.'m' : '');
+                                                            else                  $label = $totalMins.'m';
+                                                            $color = $days >= 3 ? 'red' : ($days >= 1 ? 'amber' : 'emerald');
+                                                            return ['label' => trim($label), 'color' => $color];
+                                                        };
+
+                                                        $wfFwdRcv = ($wfFwdAt && $wfRcvAt) ? $wfTimeDiff($wfFwdAt, $wfRcvAt) : null;
+                                                        $wfRcvAct = ($wfRcvAt && $wfActAt)  ? $wfTimeDiff($wfRcvAt, $wfActAt) : null;
+                                                        $wfPending = ($wfRcvAt && !$wfIsDone) ? $wfTimeDiff($wfRcvAt, now()) : null;
+                                                        $wfWaiting = (!$wfRcvAt && $wf->status === 'pending') ? $wfTimeDiff($wfFwdAt, now()) : null;
+                                                    @endphp
+                                                    @if($wfFwdRcv || $wfRcvAct || $wfPending || $wfWaiting)
+                                                        <div class="flex flex-wrap gap-1 mt-1.5">
+                                                            @if($wfFwdRcv)
+                                                                <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-{{ $wfFwdRcv['color'] }}-100 text-{{ $wfFwdRcv['color'] }}-700" title="Forwarded → Received">
+                                                                    <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                                                                    Fwd&#8594;Rcv: {{ $wfFwdRcv['label'] }}
+                                                                </span>
+                                                            @endif
+                                                            @if($wfRcvAct)
+                                                                <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-{{ $wfRcvAct['color'] }}-100 text-{{ $wfRcvAct['color'] }}-700" title="Received → Actioned">
+                                                                    <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                                    Rcv&#8594;Act: {{ $wfRcvAct['label'] }}
+                                                                </span>
+                                                            @elseif($wfPending)
+                                                                <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-{{ $wfPending['color'] }}-100 text-{{ $wfPending['color'] }}-700" title="Pending review since received">
+                                                                    <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                                    Pending: {{ $wfPending['label'] }}
+                                                                </span>
+                                                            @endif
+                                                            @if($wfWaiting)
+                                                                <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-{{ $wfWaiting['color'] }}-100 text-{{ $wfWaiting['color'] }}-700" title="Awaiting receipt">
+                                                                    <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                                    Awaiting: {{ $wfWaiting['label'] }}
+                                                                </span>
+                                                            @endif
+                                                        </div>
+                                                    @endif
                                                 </div>
                                             </div>
                                             <span class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $cfg['color'] }}-100 text-{{ $cfg['color'] }}-700">

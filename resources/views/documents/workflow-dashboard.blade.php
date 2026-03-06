@@ -5,6 +5,27 @@
 @endpush
 
 @section('content')
+@php
+// Time-diff helper: returns ['label' => '2h 15m', 'color' => 'amber']
+if (!function_exists('wfTimeDiff')) {
+    function wfTimeDiff($start, $end = null) {
+        if (!$start) return ['label' => 'N/A', 'color' => 'slate'];
+        $s = \Carbon\Carbon::parse($start);
+        $e = $end ? \Carbon\Carbon::parse($end) : now();
+        $totalMins = max(0, $s->diffInMinutes($e));
+        $totalHrs  = (int)floor($totalMins / 60);
+        $days      = (int)floor($totalHrs / 24);
+        $hrs       = $totalHrs % 24;
+        $mins      = $totalMins % 60;
+        if ($days >= 7)      $label = $days.'d';
+        elseif ($days >= 1)  $label = $days.'d '.($hrs > 0 ? $hrs.'h' : '');
+        elseif ($totalHrs>=1)$label = $totalHrs.'h '.($mins > 0 ? $mins.'m' : '');
+        else                 $label = $totalMins.'m';
+        $color = $days >= 3 ? 'red' : ($days >= 1 ? 'amber' : 'emerald');
+        return ['label' => trim($label), 'color' => $color];
+    }
+}
+@endphp
 <div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white" x-data="{ activeTab: 'receive', showArchiveConfirm: false, archiveDocId: null }">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
@@ -118,6 +139,7 @@
                                     <th class="bg-indigo-50/40 px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200/60">Document Title</th>
                                     <th class="bg-indigo-50/40 px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200/60">From</th>
                                     <th class="bg-indigo-50/40 px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200/60">Date Sent</th>
+                                    <th class="bg-indigo-50/40 px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200/60">Waiting</th>
                                     <th class="bg-indigo-50/40 px-6 py-3 text-center text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200/60">Action</th>
                                 </tr>
                             </thead>
@@ -140,6 +162,17 @@
                                         </td>
                                         <td class="px-6 py-4 text-sm text-slate-500">
                                             {{ $document->documentWorkflow->where('recipient_id', auth()->id())->first()?->created_at?->format('M d, Y h:i A') ?? $document->created_at->format('M d, Y h:i A') }}
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            @php
+                                                $fwdWf = $document->documentWorkflow->where('recipient_id', auth()->id())->first();
+                                                $waitSince = $fwdWf?->created_at ?? $document->created_at;
+                                                $wait = wfTimeDiff($waitSince, now());
+                                            @endphp
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-{{ $wait['color'] }}-100 text-{{ $wait['color'] }}-700" title="Waiting since {{ \Carbon\Carbon::parse($waitSince)->format('M d, Y g:ia') }}">
+                                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                {{ $wait['label'] }}
+                                            </span>
                                         </td>
                                         <td class="px-6 py-4 text-center">
                                             <div class="flex items-center justify-center gap-2">
@@ -246,6 +279,24 @@
                                                             {{ ucwords(str_replace('_', ' ', $r['purpose'])) }}
                                                         </div>
                                                     @endif
+                                                    @php
+                                                        $fwdRcv = ($r['forwarded_at'] && $r['received_at']) ? wfTimeDiff($r['forwarded_at'], $r['received_at']) : null;
+                                                        $waitRcv = $r['received_at'] ? wfTimeDiff($r['received_at'], now()) : null;
+                                                    @endphp
+                                                    <div class="flex flex-wrap gap-1 mt-1.5">
+                                                        @if($fwdRcv)
+                                                            <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-{{ $fwdRcv['color'] }}-100 text-{{ $fwdRcv['color'] }}-700" title="Forwarded to Received">
+                                                                <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                                                                Fwd→Rcv: {{ $fwdRcv['label'] }}
+                                                            </span>
+                                                        @endif
+                                                        @if($waitRcv)
+                                                            <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-{{ $waitRcv['color'] }}-100 text-{{ $waitRcv['color'] }}-700" title="Pending review since received">
+                                                                <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                                Pending: {{ $waitRcv['label'] }}
+                                                            </span>
+                                                        @endif
+                                                    </div>
                                                     @break
                                                 @endforeach
                                             @endif
@@ -295,6 +346,7 @@
                                     <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Title</th>
                                     <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Recipient</th>
                                     <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Status</th>
+                                    <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Tracking</th>
                                     <th class="bg-white px-6 py-3 text-center text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200 w-24">Actions</th>
                                 </tr>
                             </thead>
@@ -331,6 +383,36 @@
                                                 {{ $document->status?->status ?? 'N/A' }}
                                             </span>
                                         </td>
+                                        <td class="px-6 py-4">
+                                            @if(isset($pendingRecipients[$document->id]))
+                                                @foreach($pendingRecipients[$document->id] as $r)
+                                                    @php
+                                                        $fwdRcvSent = ($r['forwarded_at'] && $r['received_at']) ? wfTimeDiff($r['forwarded_at'], $r['received_at']) : null;
+                                                        $waitSent   = !$r['received_at'] && $r['forwarded_at'] ? wfTimeDiff($r['forwarded_at'], now()) : null;
+                                                    @endphp
+                                                    <div class="text-xs text-slate-500 mb-1">
+                                                        <span class="font-medium">Sent:</span>
+                                                        {{ $r['forwarded_at'] ? \Carbon\Carbon::parse($r['forwarded_at'])->format('M d, Y H:i') : 'N/A' }}
+                                                    </div>
+                                                    <div class="flex flex-wrap gap-1">
+                                                        @if($fwdRcvSent)
+                                                            <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-{{ $fwdRcvSent['color'] }}-100 text-{{ $fwdRcvSent['color'] }}-700" title="Forwarded to Received">
+                                                                <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                                                                Fwd&#8594;Rcv: {{ $fwdRcvSent['label'] }}
+                                                            </span>
+                                                        @elseif($waitSent)
+                                                            <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-{{ $waitSent['color'] }}-100 text-{{ $waitSent['color'] }}-700" title="Awaiting receipt">
+                                                                <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                                Awaiting: {{ $waitSent['label'] }}
+                                                            </span>
+                                                        @else
+                                                            <span class="text-[10px] text-slate-400">Not yet received</span>
+                                                        @endif
+                                                    </div>
+                                                    @break
+                                                @endforeach
+                                            @endif
+                                        </td>
                                         <td class="px-6 py-4 text-center">
                                             <a href="{{ route('documents.show', $document->id) }}" class="inline-flex items-center px-3 py-1.5 border border-slate-300 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-50 transition-colors">
                                                 <svg class="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
@@ -340,7 +422,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="px-6 py-12 text-center">
+                                        <td colspan="6" class="px-6 py-12 text-center">
                                             <svg class="mx-auto h-10 w-10 text-slate-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
                                             <p class="text-slate-500 font-medium">No pending sent documents</p>
                                             <p class="text-sm text-slate-400 mt-1">No documents awaiting recipient action.</p>
@@ -384,6 +466,7 @@
                                     <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Title</th>
                                     <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Uploaded By</th>
                                     <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Date Completed</th>
+                                    <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Time Metrics</th>
                                     <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Status</th>
                                     <th class="bg-white px-6 py-3 text-right text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Actions</th>
                                 </tr>
@@ -398,6 +481,9 @@
                                             'rejected' => 'bg-red-100 text-red-800',
                                             default => 'bg-slate-100 text-slate-800'
                                         };
+                                        $myWf = $document->documentWorkflow->where('recipient_id', auth()->id())->first();
+                                        $cFwdRcv = ($myWf && $myWf->created_at && $myWf->received_at) ? wfTimeDiff($myWf->created_at, $myWf->received_at) : null;
+                                        $cRcvAct = ($myWf && $myWf->received_at && in_array($myWf->status, ['approved','rejected','acknowledged','commented','returned','forwarded'])) ? wfTimeDiff($myWf->received_at, $myWf->updated_at) : null;
                                     @endphp
                                     <tr class="hover:bg-slate-50 transition-colors">
                                         <td class="px-6 py-4 text-sm text-slate-600">{{ $idx + 1 }}</td>
@@ -411,6 +497,25 @@
                                         <td class="px-6 py-4">
                                             <div class="text-sm text-slate-900">{{ $document->updated_at->format('M d, Y') }}</div>
                                             <div class="text-xs text-slate-500">{{ $document->updated_at->format('h:i A') }}</div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="flex flex-col gap-1">
+                                                @if($cFwdRcv)
+                                                    <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-{{ $cFwdRcv['color'] }}-100 text-{{ $cFwdRcv['color'] }}-700" title="Forwarded to Received">
+                                                        <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                                                        Fwd&#8594;Rcv: {{ $cFwdRcv['label'] }}
+                                                    </span>
+                                                @endif
+                                                @if($cRcvAct)
+                                                    <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-{{ $cRcvAct['color'] }}-100 text-{{ $cRcvAct['color'] }}-700" title="Received to Actioned">
+                                                        <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                        Rcv&#8594;Act: {{ $cRcvAct['label'] }}
+                                                    </span>
+                                                @endif
+                                                @if(!$cFwdRcv && !$cRcvAct)
+                                                    <span class="text-[10px] text-slate-400">N/A</span>
+                                                @endif
+                                            </div>
                                         </td>
                                         <td class="px-6 py-4">
                                             <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusClass }}">
@@ -432,7 +537,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="px-6 py-12 text-center">
+                                        <td colspan="7" class="px-6 py-12 text-center">
                                             <svg class="mx-auto h-10 w-10 text-slate-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                             <p class="text-slate-500 font-medium">No completed received documents</p>
                                         </td>
@@ -453,6 +558,7 @@
                                     <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Title</th>
                                     <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Recipient</th>
                                     <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Date Completed</th>
+                                    <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Time Metrics</th>
                                     <th class="bg-white px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Status</th>
                                     <th class="bg-white px-6 py-3 text-right text-xs font-medium text-indigo-700 uppercase tracking-wider border-b border-indigo-200">Actions</th>
                                 </tr>
@@ -470,6 +576,8 @@
                                         $lastWorkflow = $document->documentWorkflow->last();
                                         $recipientName = $lastWorkflow ? (optional($lastWorkflow->recipient)->first_name . ' ' . optional($lastWorkflow->recipient)->last_name) : 'N/A';
                                         $recipientOffice = $lastWorkflow ? optional($lastWorkflow->recipientOffice)->name : 'No Office';
+                                        $sFwdRcv = ($lastWorkflow && $lastWorkflow->created_at && $lastWorkflow->received_at) ? wfTimeDiff($lastWorkflow->created_at, $lastWorkflow->received_at) : null;
+                                        $sRcvAct = ($lastWorkflow && $lastWorkflow->received_at && in_array($lastWorkflow->status, ['approved','rejected','acknowledged','commented','returned','forwarded'])) ? wfTimeDiff($lastWorkflow->received_at, $lastWorkflow->updated_at) : null;
                                     @endphp
                                     <tr class="hover:bg-slate-50 transition-colors">
                                         <td class="px-6 py-4 text-sm text-slate-600">{{ $idx + 1 }}</td>
@@ -483,6 +591,25 @@
                                         <td class="px-6 py-4">
                                             <div class="text-sm text-slate-900">{{ $document->updated_at->format('M d, Y') }}</div>
                                             <div class="text-xs text-slate-500">{{ $document->updated_at->format('h:i A') }}</div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="flex flex-col gap-1">
+                                                @if($sFwdRcv)
+                                                    <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-{{ $sFwdRcv['color'] }}-100 text-{{ $sFwdRcv['color'] }}-700" title="Forwarded to Received">
+                                                        <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                                                        Fwd&#8594;Rcv: {{ $sFwdRcv['label'] }}
+                                                    </span>
+                                                @endif
+                                                @if($sRcvAct)
+                                                    <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-{{ $sRcvAct['color'] }}-100 text-{{ $sRcvAct['color'] }}-700" title="Received to Actioned">
+                                                        <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                        Rcv&#8594;Act: {{ $sRcvAct['label'] }}
+                                                    </span>
+                                                @endif
+                                                @if(!$sFwdRcv && !$sRcvAct)
+                                                    <span class="text-[10px] text-slate-400">N/A</span>
+                                                @endif
+                                            </div>
                                         </td>
                                         <td class="px-6 py-4">
                                             <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusClass }}">
@@ -513,7 +640,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="px-6 py-12 text-center">
+                                        <td colspan="7" class="px-6 py-12 text-center">
                                             <svg class="mx-auto h-10 w-10 text-slate-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                             <p class="text-slate-500 font-medium">No completed sent documents</p>
                                         </td>
