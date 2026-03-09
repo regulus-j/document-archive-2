@@ -50,6 +50,7 @@ class DashboardController extends Controller
                 $countCompanyUsers = 0;
                 $incomingDocuments = 0; 
                 $countOffices = "No Offices Found";
+                $userPerformance = collect();
                 
                 return view('dashboard-office-user', compact(
                     'totalDocuments',
@@ -61,7 +62,8 @@ class DashboardController extends Controller
                     'countRecentDocs',
                     'countCompanyUsers',
                     'incomingDocuments',
-                    'countOffices'
+                    'countOffices',
+                    'userPerformance'
                 ))->with('info', 'Please set up your company profile first.');
             }
 
@@ -115,6 +117,41 @@ class DashboardController extends Controller
             })
             ->count();
 
+        // User/Office Performance: recent document workflows per user
+        $userPerformance = DocumentWorkflow::with(['recipient', 'document'])
+            ->when($userCompany, function ($q) use ($userCompany, $user) {
+                $employeeIds = $userCompany->employees->pluck('id')->push($user->id)->unique();
+                $q->whereIn('recipient_id', $employeeIds);
+            })
+            ->latest()
+            ->take(20)
+            ->get();
+
+        // Storage by Office KPI: calculate document file sizes per office
+        $storageByOffice = collect();
+        if ($userCompany) {
+            $offices = Office::where('company_id', $userCompany->id)->with('users.documents')->get();
+            $storageByOffice = $offices->map(function ($office) {
+                $totalBytes = 0;
+                $docCount = 0;
+                foreach ($office->users as $officeUser) {
+                    foreach ($officeUser->documents as $doc) {
+                        $filePath = storage_path('app/public/' . $doc->path);
+                        if ($doc->path && file_exists($filePath)) {
+                            $totalBytes += filesize($filePath);
+                        }
+                        $docCount++;
+                    }
+                }
+                return [
+                    'name' => $office->name,
+                    'bytes' => $totalBytes,
+                    'doc_count' => $docCount,
+                    'size_formatted' => $this->formatBytes($totalBytes),
+                ];
+            })->filter(fn($o) => $o['doc_count'] > 0)->values();
+        }
+
         // **🚀 Correct Role Check for Admin**
         if ($user->hasRole('company-admin') && $userCompany) {
             return view('dashboard', compact(
@@ -130,6 +167,8 @@ class DashboardController extends Controller
                 'incomingDocuments',
                 'countOffices',
                 'totalDocuments',
+                'userPerformance',
+                'storageByOffice',
             ));
         } else {
             return view('dashboard-office-user', compact(
@@ -143,7 +182,20 @@ class DashboardController extends Controller
                 'countCompanyUsers',
                 'incomingDocuments',
                 'countOffices',
+                'userPerformance',
             ));
         }
+    }
+
+    private function formatBytes(int $bytes): string
+    {
+        if ($bytes >= 1073741824) {
+            return number_format($bytes / 1073741824, 2) . ' GB';
+        } elseif ($bytes >= 1048576) {
+            return number_format($bytes / 1048576, 2) . ' MB';
+        } elseif ($bytes >= 1024) {
+            return number_format($bytes / 1024, 2) . ' KB';
+        }
+        return $bytes . ' B';
     }
 }

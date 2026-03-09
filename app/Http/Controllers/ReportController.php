@@ -56,7 +56,7 @@ class ReportController extends Controller
         $filename = Str::slug($report->name) . '_' . $report->generated_at->format('Y-m-d');
 
         if ($format === 'pdf') {
-            $pdf = Pdf::loadView('reports.pdf', compact('report'));
+            $pdf = Pdf::loadView('reports.pdf', compact('report'))->setPaper('a4', 'landscape');
             return $pdf->download($filename . '.pdf');
         } elseif ($format === 'word') {
             $phpWord = new PhpWord();
@@ -262,7 +262,7 @@ class ReportController extends Controller
             'documentsUploaded' => $documentsUploaded,
             'monthlyData' => $monthlyData,  // Make sure this is passed
             'generatedAt' => now()->format('Y-m-d H:i:s')
-        ]);
+        ])->setPaper('a4', 'landscape');
         
         $fileName = 'analytics_report_' . now()->format('Y_m_d_H_i_s') . '.pdf';
         
@@ -466,7 +466,8 @@ class ReportController extends Controller
         // Generate report based on type
         switch ($reportType) {
             case 'audit_history':
-                $data = DocumentAudit::whereBetween('created_at', [$startDate, $endDate])
+                $data = DocumentAudit::with(['document', 'user'])
+                    ->whereBetween('created_at', [$startDate, $endDate])
                     ->when($userId, fn($q) => $q->where('user_id', $userId))
                     ->when($officeId, fn($q) =>
                         $q->whereHas('user.offices', fn($o) =>
@@ -476,7 +477,8 @@ class ReportController extends Controller
                     ->get();
                 break;
             case 'company_performance':
-                $data = DocumentWorkflow::whereBetween('created_at', [$startDate, $endDate])
+                $data = DocumentWorkflow::with(['document', 'sender', 'recipient'])
+                    ->whereBetween('created_at', [$startDate, $endDate])
                     ->when($userId, fn($q) => $q->where('recipient_id', $userId))
                     ->when($officeId, fn($q) =>
                         $q->whereHas('recipient.offices', fn($o) =>

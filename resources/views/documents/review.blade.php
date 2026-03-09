@@ -21,10 +21,16 @@
             <h3>Existing Attachments</h3>
             <ul>
                 @foreach($document->attachments as $attachment)
-                    <li>
+                    <li class="flex items-center gap-3 mb-1">
                         <a href="{{ Storage::url($attachment->path) }}" target="_blank">
                             {{ $attachment->filename }}
                         </a>
+                        <form action="{{ route('documents.attachments.destroy', $attachment->id) }}" method="POST"
+                            onsubmit="return confirm('Delete this attachment?');" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-500 hover:text-red-700 text-xs underline">Delete</button>
+                        </form>
                     </li>
                 @endforeach
             </ul>

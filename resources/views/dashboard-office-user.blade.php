@@ -119,6 +119,62 @@
                 </form>
             </div>
 
+            <!-- User/Office Performance -->
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                <div class="p-6 border-b border-gray-200 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <h3 class="text-xl font-bold text-gray-900">User/Office Performance</h3>
+                </div>
+                <div class="min-h-48 max-h-96 overflow-y-auto">
+                    @if($userPerformance->isNotEmpty())
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50 sticky top-0">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Document</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-100">
+                                @foreach($userPerformance as $workflow)
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-3 text-sm text-gray-700">
+                                            {{ $workflow->recipient?->first_name }} {{ $workflow->recipient?->last_name }}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-700 max-w-xs truncate">
+                                            {{ $workflow->document?->title ?? 'N/A' }}
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            @php
+                                                $wfColor = match($workflow->status) {
+                                                    'approved' => 'emerald',
+                                                    'rejected' => 'rose',
+                                                    'pending' => 'amber',
+                                                    default => 'blue',
+                                                };
+                                            @endphp
+                                            <span class="px-2 py-0.5 text-xs rounded-full bg-{{ $wfColor }}-100 text-{{ $wfColor }}-800 font-medium">
+                                                {{ ucfirst($workflow->status) }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 text-xs text-gray-500">
+                                            {{ $workflow->created_at->format('M d, Y') }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @else
+                        <div class="flex items-center justify-center h-48 text-gray-400">
+                            <p class="text-sm">No performance data available</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
         </div>
     </div>
 </x-app-layout>

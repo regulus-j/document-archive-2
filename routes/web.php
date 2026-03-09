@@ -20,6 +20,7 @@ use App\Http\Controllers\TrialController;
 use App\Http\Controllers\UserManualController;
 use App\Http\Controllers\UserManagedController;
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\DocumentCategoryController;
 
 
 Route::get('/', function () {
@@ -246,6 +247,9 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::get('/user-manual', [UserManualController::class, 'show'])->name('userManual.manual');
+
+    // Document Categories Management
+    Route::resource('document-categories', DocumentCategoryController::class);
 
     // Add this line for report downloads
     Route::get('/reports/{report}/download/{format?}', [ReportController::class, 'download'])

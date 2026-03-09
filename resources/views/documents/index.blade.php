@@ -149,6 +149,21 @@
                                 </div>
                             </div>
 
+                            <!-- Status Filter -->
+                            <div>
+                                <label for="status-filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Status</label>
+                                <select id="status-filter"
+                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                    <option value="">All Statuses</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Approved">Approved</option>
+                                    <option value="Rejected">Rejected</option>
+                                    <option value="Released">Released</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Retracted">Retracted</option>
+                                </select>
+                            </div>
+
                             <!-- Text Search -->
                             <div>
                                 <label for="text-search" class="block text-sm font-medium text-gray-700 mb-1">Text
@@ -620,33 +635,54 @@
             });
 
             quickSearch.addEventListener('keyup', function () {
+                filterDocumentRows();
+            });
+
+            const statusFilter = document.getElementById('status-filter');
+            if (statusFilter) {
+                statusFilter.addEventListener('change', function () {
+                    filterDocumentRows();
+                });
+            }
+
+            function filterDocumentRows() {
                 const searchField = filterField.value;
-                const searchText = this.value.toLowerCase();
+                const searchText = quickSearch.value.toLowerCase();
+                const selectedStatus = statusFilter ? statusFilter.value.toLowerCase() : '';
                 const tableRows = document.querySelectorAll('tbody tr');
 
                 tableRows.forEach(row => {
-                    let cellIndex;
-                    switch (searchField) {
-                        case 'title': cellIndex = 1; break;
-                        case 'uploader': cellIndex = 2; break;
-                        case 'status': cellIndex = 3; break;
-                        case 'originating': cellIndex = 4; break;
-                        case 'recipient': cellIndex = 5; break;
-                        case 'description': cellIndex = 7; break;
-                        default: cellIndex = 1;
-                    }
+                    let textMatch = true;
+                    let statusMatch = true;
 
-                    const cell = row.cells[cellIndex];
-                    if (cell) {
-                        const text = cell.textContent.toLowerCase();
-                        if (text.includes(searchText)) {
-                            row.style.display = '';
-                        } else {
-                            row.style.display = 'none';
+                    if (searchText) {
+                        let cellIndex;
+                        switch (searchField) {
+                            case 'title': cellIndex = 1; break;
+                            case 'uploader': cellIndex = 2; break;
+                            case 'status': cellIndex = 3; break;
+                            case 'originating': cellIndex = 4; break;
+                            case 'recipient': cellIndex = 5; break;
+                            case 'description': cellIndex = 7; break;
+                            default: cellIndex = 1;
+                        }
+                        const cell = row.cells[cellIndex];
+                        if (cell) {
+                            textMatch = cell.textContent.toLowerCase().includes(searchText);
                         }
                     }
+
+                    if (selectedStatus) {
+                        // Status is in cell index 1 (Details cell contains status badge)
+                        const detailsCell = row.cells[1];
+                        if (detailsCell) {
+                            statusMatch = detailsCell.textContent.toLowerCase().includes(selectedStatus);
+                        }
+                    }
+
+                    row.style.display = (textMatch && statusMatch) ? '' : 'none';
                 });
-            });
+            }
 
             window.clearImage = function () {
                 imageInput.value = '';
