@@ -143,39 +143,112 @@
 
                         @if (isset($data) && $data->count())
                             <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200">
-                                    <thead>
-                                        <tr>
-                                            <th
-                                                class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
-                                                ID
-                                            </th>
-                                            <th
-                                                class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
-                                                Created At
-                                            </th>
-                                            <th
-                                                class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
-                                                Details
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bg-white divide-y divide-gray-200">
-                                        @foreach ($data as $item)
-                                            <tr class="hover:bg-gray-50 transition-colors">
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {{ $item->id }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {{ $item->created_at }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {{ json_encode($item->toArray()) }}
-                                                </td>
+                                @if(isset($reportType) && $reportType === 'audit_history')
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead>
+                                            <tr>
+                                                <th class="bg-white px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Date</th>
+                                                <th class="bg-white px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">User</th>
+                                                <th class="bg-white px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Action</th>
+                                                <th class="bg-white px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Status</th>
+                                                <th class="bg-white px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Details</th>
                                             </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            @foreach ($data as $item)
+                                                <tr class="hover:bg-gray-50 transition-colors">
+                                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                                                        {{ \Carbon\Carbon::parse($item->created_at)->format('M d, Y H:i') }}
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                                                        {{ optional($item->user)->first_name }} {{ optional($item->user)->last_name }}
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap">
+                                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                            {{ ucfirst($item->action) }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                                                        {{ ucfirst($item->status) }}
+                                                    </td>
+                                                    <td class="px-4 py-3 text-sm text-gray-500">
+                                                        {{ $item->details }}
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                @elseif(isset($reportType) && $reportType === 'company_performance')
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead>
+                                            <tr>
+                                                <th class="bg-white px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Date</th>
+                                                <th class="bg-white px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Sender</th>
+                                                <th class="bg-white px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Recipient</th>
+                                                <th class="bg-white px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Status</th>
+                                                <th class="bg-white px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Step</th>
+                                                <th class="bg-white px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Remarks</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            @foreach ($data as $item)
+                                                <tr class="hover:bg-gray-50 transition-colors">
+                                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                                                        {{ \Carbon\Carbon::parse($item->created_at)->format('M d, Y H:i') }}
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                                                        {{ optional($item->sender)->first_name }} {{ optional($item->sender)->last_name }}
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                                                        {{ optional($item->recipient)->first_name }} {{ optional($item->recipient)->last_name }}
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap">
+                                                        <span class="px-2 py-1 text-xs font-semibold rounded-full
+                                                            @if($item->status === 'approved') bg-emerald-100 text-emerald-800
+                                                            @elseif($item->status === 'rejected') bg-rose-100 text-rose-800
+                                                            @elseif($item->status === 'pending') bg-amber-100 text-amber-800
+                                                            @else bg-gray-100 text-gray-800 @endif">
+                                                            {{ ucfirst($item->status) }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                                                        {{ $item->step_order }}
+                                                    </td>
+                                                    <td class="px-4 py-3 text-sm text-gray-500">
+                                                        {{ $item->remarks ?? '—' }}
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                @else
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead>
+                                            <tr>
+                                                <th class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">ID</th>
+                                                <th class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Date</th>
+                                                <th class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">Details</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            @foreach ($data as $item)
+                                                <tr class="hover:bg-gray-50 transition-colors">
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $item->id }}</td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        {{ \Carbon\Carbon::parse($item->created_at)->format('M d, Y H:i') }}
+                                                    </td>
+                                                    <td class="px-6 py-4 text-sm text-gray-500">
+                                                        @foreach($item->toArray() as $key => $value)
+                                                            @if(!in_array($key, ['id', 'created_at', 'updated_at', 'deleted_at']) && $value !== null)
+                                                                <span class="inline-block mr-2"><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ is_array($value) ? implode(', ', $value) : $value }}</span>
+                                                            @endif
+                                                        @endforeach
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                @endif
                             </div>
                         @else
                             <div

@@ -66,6 +66,125 @@
                 @endforeach
             </div>
 
+            <!-- User & Office Performance -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- User Performance -->
+                <div class="bg-white shadow-xl rounded-xl border border-blue-100 overflow-hidden">
+                    <div class="p-6 border-b border-blue-100 flex items-center">
+                        <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-3 shadow-lg mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900">User Performance</h3>
+                    </div>
+                    <div class="overflow-y-auto" style="min-height:150px; max-height:320px;">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50 sticky top-0">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">User</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Docs Uploaded</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Docs Processed</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-100">
+                                @forelse($userPerformance as $u)
+                                    <tr class="hover:bg-blue-50 transition-colors">
+                                        <td class="px-6 py-3 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="h-8 w-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm mr-2">
+                                                    {{ substr($u->first_name, 0, 1) }}
+                                                </div>
+                                                <span class="text-sm text-gray-800">{{ $u->first_name }} {{ $u->last_name }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-3 whitespace-nowrap text-sm font-semibold text-gray-700">{{ $u->total_docs }}</td>
+                                        <td class="px-6 py-3 whitespace-nowrap text-sm font-semibold text-gray-700">{{ $u->processed_docs }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">No users found</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Office Performance -->
+                <div class="bg-white shadow-xl rounded-xl border border-blue-100 overflow-hidden">
+                    <div class="p-6 border-b border-blue-100 flex items-center">
+                        <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl p-3 shadow-lg mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900">Office Performance</h3>
+                    </div>
+                    <div class="overflow-y-auto" style="min-height:150px; max-height:320px;">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50 sticky top-0">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Office</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Total Docs</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Pending</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-100">
+                                @forelse($officePerformance as $office)
+                                    <tr class="hover:bg-emerald-50 transition-colors">
+                                        <td class="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-800">{{ $office->name }}</td>
+                                        <td class="px-6 py-3 whitespace-nowrap text-sm font-semibold text-gray-700">{{ $office->doc_count }}</td>
+                                        <td class="px-6 py-3 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $office->pending_count > 0 ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-600' }}">
+                                                {{ $office->pending_count }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">No offices found</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Storage by Office KPI -->
+            <div class="bg-white shadow-xl rounded-xl border border-blue-100 overflow-hidden">
+                <div class="p-6 border-b border-blue-100 flex items-center">
+                    <div class="bg-gradient-to-br from-orange-500 to-red-500 rounded-xl p-3 shadow-lg mr-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900">Storage by Office</h3>
+                </div>
+                <div class="overflow-y-auto" style="min-height:100px; max-height:280px;">
+                    @if($storageByOffice->isEmpty())
+                        <div class="p-6 text-center text-sm text-gray-500">No office storage data available</div>
+                    @else
+                        <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            @foreach($storageByOffice as $office)
+                                <div class="bg-orange-50 border border-orange-100 rounded-lg p-4">
+                                    <p class="text-sm font-semibold text-gray-800 truncate">{{ $office->name }}</p>
+                                    <p class="text-2xl font-bold text-orange-600 mt-1">{{ $office->storage_formatted }}</p>
+                                    <p class="text-xs text-gray-500 mt-1">Disk usage</p>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
+
             <!-- Quick Actions -->
             <div class="bg-white shadow-xl rounded-xl p-8 border border-blue-100">
                 <div class="flex items-center mb-6">

@@ -268,17 +268,19 @@
                         </div>
                         <div class="flex items-center space-x-2">
                             <span class="text-sm text-gray-500">{{ $documents->total() }} documents</span>
-                            <div class="relative">
-                                <button type="button"
-                                    class="inline-flex items-center px-3 py-1.5 border border-blue-200 text-sm font-medium rounded-lg text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                                    </svg>
-                                    Filter
-                                </button>
-                            </div>
+                            <form method="GET" action="{{ route('documents.index') }}" class="flex items-center space-x-2">
+                                <select name="status" onchange="this.form.submit()"
+                                    class="text-sm rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 py-1.5 pl-3 pr-8">
+                                    <option value="all" {{ request('status', 'all') === 'all' ? 'selected' : '' }}>All Statuses</option>
+                                    <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
+                                    <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Approved</option>
+                                    <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                                    <option value="received" {{ request('status') === 'received' ? 'selected' : '' }}>Received</option>
+                                    <option value="released" {{ request('status') === 'released' ? 'selected' : '' }}>Released</option>
+                                    <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Completed</option>
+                                    <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                </select>
+                            </form>
                         </div>
                     </div>
 

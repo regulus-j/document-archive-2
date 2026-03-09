@@ -15,7 +15,7 @@ use App\Http\Controllers\PlanSelectionController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\AddressController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DocumentCategoryController;
 use App\Http\Controllers\TrialController;
 use App\Http\Controllers\UserManualController;
 use App\Http\Controllers\UserManagedController;
@@ -250,6 +250,12 @@ Route::middleware('auth')->group(function () {
     // Add this line for report downloads
     Route::get('/reports/{report}/download/{format?}', [ReportController::class, 'download'])
         ->name('reports.download');
+
+    // Document Categories management
+    Route::get('/document-categories', [DocumentCategoryController::class, 'index'])->name('document-categories.index');
+    Route::post('/document-categories', [DocumentCategoryController::class, 'store'])->name('document-categories.store');
+    Route::put('/document-categories/{documentCategory}', [DocumentCategoryController::class, 'update'])->name('document-categories.update');
+    Route::delete('/document-categories/{documentCategory}', [DocumentCategoryController::class, 'destroy'])->name('document-categories.destroy');
 });
 
 //stmp mail test

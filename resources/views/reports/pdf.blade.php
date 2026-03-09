@@ -4,6 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>{{ $report->name }}</title>
     <style>
+        @page { size: A4 landscape; margin: 15mm; }
         body { font-family: sans-serif; line-height: 1.5; color: #333; }
         h1 { color: #3B82F6; }
         .metadata { margin-bottom: 20px; color: #666; }
