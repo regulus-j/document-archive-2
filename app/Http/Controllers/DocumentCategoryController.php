@@ -14,10 +14,11 @@ class DocumentCategoryController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = DocumentCategory::query();
+        $query = DocumentCategory::withCount('documents');
 
         if ($request->filled('search')) {
-            $query->where('category', 'like', '%' . $request->search . '%');
+            $search = str_replace(['%', '_'], ['\\%', '\\_'], $request->search);
+            $query->where('category', 'like', '%' . $search . '%');
         }
 
         $categories = $query->orderBy('category')->paginate(10)->withQueryString();
