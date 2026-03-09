@@ -118,13 +118,28 @@
                         <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                             <p class="text-sm font-medium text-gray-500 mb-1">Attachments</p>
                             @if($document->attachments->isNotEmpty())
-                                <ul class="list-disc pl-4">
+                                <ul class="list-none space-y-1">
                                     @foreach($document->attachments as $attachment)
-                                        <li>
+                                        <li class="flex items-center justify-between">
                                             <a href="{{ route('documents.download', $attachment->id) }}"
-                                                class="text-blue-600 hover:text-blue-800 transition-colors">
+                                                class="text-blue-600 hover:text-blue-800 transition-colors text-sm truncate max-w-xs">
                                                 {{ $attachment->filename }}
                                             </a>
+                                            @if(auth()->id() === $document->uploader || auth()->user()->hasRole('company-admin'))
+                                                <form action="{{ route('attachments.delete', $attachment->id) }}" method="POST"
+                                                    onsubmit="return confirm('Are you sure you want to delete this attachment?');"
+                                                    class="ml-2 inline-block flex-shrink-0">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit"
+                                                        class="p-1 text-rose-500 hover:text-rose-700 transition-colors" title="Delete attachment">
+                                                        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </li>
                                     @endforeach
                                 </ul>

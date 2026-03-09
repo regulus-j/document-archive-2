@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Document;
+use App\Models\DocumentAttachment;
 use App\Models\User;
 use App\Models\CompanyAccount;
 use App\Models\CompanySubscription;
@@ -10,6 +11,7 @@ use App\Models\DocumentWorkflow;
 use App\Models\Office;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 
 class DashboardController extends Controller
@@ -115,6 +117,59 @@ class DashboardController extends Controller
             })
             ->count();
 
+        // User performance: documents uploaded per user in the company
+        $userPerformance = collect();
+        $officePerformance = collect();
+        $storageByOffice = collect();
+
+        if ($userCompany) {
+            $companyEmployeeIds = $userCompany->employees->pluck('id')->push($user->id)->unique();
+
+            $userPerformance = User::whereIn('id', $companyEmployeeIds)
+                ->withCount(['documents as total_docs'])
+                ->get()
+                ->map(function ($u) {
+                    $processedCount = DocumentWorkflow::where('recipient_id', $u->id)
+                        ->whereIn('status', ['approved', 'rejected'])
+                        ->count();
+                    $u->processed_docs = $processedCount;
+                    return $u;
+                });
+
+            // Office performance: documents per office
+            $offices = Office::where('company_id', $userCompany->id)->with('users')->get();
+
+            $officePerformance = $offices->map(function ($office) {
+                $officeUserIds = $office->users->pluck('id');
+                $docCount = Document::whereIn('uploader', $officeUserIds)->count();
+                $pendingCount = DocumentWorkflow::where('status', 'pending')
+                    ->whereHas('document', function ($q) use ($officeUserIds) {
+                        $q->whereIn('uploader', $officeUserIds);
+                    })->count();
+                $office->doc_count = $docCount;
+                $office->pending_count = $pendingCount;
+                return $office;
+            });
+
+            // Storage by office: sum file sizes of attachments for documents uploaded by office users
+            $storageByOffice = $offices->map(function ($office) {
+                $officeUserIds = $office->users->pluck('id');
+                $attachments = DocumentAttachment::whereHas('document', function ($q) use ($officeUserIds) {
+                    $q->whereIn('uploader', $officeUserIds);
+                })->get(['path']);
+
+                $totalBytes = 0;
+                foreach ($attachments as $attachment) {
+                    if (Storage::disk('public')->exists($attachment->path)) {
+                        $totalBytes += Storage::disk('public')->size($attachment->path);
+                    }
+                }
+                $office->storage_bytes = $totalBytes;
+                $office->storage_formatted = $this->formatBytes($totalBytes);
+                return $office;
+            });
+        }
+
         // **🚀 Correct Role Check for Admin**
         if ($user->hasRole('company-admin') && $userCompany) {
             return view('dashboard', compact(
@@ -130,6 +185,9 @@ class DashboardController extends Controller
                 'incomingDocuments',
                 'countOffices',
                 'totalDocuments',
+                'userPerformance',
+                'officePerformance',
+                'storageByOffice',
             ));
         } else {
             return view('dashboard-office-user', compact(
@@ -145,5 +203,17 @@ class DashboardController extends Controller
                 'countOffices',
             ));
         }
+    }
+
+    private function formatBytes(int $bytes): string
+    {
+        if ($bytes >= 1073741824) {
+            return number_format($bytes / 1073741824, 2) . ' GB';
+        } elseif ($bytes >= 1048576) {
+            return number_format($bytes / 1048576, 2) . ' MB';
+        } elseif ($bytes >= 1024) {
+            return number_format($bytes / 1024, 2) . ' KB';
+        }
+        return $bytes . ' B';
     }
 }

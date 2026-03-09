@@ -37,20 +37,28 @@ class DocumentController extends Controller
      */
     public function index(): View
     {
+        $statusFilter = request('status');
+
         if (auth()->user()->hasRole('company-admin')) {
-            $documents = Document::with(['user', 'status', 'transaction.fromOffice', 'transaction.toOffice'])
-                ->latest()
-                ->paginate(5);
+            $query = Document::with(['user', 'status', 'transaction.fromOffice', 'transaction.toOffice'])
+                ->latest();
         } else {
             $userOfficeIds = auth()->user()->offices->pluck('id')->toArray();
 
-            $documents = Document::with(['user', 'status', 'transaction.fromOffice', 'transaction.toOffice'])
+            $query = Document::with(['user', 'status', 'transaction.fromOffice', 'transaction.toOffice'])
                 ->whereHas('user.offices', function ($query) use ($userOfficeIds) {
                     $query->whereIn('offices.id', $userOfficeIds);
                 })
-                ->latest()
-                ->paginate(5);
+                ->latest();
         }
+
+        if ($statusFilter && $statusFilter !== 'all') {
+            $query->whereHas('status', function ($q) use ($statusFilter) {
+                $q->where('status', $statusFilter);
+            });
+        }
+
+        $documents = $query->paginate(5);
 
         $auditLogs = DocumentAudit::latest()->paginate(15);
 

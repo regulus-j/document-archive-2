@@ -21,10 +21,21 @@
             <h3>Existing Attachments</h3>
             <ul>
                 @foreach($document->attachments as $attachment)
-                    <li>
+                    <li class="flex items-center justify-between py-1">
                         <a href="{{ Storage::url($attachment->path) }}" target="_blank">
                             {{ $attachment->filename }}
                         </a>
+                        @if(auth()->id() === $document->uploader || auth()->user()->hasRole('company-admin'))
+                            <form action="{{ route('attachments.delete', $attachment->id) }}" method="POST"
+                                onsubmit="return confirm('Are you sure you want to delete this attachment?');"
+                                class="inline ml-4">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-500 hover:text-red-700 text-sm">
+                                    Delete
+                                </button>
+                            </form>
+                        @endif
                     </li>
                 @endforeach
             </ul>
