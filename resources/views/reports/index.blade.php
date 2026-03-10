@@ -326,7 +326,7 @@
                     </div>
 
                     @if (isset($data) && $data->count())
-                    <div class="overflow-auto max-h-[480px] rounded-lg border border-slate-200">
+                    <div class="overflow-y-auto max-h-[400px] rounded-lg border border-slate-200 shadow-inner bg-slate-50/30">
                         <table class="w-full">
                             <thead class="sticky top-0 z-10">
                                 <tr class="bg-slate-50 border-b border-slate-100">
