@@ -1459,6 +1459,7 @@ class DocumentController extends Controller
                     'id'              => $document->id,
                     'title'           => $document->title,
                     'tracking_number' => $document->trackingNumber->tracking_number ?? null,
+                    'preview_url'     => route('documents.preview', $document->id),
                 ]);
 
         } catch (Exception $e) {
@@ -1495,10 +1496,8 @@ class DocumentController extends Controller
         $mimeType = mime_content_type($filePath);
 
         return response()->file($filePath, [
-            'Content-Type' => $mimeType,
+            'Content-Type'        => $mimeType,
             'Content-Disposition' => 'inline; filename="' . $version->original_filename . '"',
-            'X-Frame-Options' => 'SAMEORIGIN',
-            'Content-Security-Policy' => 'frame-ancestors \'self\'',
         ]);
     }
 
@@ -1522,8 +1521,6 @@ class DocumentController extends Controller
         return response()->file($filePath, [
             'Content-Type'        => $mimeType,
             'Content-Disposition' => 'inline; filename="' . basename($document->path) . '"',
-            'X-Frame-Options' => 'SAMEORIGIN',
-            'Content-Security-Policy' => 'frame-ancestors \'self\'',
         ]);
     }
 
@@ -1783,16 +1780,17 @@ class DocumentController extends Controller
     }
 
     /**
-     * Apply barcode overlay to an existing document's PDF.
+     * Apply barcode overlay to an existing document (PDF or image).
+     * Supported: PDF (via FPDI), JPG/PNG/GIF/WebP/BMP (via GD).
      */
     public function applyBarcodeOverlay(Request $request, Document $document)
     {
         $request->validate([
-            'barcode_x' => 'required|numeric|min:0|max:500',
-            'barcode_y' => 'required|numeric|min:0|max:800',
-            'barcode_width' => 'required|numeric|min:10|max:200',
-            'barcode_height' => 'required|numeric|min:5|max:100',
-            'barcode_page' => 'nullable|integer|min:0',
+            'barcode_x'         => 'required|numeric|min:0|max:500',
+            'barcode_y'         => 'required|numeric|min:0|max:800',
+            'barcode_width'     => 'required|numeric|min:10|max:200',
+            'barcode_height'    => 'required|numeric|min:5|max:100',
+            'barcode_page'      => 'nullable|integer|min:0',
             'barcode_show_text' => 'nullable|boolean',
         ]);
 
@@ -1801,31 +1799,35 @@ class DocumentController extends Controller
             return redirect()->back()->with('error', 'No tracking number found for this document.');
         }
 
-        // Check file is PDF
         $ext = strtolower(pathinfo($document->path, PATHINFO_EXTENSION));
-        if ($ext !== 'pdf') {
-            return redirect()->back()->with('error', 'Barcode overlay is only supported for PDF documents.');
+        $supported = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'doc', 'docx', 'xls', 'xlsx', 'ods'];
+        if (!in_array($ext, $supported)) {
+            return redirect()->back()->with('error', "Barcode overlay is not supported for .$ext files. Supported: PDF, images (JPG/PNG/GIF/WebP/BMP), Word documents (DOC/DOCX), and spreadsheets (XLS/XLSX/ODS).");
         }
 
         $options = [
-            'x' => (float) $request->barcode_x,
-            'y' => (float) $request->barcode_y,
-            'width' => (float) $request->barcode_width,
-            'height' => (float) $request->barcode_height,
-            'page' => (int) ($request->barcode_page ?? 1),
+            'x'         => (float) $request->barcode_x,
+            'y'         => (float) $request->barcode_y,
+            'width'     => (float) $request->barcode_width,
+            'height'    => (float) $request->barcode_height,
+            'page'      => (int) ($request->barcode_page ?? 1),
             'show_text' => (bool) ($request->barcode_show_text ?? true),
         ];
 
         try {
-            $this->barcodeService->overlayBarcodeOnStoredDocument(
+            $result = $this->barcodeService->overlayBarcodeOnStoredDocument(
                 $document->path,
                 $trackingNumber,
                 $options
             );
 
+            if ($result === null) {
+                return redirect()->back()->with('error', 'Barcode overlay could not be applied to this file.');
+            }
+
             $document->update([
                 'barcode_settings' => $options,
-                'barcode_applied' => true,
+                'barcode_applied'  => true,
             ]);
 
             $this->logDocumentAction($document, 'barcode_applied', null, 'Barcode overlay applied to document');
