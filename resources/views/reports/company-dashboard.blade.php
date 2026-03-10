@@ -396,9 +396,9 @@
                         Export Excel
                     </a>
                 </div>
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto" style="min-height: 200px; max-height: 480px; overflow-y: auto;">
                     <table class="w-full">
-                        <thead>
+                        <thead class="sticky top-0 z-10">
                             <tr class="bg-slate-50 border-b border-slate-100">
                                 <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">User</th>
                                 <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Uploads</th>
@@ -473,9 +473,9 @@
                         Export Excel
                     </a>
                 </div>
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto" style="min-height: 200px; max-height: 480px; overflow-y: auto;">
                     <table class="w-full">
-                        <thead>
+                        <thead class="sticky top-0 z-10">
                             <tr class="bg-slate-50 border-b border-slate-100">
                                 <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Office</th>
                                 <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Members</th>
@@ -573,8 +573,8 @@
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200">
                     <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                         <div>
-                            <h3 class="text-base font-semibold text-slate-900">Storage by Office</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Disk usage per department</p>
+                            <h3 class="text-base font-semibold text-slate-900">Storage by Team</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Disk usage per team</p>
                         </div>
                         <a href="{{ route('reports.company-dashboard', ['start_date' => $startDate, 'end_date' => $endDate, 'export_table' => 'office_storage']) }}" 
                            class="inline-flex items-center px-2.5 py-1 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-xs font-medium transition">
@@ -590,7 +590,7 @@
                             <table class="w-full">
                                 <thead class="sticky top-0 bg-slate-50">
                                     <tr>
-                                        <th class="px-5 py-2 text-left text-xs font-medium text-slate-500">Office</th>
+                                        <th class="px-5 py-2 text-left text-xs font-medium text-slate-500">Team</th>
                                         <th class="px-5 py-2 text-right text-xs font-medium text-slate-500">Docs</th>
                                         <th class="px-5 py-2 text-right text-xs font-medium text-slate-500">Size</th>
                                     </tr>

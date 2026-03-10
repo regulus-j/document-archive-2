@@ -1203,9 +1203,16 @@ class ReportController extends Controller
                 $userStorage[$userId]['size'] += $size;
                 $userStorage[$userId]['count']++;
                 
-                // Add to office storage if applicable
-                if ($document->transaction && $document->transaction->from_office) {
+                // Add to office storage - use document's direct from_office first, then transaction, then uploader's office
+                $officeId = $document->from_office;
+                if (!$officeId && $document->transaction && $document->transaction->from_office) {
                     $officeId = $document->transaction->from_office;
+                }
+                if (!$officeId && isset($userStorage[$userId]) && $userStorage[$userId]['user']) {
+                    $uploaderOffice = $userStorage[$userId]['user']->offices()->first();
+                    $officeId = $uploaderOffice ? $uploaderOffice->id : null;
+                }
+                if ($officeId) {
                     $uniqueOffices[$officeId] = true;
                     
                     if (!isset($officeStorage[$officeId])) {
@@ -1242,11 +1249,12 @@ class ReportController extends Controller
                         }
                         
                         // Add to office storage
-                        if ($document->transaction && $document->transaction->from_office) {
+                        $officeId = $document->from_office;
+                        if (!$officeId && $document->transaction && $document->transaction->from_office) {
                             $officeId = $document->transaction->from_office;
-                            if (isset($officeStorage[$officeId])) {
-                                $officeStorage[$officeId]['size'] += $size;
-                            }
+                        }
+                        if ($officeId && isset($officeStorage[$officeId])) {
+                            $officeStorage[$officeId]['size'] += $size;
                         }
                     }
                 }
