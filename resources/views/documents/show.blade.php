@@ -805,8 +805,12 @@
                     </div>
                 </div>
 
-                <!-- Barcode Overlay (for PDF documents) -->
-                @if($canUploadVersion && strtolower(pathinfo($document->path, PATHINFO_EXTENSION)) === 'pdf')
+                <!-- Barcode Overlay (PDF and image documents) -->
+                @php
+                    $docExt = strtolower(pathinfo($document->path, PATHINFO_EXTENSION));
+                    $barcodeSupportedExts = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'doc', 'docx', 'xls', 'xlsx', 'ods'];
+                @endphp
+                @if($canUploadVersion && in_array($docExt, $barcodeSupportedExts))
                 <div class="bg-white p-4 rounded-lg border border-slate-200 mb-8">
                     <div class="flex items-center gap-2 mb-3">
                         <svg class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -820,7 +824,7 @@
                         @endif
                     </div>
 
-                    <p class="text-xs text-slate-500 mb-3">Overlay the tracking number barcode directly onto the PDF document.</p>
+                    <p class="text-xs text-slate-500 mb-3">Overlay the tracking barcode directly onto the document. Supported: PDF, images (JPG/PNG/GIF/WebP/BMP), Word documents (DOC/DOCX), and spreadsheets (XLS/XLSX/ODS).</p>
 
                     <form action="{{ route('documents.barcodeOverlay', $document->id) }}" method="POST">
                         @csrf
@@ -863,7 +867,7 @@
                             </div>
                         </div>
                         <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm"
-                            onclick="return confirm('{{ $document->barcode_applied ? 'A barcode has already been applied. This will re-apply it with new settings. Continue?' : 'This will permanently modify the PDF file. Continue?' }}')">
+                            onclick="return confirm('{{ $document->barcode_applied ? 'A barcode has already been applied. This will re-apply it with new settings. Continue?' : 'This will permanently modify the document file. Continue?' }}')">
                             <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                             {{ $document->barcode_applied ? 'Re-apply Barcode' : 'Apply Barcode Overlay' }}
                         </button>
@@ -1484,6 +1488,15 @@ function closeRerouteModal(event) {
                     </svg>
                     New Tab
                 </a>
+                {{-- Print — opens browser native Ctrl+P dialog --}}
+                <button id="doc-viewer-print" onclick="printFromViewer()"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors"
+                    title="Print document">
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    Print
+                </button>
                 {{-- Download --}}
                 <a id="doc-viewer-download" href="#"
                     class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
@@ -1774,6 +1787,10 @@ function closeRerouteModal(event) {
         const newtabBtn = document.getElementById('doc-viewer-newtab');
         const fallbackBtn = document.getElementById('doc-viewer-fallback-download');
 
+        // Track current preview URL for the Print button
+        window._docViewerPreviewUrl = previewUrl;
+        window._docViewerExt = getExtension(title);
+
         // Set title and download links
         titleEl.textContent = title;
         downloadBtn.href = downloadUrl;
@@ -1845,7 +1862,51 @@ function closeRerouteModal(event) {
         docxDiv.innerHTML = '';
         xlsxDiv.innerHTML = '';
 
+        window._docViewerPreviewUrl = null;
+        window._docViewerExt = null;
+
         document.removeEventListener('keydown', docViewerEscHandler);
+    }
+
+    /**
+     * Trigger the browser's native print dialog (Ctrl+P) for the currently open document.
+     * - PDF in iframe → call contentWindow.print() (browser PDF print dialog)
+     * - Image/DOCX/XLSX rendered inline → open previewUrl in a new window and print
+     * - Unsupported fallback → open in new window and print
+     */
+    function printFromViewer() {
+        const ext = window._docViewerExt || '';
+        const previewUrl = window._docViewerPreviewUrl || '';
+
+        if (ext === 'pdf') {
+            // PDF iframe: fire print on the iframe's window directly
+            const frame = document.getElementById('doc-viewer-frame');
+            if (frame && frame.contentWindow) {
+                try {
+                    frame.contentWindow.focus();
+                    frame.contentWindow.print();
+                    return;
+                } catch(e) {
+                    // Cross-origin restriction — fall through to new window
+                }
+            }
+        }
+
+        // For all other formats (images, docx, xlsx) or PDF cross-origin fallback:
+        // Open the preview URL in a new window so the browser's native print applies
+        if (!previewUrl) return;
+        var pw = window.open(previewUrl, '_blank', 'width=1000,height=800,scrollbars=yes,resizable=yes');
+        if (pw) {
+            pw.addEventListener('load', function() {
+                try { pw.focus(); pw.print(); } catch(e) { pw.focus(); }
+            });
+            setTimeout(function() {
+                try { if (pw && !pw.closed) { pw.focus(); pw.print(); } } catch(e) {}
+            }, 1500);
+        } else {
+            // Popup blocked — just open normally
+            window.open(previewUrl, '_blank');
+        }
     }
 
     function docViewerEscHandler(e) {

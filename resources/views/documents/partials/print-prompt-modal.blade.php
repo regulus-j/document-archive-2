@@ -2,10 +2,11 @@
     Print Prompt Modal — shown after uploading or forwarding a document.
 
     Reads from:
-      session('prompt_print')  → array ['id', 'title', 'tracking_number']
+      session('prompt_print')  → array ['id', 'title', 'tracking_number', 'preview_url']
       OR request query param   → ?prompt_print={document_id}  (for cancel-forward navigate)
 
     Include once near the closing </body> of any page that should show the prompt.
+    Clicking "Print Document" opens the browser's native print dialog (Ctrl+P style).
 --}}
 @php
     $pp = session('prompt_print');
@@ -19,8 +20,14 @@
                 'id'              => $ppDoc->id,
                 'title'           => $ppDoc->title,
                 'tracking_number' => $ppDoc->trackingNumber->tracking_number ?? null,
+                'preview_url'     => route('documents.preview', $ppDoc->id),
             ];
         }
+    }
+
+    // Attach preview_url if not already set
+    if ($pp && empty($pp['preview_url'])) {
+        $pp['preview_url'] = route('documents.preview', $pp['id']);
     }
 @endphp
 
@@ -73,15 +80,24 @@
 
         {{-- actions --}}
         <div class="px-6 pb-5 space-y-2">
-            {{-- Print document file --}}
-            <a href="{{ route('documents.download', $pp['id']) }}" target="_blank"
-               onclick="closePrintPromptModal()"
+            {{-- Print document file — opens browser native print dialog --}}
+            <button type="button"
+               onclick="printPromptDocument('{{ addslashes($pp['preview_url']) }}'); closePrintPromptModal();"
                class="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                 </svg>
-                Print / Download Document
+                Print Document
+            </button>
+            {{-- Also offer download as a secondary option --}}
+            <a href="{{ route('documents.download', $pp['id']) }}"
+               onclick="closePrintPromptModal()"
+               class="flex items-center justify-center gap-2 w-full px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Download Instead
             </a>
 
             {{-- Print tracking barcode --}}
@@ -113,6 +129,40 @@ function closePrintPromptModal() {
         setTimeout(function() { m.remove(); }, 150);
     }
 }
+
+/**
+ * Open document URL in a new window and trigger the browser's native print dialog.
+ * For PDFs, the browser shows its PDF viewer with print option.
+ * For images/HTML, window.print() fires directly.
+ */
+function printPromptDocument(url) {
+    var printWin = window.open(url, '_blank', 'width=900,height=700,scrollbars=yes,resizable=yes');
+    if (!printWin) {
+        // Popup blocked — fallback: open in same tab
+        window.open(url, '_blank');
+        return;
+    }
+    // Wait for the window to load then trigger print
+    printWin.addEventListener('load', function() {
+        try {
+            printWin.focus();
+            printWin.print();
+        } catch(e) {
+            // PDF viewers in iframes may block .print() — the user can use Ctrl+P
+            printWin.focus();
+        }
+    });
+    // Also attempt after a delay as load may have already fired
+    setTimeout(function() {
+        try {
+            if (printWin && !printWin.closed) {
+                printWin.focus();
+                printWin.print();
+            }
+        } catch(e) {}
+    }, 1500);
+}
+
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closePrintPromptModal();
 });
