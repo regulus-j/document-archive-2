@@ -17,6 +17,13 @@ class NotificationController extends Controller
         return view('notifications.index', compact('notifications'));
     }
 
+    // Return the unread notification count as JSON (used for polling)
+    public function unreadCount()
+    {
+        $count = Notifications::where('user_id', Auth::id())->whereNull('read_at')->count();
+        return response()->json(['count' => $count]);
+    }
+
     // Mark a notification as read, then optionally redirect to the document
     public function markAsRead(Request $request, $id)
     {

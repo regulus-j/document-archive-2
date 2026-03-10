@@ -127,6 +127,39 @@
     @auth
         <x-chatbot-widget />
     @endauth
+
+    @auth
+    {{-- Notification polling: check for new notifications every 60 seconds --}}
+    <script>
+    (function() {
+        var badge = document.getElementById('notification-badge');
+        var lastCount = badge ? (parseInt(badge.textContent.trim(), 10) || 0) : 0;
+
+        function pollNotifications() {
+            fetch('{{ route('notifications.unread-count') }}', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .then(function(data) {
+                if (!data) return;
+                var count = data.count || 0;
+                if (!badge) return;
+                if (count > 0) {
+                    badge.textContent = count > 99 ? '99+' : count;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+                lastCount = count;
+            })
+            .catch(function() {});
+        }
+
+        // Poll every 60 seconds
+        setInterval(pollNotifications, 60000);
+    })();
+    </script>
+    @endauth
 </body>
 
 </html>

@@ -902,17 +902,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const dt = e.dataTransfer;
             const files = dt.files;
             const input = zone.querySelector('input[type="file"]');
+            if (!input || !files.length) return;
 
+            const transfer = new DataTransfer();
             if (input.multiple) {
                 if (files.length > 5) {
                     showPopup('Maximum 5 attachments allowed. Please select fewer files.', 'error');
                     return;
                 }
-                input.files = files;
+                for (let i = 0; i < files.length; i++) transfer.items.add(files[i]);
             } else {
-                input.files = new FileList([files[0]]);
+                transfer.items.add(files[0]);
             }
 
+            input.files = transfer.files;
             input.dispatchEvent(new Event('change'));
         }
     });

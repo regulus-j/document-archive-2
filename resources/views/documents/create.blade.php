@@ -685,6 +685,36 @@
                     }
                 });
             }
+
+            // File drag and drop
+            document.querySelectorAll('.border-dashed').forEach(function(zone) {
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(evt) {
+                    zone.addEventListener(evt, function(e) { e.preventDefault(); e.stopPropagation(); }, false);
+                });
+                ['dragenter', 'dragover'].forEach(function(evt) {
+                    zone.addEventListener(evt, function() { zone.classList.add('border-indigo-400', 'bg-indigo-50'); }, false);
+                });
+                ['dragleave', 'drop'].forEach(function(evt) {
+                    zone.addEventListener(evt, function() { zone.classList.remove('border-indigo-400', 'bg-indigo-50'); }, false);
+                });
+                zone.addEventListener('drop', function(e) {
+                    const files = e.dataTransfer.files;
+                    const input = zone.querySelector('input[type="file"]');
+                    if (!input || !files.length) return;
+                    const transfer = new DataTransfer();
+                    if (input.multiple) {
+                        if (files.length > 5) {
+                            showPopup('Maximum 5 attachments allowed. Please select fewer files.', 'error');
+                            return;
+                        }
+                        for (let i = 0; i < files.length; i++) transfer.items.add(files[i]);
+                    } else {
+                        transfer.items.add(files[0]);
+                    }
+                    input.files = transfer.files;
+                    input.dispatchEvent(new Event('change'));
+                }, false);
+            });
         });
     </script>
 

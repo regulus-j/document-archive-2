@@ -592,7 +592,8 @@ class ReportController extends Controller
         // Generate report based on type
         switch ($reportType) {
             case 'audit_history':
-                $data = DocumentAudit::whereIn('document_id', $companyDocIds)
+                $data = DocumentAudit::with(['document', 'user'])
+                    ->whereIn('document_id', $companyDocIds)
                     ->whereBetween('created_at', [$startDate, $endDate])
                     ->when($userId, fn($q) => $q->where('user_id', $userId))
                     ->when($officeId, fn($q) =>
@@ -778,7 +779,7 @@ class ReportController extends Controller
             'logoDataUri'  => $branding['logoDataUri'],
             'companyColor' => $branding['companyColor'],
             'companyName'  => $branding['companyName'],
-        ]);
+        ])->setPaper('a4', 'landscape');
         $fileName = Str::slug($title) . '_' . now()->format('Y-m-d_H-i-s') . '.pdf';
         
         // Create a report record
