@@ -1358,8 +1358,10 @@ class DocumentWorkflowController extends Controller
         $mimeType = mime_content_type($filePath);
 
         return response()->file($filePath, [
-            'Content-Type'        => $mimeType,
+            'Content-Type' => $mimeType,
             'Content-Disposition' => 'inline; filename="' . basename($document->path) . '"',
+            'X-Frame-Options' => 'SAMEORIGIN',
+            'Content-Security-Policy' => 'frame-ancestors \'self\'',
         ]);
     }
 

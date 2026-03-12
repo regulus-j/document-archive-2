@@ -589,8 +589,18 @@ class DocumentController extends Controller
             ]);
             \Log::info('Tracking number record created', ['document_id' => $document->id]);
 
-            // Apply barcode overlay to PDF documents if enabled
-            if ($request->input('barcode_enabled')) {
+            // Apply barcode overlay to supported documents if enabled
+            $barcodeEnabled = $request->input('barcode_enabled');
+            \Log::info('Barcode overlay check', [
+                'document_id' => $document->id,
+                'barcode_enabled' => $barcodeEnabled,
+                'barcode_x' => $request->input('barcode_x'),
+                'barcode_y' => $request->input('barcode_y'),
+                'barcode_width' => $request->input('barcode_width'),
+                'has_barcode_fields' => $request->has('barcode_enabled'),
+            ]);
+
+            if ($barcodeEnabled && $barcodeEnabled !== '0') {
                 $barcodeOptions = [
                     'x'         => (float) ($request->input('barcode_x', 10)),
                     'y'         => (float) ($request->input('barcode_y', 10)),
@@ -614,6 +624,8 @@ class DocumentController extends Controller
 
                     if ($overlayResult) {
                         \Log::info('Barcode overlay applied to document', ['document_id' => $document->id]);
+                    } else {
+                        \Log::warning('Barcode overlay returned null (unsupported format or failed)', ['document_id' => $document->id]);
                     }
                 } catch (\Exception $e) {
                     \Log::warning('Barcode overlay failed during upload, continuing without overlay', [
@@ -1800,9 +1812,9 @@ class DocumentController extends Controller
         }
 
         $ext = strtolower(pathinfo($document->path, PATHINFO_EXTENSION));
-        $supported = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'doc', 'docx', 'xls', 'xlsx', 'ods'];
+        $supported = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
         if (!in_array($ext, $supported)) {
-            return redirect()->back()->with('error', "Barcode overlay is not supported for .$ext files. Supported: PDF, images (JPG/PNG/GIF/WebP/BMP), Word documents (DOC/DOCX), and spreadsheets (XLS/XLSX/ODS).");
+            return redirect()->back()->with('error', "Barcode overlay is not supported for .$ext files. Supported formats: PDF and images (JPG, PNG, GIF, WebP, BMP). Word and spreadsheet files are not supported.");
         }
 
         $options = [
