@@ -212,8 +212,6 @@
                                     </button>
                                 </div>
 
-                                <input type="file" id="image-input" name="image" accept="image/*" class="hidden">
-
                                 <!-- Camera Container -->
                                 <div id="camera-container" class="hidden mt-3">
                                     <div

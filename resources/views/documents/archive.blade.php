@@ -120,7 +120,7 @@
                         <!-- QR Code Scanner -->
                         <div class="space-y-3">
                             <div class="border-t border-slate-200 pt-5">
-                                <h3 class="text-md font-medium text-slate-700 mb-3">Scan QR Code</h3>
+                                <h3 class="text-md font-medium text-slate-700 mb-3">Scan Barcode</h3>
                                 <div id="qr-reader" class="w-full"></div>
                                 <button id="start-scanner" class="mt-3 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg shadow-sm">
                                     Start Scanner
@@ -616,15 +616,6 @@
                         row.style.display = text.includes(searchTerm) ? '' : 'none';
                     });
                 });
-
-                // Client-side search only
-                searchInput.addEventListener('keyup', function () {
-                    const searchTerm = this.value.toLowerCase();
-                    rows.forEach(row => {
-                        let text = row.textContent.toLowerCase();
-                        row.style.display = text.includes(searchTerm) ? '' : 'none';
-                    });
-                });
             });
         </script>
 
@@ -727,10 +718,10 @@
                 { facingMode: "environment" },
                 {
                     fps: 10,
-                    qrbox: { width: 250, height: 250 },
+                    qrbox: { width: 350, height: 150 },
                 },
                 (decodedText) => {
-                    // QR code detected - submit tracking number search form
+                    // Barcode detected — populate tracking number and submit search form
                     const trackingInput = document.getElementById('tracking-number');
                     trackingInput.value = decodedText;
 

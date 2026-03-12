@@ -335,7 +335,7 @@
                                     Preview &amp; Configure
                                 </button>
                             </div>
-                            <p class="text-xs text-slate-500 mt-2">When you select a PDF file, the barcode overlay preview will open automatically. You can also click the button above to configure it manually.</p>
+                            <p class="text-xs text-slate-500 mt-2">When you select a supported file (PDF, Image, DOCX, or XLSX), the barcode overlay preview will open automatically. You can also click the button above to configure it manually.</p>
                             <div id="barcode-confirmed-badge" class="hidden mt-2">
                                 <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
                                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
@@ -749,7 +749,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const mainDocInput = document.getElementById('main-document');
 
-        // Auto-open barcode preview modal when a PDF file is selected
+        // Auto-open barcode preview modal when a supported file is selected (PDF, Images, DOCX, XLSX)
         if (mainDocInput) {
             bindBarcodePreviewToFileInput('#main-document', 'createBarcodeModal', null);
         }

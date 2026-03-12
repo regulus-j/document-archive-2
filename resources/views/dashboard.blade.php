@@ -148,7 +148,7 @@
                 <div class="border-t border-slate-200/80 pt-6">
                     <h4 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
                         <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                        Find Document by Tracking Number or QR Code
+                        Find Document by Tracking Number or Barcode
                     </h4>
 
                     <form id="quick-action-form" action="{{ route('trackingNumber-search') }}" method="POST" class="space-y-4">
@@ -161,12 +161,12 @@
                                 placeholder="Enter tracking number (e.g. ADM-20250101-000001)">
 
                             <div class="flex gap-2">
-                                {{-- Upload QR Image --}}
-                                <label title="Upload QR code image" class="inline-flex items-center px-3 py-2.5 border border-slate-300 text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 rounded-lg cursor-pointer transition-colors">
+                                {{-- Upload Barcode Image --}}
+                                <label title="Upload barcode image" class="inline-flex items-center px-3 py-2.5 border border-slate-300 text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 rounded-lg cursor-pointer transition-colors">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
-                                    <span class="hidden sm:inline">Upload QR</span>
+                                    <span class="hidden sm:inline">Upload Barcode</span>
                                     <input type="file" id="qr-image-input" accept="image/*" class="hidden" onchange="decodeQrFromImage(this)">
                                 </label>
 
@@ -176,7 +176,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                                     </svg>
-                                    <span class="hidden sm:inline" id="scanner-btn-text">Scan QR</span>
+                                    <span class="hidden sm:inline" id="scanner-btn-text">Scan Barcode</span>
                                 </button>
 
                                 {{-- Submit --}}
@@ -198,7 +198,7 @@
                             <div class="flex items-center justify-between mb-2">
                                 <p class="text-sm text-slate-600 flex items-center gap-1.5">
                                     <svg class="w-4 h-4 text-indigo-500 animate-pulse" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="5"/></svg>
-                                    Camera active — point at a QR code
+                                    Camera active — point at a barcode
                                 </p>
                                 <button type="button" onclick="stopScanner()" class="text-sm text-red-600 hover:text-red-700 font-medium flex items-center gap-1">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -235,12 +235,12 @@
                     if (btnText) btnText.textContent = 'Stop';
 
                     html5QrCode = new Html5Qrcode("reader");
-                    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+                    const config = { fps: 10, qrbox: { width: 350, height: 150 } };
 
                     html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
                         document.getElementById('tracking_number').value = decodedText;
                         stopScanner();
-                        showQrStatus('success', 'QR code scanned: ' + decodedText);
+                        showQrStatus('success', 'Barcode scanned: ' + decodedText);
                     }).catch(err => {
                         showQrStatus('error', 'Could not start camera: ' + err);
                         stopScanner();
@@ -261,7 +261,7 @@
                     }
                     scannerActive = false;
                     const btnText = document.getElementById('scanner-btn-text');
-                    if (btnText) btnText.textContent = 'Scan QR';
+                    if (btnText) btnText.textContent = 'Scan Barcode';
                 }
 
                 // Decode QR from uploaded image file (client-side using html5-qrcode)
@@ -269,18 +269,18 @@
                     if (!input.files || !input.files[0]) return;
 
                     const file = input.files[0];
-                    showQrStatus('info', 'Decoding QR code from image...');
+                    showQrStatus('info', 'Decoding barcode from image...');
 
                     const tempScanner = new Html5Qrcode("qr-temp-canvas");
                     tempScanner.scanFileV2(file, /* showImage= */ false)
                         .then(result => {
                             const text = result.decodedText;
                             document.getElementById('tracking_number').value = text;
-                            showQrStatus('success', 'QR code decoded: ' + text);
+                            showQrStatus('success', 'Barcode decoded: ' + text);
                             tempScanner.clear();
                         })
                         .catch(err => {
-                            showQrStatus('error', 'Could not decode QR code from image. Make sure the image contains a clear QR code.');
+                            showQrStatus('error', 'Could not decode barcode from image. Make sure the barcode is clearly visible.');
                             tempScanner.clear();
                         });
 

@@ -441,7 +441,7 @@
                     <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
                         <p class="text-sm font-medium text-slate-500 mb-2">Document File</p>
                         @if($document->path)
-                        <button onclick="openDocViewer('{{ route('documents.preview', $document->id) }}', '{{ $document->title }}', '{{ route('documents.download', $document->id) }}')"
+                        <button onclick="openDocViewer('{{ route('documents.preview', $document->id) }}', '{{ addslashes($document->title) }}', '{{ route('documents.download', $document->id) }}', '{{ pathinfo($document->path, PATHINFO_EXTENSION) }}')"
                             class="flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 transition-colors font-medium mb-3 cursor-pointer">
                             <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -457,7 +457,7 @@
                             @foreach($document->attachments as $attachment)
                             <div class="flex items-center justify-between">
                                 <div class="min-w-0 flex-1">
-                                    <button onclick="openDocViewer('{{ route('attachments.preview', $attachment->id) }}', '{{ addslashes($attachment->filename) }}', '{{ route('documents.download', $attachment->id) }}')"
+                                    <button onclick="openDocViewer('{{ route('attachments.preview', $attachment->id) }}', '{{ addslashes($attachment->filename) }}', '{{ route('documents.download', $attachment->id) }}', '{{ pathinfo($attachment->path, PATHINFO_EXTENSION) }}')"
                                         class="text-sm text-indigo-600 hover:text-indigo-800 transition-colors font-medium truncate block text-left cursor-pointer">
                                         <span class="flex items-center gap-1.5">
                                             <svg class="w-4 h-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -637,7 +637,7 @@
                                 </p>
                             </div>
                             <div class="flex items-center gap-1">
-                                <button onclick="openDocViewer('{{ route('documents.previewCurrent', $document->id) }}', '{{ addslashes($document->title) }}', '{{ route('documents.download', $document->id) }}')"
+                                <button onclick="openDocViewer('{{ route('documents.previewCurrent', $document->id) }}', '{{ addslashes($document->title) }}', '{{ route('documents.download', $document->id) }}', '{{ pathinfo($document->path, PATHINFO_EXTENSION) }}')"
                                    class="p-1.5 rounded-lg hover:bg-emerald-100 text-emerald-600 transition" title="Preview Current Version">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                 </button>
@@ -674,7 +674,7 @@
                                             @endif
                                         </div>
                                         <div class="flex items-center gap-1">
-                                            <button onclick="openDocViewer('{{ route('documents.versionPreview', [$document->id, $version->id]) }}', 'Version {{ $version->version_number }} — {{ $document->title }}', '{{ Storage::disk('public')->url($version->file_path) }}')"
+                                            <button onclick="openDocViewer('{{ route('documents.versionPreview', [$document->id, $version->id]) }}', 'Version {{ $version->version_number }} — {{ addslashes($document->title) }}', '{{ Storage::disk('public')->url($version->file_path) }}', '{{ pathinfo($version->file_path, PATHINFO_EXTENSION) }}')"
                                                class="p-1.5 rounded-lg hover:bg-indigo-100 text-indigo-600 transition" title="Preview v{{ $version->version_number }}">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                             </button>
@@ -805,48 +805,57 @@
                     </div>
                 </div>
 
-                <!-- Barcode Overlay (PDF and image documents) -->
+                <!-- Barcode Overlay (supported document types) -->
                 @php
                     $docExt = strtolower(pathinfo($document->path, PATHINFO_EXTENSION));
                     $barcodeSupportedExts = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'doc', 'docx', 'xls', 'xlsx', 'ods'];
+                    $canApplyBarcode = $canUploadVersion;
                 @endphp
-                @if($canUploadVersion && in_array($docExt, $barcodeSupportedExts))
+                @if($canApplyBarcode && in_array($docExt, $barcodeSupportedExts))
                 <div class="bg-white p-4 rounded-lg border border-slate-200 mb-8">
-                    <div class="flex items-center gap-2 mb-3">
-                        <svg class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1z"/>
-                        </svg>
-                        <h3 class="text-base font-semibold text-slate-800">Barcode Overlay</h3>
-                        @if($document->barcode_applied)
-                            <span class="text-xs font-medium text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">Applied</span>
-                        @else
-                            <span class="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">Not applied</span>
-                        @endif
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <svg class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                            </svg>
+                            <h3 class="text-base font-semibold text-slate-800">Barcode Overlay</h3>
+                            @if($document->barcode_applied)
+                                <span class="text-xs font-medium text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">Applied</span>
+                            @else
+                                <span class="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">Not applied</span>
+                            @endif
+                        </div>
+                        {{-- Preview & Configure button opens the document in the reapply barcode modal --}}
+                        <button type="button" onclick="openReapplyBarcodePreview()"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-100 rounded-lg hover:bg-indigo-200 transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            Preview &amp; Configure
+                        </button>
                     </div>
 
                     <p class="text-xs text-slate-500 mb-3">Overlay the tracking barcode directly onto the document. Supported: PDF, images (JPG/PNG/GIF/WebP/BMP), Word documents (DOC/DOCX), and spreadsheets (XLS/XLSX/ODS).</p>
 
-                    <form action="{{ route('documents.barcodeOverlay', $document->id) }}" method="POST">
+                    <form id="barcode-overlay-form" action="{{ route('documents.barcodeOverlay', $document->id) }}" method="POST">
                         @csrf
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                             <div>
                                 <label class="block text-xs text-slate-500 mb-1">X (mm)</label>
-                                <input type="number" name="barcode_x" value="{{ $document->barcode_settings['x'] ?? 10 }}" min="0" max="500"
+                                <input type="number" name="barcode_x" id="reapply-barcode-x" value="{{ $document->barcode_settings['x'] ?? 10 }}" min="0" max="500"
                                     class="w-full text-xs rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200">
                             </div>
                             <div>
                                 <label class="block text-xs text-slate-500 mb-1">Y (mm)</label>
-                                <input type="number" name="barcode_y" value="{{ $document->barcode_settings['y'] ?? 10 }}" min="0" max="800"
+                                <input type="number" name="barcode_y" id="reapply-barcode-y" value="{{ $document->barcode_settings['y'] ?? 10 }}" min="0" max="800"
                                     class="w-full text-xs rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200">
                             </div>
                             <div>
                                 <label class="block text-xs text-slate-500 mb-1">Width (mm)</label>
-                                <input type="number" name="barcode_width" value="{{ $document->barcode_settings['width'] ?? 60 }}" min="10" max="200"
+                                <input type="number" name="barcode_width" id="reapply-barcode-w" value="{{ $document->barcode_settings['width'] ?? 60 }}" min="10" max="200"
                                     class="w-full text-xs rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200">
                             </div>
                             <div>
                                 <label class="block text-xs text-slate-500 mb-1">Height (mm)</label>
-                                <input type="number" name="barcode_height" value="{{ $document->barcode_settings['height'] ?? 15 }}" min="5" max="100"
+                                <input type="number" name="barcode_height" id="reapply-barcode-h" value="{{ $document->barcode_settings['height'] ?? 15 }}" min="5" max="100"
                                     class="w-full text-xs rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200">
                             </div>
                         </div>
@@ -1706,9 +1715,9 @@ function closeRerouteModal(event) {
 
 <script>
     const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'];
-    const docExts = ['doc', 'docx'];
+    const docExts = ['docx'];          // mammoth.js only supports .docx, NOT legacy binary .doc
     const sheetExts = ['xls', 'xlsx', 'csv'];
-    const previewableExts = ['pdf', ...imageExts, ...docExts, ...sheetExts];
+    const previewableExts = ['pdf', ...imageExts, [...docExts, 'doc'], ...sheetExts].flat();
 
     function getExtension(filename) {
         return (filename || '').split('.').pop().toLowerCase();
@@ -1716,21 +1725,41 @@ function closeRerouteModal(event) {
 
     function renderDocxInModal(url, container) {
         container.innerHTML = '<div class="flex items-center justify-center py-12"><svg class="animate-spin h-8 w-8 text-indigo-500 mr-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg><span class="text-sm text-slate-500">Loading document...</span></div>';
+        if (typeof mammoth === 'undefined') {
+            container.innerHTML = '<div class="text-center py-12"><p class="text-sm text-red-500">DOCX preview library is not loaded yet.</p><p class="text-xs text-slate-400 mt-1">Please try again in a moment or use the Download button above.</p></div>';
+            return;
+        }
         fetch(url)
-            .then(function(res) { return res.arrayBuffer(); })
+            .then(function(res) {
+                if (res.status === 404) throw new Error('__404__');
+                if (!res.ok) throw new Error('Server error ' + res.status + ' — please try downloading the file.');
+                return res.arrayBuffer();
+            })
             .then(function(buf) { return mammoth.convertToHtml({ arrayBuffer: buf }); })
             .then(function(result) {
                 container.innerHTML = '<div class="prose prose-sm max-w-none">' + result.value + '</div>';
             })
             .catch(function(err) {
-                container.innerHTML = '<div class="text-center py-12"><p class="text-sm text-red-500">Failed to render document.</p><p class="text-xs text-slate-400 mt-1">' + err.message + '</p></div>';
+                if (err.message === '__404__') {
+                    container.innerHTML = '<div class="text-center py-12"><svg class="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><p class="text-sm font-medium text-slate-600 mb-1">File not available on server</p><p class="text-xs text-slate-400">The document file could not be found. Please use the <strong>Download</strong> button above or contact an administrator.</p></div>';
+                } else {
+                    container.innerHTML = '<div class="text-center py-12"><p class="text-sm text-red-500">Failed to render document.</p><p class="text-xs text-slate-400 mt-1">' + err.message + '</p></div>';
+                }
             });
     }
 
     function renderXlsxInModal(url, container) {
         container.innerHTML = '<div class="flex items-center justify-center py-12"><svg class="animate-spin h-8 w-8 text-green-500 mr-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg><span class="text-sm text-slate-500">Loading spreadsheet...</span></div>';
+        if (typeof XLSX === 'undefined') {
+            container.innerHTML = '<div class="text-center py-12"><p class="text-sm text-red-500">Spreadsheet preview library is not loaded yet.</p><p class="text-xs text-slate-400 mt-1">Please try again in a moment or use the Download button above.</p></div>';
+            return;
+        }
         fetch(url)
-            .then(function(res) { return res.arrayBuffer(); })
+            .then(function(res) {
+                if (res.status === 404) throw new Error('__404__');
+                if (!res.ok) throw new Error('Server error ' + res.status + ' — please try downloading the file.');
+                return res.arrayBuffer();
+            })
             .then(function(buf) {
                 var wb = XLSX.read(buf, { type: 'array' });
                 var html = '';
@@ -1758,7 +1787,11 @@ function closeRerouteModal(event) {
                 });
             })
             .catch(function(err) {
-                container.innerHTML = '<div class="text-center py-12"><p class="text-sm text-red-500">Failed to render spreadsheet.</p><p class="text-xs text-slate-400 mt-1">' + err.message + '</p></div>';
+                if (err.message === '__404__') {
+                    container.innerHTML = '<div class="text-center py-12"><svg class="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><p class="text-sm font-medium text-slate-600 mb-1">File not available on server</p><p class="text-xs text-slate-400">The spreadsheet file could not be found. Please use the <strong>Download</strong> button above or contact an administrator.</p></div>';
+                } else {
+                    container.innerHTML = '<div class="text-center py-12"><p class="text-sm text-red-500">Failed to render spreadsheet.</p><p class="text-xs text-slate-400 mt-1">' + err.message + '</p></div>';
+                }
             });
     }
 
@@ -1773,7 +1806,7 @@ function closeRerouteModal(event) {
         });
     };
 
-    function openDocViewer(previewUrl, title, downloadUrl) {
+    function openDocViewer(previewUrl, title, downloadUrl, fileExt) {
         const modal = document.getElementById('doc-viewer-modal');
         const titleEl = document.getElementById('doc-viewer-title');
         const frame = document.getElementById('doc-viewer-frame');
@@ -1787,9 +1820,12 @@ function closeRerouteModal(event) {
         const newtabBtn = document.getElementById('doc-viewer-newtab');
         const fallbackBtn = document.getElementById('doc-viewer-fallback-download');
 
+        // Use the explicit file extension if provided, otherwise fall back to title
+        const ext = (fileExt || '').toLowerCase() || getExtension(title);
+
         // Track current preview URL for the Print button
         window._docViewerPreviewUrl = previewUrl;
-        window._docViewerExt = getExtension(title);
+        window._docViewerExt = ext;
 
         // Set title and download links
         titleEl.textContent = title;
@@ -1808,8 +1844,6 @@ function closeRerouteModal(event) {
         // Show modal
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
-
-        const ext = getExtension(title);
 
         if (imageExts.includes(ext)) {
             // Image preview
@@ -2220,6 +2254,146 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+{{-- ═══════ Reapply Barcode Preview Modal ═══════ --}}
+@if(isset($canApplyBarcode) && $canApplyBarcode && isset($docExt) && in_array($docExt, $barcodeSupportedExts ?? []))
+@include('documents.partials.barcode-preview-modal', [
+    'modalId'        => 'reapplyBarcodeModal',
+    'formSelector'   => '#barcode-overlay-form',
+    'trackingNumber' => $document->trackingNumber->tracking_number ?? null,
+])
+<script>
+/**
+ * Open the reapply barcode preview modal with the EXISTING stored document
+ * loaded by URL (not from a file input).
+ */
+function openReapplyBarcodePreview() {
+    var modalId = 'reapplyBarcodeModal';
+    var modal = document.getElementById(modalId);
+    if (!modal) return;
+
+    // Set the form selector so confirmBarcodePreview can inject to the overlay form
+    modal.dataset.formSelector = '#barcode-overlay-form';
+
+    // Copy current form values into the modal's coordinate inputs
+    var roles = {
+        'barcode-x': document.getElementById('reapply-barcode-x'),
+        'barcode-y': document.getElementById('reapply-barcode-y'),
+        'barcode-w': document.getElementById('reapply-barcode-w'),
+        'barcode-h': document.getElementById('reapply-barcode-h')
+    };
+    Object.entries(roles).forEach(function(entry) {
+        var role = entry[0], srcInput = entry[1];
+        if (!srcInput) return;
+        var modalInput = modal.querySelector('[data-role="' + role + '"]');
+        if (modalInput) modalInput.value = srcInput.value;
+    });
+
+    // Open the modal
+    var tn = @json($document->trackingNumber->tracking_number ?? null) || 'SAMPLE';
+    openBarcodePreviewModal(modalId, tn);
+
+    // Now load the existing document into the preview (from server URL)
+    var previewUrl = @json(route('documents.previewCurrent', $document->id));
+    var ext = @json($docExt);
+    var imageExts = ['jpg','jpeg','png','gif','webp','bmp','svg'];
+    var docExts = ['docx']; // mammoth.js only supports .docx, NOT legacy binary .doc
+    var sheetExts = ['xls','xlsx','csv','ods'];
+
+    // Helper to find modal elements
+    function mq(role) { return modal.querySelector('[data-role="' + role + '"]'); }
+
+    var loadingEl = mq('preview-loading');
+    var frameEl   = mq('preview-frame');
+    var imgEl     = mq('preview-img');
+    var docxEl    = mq('preview-docx');
+    var xlsxEl    = mq('preview-xlsx');
+    var noticeEl  = mq('preview-notice');
+    var overlayEl = mq('barcode-drag-overlay');
+
+    // Reset preview panes
+    if (frameEl)   frameEl.classList.add('hidden');
+    if (imgEl)     imgEl.classList.add('hidden');
+    if (docxEl)    { docxEl.classList.add('hidden'); docxEl.innerHTML = ''; }
+    if (xlsxEl)    { xlsxEl.classList.add('hidden'); xlsxEl.innerHTML = ''; }
+    if (noticeEl)  noticeEl.classList.add('hidden');
+    if (loadingEl) loadingEl.classList.remove('hidden');
+
+    function showOvl() {
+        if (overlayEl) { overlayEl.classList.remove('hidden'); }
+    }
+
+    if (ext === 'pdf' && frameEl) {
+        frameEl.onload = function() {
+            if (loadingEl) loadingEl.classList.add('hidden');
+            frameEl.classList.remove('hidden');
+            showOvl();
+        };
+        frameEl.src = previewUrl;
+    } else if (imageExts.indexOf(ext) !== -1 && imgEl) {
+        imgEl.onload = function() {
+            if (loadingEl) loadingEl.classList.add('hidden');
+            imgEl.classList.remove('hidden');
+            showOvl();
+        };
+        imgEl.src = previewUrl;
+    } else if (docExts.indexOf(ext) !== -1 && docxEl) {
+        if (loadingEl) loadingEl.classList.add('hidden');
+        docxEl.classList.remove('hidden');
+        docxEl.innerHTML = '<div class="flex items-center justify-center py-12"><svg class="animate-spin h-8 w-8 text-indigo-500 mr-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg><span class="text-sm text-slate-500">Loading document…</span></div>';
+        showOvl();
+        fetch(previewUrl)
+            .then(function(res) { return res.arrayBuffer(); })
+            .then(function(buf) { return mammoth.convertToHtml({ arrayBuffer: buf }); })
+            .then(function(result) { docxEl.innerHTML = '<div class="prose prose-sm max-w-none">' + result.value + '</div>'; })
+            .catch(function(err) { docxEl.innerHTML = '<div class="text-center py-8"><p class="text-sm text-red-500">Failed to render document.</p></div>'; });
+    } else if (sheetExts.indexOf(ext) !== -1 && xlsxEl) {
+        if (loadingEl) loadingEl.classList.add('hidden');
+        xlsxEl.classList.remove('hidden');
+        xlsxEl.innerHTML = '<div class="flex items-center justify-center py-12"><svg class="animate-spin h-8 w-8 text-green-500 mr-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg><span class="text-sm text-slate-500">Loading spreadsheet…</span></div>';
+        showOvl();
+        fetch(previewUrl)
+            .then(function(res) { return res.arrayBuffer(); })
+            .then(function(buf) {
+                var wb = XLSX.read(buf, { type: 'array' });
+                var html = '';
+                wb.SheetNames.forEach(function(name, i) {
+                    var tableHtml = XLSX.utils.sheet_to_html(wb.Sheets[name], { editable: false });
+                    html += '<div style="' + (i > 0 ? 'display:none;' : '') + '">' + tableHtml + '</div>';
+                });
+                xlsxEl.innerHTML = html;
+                xlsxEl.querySelectorAll('table').forEach(function(t) {
+                    t.className = 'w-full text-xs border-collapse';
+                    t.querySelectorAll('td, th').forEach(function(cell) { cell.className = 'border border-slate-200 px-2 py-1 text-slate-700'; });
+                });
+            })
+            .catch(function(err) { xlsxEl.innerHTML = '<div class="text-center py-8"><p class="text-sm text-red-500">Failed to render spreadsheet.</p></div>'; });
+    } else {
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (noticeEl) noticeEl.classList.remove('hidden');
+    }
+
+    // Override confirmBarcodePreview to also sync back to the main form inputs
+    var origConfirm = window.confirmBarcodePreview;
+    window.confirmBarcodePreview = function(mid) {
+        if (mid === modalId) {
+            // Read values from the modal's inputs and sync to the form's visible inputs
+            var mx = modal.querySelector('[data-role="barcode-x"]');
+            var my = modal.querySelector('[data-role="barcode-y"]');
+            var mw = modal.querySelector('[data-role="barcode-w"]');
+            var mh = modal.querySelector('[data-role="barcode-h"]');
+            if (mx && roles['barcode-x']) roles['barcode-x'].value = mx.value;
+            if (my && roles['barcode-y']) roles['barcode-y'].value = my.value;
+            if (mw && roles['barcode-w']) roles['barcode-w'].value = mw.value;
+            if (mh && roles['barcode-h']) roles['barcode-h'].value = mh.value;
+        }
+        origConfirm(mid);
+        // Restore the original
+        window.confirmBarcodePreview = origConfirm;
+    };
+}
+</script>
+@endif
 
 {{-- ═══════ Print Prompt Modal ═══════ --}}
 @include('documents.partials.print-prompt-modal')

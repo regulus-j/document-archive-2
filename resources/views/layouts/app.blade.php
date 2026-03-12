@@ -134,12 +134,24 @@
     (function() {
         var badge = document.getElementById('notification-badge');
         var lastCount = badge ? (parseInt(badge.textContent.trim(), 10) || 0) : 0;
+        var pollInterval = null;
 
         function pollNotifications() {
             fetch('{{ route('notifications.unread-count') }}', {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
             })
-            .then(function(r) { return r.ok ? r.json() : null; })
+            .then(function(r) {
+                // 401 means the session expired — stop polling to avoid console noise
+                if (r.status === 401) {
+                    if (pollInterval) {
+                        clearInterval(pollInterval);
+                        pollInterval = null;
+                    }
+                    return null;
+                }
+                return r.ok ? r.json() : null;
+            })
             .then(function(data) {
                 if (!data) return;
                 var count = data.count || 0;
@@ -156,7 +168,7 @@
         }
 
         // Poll every 60 seconds
-        setInterval(pollNotifications, 60000);
+        pollInterval = setInterval(pollNotifications, 60000);
     })();
     </script>
     @endauth

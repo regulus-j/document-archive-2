@@ -54,8 +54,25 @@
                 <input type="checkbox" data-role="barcode-enable" checked
                        class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
                 <span class="text-sm font-medium text-slate-700">Apply barcode overlay when uploading</span>
-                <span class="text-xs text-slate-400 font-normal">(PDF files only — other formats will skip overlay)</span>
+                <span class="text-xs text-slate-400 font-normal">(Supported: PDF and Images only)</span>
             </label>
+
+            {{-- Supported formats info --}}
+            <div class="flex items-start gap-2 bg-indigo-50/60 border border-indigo-100 rounded-lg p-3">
+                <svg class="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div>
+                    <p class="text-xs font-medium text-indigo-700 mb-1">Supported file types for barcode overlay:</p>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-red-100 text-red-700">PDF</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-700">JPG</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-100 text-purple-700">PNG</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600">GIF</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600">WEBP</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600">BMP</span>
+                    </div>
+                    <p class="text-[10px] text-amber-700 mt-1.5 font-medium">&#9888; DOCX and XLSX files are <strong>not supported</strong> for barcode overlay.</p>
+                </div>
+            </div>
 
             {{-- ── Main layout: left = document preview canvas, right = controls ── --}}
             <div data-role="barcode-controls" class="flex gap-5 flex-col lg:flex-row">
@@ -101,7 +118,7 @@
                                       d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
                             <p class="text-sm font-medium text-slate-600 mb-1">Preview not available for this file type</p>
-                            <p class="text-xs text-slate-400">The barcode will be overlaid on the PDF once uploaded.<br>Use the coordinate inputs on the right to position it.</p>
+                            <p class="text-xs text-slate-400">Supported overlay types: PDF and Images (JPG, PNG, GIF, WEBP, BMP).<br><strong class="text-amber-600">DOCX and XLSX are not supported</strong> — barcode overlay will not be applied to these formats.<br>For PDF and images, use the coordinate inputs on the right to position the barcode.</p>
                             {{-- A4 page diagram fallback --}}
                             <div class="mt-5 flex justify-center">
                                 <div data-role="barcode-page-preview"
@@ -220,8 +237,8 @@
 
                     {{-- Tip --}}
                     <div class="rounded-lg bg-indigo-50 border border-indigo-100 p-3">
-                        <p class="text-xs text-indigo-700 font-medium mb-1">💡 Tip</p>
-                        <p class="text-xs text-indigo-600">Drag the barcode on the preview to position it. Drag the blue corner to resize. The overlay is only applied to PDF files.</p>
+                        <p class="text-xs text-indigo-700 font-medium mb-1">&#128161; Tip</p>
+                        <p class="text-xs text-indigo-600">Drag the barcode on the preview to position it. Drag the blue corner to resize. The overlay is applied to <strong>PDF and Image</strong> files (JPG, PNG, GIF, WebP, BMP) only. DOCX and XLSX are not supported.</p>
                     </div>
                 </div>
             </div>
@@ -401,6 +418,15 @@
         const file = fileInput.files[0];
         const ext  = (file.name.split('.').pop() || '').toLowerCase();
         const imageExts = ['jpg','jpeg','png','gif','webp','bmp','svg'];
+        // DOCX and XLSX are NOT supported for overlay — show notice for them
+        const unsupportedExts = ['doc','docx','xls','xlsx','ods','csv','ppt','pptx'];
+
+        function showOverlay() {
+            if (overlayEl) {
+                overlayEl.classList.remove('hidden');
+                syncInputsToOverlay(modal);
+            }
+        }
 
         if (ext === 'pdf') {
             // PDF: create local object URL and load in iframe
@@ -408,10 +434,7 @@
             frameEl.onload = function() {
                 if (loadingEl) loadingEl.classList.add('hidden');
                 frameEl.classList.remove('hidden');
-                if (overlayEl) {
-                    overlayEl.classList.remove('hidden');
-                    syncInputsToOverlay(modal);
-                }
+                showOverlay();
             };
             frameEl.src = url;
         } else if (imageExts.includes(ext)) {
@@ -420,15 +443,11 @@
             imgEl.onload = function() {
                 if (loadingEl) loadingEl.classList.add('hidden');
                 imgEl.classList.remove('hidden');
-                // For images we can still show the overlay (will be applied on PDF side)
-                if (overlayEl) {
-                    overlayEl.classList.remove('hidden');
-                    syncInputsToOverlay(modal);
-                }
+                showOverlay();
             };
             imgEl.src = url;
         } else {
-            // DOCX / XLSX / ODS etc. — no inline preview available
+            // Unsupported format (including DOCX/XLSX) — show notice with fallback A4 diagram
             if (loadingEl) loadingEl.classList.add('hidden');
             if (noticeEl)  noticeEl.classList.remove('hidden');
             syncInputsToA4Diagram(modal);
@@ -592,7 +611,7 @@
             document.removeEventListener('keydown', modal._escHandler);
             modal._escHandler = null;
         }
-        // Clean up iframe blob URLs
+        // Clean up blob URLs
         const frame = q(modal, 'preview-frame');
         if (frame && frame.src && frame.src.startsWith('blob:')) {
             URL.revokeObjectURL(frame.src);
