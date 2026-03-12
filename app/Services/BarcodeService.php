@@ -7,10 +7,6 @@ use Picqer\Barcode\BarcodeGeneratorSVG;
 use setasign\Fpdi\Fpdi;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
-use PhpOffice\PhpWord\IOFactory as WordIOFactory;
-use PhpOffice\PhpWord\PhpWord;
-use PhpOffice\PhpSpreadsheet\IOFactory as SpreadsheetIOFactory;
-use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 
 class BarcodeService
 {
@@ -163,7 +159,8 @@ class BarcodeService
 
     /**
      * Overlay barcode on a stored document (using Laravel storage).
-     * Supports PDF (via FPDI), images (via GD), DOCX (via PhpWord), XLSX/ODS (via PhpSpreadsheet).
+     * Supports PDF (via FPDI) and images (via GD).
+     * DOCX and XLSX are NOT supported for overlay.
      *
      * @param string $storagePath  Relative path within 'public' disk
      * @param string $trackingNumber
@@ -197,21 +194,7 @@ class BarcodeService
                 : null;
         }
 
-        $wordExts = ['doc', 'docx'];
-        if (in_array($extension, $wordExts)) {
-            return $this->overlayBarcodeOnDocx($absolutePath, $storagePath, $trackingNumber, $options)
-                ? $storagePath
-                : null;
-        }
-
-        $spreadsheetExts = ['xls', 'xlsx', 'ods', 'csv'];
-        if (in_array($extension, $spreadsheetExts)) {
-            return $this->overlayBarcodeOnExcel($absolutePath, $storagePath, $trackingNumber, $options)
-                ? $storagePath
-                : null;
-        }
-
-        Log::info('Barcode overlay skipped: unsupported format', ['path' => $storagePath, 'ext' => $extension]);
+        Log::info('Barcode overlay skipped: unsupported format (only PDF and images are supported)', ['path' => $storagePath, 'ext' => $extension]);
         return null;
     }
 
@@ -302,22 +285,32 @@ class BarcodeService
                 imagestring($src, $font, $pxX, $textY, $trackingNumber, $black);
             }
 
-            // Save back to original file
+            // Save to a temp path first — never overwrite the original until success
+            $tempPath = $absolutePath . '.bc_tmp';
             $saved = match ($extension) {
-                'jpg', 'jpeg' => imagejpeg($src, $absolutePath, 90),
-                'png'         => imagepng($src, $absolutePath, 6),
-                'gif'         => imagegif($src, $absolutePath),
-                'webp'        => imagewebp($src, $absolutePath, 85),
-                'bmp'         => imagebmp($src, $absolutePath),
+                'jpg', 'jpeg' => imagejpeg($src, $tempPath, 90),
+                'png'         => imagepng($src, $tempPath, 6),
+                'gif'         => imagegif($src, $tempPath),
+                'webp'        => imagewebp($src, $tempPath, 85),
+                'bmp'         => imagebmp($src, $tempPath),
                 default       => false,
             };
 
             imagedestroy($src);
 
             if (!$saved) {
-                Log::error('Barcode overlay: failed to save image', ['path' => $absolutePath]);
+                if (file_exists($tempPath)) unlink($tempPath);
+                Log::error('Barcode overlay: failed to save image to temp', ['path' => $absolutePath]);
                 return false;
             }
+
+            // Copy temp over original (original untouched until this point)
+            if (!copy($tempPath, $absolutePath)) {
+                unlink($tempPath);
+                Log::error('Barcode overlay: failed to copy temp to original', ['path' => $absolutePath]);
+                return false;
+            }
+            unlink($tempPath);
 
             Log::info('Barcode overlay applied to image', ['path' => $storagePath]);
             return true;
@@ -327,131 +320,5 @@ class BarcodeService
             return false;
         }
     }
-    /**
-     * Overlay a barcode onto a DOCX file using PhpWord.
-     * Inserts the barcode as a floating image in the header of the target section(s).
-     */
-    public function overlayBarcodeOnDocx(string $absolutePath, string $storagePath, string $trackingNumber, array $options = []): bool
-    {
-        try {
-            $xMm        = (float) ($options['x']        ?? 10);
-            $yMm        = (float) ($options['y']        ?? 10);
-            $widthMm    = (float) ($options['width']    ?? 60);
-            $heightMm   = (float) ($options['height']   ?? 15);
-            $showText   = (bool)  ($options['show_text'] ?? true);
-            $targetPage = (int)   ($options['page']     ?? 1);
 
-            $barcodeRaw  = $this->generateBarcodeRaw($trackingNumber, 2, 80);
-            $tempDir     = storage_path('app/temp');
-            if (!is_dir($tempDir)) mkdir($tempDir, 0755, true);
-            $tempBarcode = $tempDir . '/barcode_docx_' . md5($trackingNumber . microtime()) . '.png';
-            file_put_contents($tempBarcode, $barcodeRaw);
-
-            $widthPt  = $widthMm  * 2.835;
-            $heightPt = $heightMm * 2.835;
-            $xPt      = $xMm     * 2.835;
-            $yPt      = $yMm     * 2.835;
-
-            $phpWord  = WordIOFactory::load($absolutePath);
-            $sections = $phpWord->getSections();
-
-            foreach ($sections as $idx => $section) {
-                if ($targetPage !== 0 && $idx !== 0) continue;
-                $header = $section->getHeader() ?? $section->addHeader();
-                $header->addImage($tempBarcode, [
-                    'width'            => $widthPt,
-                    'height'           => $heightPt,
-                    'positioning'      => \PhpOffice\PhpWord\Style\Image::POSITION_ABSOLUTE,
-                    'posHorizontal'    => \PhpOffice\PhpWord\Style\Image::POSITION_HORIZONTAL_LEFT,
-                    'posVertical'      => \PhpOffice\PhpWord\Style\Image::POSITION_VERTICAL_TOP,
-                    'posHorizontalRel' => \PhpOffice\PhpWord\Style\Image::POSITION_RELATIVE_TO_PAGE,
-                    'posVerticalRel'   => \PhpOffice\PhpWord\Style\Image::POSITION_RELATIVE_TO_PAGE,
-                    'marginLeft'       => $xPt,
-                    'marginTop'        => $yPt,
-                    'wrappingStyle'    => \PhpOffice\PhpWord\Style\Image::WRAPPING_STYLE_NONE,
-                ]);
-                if ($showText) {
-                    $header->addText($trackingNumber, ['size' => 7, 'name' => 'Courier New'], ['spaceAfter' => 0, 'spaceBefore' => 0]);
-                }
-            }
-
-            $writer = WordIOFactory::createWriter($phpWord, 'Word2007');
-            $writer->save($absolutePath);
-            if (file_exists($tempBarcode)) unlink($tempBarcode);
-            Log::info('Barcode overlay applied to DOCX', ['path' => $storagePath]);
-            return true;
-
-        } catch (\Exception $e) {
-            Log::error('Barcode DOCX overlay failed', ['path' => $absolutePath, 'error' => $e->getMessage()]);
-            if (isset($tempBarcode) && file_exists($tempBarcode)) unlink($tempBarcode);
-            return false;
-        }
-    }
-
-    /**
-     * Overlay a barcode onto an Excel spreadsheet using PhpSpreadsheet.
-     * Inserts the barcode as a Drawing image anchored at the cell for the given mm position.
-     */
-    public function overlayBarcodeOnExcel(string $absolutePath, string $storagePath, string $trackingNumber, array $options = []): bool
-    {
-        try {
-            $xMm        = (float) ($options['x']        ?? 10);
-            $yMm        = (float) ($options['y']        ?? 10);
-            $widthMm    = (float) ($options['width']    ?? 60);
-            $heightMm   = (float) ($options['height']   ?? 15);
-            $showText   = (bool)  ($options['show_text'] ?? true);
-            $targetPage = (int)   ($options['page']     ?? 1);
-
-            $barcodeRaw  = $this->generateBarcodeRaw($trackingNumber, 2, 80);
-            $tempDir     = storage_path('app/temp');
-            if (!is_dir($tempDir)) mkdir($tempDir, 0755, true);
-            $tempBarcode = $tempDir . '/barcode_xlsx_' . md5($trackingNumber . microtime()) . '.png';
-            file_put_contents($tempBarcode, $barcodeRaw);
-
-            $spreadsheet = SpreadsheetIOFactory::load($absolutePath);
-            $sheetCount  = $spreadsheet->getSheetCount();
-            $targetSheets = ($targetPage === 0) ? range(0, $sheetCount - 1) : [0];
-
-            $colWidthMm  = 16.9;
-            $rowHeightMm = 5.3;
-            $col = max(1, (int) round($xMm / $colWidthMm));
-            $row = max(1, (int) round($yMm / $rowHeightMm));
-            $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
-            $cellCoord = $colLetter . $row;
-
-            foreach ($targetSheets as $si) {
-                if ($si >= $sheetCount) continue;
-                $sheet = $spreadsheet->getSheet($si);
-                $drawing = new Drawing();
-                $drawing->setName('Barcode');
-                $drawing->setDescription($trackingNumber);
-                $drawing->setPath($tempBarcode);
-                $drawing->setCoordinates($cellCoord);
-                $drawing->setOffsetX(0);
-                $drawing->setOffsetY(0);
-                $drawing->setWidth((int) round($widthMm  * 3.78));
-                $drawing->setHeight((int) round($heightMm * 3.78));
-                $drawing->setWorksheet($sheet);
-                if ($showText) {
-                    $textRow = $row + (int) ceil($heightMm / $rowHeightMm) + 1;
-                    $sheet->setCellValue($colLetter . $textRow, $trackingNumber);
-                    $sheet->getStyle($colLetter . $textRow)->getFont()->setSize(7);
-                }
-            }
-
-            $ext = strtolower(pathinfo($absolutePath, PATHINFO_EXTENSION));
-            $writerType = match ($ext) {
-                'xls' => 'Xls', 'ods' => 'Ods', 'csv' => 'Csv', default => 'Xlsx',
-            };
-            SpreadsheetIOFactory::createWriter($spreadsheet, $writerType)->save($absolutePath);
-            if (file_exists($tempBarcode)) unlink($tempBarcode);
-            Log::info('Barcode overlay applied to Excel', ['path' => $storagePath]);
-            return true;
-
-        } catch (\Exception $e) {
-            Log::error('Barcode Excel overlay failed', ['path' => $absolutePath, 'error' => $e->getMessage()]);
-            if (isset($tempBarcode) && file_exists($tempBarcode)) unlink($tempBarcode);
-            return false;
-        }
-    }
 }
