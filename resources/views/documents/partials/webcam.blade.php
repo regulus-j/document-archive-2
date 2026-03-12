@@ -53,7 +53,7 @@
             var file = new File([blob], 'snapshot.png', { type: 'image/png' });
             var dataTransfer = new DataTransfer();
             dataTransfer.items.add(file);
-            var fileInput = document.querySelector('#file-input');
+            var fileInput = document.querySelector('#main-document');
             if (fileInput) fileInput.files = dataTransfer.files;
             document.getElementById('cameraModal').classList.add('hidden');
             stopCamStream();
