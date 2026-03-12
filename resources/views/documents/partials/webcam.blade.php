@@ -7,7 +7,13 @@
             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div class="sm:flex sm:items-start">
                     <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                        <h3 class="text-lg leading-6 font-medium text-slate-900" id="modal-title">Capture Image</h3>
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-lg leading-6 font-medium text-slate-900" id="modal-title">Capture Image</h3>
+                            <!-- Camera Selector (shown only if multiple cameras available) -->
+                            <select id="cameraSelect" class="hidden text-sm px-3 py-1 rounded-md border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <!-- Options populated by JavaScript -->
+                            </select>
+                        </div>
                         <div class="mt-2">
                             <video id="camfeed" autoplay playsinline class="w-full rounded-md bg-black"></video>
                             <p id="cam-status" class="text-xs text-slate-500 mt-1 text-center hidden">Starting camera…</p>
@@ -32,6 +38,8 @@
 <script>
 (function() {
     var _camStream = null;
+    var _availableCameras = [];
+    var _selectedCameraId = localStorage.getItem('selectedCameraId') || null;
 
     function stopCamStream() {
         if (_camStream) {
@@ -40,6 +48,86 @@
         }
         var video = document.querySelector('#camfeed');
         if (video) video.srcObject = null;
+    }
+
+    // Enumerate available cameras
+    function enumerateCameras() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+            return Promise.resolve([]);
+        }
+        return navigator.mediaDevices.enumerateDevices()
+            .then(function(devices) {
+                return devices.filter(function(device) {
+                    return device.kind === 'videoinput';
+                });
+            })
+            .catch(function(err) {
+                console.error('Error enumerating devices:', err);
+                return [];
+            });
+    }
+
+    // Populate camera selector
+    function populateCameraSelector(cameras) {
+        var select = document.querySelector('#cameraSelect');
+        if (!select) return;
+
+        select.innerHTML = '';
+        _availableCameras = cameras;
+
+        cameras.forEach(function(camera, index) {
+            var option = document.createElement('option');
+            option.value = camera.deviceId;
+            option.textContent = camera.label || 'Camera ' + (index + 1);
+            select.appendChild(option);
+        });
+
+        // Show selector only if multiple cameras
+        if (cameras.length > 1) {
+            select.classList.remove('hidden');
+            // Select previously used camera if available
+            if (_selectedCameraId) {
+                select.value = _selectedCameraId;
+            }
+        } else {
+            select.classList.add('hidden');
+        }
+    }
+
+    // Start camera stream with specified device ID
+    function startCamera(deviceId) {
+        stopCamStream();
+        var video = document.querySelector('#camfeed');
+        var status = document.getElementById('cam-status');
+        
+        if (status) { status.textContent = 'Starting camera…'; status.classList.remove('hidden'); }
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            if (status) { status.textContent = 'Camera not supported in this browser.'; }
+            return;
+        }
+
+        var constraints = { video: { facingMode: 'environment' } };
+        if (deviceId) {
+            constraints.video = { deviceId: { exact: deviceId } };
+        }
+
+        navigator.mediaDevices.getUserMedia(constraints)
+            .then(function(stream) {
+                _camStream = stream;
+                video.srcObject = stream;
+                video.play();
+                if (status) status.classList.add('hidden');
+                // Save camera preference
+                if (deviceId) {
+                    _selectedCameraId = deviceId;
+                    localStorage.setItem('selectedCameraId', deviceId);
+                }
+            })
+            .catch(function(err) {
+                if (status) { status.textContent = 'Unable to access camera: ' + err.message; }
+                console.error('Camera error:', err);
+            });
     }
 
     // Capture frame and inject into file input
@@ -66,29 +154,29 @@
         stopCamStream();
     });
 
+    // Handle camera selection change
+    var cameraSelect = document.querySelector('#cameraSelect');
+    if (cameraSelect) {
+        cameraSelect.addEventListener('change', function() {
+            startCamera(this.value);
+        });
+    }
+
     // Open camera modal and start the stream
     document.querySelector('#btn-opencam').addEventListener('click', function() {
         var modal = document.getElementById('cameraModal');
-        var status = document.getElementById('cam-status');
         modal.classList.remove('hidden');
-        if (status) { status.textContent = 'Starting camera…'; status.classList.remove('hidden'); }
 
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            if (status) { status.textContent = 'Camera not supported in this browser.'; }
-            return;
-        }
-
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(function(stream) {
-                _camStream = stream;
-                var video = document.querySelector('#camfeed');
-                video.srcObject = stream;
-                video.play();
-                if (status) status.classList.add('hidden');
-            })
-            .catch(function(err) {
-                if (status) { status.textContent = 'Unable to access camera: ' + err.message; }
-                console.error('Camera error:', err);
+        // Enumerate cameras and start
+        enumerateCameras()
+            .then(function(cameras) {
+                populateCameraSelector(cameras);
+                // Start with previously selected camera or first available
+                var deviceIdToUse = _selectedCameraId;
+                if (cameras.length > 0 && (!deviceIdToUse || !cameras.find(function(c) { return c.deviceId === deviceIdToUse; }))) {
+                    deviceIdToUse = cameras[0].deviceId;
+                }
+                startCamera(deviceIdToUse || null);
             });
     });
 })();
