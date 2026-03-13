@@ -156,19 +156,23 @@
                                     </div>
                                 </div>
 
-                                <!-- Image Search Button -->
+                                <!-- Barcode Scan Button -->
                                 <div>
                                     <button type="button"
                                         id="image-search-toggle-btn"
                                         onclick="toggleImageSearch()"
                                         class="px-4 py-2.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50/80 text-slate-700 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200">
                                         <div class="relative w-5 h-5">
-                                            <!-- Image icon -->
+                                            <!-- Barcode icon -->
                                             <svg class="image-icon h-5 w-5 text-slate-400 transition-all duration-200"
                                                 xmlns="http://www.w3.org/2000/svg"
-                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                fill="currentColor" viewBox="0 0 24 24">
+                                                <rect x="2" y="4" width="2" height="16"/>
+                                                <rect x="6" y="4" width="1" height="16"/>
+                                                <rect x="9" y="4" width="2" height="16"/>
+                                                <rect x="13" y="4" width="1" height="16"/>
+                                                <rect x="16" y="4" width="2" height="16"/>
+                                                <rect x="20" y="4" width="2" height="16"/>
                                             </svg>
                                             <!-- Close icon (hidden by default) -->
                                             <svg class="close-icon absolute inset-0 h-5 w-5 text-slate-400 opacity-0 transition-all duration-200"
@@ -179,47 +183,23 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                             </svg>
                                         </div>
-                                        <span class="hidden sm:inline transition-all duration-200">Image Search</span>
+                                        <span class="hidden sm:inline transition-all duration-200">Scan Barcode</span>
                                     </button>
                                 </div>
                             </div>
 
-                            <!-- Image Search Section (Hidden by default) -->
+                            <!-- Barcode Scan Section (Hidden by default) -->
                             <div id="image-search-section" class="hidden mt-4">
                                 <div class="p-4 bg-slate-50/80 rounded-lg border border-slate-200">
-                                    <div class="flex items-center gap-4">
-                                        <div class="flex-1">
-                                            <input type="file" id="image-input" name="image" accept="image/*" class="hidden">
-                                            <label for="image-input"
-                                                class="flex items-center justify-center w-full px-4 py-2.5 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-indigo-500 focus:outline-none focus:border-indigo-500 transition-all">
-                                                <svg class="h-5 w-5 text-slate-400 mr-2" xmlns="http://www.w3.org/2000/svg"
-                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                                                </svg>
-                                                <span class="text-slate-600">Click to upload or drag and drop</span>
-                                            </label>
-                                        </div>
-                                        <button type="button" id="camera-toggle"
-                                        class="inline-flex items-center px-4 py-2 border border-slate-300 shadow-sm text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                        <svg class="h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg"
-                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                    </button>
-                                </div>
+                                    <input type="file" id="image-input" name="image" accept="image/*" class="hidden">
 
                                 <!-- Camera Container -->
-                                <div id="camera-container" class="hidden mt-3">
-                                    <div
-                                        class="relative w-full aspect-video rounded-xl overflow-hidden bg-black shadow-lg border border-indigo-200">
-                                        <video id="camera-stream" autoplay playsinline
-                                            class="w-full h-full object-contain"></video>
+                                <div id="camera-container">
+                                    <div class="relative w-full rounded-xl overflow-hidden bg-black shadow-lg border border-indigo-200" style="aspect-ratio:16/9;">
+                                        <video id="camera-stream" autoplay playsinline muted
+                                            style="width:100%;height:100%;object-fit:cover;display:block;"></video>
                                         <button type="button" id="capture-button"
-                                            class="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-600 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md transition-colors">
+                                            class="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md transition-colors">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1"
                                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -227,7 +207,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                                             </svg>
-                                            Capture
+                                            Capture Barcode
                                         </button>
                                     </div>
                                 </div>
@@ -1008,7 +988,6 @@
             const imageInput = document.getElementById('image-input');
             const previewContainer = document.getElementById('preview-container');
             const previewImage = document.getElementById('preview-image');
-            const cameraToggle = document.getElementById('camera-toggle');
             const cameraContainer = document.getElementById('camera-container');
             const cameraStream = document.getElementById('camera-stream');
             const captureButton = document.getElementById('capture-button');
@@ -1041,28 +1020,18 @@
                 }
             });
 
-            cameraToggle.addEventListener('click', async function() {
-                if (cameraContainer.classList.contains('hidden')) {
-                    try {
-                        stream = await navigator.mediaDevices.getUserMedia({
-                            video: true
-                        });
-                        cameraStream.srcObject = stream;
-                        cameraContainer.classList.remove('hidden');
-                        this.innerHTML = `
-                                                    <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                                    </svg>
-                                                    Close Camera
-                                                `;
-                    } catch (err) {
-                        alert('Unable to access camera');
-                        console.error('Error accessing camera:', err);
-                    }
-                } else {
-                    stopCamera();
+            async function startCamera() {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+                    });
+                    cameraStream.srcObject = stream;
+                    await cameraStream.play();
+                } catch (err) {
+                    console.error('Error accessing camera:', err);
+                    alert('Unable to access camera. Please allow camera permission and try again.');
                 }
-            });
+            }
 
             captureButton.addEventListener('click', function() {
                 const canvas = document.createElement('canvas');
@@ -1155,14 +1124,7 @@
                     stream.getTracks().forEach(track => track.stop());
                     stream = null;
                 }
-                cameraContainer.classList.add('hidden');
-                cameraToggle.innerHTML = `
-                                            <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            </svg>
-                                            Open Camera
-                                        `;
+                cameraStream.srcObject = null;
             }
 
             window.addEventListener('beforeunload', stopCamera);
@@ -1572,7 +1534,7 @@
             const isHidden = section.classList.contains('hidden');
 
             if (isHidden) {
-                // Show section
+                // Show section and start camera
                 section.classList.remove('hidden');
                 section.style.opacity = '0';
                 section.style.transform = 'translateY(-10px)';
@@ -1582,13 +1544,18 @@
                     section.style.transform = 'translateY(0)';
                 }, 10);
 
+                // Start camera
+                if (typeof startCamera === 'function') startCamera();
+
                 // Update button style
                 button.classList.add('bg-indigo-50', 'border-indigo-500', 'text-indigo-600');
                 imageIcon.classList.add('opacity-0');
                 closeIcon.classList.remove('opacity-0');
-                if (buttonText) buttonText.textContent = 'Close Image Search';
+                if (buttonText) buttonText.textContent = 'Close Scanner';
             } else {
-                // Hide section
+                // Stop camera and hide section
+                if (typeof stopCamera === 'function') stopCamera();
+
                 section.style.opacity = '0';
                 section.style.transform = 'translateY(-10px)';
                 setTimeout(() => {
@@ -1602,7 +1569,7 @@
                 button.classList.remove('bg-indigo-50', 'border-indigo-500', 'text-indigo-600');
                 imageIcon.classList.remove('opacity-0');
                 closeIcon.classList.add('opacity-0');
-                if (buttonText) buttonText.textContent = 'Image Search';
+                if (buttonText) buttonText.textContent = 'Scan Barcode';
             }
         }
 
