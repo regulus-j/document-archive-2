@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
     <div class="min-h-screen py-6">
@@ -190,43 +190,65 @@
 
                             <!-- Barcode Scan Section (Hidden by default) -->
                             <div id="image-search-section" class="hidden mt-4">
-                                <div class="p-4 bg-slate-50/80 rounded-lg border border-slate-200">
-                                    <input type="file" id="image-input" name="image" accept="image/*" class="hidden">
+                                <div class="p-4 bg-slate-50/80 rounded-lg border border-slate-200 space-y-3">
 
-                                <!-- Camera Container -->
-                                <div id="camera-container">
-                                    <div class="relative w-full rounded-xl overflow-hidden bg-black shadow-lg border border-indigo-200" style="aspect-ratio:16/9;">
-                                        <video id="camera-stream" autoplay playsinline muted
-                                            style="width:100%;height:100%;object-fit:cover;display:block;"></video>
-                                        <button type="button" id="capture-button"
-                                            class="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md transition-colors">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1"
-                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            </svg>
-                                            Capture Barcode
-                                        </button>
+                                    <!-- Scanner status bar -->
+                                    <div id="idx-qr-status" class="hidden"></div>
+
+                                    <!-- Camera preview (shown when scanning) -->
+                                    <div id="idx-reader-wrapper" class="hidden">
+                                        <!-- Video viewport with overlay controls -->
+                                        <div class="relative w-full rounded-xl overflow-hidden bg-black border border-indigo-200 shadow-lg" style="aspect-ratio:16/9;">
+                                            <video id="idx-camera-video" autoplay playsinline muted
+                                                style="width:100%;height:100%;object-fit:cover;display:block;"></video>
+                                            <!-- Scan-region guide overlay -->
+                                            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                <div class="border-2 border-indigo-400/70 rounded-lg" style="width:70%;height:40%;box-shadow:0 0 0 9999px rgba(0,0,0,0.35);"></div>
+                                            </div>
+                                            <!-- Top-right controls: switch camera + stop -->
+                                            <div class="absolute top-3 right-3 flex gap-2">
+                                                <!-- Switch camera button (hidden on single-camera devices) -->
+                                                <button type="button" id="idx-switch-cam-btn" onclick="idxSwitchCamera()" title="Switch camera"
+                                                    style="display:none;"
+                                                    class="p-2 bg-black/60 hover:bg-black/80 text-white rounded-lg backdrop-blur-sm transition-colors">
+                                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                                    </svg>
+                                                </button>
+                                                <!-- Stop/close button -->
+                                                <button type="button" onclick="idxStopCamera()" title="Stop scanner"
+                                                    class="p-2 bg-black/60 hover:bg-red-600 text-white rounded-lg backdrop-blur-sm transition-colors">
+                                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <!-- Scanning indicator label at bottom -->
+                                            <div class="absolute bottom-3 left-0 right-0 flex justify-center pointer-events-none">
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 text-white text-xs backdrop-blur-sm">
+                                                    <span class="w-2 h-2 bg-indigo-400 rounded-full animate-pulse"></span>
+                                                    Scanning for barcode&hellip;
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- Image Preview -->
-                                <div id="preview-container" class="hidden relative w-full mt-3">
-                                    <div class="bg-white p-2 rounded-xl shadow-md border border-indigo-200">
-                                        <img id="preview-image" src="#" alt="Preview" class="w-full rounded-lg">
-                                        <button type="button" onclick="clearImage()"
-                                            class="absolute top-4 right-4 p-1.5 bg-white rounded-full shadow-md hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 border border-slate-200">
-                                            <svg class="h-5 w-5 text-slate-500" xmlns="http://www.w3.org/2000/svg"
-                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M6 18L18 6M6 6l12 12" />
+                                    <!-- Action buttons (always visible in panel) -->
+                                    <div class="flex flex-wrap gap-2">
+                                        <label class="inline-flex items-center px-3 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                             </svg>
-                                        </button>
+                                            Upload Barcode Image
+                                            <input type="file" id="idx-image-input" accept="image/*" class="hidden" onchange="idxDecodeFromImage(this)">
+                                        </label>
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Hidden host div for Html5Qrcode image decoding (must exist in DOM) -->
+                            <div id="idx-qr-canvas-host" style="display:none;"></div>
+
 
                             <!-- Search Button -->
                             <div class="mt-3">
@@ -985,78 +1007,19 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('search-form');
-            const imageInput = document.getElementById('image-input');
-            const previewContainer = document.getElementById('preview-container');
-            const previewImage = document.getElementById('preview-image');
-            const cameraContainer = document.getElementById('camera-container');
-            const cameraStream = document.getElementById('camera-stream');
-            const captureButton = document.getElementById('capture-button');
             const submitButton = document.getElementById('submit-button');
             const spinner = document.getElementById('spinner');
             const buttonText = document.getElementById('button-text');
             const quickSearch = document.getElementById('quick-search');
             const filterField = document.getElementById('filter-field');
 
-            let stream = null;
-
-            imageInput.addEventListener('change', function(e) {
-                const file = this.files[0];
-                if (file) {
-                    if (file.size > 5 * 1024 * 1024) {
-                        alert('File size should not exceed 5MB');
-                        this.value = '';
-                        return;
-                    }
-
-                    const reader = new FileReader();
-                    reader.onloadend = function() {
-                        previewImage.src = reader.result;
-                        previewContainer.classList.remove('hidden');
-                        if (!cameraContainer.classList.contains('hidden')) {
-                            stopCamera();
-                        }
-                    }
-                    reader.readAsDataURL(file);
-                }
-            });
-
-            async function startCamera() {
-                try {
-                    stream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
-                    });
-                    cameraStream.srcObject = stream;
-                    await cameraStream.play();
-                } catch (err) {
-                    console.error('Error accessing camera:', err);
-                    alert('Unable to access camera. Please allow camera permission and try again.');
-                }
-            }
-
-            captureButton.addEventListener('click', function() {
-                const canvas = document.createElement('canvas');
-                canvas.width = cameraStream.videoWidth;
-                canvas.height = cameraStream.videoHeight;
-                canvas.getContext('2d').drawImage(cameraStream, 0, 0);
-
-                canvas.toBlob(function(blob) {
-                    const file = new File([blob], 'camera-capture.jpg', {
-                        type: 'image/jpeg'
-                    });
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(file);
-                    imageInput.files = dataTransfer.files;
-                    previewImage.src = canvas.toDataURL('image/jpeg');
-                    previewContainer.classList.remove('hidden');
-                    stopCamera();
-                }, 'image/jpeg');
-            });
-
             form.addEventListener('submit', function() {
                 submitButton.disabled = true;
                 spinner.classList.remove('hidden');
                 buttonText.textContent = 'Searching...';
             });
+
+
 
             quickSearch.addEventListener('keyup', function() {
                 const searchField = filterField.value;
@@ -1525,53 +1488,177 @@
 
     <script>
         // Toggle Image Search Section
+
+
+        // === Barcode Scanner for Document Index (idx) ===
+        // State
+        let idxStream = null;
+        let idxScannerActive = false;
+        let idxFacingMode = 'environment'; // start with rear camera
+        let idxScanInterval = null;
+        let idxHtml5QrCode = null;
+
+        // Enumerate cameras for switch button
+        async function idxGetCameras() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                return devices.filter(d => d.kind === 'videoinput');
+            } catch(e) { return []; }
+        }
+
+        // Update switch-camera button visibility
+        async function idxUpdateSwitchBtn() {
+            const btn = document.getElementById('idx-switch-cam-btn');
+            if (!btn) return;
+            const cams = await idxGetCameras();
+            btn.style.display = cams.length > 1 ? '' : 'none';
+        }
+
+        // Toggle the scanner panel open/closed
         function toggleImageSearch() {
             const section = document.getElementById('image-search-section');
-            const button = document.getElementById('image-search-toggle-btn');
-            const imageIcon = button.querySelector('.image-icon');
-            const closeIcon = button.querySelector('.close-icon');
+            const button  = document.getElementById('image-search-toggle-btn');
+            const imageIcon  = button.querySelector('.image-icon');
+            const closeIcon  = button.querySelector('.close-icon');
             const buttonText = button.querySelector('span');
             const isHidden = section.classList.contains('hidden');
 
             if (isHidden) {
-                // Show section and start camera
                 section.classList.remove('hidden');
                 section.style.opacity = '0';
                 section.style.transform = 'translateY(-10px)';
-                setTimeout(() => {
+                setTimeout(function() {
                     section.style.transition = 'all 0.3s ease-out';
                     section.style.opacity = '1';
                     section.style.transform = 'translateY(0)';
                 }, 10);
-
-                // Start camera
-                if (typeof startCamera === 'function') startCamera();
-
-                // Update button style
                 button.classList.add('bg-indigo-50', 'border-indigo-500', 'text-indigo-600');
                 imageIcon.classList.add('opacity-0');
                 closeIcon.classList.remove('opacity-0');
                 if (buttonText) buttonText.textContent = 'Close Scanner';
+                // Auto-start camera
+                idxStartCamera();
             } else {
-                // Stop camera and hide section
-                if (typeof stopCamera === 'function') stopCamera();
-
+                idxStopCamera();
                 section.style.opacity = '0';
                 section.style.transform = 'translateY(-10px)';
-                setTimeout(() => {
+                setTimeout(function() {
                     section.classList.add('hidden');
                     section.style.transition = '';
                     section.style.opacity = '';
                     section.style.transform = '';
                 }, 300);
-
-                // Reset button style
                 button.classList.remove('bg-indigo-50', 'border-indigo-500', 'text-indigo-600');
                 imageIcon.classList.remove('opacity-0');
                 closeIcon.classList.add('opacity-0');
                 if (buttonText) buttonText.textContent = 'Scan Barcode';
             }
         }
+
+        async function idxStartCamera() {
+            idxStopCamera(); // clean up any previous stream
+            const video   = document.getElementById('idx-camera-video');
+            const wrapper = document.getElementById('idx-reader-wrapper');
+            const statusEl = document.getElementById('idx-qr-status');
+            if (!video || !wrapper) return;
+
+            wrapper.classList.remove('hidden');
+            idxScannerActive = true;
+            idxUpdateSwitchBtn();
+
+            try {
+                idxStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: idxFacingMode }, width: { ideal: 1280 }, height: { ideal: 720 } }
+                });
+                video.srcObject = idxStream;
+                await video.play();
+
+                // Use Html5Qrcode to decode frames from the video
+                idxHtml5QrCode = new Html5Qrcode('idx-qr-canvas-host');
+                idxScanInterval = setInterval(function() {
+                    if (!video.videoWidth) return;
+                    const canvas = document.createElement('canvas');
+                    canvas.width  = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext('2d').drawImage(video, 0, 0);
+                    canvas.toBlob(function(blob) {
+                        if (!blob || !idxScannerActive) return;
+                        const file = new File([blob], 'frame.jpg', { type: 'image/jpeg' });
+                        const tmpScanner = new Html5Qrcode('idx-qr-canvas-host');
+                        tmpScanner.scanFileV2(file, false).then(function(result) {
+                            clearInterval(idxScanInterval);
+                            idxScanInterval = null;
+                            idxStopCamera();
+                            document.getElementById('quick-search').value = result.decodedText;
+                            idxShowStatus('success', 'Barcode scanned: ' + result.decodedText + ' — click Search Documents to proceed.');
+                        }).catch(function() {
+                            // no barcode in this frame, keep scanning
+                        }).finally(function() {
+                            try { tmpScanner.clear(); } catch(e) {}
+                        });
+                    }, 'image/jpeg', 0.8);
+                }, 400);
+
+            } catch(err) {
+                idxShowStatus('error', 'Could not access camera: ' + err.message);
+                idxScannerActive = false;
+                wrapper.classList.add('hidden');
+            }
+        }
+
+        function idxStopCamera() {
+            idxScannerActive = false;
+            if (idxScanInterval) { clearInterval(idxScanInterval); idxScanInterval = null; }
+            if (idxStream) {
+                idxStream.getTracks().forEach(function(t) { t.stop(); });
+                idxStream = null;
+            }
+            const video = document.getElementById('idx-camera-video');
+            if (video) { video.srcObject = null; }
+            const wrapper = document.getElementById('idx-reader-wrapper');
+            if (wrapper) wrapper.classList.add('hidden');
+        }
+
+        function idxSwitchCamera() {
+            idxFacingMode = idxFacingMode === 'environment' ? 'user' : 'environment';
+            idxStartCamera();
+        }
+
+        function idxDecodeFromImage(input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            idxShowStatus('info', 'Decoding barcode from image...');
+            const tmpScanner = new Html5Qrcode('idx-qr-canvas-host');
+            tmpScanner.scanFileV2(file, false)
+                .then(function(result) {
+                    document.getElementById('quick-search').value = result.decodedText;
+                    idxShowStatus('success', 'Barcode decoded: ' + result.decodedText + ' — click Search Documents to proceed.');
+                    tmpScanner.clear();
+                })
+                .catch(function() {
+                    idxShowStatus('error', 'Could not decode barcode. Make sure the barcode is clearly visible.');
+                    tmpScanner.clear();
+                });
+            input.value = '';
+        }
+
+        function idxShowStatus(type, message) {
+            const el = document.getElementById('idx-qr-status');
+            if (!el) return;
+            el.classList.remove('hidden');
+            const map = {
+                success: { cls: 'flex items-center gap-2 p-3 rounded-lg border text-sm bg-green-50 border-green-200 text-green-800', icon: '<svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' },
+                error:   { cls: 'flex items-center gap-2 p-3 rounded-lg border text-sm bg-red-50 border-red-200 text-red-800',   icon: '<svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' },
+                info:    { cls: 'flex items-center gap-2 p-3 rounded-lg border text-sm bg-indigo-50 border-indigo-200 text-indigo-800', icon: '<svg class="w-4 h-4 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>' }
+            };
+            el.className = map[type].cls;
+            el.innerHTML = map[type].icon + '<span>' + message + '</span>';
+            if (type !== 'info') {
+                setTimeout(function() { el.classList.add('hidden'); }, 6000);
+            }
+        }
+
+
 
         // Function to filter documents by status
         function filterDocumentsByStatus(status) {
@@ -1883,6 +1970,11 @@
     </script>
 
 {{-- ═══════ Print Prompt Modal ═══════ --}}
+
+@push('scripts')
+<script src="https://unpkg.com/html5-qrcode"></script>
+@endpush
+
 @include('documents.partials.print-prompt-modal')
 
 @endsection

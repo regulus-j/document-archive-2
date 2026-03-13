@@ -121,10 +121,56 @@
                         <div class="space-y-3">
                             <div class="border-t border-slate-200 pt-5">
                                 <h3 class="text-md font-medium text-slate-700 mb-3">Scan Barcode</h3>
-                                <div id="qr-reader" class="w-full"></div>
-                                <button id="start-scanner" class="mt-3 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg shadow-sm">
-                                    Start Scanner
+
+                                <!-- Status bar -->
+                                <div id="arc-qr-status" class="hidden mb-3"></div>
+
+                                <!-- Camera preview wrapper -->
+                                <div id="arc-reader-wrapper" class="hidden mb-3">
+                                    <div class="relative w-full rounded-xl overflow-hidden bg-black border border-indigo-200 shadow-lg" style="aspect-ratio:4/3;">
+                                        <video id="arc-camera-video" autoplay playsinline muted
+                                            style="width:100%;height:100%;object-fit:cover;display:block;"></video>
+                                        <!-- Scan-region guide -->
+                                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                            <div class="border-2 border-indigo-400/70 rounded-lg" style="width:80%;height:35%;box-shadow:0 0 0 9999px rgba(0,0,0,0.38);"></div>
+                                        </div>
+                                        <!-- Top-right: switch + stop -->
+                                        <div class="absolute top-2 right-2 flex gap-1.5">
+                                            <button type="button" id="arc-switch-cam-btn" onclick="arcSwitchCamera()" title="Switch camera"
+                                                style="display:none;"
+                                                class="p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg backdrop-blur-sm transition-colors">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                                </svg>
+                                            </button>
+                                            <button type="button" onclick="arcStopCamera()" title="Stop scanner"
+                                                class="p-1.5 bg-black/60 hover:bg-red-600 text-white rounded-lg backdrop-blur-sm transition-colors">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <!-- Scanning label -->
+                                        <div class="absolute bottom-2 left-0 right-0 flex justify-center pointer-events-none">
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 text-white text-xs backdrop-blur-sm">
+                                                <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-pulse"></span>
+                                                Scanning&hellip;
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Start scanner button -->
+                                <button id="arc-start-scanner" type="button" onclick="arcToggleCamera()"
+                                    class="w-full inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg shadow-sm transition-colors text-sm font-medium">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                                    </svg>
+                                    <span id="arc-start-scanner-text">Start Scanner</span>
                                 </button>
+
+                                <!-- Hidden host for Html5Qrcode image decoding -->
+                                <div id="arc-qr-canvas-host" style="display:none;"></div>
                             </div>
                         </div>
 
@@ -699,50 +745,128 @@
 @push('scripts')
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const startScannerButton = document.getElementById('start-scanner');
-        let html5QrCode;
+(function() {
+    'use strict';
 
-        startScannerButton.addEventListener('click', function() {
-            if (html5QrCode && html5QrCode.isScanning) {
-                html5QrCode.stop().then(() => {
-                    startScannerButton.textContent = 'Start Scanner';
-                });
-                return;
-            }
+    let arcStream = null;
+    let arcScannerActive = false;
+    let arcFacingMode = 'environment';
+    let arcScanInterval = null;
 
-            startScannerButton.textContent = 'Stop Scanner';
+    async function arcGetCameras() {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            return devices.filter(function(d) { return d.kind === 'videoinput'; });
+        } catch(e) { return []; }
+    }
 
-            html5QrCode = new Html5Qrcode("qr-reader");
-            html5QrCode.start(
-                { facingMode: "environment" },
-                {
-                    fps: 10,
-                    qrbox: { width: 350, height: 150 },
-                },
-                (decodedText) => {
-                    // Barcode detected — populate tracking number and submit search form
-                    const trackingInput = document.getElementById('tracking-number');
-                    trackingInput.value = decodedText;
+    async function arcUpdateSwitchBtn() {
+        const btn = document.getElementById('arc-switch-cam-btn');
+        if (!btn) return;
+        const cams = await arcGetCameras();
+        btn.style.display = cams.length > 1 ? '' : 'none';
+    }
 
-                    // Stop scanning
-                    html5QrCode.stop().then(() => {
-                        startScannerButton.textContent = 'Start Scanner';
+    window.arcToggleCamera = function() {
+        if (arcScannerActive) { arcStopCamera(); } else { arcStartCamera(); }
+    };
 
-                        // Submit the form
-                        document.querySelector('form[action*="trackingNumber-search"]').submit();
-                    });
-                },
-                (errorMessage) => {
-                    // Handle scan errors (optional)
-                    console.log(errorMessage);
-                }
-            ).catch((err) => {
-                console.error("Failed to start scanner:", err);
-                startScannerButton.textContent = 'Start Scanner';
+    window.arcStartCamera = async function() {
+        arcStopCamera();
+        const video   = document.getElementById('arc-camera-video');
+        const wrapper = document.getElementById('arc-reader-wrapper');
+        const btnText = document.getElementById('arc-start-scanner-text');
+        if (!video || !wrapper) return;
+
+        arcScannerActive = true;
+        wrapper.classList.remove('hidden');
+        if (btnText) btnText.textContent = 'Stop Scanner';
+        arcUpdateSwitchBtn();
+
+        try {
+            arcStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: arcFacingMode }, width: { ideal: 1280 }, height: { ideal: 720 } }
             });
-        });
-    });
+            video.srcObject = arcStream;
+            await video.play();
+
+            arcScanInterval = setInterval(function() {
+                if (!video.videoWidth || !arcScannerActive) return;
+                const canvas = document.createElement('canvas');
+                canvas.width  = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0);
+                canvas.toBlob(function(blob) {
+                    if (!blob || !arcScannerActive) return;
+                    const file = new File([blob], 'frame.jpg', { type: 'image/jpeg' });
+                    const tmp = new Html5Qrcode('arc-qr-canvas-host');
+                    tmp.scanFileV2(file, false).then(function(result) {
+                        clearInterval(arcScanInterval);
+                        arcScanInterval = null;
+                        arcStopCamera();
+                        // Fill tracking number input and auto-submit
+                        const input = document.getElementById('tracking-number');
+                        if (input) input.value = result.decodedText;
+                        arcShowStatus('success', 'Barcode scanned: ' + result.decodedText + ' — submitting search…');
+                        setTimeout(function() {
+                            const form = document.querySelector('form[action*="trackingNumber-search"]');
+                            if (form) form.submit();
+                        }, 600);
+                    }).catch(function() {
+                        // no barcode this frame
+                    }).finally(function() {
+                        try { tmp.clear(); } catch(e) {}
+                    });
+                }, 'image/jpeg', 0.8);
+            }, 400);
+
+        } catch(err) {
+            arcShowStatus('error', 'Could not access camera: ' + err.message);
+            arcScannerActive = false;
+            wrapper.classList.add('hidden');
+            if (btnText) btnText.textContent = 'Start Scanner';
+        }
+    };
+
+    window.arcStopCamera = function() {
+        arcScannerActive = false;
+        if (arcScanInterval) { clearInterval(arcScanInterval); arcScanInterval = null; }
+        if (arcStream) {
+            arcStream.getTracks().forEach(function(t) { t.stop(); });
+            arcStream = null;
+        }
+        const video = document.getElementById('arc-camera-video');
+        if (video) video.srcObject = null;
+        const wrapper = document.getElementById('arc-reader-wrapper');
+        if (wrapper) wrapper.classList.add('hidden');
+        const btnText = document.getElementById('arc-start-scanner-text');
+        if (btnText) btnText.textContent = 'Start Scanner';
+    };
+
+    window.arcSwitchCamera = function() {
+        arcFacingMode = arcFacingMode === 'environment' ? 'user' : 'environment';
+        arcStartCamera();
+    };
+
+    function arcShowStatus(type, message) {
+        const el = document.getElementById('arc-qr-status');
+        if (!el) return;
+        el.classList.remove('hidden');
+        const map = {
+            success: { cls: 'flex items-center gap-2 p-3 rounded-lg border text-sm bg-green-50 border-green-200 text-green-800',   icon: '<svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' },
+            error:   { cls: 'flex items-center gap-2 p-3 rounded-lg border text-sm bg-red-50 border-red-200 text-red-800',     icon: '<svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' },
+            info:    { cls: 'flex items-center gap-2 p-3 rounded-lg border text-sm bg-indigo-50 border-indigo-200 text-indigo-800', icon: '<svg class="w-4 h-4 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>' }
+        };
+        el.className = map[type].cls;
+        el.innerHTML = map[type].icon + '<span>' + message + '</span>';
+        if (type !== 'info') {
+            setTimeout(function() { el.classList.add('hidden'); }, 6000);
+        }
+    }
+
+    // Stop camera if user navigates away
+    window.addEventListener('pagehide', function() { arcStopCamera(); });
+})();
 </script>
 @endpush
 @endsection

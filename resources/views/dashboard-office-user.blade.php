@@ -254,68 +254,156 @@
                     Quick Actions
                 </h3>
 
-                <form action="{{ route('trackingNumber-search') }}" method="POST" class="space-y-6">
-                    @csrf
-                    <div>
-                        <label for="action" class="block text-sm font-medium text-slate-700 mb-2">Select Action</label>
-                        <select id="action" name="action"
-                            class="block w-full pl-3 pr-10 py-2.5 text-base border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm rounded-lg text-slate-900">
-                            <option value="">Select an action</option>
-                            @foreach ([
-                                ['value' => 'find', 'label' => 'Find', 'icon' => 'M10.5 3a7.5 7.5 0 015.916 12.5l4.243 4.242-1.414 1.414-4.242-4.243A7.5 7.5 0 1110.5 3z'],
-                                ['value' => 'receive', 'label' => 'Receive', 'icon' => 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4'],
-                                ['value' => 'acccept', 'label' => 'Acccept', 'icon' => 'M5 13l4 4L19 7'],
-                                ['value' => 'reject', 'label' => 'Reject', 'icon' => 'M6 18L18 6M6 6l12 12'],
-                            ] as $action)
-                                <option value="{{ $action['value'] }}">
-                                    {{ $action['label'] }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label for="tracking_number" class="block text-sm font-medium text-slate-700 mb-2">Tracking Number</label>
-                        <div class="flex">
-                            <input type="text" name="tracking_number" id="tracking_number"
-                                class="flex-1 min-w-0 block w-full px-4 py-2.5 rounded-l-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm text-slate-900 placeholder:text-slate-400"
-                                placeholder="Enter tracking number">
+                {{-- Quick Shortcut Buttons --}}
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+                    <a href="{{ route('documents.index') }}" class="flex flex-col items-center p-4 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 hover:border-slate-300 transition group shadow-card">
+                        <svg class="w-5 h-5 text-slate-500 mb-2 group-hover:text-indigo-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <span class="text-sm font-medium text-slate-700 group-hover:text-slate-900">Browse Documents</span>
+                    </a>
+                    <a href="{{ route('documents.workflow-dashboard') }}" class="flex flex-col items-center p-4 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 hover:border-slate-300 transition group shadow-card">
+                        <svg class="w-5 h-5 text-slate-500 mb-2 group-hover:text-indigo-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <span class="text-sm font-medium text-slate-700 group-hover:text-slate-900">Receive Documents</span>
+                    </a>
+                    <a href="{{ route('documents.workflows') }}" class="flex flex-col items-center p-4 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 hover:border-slate-300 transition group shadow-card">
+                        <svg class="w-5 h-5 text-slate-500 mb-2 group-hover:text-indigo-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        <span class="text-sm font-medium text-slate-700 group-hover:text-slate-900">My Workflows</span>
+                    </a>
+                </div>
 
-                            <button type="button" onclick="startScanner()"
-                                class="inline-flex items-center px-4 py-2.5 border border-slate-300 text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                                </svg>
-                                Scan QR
-                            </button>
+                {{-- Tracking Number Lookup --}}
+                <div class="border-t border-slate-200/80 pt-6">
+                    <h4 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        Find Document by Tracking Number or Barcode
+                    </h4>
 
-                            <button type="submit"
-                                class="inline-flex items-center px-4 py-2.5 border border-indigo-600 text-sm font-medium rounded-r-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors shadow-sm">
-                                Submit
-                            </button>
+                    <form id="ou-quick-action-form" action="{{ route('trackingNumber-search') }}" method="POST" class="space-y-4">
+                        @csrf
+                        <input type="hidden" name="action" value="find">
+
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <input type="text" name="tracking_number" id="ou-tracking-number"
+                                class="flex-1 min-w-0 block w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm text-slate-900 placeholder:text-slate-400"
+                                placeholder="Enter tracking number (e.g. ADM-20250101-000001)">
+
+                            <div class="flex gap-2">
+                                {{-- Upload Barcode Image --}}
+                                <label title="Upload barcode image" class="inline-flex items-center px-3 py-2.5 border border-slate-300 text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 rounded-lg cursor-pointer transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <span class="hidden sm:inline">Upload Barcode</span>
+                                    <input type="file" id="ou-qr-image-input" accept="image/*" class="hidden" onchange="ouDecodeQrFromImage(this)">
+                                </label>
+
+                                {{-- Camera Scan --}}
+                                <button type="button" onclick="ouToggleScanner()"
+                                    class="inline-flex items-center px-3 py-2.5 border border-slate-300 text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 rounded-lg transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                                    </svg>
+                                    <span class="hidden sm:inline" id="ou-scanner-btn-text">Scan Barcode</span>
+                                </button>
+
+                                {{-- Submit --}}
+                                <button type="submit"
+                                    class="inline-flex items-center px-5 py-2.5 border border-indigo-600 text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors shadow-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    Find
+                                </button>
+                            </div>
                         </div>
-                        <div id="reader" class="mt-4 hidden"></div>
-                    </div>
 
-                    @push('scripts')
-                    <script src="https://unpkg.com/html5-qrcode"></script>
-                    <script>
-                        function startScanner() {
-                            const reader = document.getElementById('reader');
-                            reader.classList.remove('hidden');
+                        {{-- QR decode status message --}}
+                        <div id="ou-qr-decode-status" class="hidden"></div>
 
-                            const html5QrCode = new Html5Qrcode("reader");
-                            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-
-                            html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
-                                document.getElementById('tracking_number').value = decodedText;
-                                html5QrCode.stop();
-                                reader.classList.add('hidden');
-                            });
-                        }
-                    </script>
-                    @endpush
-                </form>
+                        {{-- Camera QR Scanner --}}
+                        <div id="ou-reader-wrapper" class="hidden">
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-sm text-slate-600 flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-indigo-500 animate-pulse" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="5"/></svg>
+                                    Camera active — point at a barcode
+                                </p>
+                                <button type="button" onclick="ouStopScanner()" class="text-sm text-red-600 hover:text-red-700 font-medium flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    Close
+                                </button>
+                            </div>
+                            <div id="ou-reader" class="rounded-lg overflow-hidden shadow-lg border border-indigo-100"></div>
+                        </div>
+                    </form>
+                </div>
             </div>
+
+            @push('scripts')
+            <script src="https://unpkg.com/html5-qrcode"></script>
+            <script>
+                let ouHtml5QrCode = null;
+                let ouScannerActive = false;
+
+                function ouToggleScanner() {
+                    if (ouScannerActive) { ouStopScanner(); } else { ouStartScanner(); }
+                }
+
+                function ouStartScanner() {
+                    const wrapper = document.getElementById('ou-reader-wrapper');
+                    wrapper.classList.remove('hidden');
+                    ouScannerActive = true;
+                    const btnText = document.getElementById('ou-scanner-btn-text');
+                    if (btnText) btnText.textContent = 'Stop';
+
+                    ouHtml5QrCode = new Html5Qrcode("ou-reader");
+                    ouHtml5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 350, height: 150 } }, function(decodedText) {
+                        document.getElementById('ou-tracking-number').value = decodedText;
+                        ouStopScanner();
+                        ouShowQrStatus('success', 'Barcode scanned: ' + decodedText);
+                    }).catch(function(err) {
+                        ouShowQrStatus('error', 'Could not start camera: ' + err);
+                        ouStopScanner();
+                    });
+                }
+
+                function ouStopScanner() {
+                    const wrapper = document.getElementById('ou-reader-wrapper');
+                    if (ouHtml5QrCode && ouScannerActive) {
+                        ouHtml5QrCode.stop().then(function() { ouHtml5QrCode.clear(); wrapper.classList.add('hidden'); }).catch(function() { wrapper.classList.add('hidden'); });
+                    } else { wrapper.classList.add('hidden'); }
+                    ouScannerActive = false;
+                    const btnText = document.getElementById('ou-scanner-btn-text');
+                    if (btnText) btnText.textContent = 'Scan Barcode';
+                }
+
+                function ouDecodeQrFromImage(input) {
+                    if (!input.files || !input.files[0]) return;
+                    const file = input.files[0];
+                    ouShowQrStatus('info', 'Decoding barcode from image...');
+                    const tempScanner = new Html5Qrcode("ou-qr-temp-canvas");
+                    tempScanner.scanFileV2(file, false)
+                        .then(function(result) {
+                            document.getElementById('ou-tracking-number').value = result.decodedText;
+                            ouShowQrStatus('success', 'Barcode decoded: ' + result.decodedText);
+                            tempScanner.clear();
+                        }).catch(function() {
+                            ouShowQrStatus('error', 'Could not decode barcode. Make sure the barcode is clearly visible.');
+                            tempScanner.clear();
+                        });
+                    input.value = '';
+                }
+
+                function ouShowQrStatus(type, message) {
+                    const el = document.getElementById('ou-qr-decode-status');
+                    el.classList.remove('hidden');
+                    const colors = { success: 'bg-green-50 border-green-200 text-green-800', error: 'bg-red-50 border-red-200 text-red-800', info: 'bg-indigo-50 border-indigo-200 text-indigo-800' };
+                    el.className = 'flex items-center p-3 rounded-lg border text-sm ' + colors[type];
+                    el.innerHTML = '<span>' + message + '</span>';
+                    if (type !== 'info') { setTimeout(function() { el.classList.add('hidden'); }, 5000); }
+                }
+            </script>
+            {{-- Hidden temp canvas for QR image decoding --}}
+            <div id="ou-qr-temp-canvas" style="display:none;"></div>
+            @endpush
 
         </div>
     </div>

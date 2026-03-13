@@ -198,13 +198,22 @@ class DocumentAccessService
                              });
                       }
                   })
-                  // Office Only documents from users in the same office
+                  // Office Only documents from users in the same office as the uploader
                   ->orWhere(function ($oq) use ($userOfficeIds) {
                       if (!empty($userOfficeIds)) {
                           $oq->where('classification', 'Office Only')
                              ->whereHas('user.offices', function ($uoq) use ($userOfficeIds) {
                                  $uoq->whereIn('offices.id', $userOfficeIds);
                              });
+                      }
+                  })
+                  // Custom Offices documents where the user's office is in the allowed list
+                  ->orWhere(function ($coq) use ($userOfficeIds) {
+                      if (!empty($userOfficeIds)) {
+                          $coq->where('classification', 'Custom Offices')
+                              ->whereHas('allowedOffices', function ($aoq) use ($userOfficeIds) {
+                                  $aoq->whereIn('office_id', $userOfficeIds);
+                              });
                       }
                   });
             });

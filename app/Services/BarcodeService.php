@@ -18,7 +18,7 @@ class BarcodeService
      * @param int    $height       Height of barcode in pixels
      * @return string Base64-encoded PNG data URI
      */
-    public function generateBarcodePng(string $trackingNumber, int $widthFactor = 2, int $height = 50): string
+    public function generateBarcodePng(string $trackingNumber, int $widthFactor = 3, int $height = 80): string
     {
         $generator = new BarcodeGeneratorPNG();
         $barcodeData = $generator->getBarcode(
@@ -39,7 +39,7 @@ class BarcodeService
      * @param int    $height
      * @return string Raw PNG bytes
      */
-    public function generateBarcodeRaw(string $trackingNumber, int $widthFactor = 2, int $height = 50): string
+    public function generateBarcodeRaw(string $trackingNumber, int $widthFactor = 3, int $height = 80): string
     {
         $generator = new BarcodeGeneratorPNG();
         return $generator->getBarcode(
@@ -58,7 +58,7 @@ class BarcodeService
      * @param int    $height
      * @return string SVG markup
      */
-    public function generateBarcodeSvg(string $trackingNumber, int $widthFactor = 2, int $height = 50): string
+    public function generateBarcodeSvg(string $trackingNumber, int $widthFactor = 3, int $height = 80): string
     {
         $generator = new BarcodeGeneratorSVG();
         return $generator->getBarcode(
@@ -85,56 +85,69 @@ class BarcodeService
      */
     public function overlayBarcodeOnPdf(string $pdfPath, string $trackingNumber, array $options = []): string
     {
-        $x          = $options['x'] ?? 10;
-        $y          = $options['y'] ?? 10;
-        $width      = $options['width'] ?? 60;
-        $height     = $options['height'] ?? 15;
-        $targetPage = $options['page'] ?? 1;
-        $showText   = $options['show_text'] ?? true;
+        $x          = (float) ($options['x']         ?? 10);
+        $y          = (float) ($options['y']         ?? 10);
+        $width      = (float) ($options['width']     ?? 60);
+        $height     = (float) ($options['height']    ?? 15);
+        $targetPage = (int)   ($options['page']      ?? 1);
+        $showText   = (bool)  ($options['show_text'] ?? true);
 
         try {
-            // Generate barcode as a temporary PNG file
-            $barcodeRaw = $this->generateBarcodeRaw($trackingNumber, 2, 100);
+            // Generate a high-resolution barcode PNG
+            $barcodeRaw      = $this->generateBarcodeRaw($trackingNumber, 3, 200);
             $tempBarcodePath = storage_path('app/temp/barcode_' . md5($trackingNumber . time()) . '.png');
 
-            // Ensure temp directory exists
             if (!is_dir(dirname($tempBarcodePath))) {
                 mkdir(dirname($tempBarcodePath), 0755, true);
             }
             file_put_contents($tempBarcodePath, $barcodeRaw);
 
-            // Create FPDI instance
-            $pdf = new Fpdi();
+            // FPDI always returns getTemplateSize() in mm regardless of constructor unit.
+            // Use 'mm' so that our x/y/width/height coordinates are also in mm.
+            $pdf = new Fpdi('P', 'mm');
+            $pdf->SetAutoPageBreak(false);
+            $pdf->SetMargins(0, 0, 0);
             $pageCount = $pdf->setSourceFile($pdfPath);
 
             for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
                 $templateId = $pdf->importPage($pageNo);
+
+                // getTemplateSize() returns mm dimensions directly
                 $size = $pdf->getTemplateSize($templateId);
+                $pageW = $size['width'];
+                $pageH = $size['height'];
+                $orientation = ($pageW > $pageH) ? 'L' : 'P';
 
-                $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
-                $pdf->useTemplate($templateId, 0, 0, $size['width'], $size['height']);
+                $pdf->AddPage($orientation, [$pageW, $pageH]);
 
-                // Determine if we should overlay on this page
+                // Stamp the original page content as a full-page background
+                $pdf->useTemplate($templateId, 0, 0, $pageW, $pageH);
+
                 $shouldOverlay = ($targetPage === 0 || $targetPage === $pageNo);
 
                 if ($shouldOverlay) {
-                    // Place barcode image
-                    $pdf->Image($tempBarcodePath, $x, $y, $width, $height);
+                    // White background rectangle behind barcode for readability
+                    $pdf->SetFillColor(255, 255, 255);
+                    $textH = $showText ? 5 : 0;
+                    $pdf->Rect($x - 1, $y - 1, $width + 2, $height + $textH + 2, 'F');
 
-                    // Add tracking number text below barcode
+                    // Place barcode image
+                    $pdf->Image($tempBarcodePath, $x, $y, $width, $height, 'PNG');
+
+                    // Optionally add tracking number text below barcode
                     if ($showText) {
-                        $pdf->SetFont('Helvetica', '', 8);
+                        $pdf->SetFont('Helvetica', '', 7);
+                        $pdf->SetTextColor(0, 0, 0);
                         $pdf->SetXY($x, $y + $height + 1);
                         $pdf->Cell($width, 4, $trackingNumber, 0, 0, 'C');
                     }
                 }
             }
 
-            // Save to a new file (same directory, prefixed)
+            // Write to a temp output file then swap with the original
             $outputPath = dirname($pdfPath) . '/bc_' . basename($pdfPath);
             $pdf->Output('F', $outputPath);
 
-            // Clean up temp barcode
             if (file_exists($tempBarcodePath)) {
                 unlink($tempBarcodePath);
             }
@@ -143,12 +156,12 @@ class BarcodeService
 
         } catch (\Exception $e) {
             Log::error('Barcode overlay failed', [
-                'pdf_path' => $pdfPath,
+                'pdf_path'        => $pdfPath,
                 'tracking_number' => $trackingNumber,
-                'error' => $e->getMessage(),
+                'error'           => $e->getMessage(),
+                'trace'           => $e->getTraceAsString(),
             ]);
 
-            // Clean up temp file on error
             if (isset($tempBarcodePath) && file_exists($tempBarcodePath)) {
                 unlink($tempBarcodePath);
             }
@@ -156,6 +169,7 @@ class BarcodeService
             throw $e;
         }
     }
+
 
     /**
      * Overlay barcode on a stored document (using Laravel storage).
@@ -250,8 +264,8 @@ class BarcodeService
             $pxW = (int) round(($widthMm / $A4W) * $imgW);
             $pxH = (int) round(($heightMm/ $A4H) * $imgH);
 
-            // Generate barcode PNG
-            $barcodeRaw = $this->generateBarcodeRaw($trackingNumber, 2, max(50, $pxH));
+            // Generate barcode PNG (high-resolution for scanner readability)
+            $barcodeRaw = $this->generateBarcodeRaw($trackingNumber, 3, max(100, $pxH * 2));
             $barcode    = imagecreatefromstring($barcodeRaw);
 
             if (!$barcode) {
