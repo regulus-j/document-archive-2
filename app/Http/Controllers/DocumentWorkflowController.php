@@ -13,6 +13,7 @@ use App\Models\DocumentAudit;
 use App\Models\DocumentVersion;
 use App\Models\ESignature;
 use App\Services\DocumentAccessService;
+use App\Services\BarcodeService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -20,10 +21,12 @@ use Illuminate\Support\Str;
 class DocumentWorkflowController extends Controller
 {
     protected $documentAccessService;
+    protected $barcodeService;
 
-    public function __construct(DocumentAccessService $documentAccessService)
+    public function __construct(DocumentAccessService $documentAccessService, BarcodeService $barcodeService)
     {
         $this->documentAccessService = $documentAccessService;
+        $this->barcodeService        = $barcodeService;
     }
     /**
      * Check if user can access workflow for a document
@@ -1434,7 +1437,21 @@ class DocumentWorkflowController extends Controller
             abort(404, 'Version file not found.');
         }
 
-        $downloadName = $version->original_filename ?: basename($version->file_path);
+        // Build a meaningful filename: title-office-yy-mm-dd-hh.ext
+        $document   = $workflow->document;
+        $ext        = pathinfo($version->file_path, PATHINFO_EXTENSION);
+        $title      = Str::slug($document->title ?? 'document');
+        $office     = $document->originatingOffice;
+        if ($office) {
+            $abbrev    = implode('', array_map(
+                fn($w) => strtoupper($w[0]),
+                array_filter(preg_split('/\s+/', $office->name), fn($w) => strlen($w) > 1)
+            ));
+            $officeTag = substr($abbrev, 0, 5) ?: strtoupper(substr($office->name, 0, 3));
+        } else {
+            $officeTag = 'DOC';
+        }
+        $downloadName = "{$title}-{$officeTag}-" . now()->format('y-m-d-H') . "v{$version->version_number}.{$ext}";
 
         return response()->download($filePath, $downloadName);
     }
@@ -1598,8 +1615,15 @@ class DocumentWorkflowController extends Controller
         }
 
         $request->validate([
-            'version_file'  => 'required|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,odt,ods,odp,rtf,jpg,jpeg,png',
-            'version_notes' => 'nullable|string|max:500',
+            'version_file'    => 'required|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,odt,ods,odp,rtf,jpg,jpeg,png',
+            'version_notes'   => 'nullable|string|max:500',
+            'barcode_enabled' => 'nullable',
+            'barcode_x'       => 'nullable|numeric|min:0|max:500',
+            'barcode_y'       => 'nullable|numeric|min:0|max:800',
+            'barcode_width'   => 'nullable|numeric|min:10|max:200',
+            'barcode_height'  => 'nullable|numeric|min:5|max:100',
+            'barcode_page'    => 'nullable|integer|min:0',
+            'barcode_show_text' => 'nullable',
         ]);
 
         $document = $workflow->document;
@@ -1640,6 +1664,38 @@ class DocumentWorkflowController extends Controller
             $filePath = $file->storeAs($companyId . '/documents', $fileName, 'public');
 
             $document->update(['path' => $filePath]);
+
+            // Apply barcode overlay to the newly uploaded version file if requested
+            $barcodeEnabled = $request->input('barcode_enabled');
+            if ($barcodeEnabled && $barcodeEnabled !== '0') {
+                $trackingNumber = $document->trackingNumber->tracking_number ?? null;
+                if ($trackingNumber) {
+                    $barcodeOptions = [
+                        'x'         => (float) $request->input('barcode_x', 10),
+                        'y'         => (float) $request->input('barcode_y', 10),
+                        'width'     => (float) $request->input('barcode_width', 60),
+                        'height'    => (float) $request->input('barcode_height', 15),
+                        'page'      => (int)   $request->input('barcode_page', 1),
+                        'show_text' => (bool)  $request->input('barcode_show_text', true),
+                    ];
+                    try {
+                        $overlayResult = $this->barcodeService->overlayBarcodeOnStoredDocument(
+                            $filePath,
+                            $trackingNumber,
+                            $barcodeOptions
+                        );
+                        $document->update([
+                            'barcode_settings' => $barcodeOptions,
+                            'barcode_applied'  => $overlayResult !== null,
+                        ]);
+                    } catch (\Exception $e) {
+                        \Log::warning('Barcode overlay failed during review version upload', [
+                            'document_id' => $document->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+            }
 
             // Audit log
             DocumentAudit::logDocumentAction(

@@ -87,7 +87,7 @@
                     {{-- Preview container --}}
                     <div data-role="preview-container"
                          class="relative border-2 border-slate-200 rounded-lg bg-slate-100 overflow-hidden select-none"
-                         style="min-height:400px; max-height:560px;">
+                         style="min-height:400px;">
 
                         {{-- Loading state --}}
                         <div data-role="preview-loading"
@@ -99,11 +99,10 @@
                             <p class="text-sm text-slate-400">Loading document preview…</p>
                         </div>
 
-                        {{-- PDF preview iframe --}}
+                        {{-- PDF preview iframe — no sandbox: blob: URLs are local/user-supplied,
+                             and browsers' built-in PDF viewer cannot activate inside a sandboxed iframe. --}}
                         <iframe data-role="preview-frame"
-                                class="hidden w-full h-full border-0 absolute inset-0"
-                                style="min-height:400px; height:560px;"
-                                sandbox="allow-same-origin allow-scripts"></iframe>
+                                class="hidden w-full h-full border-0 absolute inset-0"></iframe>
 
                         {{-- Image preview --}}
                         <img data-role="preview-img"
@@ -279,13 +278,25 @@
         return modal.querySelector('[data-role="' + role + '"]');
     }
 
-    /* ── px ↔ mm conversion (based on preview container size) ── */
+    /* ── px ↔ mm conversion (based on actual displayed content dimensions) ── */
     function getScale(modal) {
         const container = q(modal, 'preview-container');
         if (!container) return { sx: 1, sy: 1 };
-        const rect = container.getBoundingClientRect();
-        const cw = rect.width  || container.offsetWidth;
-        const ch = Math.max(container.offsetHeight, 400);
+        // When an image is visible, use the img element's actual rendered dimensions.
+        // The server maps mm→px proportionally across the full image (treating it as A4),
+        // so we must use the same rendered image size — NOT the container, which may be
+        // taller/shorter than the image due to min-height / max-height CSS.
+        const imgEl = q(modal, 'preview-img');
+        if (imgEl && !imgEl.classList.contains('hidden')) {
+            const iw = imgEl.offsetWidth  || container.offsetWidth  || 1;
+            const ih = imgEl.offsetHeight || container.offsetHeight || 1;
+            return { sx: iw / A4_W_MM, sy: ih / A4_H_MM };
+        }
+        // For PDF (or any other state), use the container dimensions.
+        // The PDF iframe.onload handler forces the container to A4 aspect-ratio height,
+        // so sx ≈ sy and coordinate mapping is accurate.
+        const cw = container.offsetWidth  || 1;
+        const ch = container.offsetHeight || 1;
         return {
             sx: cw / A4_W_MM,
             sy: ch / A4_H_MM,
@@ -400,6 +411,7 @@
         const imgEl      = q(modal, 'preview-img');
         const noticeEl   = q(modal, 'preview-notice');
         const overlayEl  = q(modal, 'barcode-drag-overlay');
+        const container  = q(modal, 'preview-container');
 
         // Hide everything
         if (frameEl)   frameEl.classList.add('hidden');
@@ -429,16 +441,26 @@
         }
 
         if (ext === 'pdf') {
-            // PDF: create local object URL and load in iframe
+            // PDF: create local object URL and load in iframe.
+            // After load, resize the container to exact A4 aspect-ratio so that
+            // getScale() yields the same sx and sy (accurate mm→px mapping).
             const url = URL.createObjectURL(file);
             frameEl.onload = function() {
+                if (container) {
+                    const cw = container.offsetWidth || 420;
+                    const a4h = Math.round(cw * A4_H_MM / A4_W_MM);
+                    container.style.height = Math.min(a4h, 640) + 'px';
+                }
                 if (loadingEl) loadingEl.classList.add('hidden');
                 frameEl.classList.remove('hidden');
                 showOverlay();
             };
             frameEl.src = url;
         } else if (imageExts.includes(ext)) {
-            // Image: show directly
+            // Image: clear any manually-set height so the container auto-sizes
+            // to the img element's natural aspect-ratio height (h-auto).
+            // getScale() will then use imgEl.offsetWidth/offsetHeight directly.
+            if (container) container.style.height = '';
             const url = URL.createObjectURL(file);
             imgEl.onload = function() {
                 if (loadingEl) loadingEl.classList.add('hidden');
@@ -448,6 +470,7 @@
             imgEl.src = url;
         } else {
             // Unsupported format (including DOCX/XLSX) — show notice with fallback A4 diagram
+            if (container) container.style.height = '';
             if (loadingEl) loadingEl.classList.add('hidden');
             if (noticeEl)  noticeEl.classList.remove('hidden');
             syncInputsToA4Diagram(modal);
