@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\auth;
+namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -40,7 +40,7 @@ class VerifiedEmailController extends Controller
         // Logic to check if the user has verified their email
         if($this->user->hasVerifiedEmail()) {
             // If verified, redirect to the intended route
-            return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
+            return redirect()->intended(route('dashboard', [], false).'?verified=1');
         }
     
         // If not verified, show the verification notice view directly instead of redirecting
@@ -89,7 +89,17 @@ class VerifiedEmailController extends Controller
     {
         // First try to get user by ID if provided
         if ($id) {
-            $this->user = User::findOrFail($id);
+            $this->user = User::find($id);
+            if (!$this->user) {
+                return back()->withErrors([
+                    'verification_code' => 'User not found. Please request a new verification code.'
+                ]);
+            }
+            if (auth()->check() && auth()->id() !== $this->user->id) {
+                return back()->withErrors([
+                    'verification_code' => 'Invalid verification request. Please use your own verification code.'
+                ]);
+            }
         } else {
             $this->user = auth()->user();
             
@@ -105,6 +115,12 @@ class VerifiedEmailController extends Controller
 
         $code = $request->input('verification_code');
         
+        if (!$this->user->verification_code || !$this->user->verification_code_expires_at) {
+            return back()->withErrors([
+                'verification_code' => 'No active verification code found. Please request a new code.'
+            ]);
+        }
+
         // Check if the code is valid
         if ($this->user->isValidVerificationCode($code)) {
             // Mark email as verified
