@@ -83,10 +83,15 @@
                         </div>
                         <div class="min-w-0">
                             <p class="text-xs font-medium text-slate-700">
-                                {{ $subWf->recipient ? ($subWf->recipient->first_name . ' ' . $subWf->recipient->last_name) : 'Unknown' }}
+                                @php
+                                    $subRecipientName = trim((optional($subWf->recipient)->first_name ?? '') . ' ' . (optional($subWf->recipient)->last_name ?? ''));
+                                @endphp
+                                {{ $subRecipientName !== '' ? $subRecipientName : 'Unknown Recipient' }}
                             </p>
                             @if($subWf->recipientOffice)
                                 <span class="text-[10px] text-slate-400">{{ $subWf->recipientOffice->name }}</span>
+                            @elseif($subWf->recipient_office)
+                                <span class="text-[10px] text-slate-400">Office Removed</span>
                             @endif
                             @if($subWf->remarks)
                                 <p class="text-[10px] text-slate-400 mt-1 italic">&ldquo;{{ $subWf->remarks }}&rdquo;</p>

@@ -553,18 +553,9 @@
                                     $documentAccessService = app(\App\Services\DocumentAccessService::class);
                                     $totalCount = $documentAccessService->getAccessibleDocuments()->count();
                                 @endphp
-                                <button type="button"
-                                     class="ds-btn ds-btn-ghost"
-                                     onclick="filterDocumentsByStatus('all')"
-                                     title="Show all documents">
-                                    <svg class="h-4 w-4 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                    <span>Total: {{ $totalCount }}</span>
-                                </button>
-
                                 @php
                     $statusIcons = [
+                        'all' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
                         'pending' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
                         'forwarded' => 'M13 7l5 5m0 0l-5 5m5-5H6',
                         'received' => 'M5 13l4 4L19 7',
@@ -578,6 +569,7 @@
                     ];
 
                     $statusColors = [
+                        'all' => ['bg' => 'bg-indigo-50', 'text' => 'text-indigo-600'],
                         'pending' => ['bg' => 'bg-yellow-50', 'text' => 'text-yellow-600'],
                         'forwarded' => ['bg' => 'bg-indigo-50', 'text' => 'text-indigo-600'],
                         'received' => ['bg' => 'bg-green-50', 'text' => 'text-green-600'],
@@ -593,6 +585,7 @@
                                     $baseQuery = $documentAccessService->getAccessibleDocuments();
 
                                     $documentCounts = [
+                                        'all' => $totalCount,
                                         'pending' => (clone $baseQuery)->whereHas('status', fn($q) => $q->where('status', 'pending'))->count(),
                                         'forwarded' => (clone $baseQuery)->whereHas('status', fn($q) => $q->where('status', 'forwarded'))->count(),
                                         'received' => (clone $baseQuery)->whereHas('status', fn($q) => $q->where('status', 'received'))->count(),

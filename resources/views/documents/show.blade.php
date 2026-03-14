@@ -236,11 +236,7 @@
                                             @elseif($log->action === 'updated')
                                                 updated the document
                                             @elseif($log->action === 'forwarded')
-                                                @php
-                                                    $workflowEntry = $workflows->where('id', $log->workflow_id)->first();
-                                                    $recipientOffice = $workflowEntry->recipientOffice->name ?? null;
-                                                @endphp
-                                                forwarded the document to {{ $recipientOffice ?? 'another office' }}
+                                                forwarded the document
                                             @elseif($log->action === 'received')
                                                 received the document
                                             @elseif($log->action === 'reviewed')
@@ -457,7 +453,7 @@
                             @foreach($document->attachments as $attachment)
                             <div class="flex items-center justify-between">
                                 <div class="min-w-0 flex-1">
-                                    <button onclick="openDocViewer('{{ route('attachments.preview', $attachment->id) }}', '{{ addslashes($attachment->filename) }}', '{{ route('documents.download', $attachment->id) }}', '{{ pathinfo($attachment->path, PATHINFO_EXTENSION) }}')"
+                                    <button onclick="openDocViewer('{{ route('attachments.preview', $attachment->id) }}', '{{ addslashes($attachment->filename) }}', '{{ route('attachments.download', $attachment->id) }}', '{{ pathinfo($attachment->path, PATHINFO_EXTENSION) }}')"
                                         class="text-sm text-indigo-600 hover:text-indigo-800 transition-colors font-medium truncate block text-left cursor-pointer">
                                         <span class="flex items-center gap-1.5">
                                             <svg class="w-4 h-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -478,7 +474,7 @@
                                         @endif
                                     </p>
                                 </div>
-                                @if($canDeleteAttachments ?? false)
+                                @if((int) $attachment->uploaded_by === (int) auth()->id())
                                     <form action="{{ route('documents.attachments.destroy', $document->id) }}?attachment_id={{ $attachment->id }}" method="POST" class="flex-shrink-0 ml-2" onsubmit="return confirm('Delete this attachment?')">
                                         @csrf
                                         @method('DELETE')
@@ -895,8 +891,42 @@
                             <h3 class="text-base font-semibold text-slate-800">Document Workflow Pipeline</h3>
                         </div>
                         @php
-                            $totalStepsCount = $workflows->whereNull('parent_workflow_id')->count();
-                            $completedStepsCount = $workflows->whereNull('parent_workflow_id')->whereIn('status', ['approved','rejected','acknowledged','commented','returned','forwarded'])->count();
+                            $terminalStatuses = ['approved', 'rejected', 'acknowledged', 'commented', 'returned'];
+
+                            $isBranchComplete = function ($workflow) use (&$isBranchComplete, $terminalStatuses) {
+                                if (in_array($workflow->status, $terminalStatuses, true)) {
+                                    return true;
+                                }
+
+                                // A forwarded branch is complete only if all child workflows are complete.
+                                if ($workflow->status === 'forwarded') {
+                                    if (!$workflow->childWorkflows || $workflow->childWorkflows->isEmpty()) {
+                                        return false;
+                                    }
+
+                                    return $workflow->childWorkflows->every(function ($child) use (&$isBranchComplete) {
+                                        return $isBranchComplete($child);
+                                    });
+                                }
+
+                                return false;
+                            };
+
+                            $topLevelWorkflows = $workflows->whereNull('parent_workflow_id');
+                            $workflowsByStep = $topLevelWorkflows->groupBy('step_order');
+
+                            $totalStepsCount = $workflowsByStep->count();
+                            $completedStepsCount = $workflowsByStep->filter(function ($stepWorkflows) use ($isBranchComplete) {
+                                return $stepWorkflows->every(function ($workflow) use ($isBranchComplete) {
+                                    return $isBranchComplete($workflow);
+                                });
+                            })->count();
+
+                            $totalRecipientsCount = $topLevelWorkflows->count();
+                            $completedRecipientsCount = $topLevelWorkflows->filter(function ($workflow) use ($isBranchComplete) {
+                                return $isBranchComplete($workflow);
+                            })->count();
+
                             $pipelineProgress = $totalStepsCount > 0 ? round(($completedStepsCount / $totalStepsCount) * 100) : 0;
                         @endphp
                         <div class="flex items-center gap-3">
@@ -904,8 +934,9 @@
                                 <div class="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
                                     <div class="h-full rounded-full transition-all duration-500 {{ $pipelineProgress >= 100 ? 'bg-emerald-500' : 'bg-indigo-500' }}" style="width: {{ $pipelineProgress }}%"></div>
                                 </div>
-                                <span class="text-xs font-medium text-slate-500">{{ $completedStepsCount }}/{{ $totalStepsCount }}</span>
+                                <span class="text-xs font-medium text-slate-500">{{ $completedStepsCount }}/{{ $totalStepsCount }} steps</span>
                             </div>
+                            <span class="text-xs text-slate-400">{{ $completedRecipientsCount }}/{{ $totalRecipientsCount }} recipients</span>
                             <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{{ $workflows->first()->workflow_type ?? 'parallel' }}</span>
                             {{-- Expand / Collapse All --}}
                             <div class="flex items-center gap-1 border-l border-slate-200 pl-3">
@@ -922,9 +953,7 @@
                     </div>
 
                     @php
-                        $topLevelWorkflows = $workflows->whereNull('parent_workflow_id');
-                        $workflowsByStep = $topLevelWorkflows->groupBy('step_order');
-                        $isSequentialWorkflow = $workflows->where('workflow_type', 'sequential')->isNotEmpty();
+                        $isSequentialWorkflow = $topLevelWorkflows->where('workflow_type', 'sequential')->isNotEmpty();
                         $maxStep = $workflowsByStep->keys()->max();
 
                         $wfStatusConfig = [
@@ -960,13 +989,26 @@
                     <div class="relative ml-4 pl-6 border-l-2 border-slate-200 space-y-1 py-2">
                         @foreach($workflowsByStep->sortKeys() as $step => $stepWorkflows)
                             @php
-                                $stepDone = $stepWorkflows->every(fn($w) => in_array($w->status, ['approved','rejected','acknowledged','commented','returned','forwarded']));
-                                $stepActive = $stepWorkflows->contains(fn($w) => in_array($w->status, ['received','pending']));
+                                $stepDone = $stepWorkflows->every(function($w) use ($isBranchComplete) {
+                                    return $isBranchComplete($w);
+                                });
+                                $stepActive = !$stepDone && $stepWorkflows->contains(fn($w) => in_array($w->status, ['received','pending','waiting']));
+                                $stepStatusCounts = $stepWorkflows->groupBy('status')->map->count();
+                                $reroutableWorkflows = $stepWorkflows->filter(function($w) {
+                                    return in_array($w->status, ['received', 'pending', 'waiting'], true);
+                                });
+                                $reroutableWorkflowIds = $reroutableWorkflows->pluck('id')->values()->all();
+                                $reroutableCount = count($reroutableWorkflowIds);
+                                $reroutablePurposes = $reroutableWorkflows
+                                    ->pluck('purpose')
+                                    ->filter(function($purpose) {
+                                        return !is_null($purpose) && $purpose !== '';
+                                    })
+                                    ->unique();
+                                $singlePurposeStep = $reroutablePurposes->count() <= 1;
                                 $stepId = 'pipeline-step-' . $step;
                             @endphp
 
-                            {{-- Step header for sequential workflows (collapsible) --}}
-                            @if($isSequentialWorkflow)
                             <div x-data="{ stepOpen: {{ $stepDone ? 'false' : 'true' }} }"
                                  @expand-all-workflows.window="stepOpen = true"
                                  @collapse-all-workflows.window="stepOpen = false"
@@ -984,6 +1026,31 @@
                                         Step {{ $step }}
                                         @if($stepDone) — Completed @elseif($stepActive) — In Progress @else — Waiting @endif
                                     </span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium {{ $isSequentialWorkflow ? 'bg-indigo-100 text-indigo-700' : 'bg-cyan-100 text-cyan-700' }}">
+                                        {{ $isSequentialWorkflow ? 'Sequential Step' : 'Parallel Step' }}
+                                    </span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600">
+                                        {{ $stepWorkflows->count() }} recipient{{ $stepWorkflows->count() > 1 ? 's' : '' }} in this step
+                                    </span>
+                                    @if(($canReroute ?? false) && $stepWorkflows->count() > 1 && $reroutableCount > 0 && $singlePurposeStep)
+                                        <button type="button"
+                                            onclick='openRerouteModal({
+                                                workflowId: {{ $reroutableWorkflowIds[0] }},
+                                                currentUser: "Step {{ $step }} ({{ $reroutableCount }} recipients)",
+                                                documentId: {{ $document->id }},
+                                                applyToStep: true,
+                                                workflowIds: @json($reroutableWorkflowIds)
+                                            })'
+                                            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors"
+                                            title="Reroute all active recipients in this step">
+                                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                            Reroute Entire Step
+                                        </button>
+                                    @elseif(($canReroute ?? false) && $stepWorkflows->count() > 1 && $reroutableCount > 0)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200" title="Bulk reroute is disabled when recipients in the same step have different purposes/actions.">
+                                            Mixed actions: reroute per recipient
+                                        </span>
+                                    @endif
                                     {{-- Toggle chevron --}}
                                     <svg class="w-3 h-3 transition-transform duration-200 {{ $stepDone ? 'text-emerald-400' : ($stepActive ? 'text-indigo-400' : 'text-slate-300') }}"
                                          :class="stepOpen && 'rotate-90'"
@@ -992,19 +1059,29 @@
                                     </svg>
                                     {{-- Collapsed summary --}}
                                     <template x-if="!stepOpen">
-                                        <span class="text-[10px] text-slate-400 ml-1">{{ $stepWorkflows->count() }} recipient{{ $stepWorkflows->count() > 1 ? 's' : '' }}</span>
+                                        <span class="text-[10px] text-slate-400 ml-1">{{ $stepWorkflows->filter(fn($w) => $isBranchComplete($w))->count() }} complete, {{ $stepWorkflows->count() - $stepWorkflows->filter(fn($w) => $isBranchComplete($w))->count() }} remaining</span>
                                     </template>
+                                </div>
+
+                                <div class="flex flex-wrap gap-1.5 ml-8 mb-2">
+                                    @foreach($stepStatusCounts as $status => $count)
+                                        @php
+                                            $statusCfg = $wfStatusConfig[$status] ?? ['color' => 'slate', 'label' => ucfirst($status)];
+                                        @endphp
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-{{ $statusCfg['color'] }}-100 text-{{ $statusCfg['color'] }}-700">
+                                            {{ $count }} {{ strtolower($statusCfg['label']) }}
+                                        </span>
+                                    @endforeach
                                 </div>
 
                                 {{-- Collapsible step content --}}
                                 <div x-show="stepOpen" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
-                            @endif
 
                             @foreach($stepWorkflows as $wf)
                                 @php
                                     $cfg = $wfStatusConfig[$wf->status] ?? ['icon' => 'minus', 'color' => 'slate', 'label' => ucfirst($wf->status), 'ring' => 'ring-slate-200'];
-                                    $isDone = in_array($wf->status, ['approved','rejected','acknowledged','commented','returned','forwarded']);
-                                    $isActive = in_array($wf->status, ['received','pending']);
+                                    $isDone = $isBranchComplete($wf);
+                                    $isActive = !$isDone && in_array($wf->status, ['received','pending','waiting']);
                                 @endphp
                                 <div class="relative flex items-start gap-3 py-2 group">
                                     {{-- Connector dot --}}
@@ -1021,7 +1098,7 @@
                                                 </div>
                                                 <div class="min-w-0">
                                                     <p class="text-sm font-medium text-slate-800">
-                                                        {{ $wf->recipient ? ($wf->recipient->first_name . ' ' . $wf->recipient->last_name) : 'Unknown' }}
+                                                        {{ $wf->recipient ? (($wf->recipient->first_name ?? '') . ' ' . ($wf->recipient->last_name ?? '')) : 'Unknown Recipient' }}
                                                     </p>
                                                     <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
                                                         @if($wf->recipientOffice)
@@ -1044,7 +1121,7 @@
                                                         // Time metrics for this workflow step
                                                         $wfFwdAt  = $wf->created_at;
                                                         $wfRcvAt  = $wf->received_at ? \Carbon\Carbon::parse($wf->received_at) : null;
-                                                        $wfIsDone = in_array($wf->status, ['approved','rejected','acknowledged','commented','returned','forwarded']);
+                                                        $wfIsDone = $isBranchComplete($wf);
                                                         $wfActAt  = ($wfIsDone && $wf->updated_at) ? $wf->updated_at : null;
 
                                                         $wfTimeDiff = function($start, $end = null) {
@@ -1101,9 +1178,15 @@
                                             <span class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $cfg['color'] }}-100 text-{{ $cfg['color'] }}-700">
                                                 {{ $cfg['label'] }}
                                             </span>
-                                            @if(($canReroute ?? false) && $isActive && $wf->status !== 'received')
+                                            @if(($canReroute ?? false) && $isActive)
                                             <button type="button"
-                                                onclick="openRerouteModal({{ $wf->id }}, '{{ addslashes($wf->recipient ? ($wf->recipient->first_name . ' ' . $wf->recipient->last_name) : 'Unknown') }}', {{ $document->id }})"
+                                                onclick='openRerouteModal({
+                                                    workflowId: {{ $wf->id }},
+                                                    currentUser: "{{ addslashes($wf->recipient ? ($wf->recipient->first_name . ' ' . $wf->recipient->last_name) : 'Unknown') }}",
+                                                    documentId: {{ $document->id }},
+                                                    applyToStep: false,
+                                                    workflowIds: [{{ $wf->id }}]
+                                                })'
                                                 class="flex-shrink-0 ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors cursor-pointer"
                                                 title="Reroute this workflow step">
                                                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -1122,15 +1205,14 @@
                                 ])
                             @endforeach
 
-                            @if($isSequentialWorkflow)
                                 </div>{{-- /x-show stepOpen --}}
                             </div>{{-- /x-data step --}}
-                            @endif
 
                             {{-- Connector arrow between steps --}}
-                            @if($isSequentialWorkflow && $step < $maxStep)
+                            @if($step < $maxStep)
                                 <div class="flex items-center -ml-[25px] py-1">
                                     <svg class="w-3 h-3 text-slate-300" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                                    <span class="ml-1 text-[10px] text-slate-400">Next step</span>
                                 </div>
                             @endif
                         @endforeach
@@ -1138,7 +1220,9 @@
 
                     {{-- End node --}}
                     @php
-                        $allDone = $topLevelWorkflows->every(fn($w) => in_array($w->status, ['approved','rejected','acknowledged','commented','returned','forwarded']));
+                        $allDone = $topLevelWorkflows->every(function($w) use ($isBranchComplete) {
+                            return $isBranchComplete($w);
+                        });
                     @endphp
                     <div class="flex items-center gap-3 mt-2 ml-1">
                         <div class="flex-shrink-0 w-8 h-8 {{ $allDone ? 'bg-gradient-to-br from-emerald-500 to-emerald-600' : 'bg-slate-200' }} rounded-full flex items-center justify-center shadow-sm">
@@ -1213,7 +1297,7 @@
         </div>
 
         <!-- Status Banners -->
-        @if($document->status === 'needs_revision')
+        @if(($document->status?->status ?? null) === 'needs_revision')
         <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg">
             <div class="flex">
                 <div class="flex-shrink-0">
@@ -1237,7 +1321,7 @@
         </div>
         @endif
 
-        @if($document->status === 'returned')
+        @if(($document->status?->status ?? null) === 'returned')
         <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg">
             <div class="flex">
                 <div class="flex-shrink-0">
@@ -1309,6 +1393,11 @@
             </div>
             <form id="reroute-form" method="POST" class="p-6 space-y-4">
                 @csrf
+                <input type="hidden" id="reroute-apply-step" name="apply_to_step" value="0" />
+                <input type="hidden" id="reroute-workflow-ids" name="workflow_ids" value="" />
+                <div id="reroute-scope-banner" class="hidden rounded-lg border border-amber-200 bg-amber-50 text-amber-700 text-xs px-3 py-2">
+                    This reroute will apply to all reroutable recipients in the selected step.
+                </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">New Recipient</label>
                     <input type="hidden" id="reroute-recipient" name="new_recipient_id" required />
@@ -1345,7 +1434,7 @@
 <script>
 let rerouteAllUsers = [];
 
-function openRerouteModal(workflowId, currentUser, documentId) {
+function openRerouteModal(config) {
     const modal = document.getElementById('reroute-modal');
     const form = document.getElementById('reroute-form');
     const searchInput = document.getElementById('reroute-search');
@@ -1355,6 +1444,15 @@ function openRerouteModal(workflowId, currentUser, documentId) {
     const errorEl = document.getElementById('reroute-error');
     const selectedLabel = document.getElementById('reroute-selected-label');
     const resultsDiv = document.getElementById('reroute-results');
+    const applyStepInput = document.getElementById('reroute-apply-step');
+    const workflowIdsInput = document.getElementById('reroute-workflow-ids');
+    const scopeBanner = document.getElementById('reroute-scope-banner');
+
+    const workflowId = config.workflowId;
+    const currentUser = config.currentUser;
+    const documentId = config.documentId;
+    const applyToStep = !!config.applyToStep;
+    const workflowIds = Array.isArray(config.workflowIds) ? config.workflowIds : [workflowId];
 
     // Reset state
     currentUserEl.textContent = currentUser;
@@ -1365,6 +1463,9 @@ function openRerouteModal(workflowId, currentUser, documentId) {
     resultsDiv.classList.add('hidden');
     errorEl.classList.add('hidden');
     loadingEl.classList.remove('hidden');
+    applyStepInput.value = applyToStep ? '1' : '0';
+    workflowIdsInput.value = workflowIds.join(',');
+    scopeBanner.classList.toggle('hidden', !applyToStep);
     rerouteAllUsers = [];
 
     modal.classList.remove('hidden');
