@@ -130,6 +130,63 @@ class DocumentWorkflowController extends Controller
     }
 
     /**
+     * Allowed actions per workflow purpose.
+     */
+    private function getAllowedActionsForPurpose(?string $purpose): array
+    {
+        $actionMatrix = [
+            'appropriate_action' => ['approve', 'reject', 'forward', 'return', 'reroute'],
+            'for_comment' => ['comment'],
+            'dissemination' => ['forward', 'acknowledge'],
+            null => ['approve', 'reject', 'forward', 'return'],
+        ];
+
+        return $actionMatrix[$purpose] ?? [];
+    }
+
+    /**
+     * Guard a workflow action based on purpose.
+     */
+    private function ensurePurposeAllowsAction(DocumentWorkflow $workflow, string $action): ?RedirectResponse
+    {
+        $allowedActions = $this->getAllowedActionsForPurpose($workflow->purpose);
+        if (in_array($action, $allowedActions, true)) {
+            return null;
+        }
+
+        $purposeLabels = [
+            'appropriate_action' => 'For Appropriate Action',
+            'for_comment' => 'For Comment',
+            'dissemination' => 'For Dissemination of Information',
+            null => 'General Review',
+        ];
+        $actionLabels = [
+            'approve' => 'approve',
+            'reject' => 'reject',
+            'return' => 'return',
+            'forward' => 'forward',
+            'comment' => 'comment',
+            'acknowledge' => 'acknowledge',
+            'reroute' => 'reroute',
+        ];
+
+        $purposeLabel = $purposeLabels[$workflow->purpose] ?? 'This workflow purpose';
+        $requestedActionLabel = $actionLabels[$action] ?? $action;
+        $allowedActionText = empty($allowedActions)
+            ? 'none'
+            : implode(', ', array_map(function ($name) use ($actionLabels) {
+                return $actionLabels[$name] ?? $name;
+            }, $allowedActions));
+
+        return redirect()->back()->with('error', sprintf(
+            '%s workflows cannot %s. Allowed action(s): %s.',
+            $purposeLabel,
+            $requestedActionLabel,
+            $allowedActionText
+        ));
+    }
+
+    /**
      * After a sub-workflow (forwarded-from-review) completes, reactivate the parent workflow
      * so the original forwarder can continue processing in the main workflow.
      */
@@ -302,7 +359,8 @@ class DocumentWorkflowController extends Controller
 
         $request->validate([
             'recipient_batch' => 'required|array',
-            'recipient_batch.*' => 'required|string',
+            'recipient_batch.*' => 'required|array|min:1',
+            'recipient_batch.*.*' => ['required','string','regex:/^(user|office)_\\d+$/'],
             'step_order' => 'required|array',
             'purpose_batch' => 'required|array',
             'purpose_batch.*' => 'required|string|in:appropriate_action,dissemination,for_comment',
@@ -311,7 +369,46 @@ class DocumentWorkflowController extends Controller
             'due_date_batch' => 'nullable|array',
             'due_date_batch.*' => 'nullable|date|after_or_equal:today',
             'workflow_mode' => 'required|string|in:parallel,sequential',
+            'action_required_batch' => 'nullable|array',
+            'action_required_batch.*' => 'nullable|string|max:500',
         ]);
+
+        // Enforce one purpose per step and prevent duplicate step numbers.
+        $rawStepOrders = $request->input('step_order', []);
+        $normalizedStepOrders = array_map(static fn($step) => (int) $step, $rawStepOrders);
+        if (count($normalizedStepOrders) !== count(array_unique($normalizedStepOrders))) {
+            return back()
+                ->withErrors(['step_order' => 'Duplicate step numbers are not allowed. Each step must be defined only once.'])
+                ->withInput();
+        }
+
+        $purposeByStep = [];
+        foreach ($normalizedStepOrders as $idx => $stepNumber) {
+            $purpose = $request->input("purpose_batch.$idx");
+            if (!$purpose) {
+                continue;
+            }
+
+            if (isset($purposeByStep[$stepNumber]) && $purposeByStep[$stepNumber] !== $purpose) {
+                return back()
+                    ->withErrors(['purpose_batch.' . $idx => 'A single step can only have one purpose.'])
+                    ->withInput();
+            }
+
+            $purposeByStep[$stepNumber] = $purpose;
+        }
+
+        // Enforce specific action text when purpose is appropriate_action
+        foreach ($request->purpose_batch as $idx => $purpose) {
+            if ($purpose === 'appropriate_action') {
+                $actionText = trim($request->action_required_batch[$idx] ?? '');
+                if ($actionText === '') {
+                    return back()
+                        ->withErrors(['action_required_batch.' . $idx => 'Please specify the required action for step ' . ($idx + 1) . '.'])
+                        ->withInput();
+                }
+            }
+        }
 
         // Ensure document from_office is set to the uploader's office if missing or mismatched
         $uploaderOffice = auth()->user()->offices->first();
@@ -341,135 +438,141 @@ class DocumentWorkflowController extends Controller
         // Keep track of all recipient IDs to sync with document_recipients table
         $allRecipientIds = [];
         
-        foreach ($recipientBatches as $batchIndex => $recipientValue) {
-            if (empty($recipientValue)) {
+        foreach ($recipientBatches as $batchIndex => $recipients) {
+            if (empty($recipients) || !is_array($recipients)) {
                 continue;
             }
-            
-            // Parse the recipient value to determine if it's an office or user
-            // Format: "office_ID" or "user_ID"
-            $parts = explode('_', $recipientValue);
-            $type = $parts[0];
-            $id = intval($parts[1]);
-            
-            // Determine status based on workflow mode and step order
+
             $stepOrder = intval($request->step_order[$batchIndex]);
-            $status = 'pending'; // Default for parallel mode
-            
-            if ($isSequential) {
-                // In sequential mode, only the first step is pending, others wait
-                $status = ($stepOrder == 1) ? 'pending' : 'waiting';
-                \Log::info('Sequential workflow step created', [
-                    'step_order' => $stepOrder,
-                    'status' => $status,
-                    'recipient_type' => $type,
-                    'recipient_id' => $id
-                ]);
-            }
-            
-            if ($type === 'user') {
-                // It's a user recipient
-                $recipientId = $id;
-                $allRecipientIds[] = $recipientId;
-                
-                // Get the recipient user's office - use their first office, or fall back to the sender's office
-                $user = \App\Models\User::with('offices')->find($recipientId);
-                $senderOffice = auth()->user()->offices->first();
-                $recipientOfficeId = $user && $user->offices->isNotEmpty()
-                    ? $user->offices->first()->id
-                    : ($senderOffice ? $senderOffice->id : null);
-                
-                DocumentWorkflow::create([
-                    'tracking_number' => $trackingNumber,
-                    'document_id' => $document->id,
-                    'sender_id' => auth()->id(),
-                    'recipient_id' => $recipientId,
-                    'recipient_office' => $recipientOfficeId,
-                    'step_order' => $stepOrder,
-                    'workflow_type' => $workflowMode,
-                    'remarks' => $request->remarks[$batchIndex] ?? null,
-                    'status' => $status,
-                    'received_at' => null,
-                    'purpose' => $request->purpose_batch[$batchIndex] ?? null,
-                    'urgency' => $request->urgency_batch[$batchIndex] ?? null,
-                    'due_date' => $request->due_date_batch[$batchIndex] ?? null,
-                ]);
+            $status = $isSequential && $stepOrder > 1 ? 'waiting' : 'pending';
+            $purpose = $request->purpose_batch[$batchIndex] ?? null;
+            $actionInstruction = trim($request->action_required_batch[$batchIndex] ?? '');
+            $remarksForStep = $actionInstruction !== '' ? $actionInstruction : ($request->remarks[$batchIndex] ?? null);
 
-                // Notify the user recipient (only if status is pending)
-                if ($status === 'pending') {
-                    \App\Models\Notifications::create([
-                        'user_id' => $recipientId,
-                        'type' => 'document_forwarded',
-                        'data' => json_encode([
-                            'document_id' => $document->id,
-                            'message' => $isSequential ? 
-                                'A document has been forwarded to you in sequential workflow.' : 
-                                'A document has been forwarded to you.',
-                            'title' => $document->title,
-                            'sender' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
-                            'workflow_type' => $workflowMode,
-                            'step_order' => $stepOrder,
-                        ]),
-                    ]);
+            \Log::info('Creating workflow batch', [
+                'step_order' => $stepOrder,
+                'status' => $status,
+                'workflow_mode' => $workflowMode,
+                'purpose' => $purpose,
+                'recipient_count' => count($recipients),
+            ]);
+            
+            foreach ($recipients as $recipientValue) {
+                // Parse the recipient value to determine if it's an office or user
+                // Format: "office_ID" or "user_ID"
+                $parts = explode('_', $recipientValue);
+                $type = $parts[0] ?? null;
+                $id = intval($parts[1] ?? 0);
+
+                if (!$type || !$id) {
+                    \Log::warning('Skipping invalid recipient value', ['recipient_value' => $recipientValue]);
+                    continue;
                 }
-            } else if ($type === 'office') {
-                // It's an office recipient - get all users in this office
-                $officeId = $id;
-                $office = \App\Models\Office::find($officeId);
                 
-                if ($office) {
-                    $officeUsers = $office->users; // Get all users in this office
+                if ($type === 'user') {
+                    // It's a user recipient
+                    $recipientId = $id;
+                    $allRecipientIds[] = $recipientId;
                     
-                    foreach ($officeUsers as $user) {
-                        $recipientId = $user->id;
-                        $allRecipientIds[] = $recipientId; // Add to tracking array
-                        
-                        // Create workflow entry for each user in the office
-                        DocumentWorkflow::create([
-                            'tracking_number' => $trackingNumber,
-                            'document_id' => $document->id,
-                            'sender_id' => auth()->id(),
-                            'recipient_id' => $recipientId,
-                            'recipient_office' => $officeId,
-                            'step_order' => $stepOrder,
-                            'workflow_type' => $workflowMode,
-                            'remarks' => $request->remarks[$batchIndex] ?? null,
-                            'status' => $status,
-                            'received_at' => null,
-                            'purpose' => $request->purpose_batch[$batchIndex] ?? null,
-                            'urgency' => $request->urgency_batch[$batchIndex] ?? null,
-                            'due_date' => $request->due_date_batch[$batchIndex] ?? null,
-                        ]);
-
-                        // Notify each user in the office (only if status is pending)
-                        if ($status === 'pending') {
-                            \App\Models\Notifications::create([
-                                'user_id' => $recipientId,
-                                'type' => 'document_forwarded',
-                                'data' => json_encode([
-                                    'document_id' => $document->id,
-                                    'message' => $isSequential ? 
-                                        'A document has been forwarded to your office (' . $office->name . ') in sequential workflow.' : 
-                                        'A document has been forwarded to your office (' . $office->name . ').',
-                                    'title' => $document->title,
-                                    'sender' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
-                                    'workflow_type' => $workflowMode,
-                                    'step_order' => $stepOrder,
-                                    'office_name' => $office->name,
-                                ]),
-                            ]);
-                        }
-                    }
+                    // Get the recipient user's office - use their first office, or fall back to the sender's office
+                    $user = \App\Models\User::with('offices')->find($recipientId);
+                    $senderOffice = auth()->user()->offices->first();
+                    $recipientOfficeId = $user && $user->offices->isNotEmpty()
+                        ? $user->offices->first()->id
+                        : ($senderOffice ? $senderOffice->id : null);
                     
-                    \Log::info('Office forwarding completed', [
-                        'office_id' => $officeId,
-                        'office_name' => $office->name,
-                        'users_count' => $officeUsers->count(),
+                    DocumentWorkflow::create([
+                        'tracking_number' => $trackingNumber,
+                        'document_id' => $document->id,
+                        'sender_id' => auth()->id(),
+                        'recipient_id' => $recipientId,
+                        'recipient_office' => $recipientOfficeId,
                         'step_order' => $stepOrder,
-                        'status' => $status
+                        'workflow_type' => $workflowMode,
+                        'remarks' => $remarksForStep,
+                        'status' => $status,
+                        'received_at' => null,
+                        'purpose' => $purpose,
+                        'urgency' => $request->urgency_batch[$batchIndex] ?? null,
+                        'due_date' => $request->due_date_batch[$batchIndex] ?? null,
                     ]);
-                } else {
-                    \Log::error('Office not found for forwarding', ['office_id' => $officeId]);
+
+                    // Notify the user recipient (only if status is pending)
+                    if ($status === 'pending') {
+                        \App\Models\Notifications::create([
+                            'user_id' => $recipientId,
+                            'type' => 'document_forwarded',
+                            'data' => json_encode([
+                                'document_id' => $document->id,
+                                'message' => $isSequential ? 
+                                    'A document has been forwarded to you in sequential workflow.' : 
+                                    'A document has been forwarded to you.',
+                                'title' => $document->title,
+                                'sender' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
+                                'workflow_type' => $workflowMode,
+                                'step_order' => $stepOrder,
+                            ]),
+                        ]);
+                    }
+                } else if ($type === 'office') {
+                    // It's an office recipient - get all users in this office
+                    $officeId = $id;
+                    $office = \App\Models\Office::find($officeId);
+                    
+                    if ($office) {
+                        $officeUsers = $office->users; // Get all users in this office
+                        
+                        foreach ($officeUsers as $user) {
+                            $recipientId = $user->id;
+                            $allRecipientIds[] = $recipientId; // Add to tracking array
+                            
+                            // Create workflow entry for each user in the office
+                            DocumentWorkflow::create([
+                                'tracking_number' => $trackingNumber,
+                                'document_id' => $document->id,
+                                'sender_id' => auth()->id(),
+                                'recipient_id' => $recipientId,
+                                'recipient_office' => $officeId,
+                                'step_order' => $stepOrder,
+                                'workflow_type' => $workflowMode,
+                                'remarks' => $remarksForStep,
+                                'status' => $status,
+                                'received_at' => null,
+                                'purpose' => $purpose,
+                                'urgency' => $request->urgency_batch[$batchIndex] ?? null,
+                                'due_date' => $request->due_date_batch[$batchIndex] ?? null,
+                            ]);
+
+                            // Notify each user in the office (only if status is pending)
+                            if ($status === 'pending') {
+                                \App\Models\Notifications::create([
+                                    'user_id' => $recipientId,
+                                    'type' => 'document_forwarded',
+                                    'data' => json_encode([
+                                        'document_id' => $document->id,
+                                        'message' => $isSequential ? 
+                                            'A document has been forwarded to your office (' . $office->name . ') in sequential workflow.' : 
+                                            'A document has been forwarded to your office (' . $office->name . ').',
+                                        'title' => $document->title,
+                                        'sender' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
+                                        'workflow_type' => $workflowMode,
+                                        'step_order' => $stepOrder,
+                                        'office_name' => $office->name,
+                                    ]),
+                                ]);
+                            }
+                        }
+                        
+                        \Log::info('Office forwarding completed', [
+                            'office_id' => $officeId,
+                            'office_name' => $office->name,
+                            'users_count' => $officeUsers->count(),
+                            'step_order' => $stepOrder,
+                            'status' => $status
+                        ]);
+                    } else {
+                        \Log::error('Office not found for forwarding', ['office_id' => $officeId]);
+                    }
                 }
             }
         }
@@ -528,6 +631,9 @@ class DocumentWorkflowController extends Controller
         if ($accessCheck) return $accessCheck;
         
         $workflow = DocumentWorkflow::findOrFail($id);
+        $purposeCheck = $this->ensurePurposeAllowsAction($workflow, 'approve');
+        if ($purposeCheck) return $purposeCheck;
+
         $workflow->approve();
         
         // Store e-signature if provided
@@ -603,11 +709,14 @@ class DocumentWorkflowController extends Controller
         $accessCheck = $this->ensureWorkflowAccess($id);
         if ($accessCheck) return $accessCheck;
         
+        $workflow = DocumentWorkflow::findOrFail($id);
+        $purposeCheck = $this->ensurePurposeAllowsAction($workflow, 'reject');
+        if ($purposeCheck) return $purposeCheck;
+
         $request->validate([
             'remarks' => 'required|string|max:1000',
         ]);
 
-        $workflow = DocumentWorkflow::findOrFail($id);
         $workflow->reject();
         $workflow->remarks = $request->remarks;
         $workflow->save();
@@ -843,11 +952,14 @@ class DocumentWorkflowController extends Controller
         $accessCheck = $this->ensureWorkflowAccess($id);
         if ($accessCheck) return $accessCheck;
         
+        $workflow = DocumentWorkflow::findOrFail($id);
+        $purposeCheck = $this->ensurePurposeAllowsAction($workflow, 'return');
+        if ($purposeCheck) return $purposeCheck;
+
         $request->validate([
             'remarks' => 'required|string|max:1000',
         ]);
 
-        $workflow = DocumentWorkflow::findOrFail($id);
         $workflow->return();
         $workflow->remarks = $request->remarks;
         $workflow->save();
@@ -966,14 +1078,59 @@ class DocumentWorkflowController extends Controller
         $accessCheck = $this->ensureWorkflowAccess($id);
         if ($accessCheck) return $accessCheck;
         
-        $request->validate([
-            'recipients' => 'required|array',
+        $workflow = DocumentWorkflow::findOrFail($id);
+        $purposeCheck = $this->ensurePurposeAllowsAction($workflow, 'forward');
+        if ($purposeCheck) return $purposeCheck;
+
+        $document = Document::findOrFail($workflow->document_id);
+        $canUseStepForward = $workflow->workflow_type === 'parallel' && $workflow->purpose === 'appropriate_action';
+
+        $validationRules = [
+            'recipients' => $canUseStepForward ? 'nullable|array' : 'required|array',
             'recipients.*' => 'exists:users,id',
             'remarks' => 'nullable|string|max:1000',
-        ]);
+        ];
 
-        $workflow = DocumentWorkflow::findOrFail($id);
-        $document = Document::findOrFail($workflow->document_id);
+        if ($canUseStepForward) {
+            $validationRules = array_merge($validationRules, [
+                'use_step_forward' => 'nullable|boolean',
+                'step_recipients' => 'nullable|array',
+                'step_recipients.*' => 'nullable|array|min:1',
+                'step_recipients.*.*' => 'exists:users,id',
+                'step_actions' => 'nullable|array',
+                'step_actions.*' => 'nullable|string|max:500',
+            ]);
+        }
+
+        $request->validate($validationRules);
+
+        $useStepForward = $canUseStepForward && $request->boolean('use_step_forward');
+        if ($workflow->purpose === 'appropriate_action' && !$useStepForward) {
+            $requiredAction = trim($request->remarks ?? '');
+            if ($requiredAction === '') {
+                return back()->withErrors([
+                    'remarks' => 'Please specify the required action to forward this document.'
+                ])->withInput();
+            }
+        }
+        if ($useStepForward) {
+            $steps = $request->step_recipients ?? [];
+            if (empty($steps)) {
+                return back()->withErrors(['step_recipients' => 'Please add at least one step to forward this document.']);
+            }
+            foreach ($steps as $idx => $stepRecipients) {
+                if (empty($stepRecipients)) {
+                    return back()->withErrors(['step_recipients.' . $idx => 'Step ' . ($idx + 1) . ' must include at least one recipient.'])->withInput();
+                }
+                $actionText = trim($request->step_actions[$idx] ?? '');
+                if ($actionText === '') {
+                    return back()->withErrors(['step_actions.' . $idx => 'Please describe the required action for step ' . ($idx + 1) . '.'])->withInput();
+                }
+            }
+        }
+        if (!$useStepForward && empty($request->recipients)) {
+            return back()->withErrors(['recipients' => 'Please choose at least one recipient to forward this document.'])->withInput();
+        }
         
         // Keep the current workflow unchanged but mark as forwarded
         $workflow->forward();
@@ -987,50 +1144,107 @@ class DocumentWorkflowController extends Controller
         $lastStepOrder = DocumentWorkflow::where('document_id', $document->id)
             ->max('step_order');
             
-        $newStepOrder = $lastStepOrder + 1;
-        
-        // Create new workflow entries for each recipient
-        foreach ($request->recipients as $recipientId) {
-            // Skip if trying to forward to self
-            if ($recipientId == auth()->id()) {
-                continue;
-            }
-            
-            // Get the user's office ID
-            $user = \App\Models\User::with('offices')->find($recipientId);
-            $senderOffice = auth()->user()->offices->first();
-            $recipientOfficeId = $user && $user->offices->isNotEmpty()
-                ? $user->offices->first()->id
-                : ($senderOffice ? $senderOffice->id : null);
-            
-            DocumentWorkflow::create([
-                'tracking_number' => $trackingNumber,
-                'document_id' => $document->id,
-                'sender_id' => auth()->id(),
-                'recipient_id' => $recipientId,
-                'recipient_office' => $recipientOfficeId,
-                'step_order' => $newStepOrder,
-                'remarks' => $request->remarks ?? null,
-                'status' => 'pending',
-                'received_at' => null,
-                'purpose' => $workflow->purpose,
-                'workflow_type' => $workflow->workflow_type,
-                'urgency' => $workflow->urgency,
-                'due_date' => $workflow->due_date,
-                'parent_workflow_id' => $workflow->id,
-            ]);
+        if ($useStepForward) {
+            $baseStepOrder = ($lastStepOrder ?? 0);
+            foreach ($request->step_recipients as $index => $stepRecipients) {
+                $stepOrder = $baseStepOrder + $index + 1;
+                $status = $index === 0 ? 'pending' : 'waiting';
+                $stepAction = trim($request->step_actions[$index] ?? '');
 
-            // Notify the forwarded user
-            \App\Models\Notifications::create([
-                'user_id' => $recipientId,
-                'type' => 'document_forwarded',
-                'data' => json_encode([
+                foreach ($stepRecipients as $recipientId) {
+                    // Skip if trying to forward to self
+                    if ($recipientId == auth()->id()) {
+                        continue;
+                    }
+                    
+                    // Get the user's office ID
+                    $user = \App\Models\User::with('offices')->find($recipientId);
+                    $senderOffice = auth()->user()->offices->first();
+                    $recipientOfficeId = $user && $user->offices->isNotEmpty()
+                        ? $user->offices->first()->id
+                        : ($senderOffice ? $senderOffice->id : null);
+                    
+                    DocumentWorkflow::create([
+                        'tracking_number' => $trackingNumber,
+                        'document_id' => $document->id,
+                        'sender_id' => auth()->id(),
+                        'recipient_id' => $recipientId,
+                        'recipient_office' => $recipientOfficeId,
+                        'step_order' => $stepOrder,
+                        'remarks' => $stepAction,
+                        'status' => $status,
+                        'received_at' => null,
+                        'purpose' => $workflow->purpose, // locked to appropriate_action for this branch
+                        'workflow_type' => 'sequential',
+                        'urgency' => $workflow->urgency,
+                        'due_date' => $workflow->due_date,
+                        'parent_workflow_id' => $workflow->id,
+                    ]);
+
+                    // Notify pending recipients only
+                    if ($status === 'pending') {
+                        \App\Models\Notifications::create([
+                            'user_id' => $recipientId,
+                            'type' => 'document_forwarded',
+                            'data' => json_encode([
+                                'document_id' => $document->id,
+                                'message' => 'A document has been forwarded to you with a required action.',
+                                'title' => $document->title,
+                                'sender' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
+                                'step_order' => $stepOrder,
+                            ]),
+                        ]);
+                    }
+                }
+            }
+        } else {
+            $newStepOrder = ($lastStepOrder ?? 0) + 1;
+            
+            // Create new workflow entries for each recipient
+            foreach ($request->recipients as $recipientId) {
+                // Skip if trying to forward to self
+                if ($recipientId == auth()->id()) {
+                    continue;
+                }
+                
+                // Get the user's office ID
+                $user = \App\Models\User::with('offices')->find($recipientId);
+                $senderOffice = auth()->user()->offices->first();
+                $recipientOfficeId = $user && $user->offices->isNotEmpty()
+                    ? $user->offices->first()->id
+                    : ($senderOffice ? $senderOffice->id : null);
+                
+                DocumentWorkflow::create([
+                    'tracking_number' => $trackingNumber,
                     'document_id' => $document->id,
-                    'message' => 'A document has been forwarded to you.',
-                    'title' => $document->title,
-                    'sender' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
-                ]),
-            ]);
+                    'sender_id' => auth()->id(),
+                    'recipient_id' => $recipientId,
+                    'recipient_office' => $recipientOfficeId,
+                    'step_order' => $newStepOrder,
+                    'remarks' => $request->remarks ?? null,
+                    'status' => 'pending',
+                    'received_at' => null,
+                    'purpose' => $workflow->purpose === 'dissemination' ? 'dissemination' : $workflow->purpose,
+                    'workflow_type' => $workflow->workflow_type,
+                    'urgency' => $workflow->urgency,
+                    'due_date' => $workflow->due_date,
+                    'parent_workflow_id' => $workflow->id,
+                ]);
+
+                // Notify the forwarded user
+                \App\Models\Notifications::create([
+                    'user_id' => $recipientId,
+                    'type' => 'document_forwarded',
+                    'data' => json_encode([
+                        'document_id' => $document->id,
+                        'message' => $workflow->purpose === 'dissemination'
+                            ? 'Information disseminated to you for awareness.'
+                            : 'A document has been forwarded to you.',
+                        'title' => $document->title,
+                        'sender' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
+                    ]),
+                ]);
+            }
         }
         
         // Log action
@@ -1110,6 +1324,8 @@ class DocumentWorkflowController extends Controller
         ]);
         
         $workflow = DocumentWorkflow::findOrFail($id);
+        $purposeCheck = $this->ensurePurposeAllowsAction($workflow, 'comment');
+        if ($purposeCheck) return $purposeCheck;
         
         // Ensure this is a comment purpose workflow
         if ($workflow->purpose !== 'for_comment') {
@@ -1182,6 +1398,8 @@ class DocumentWorkflowController extends Controller
         ]);
         
         $workflow = DocumentWorkflow::findOrFail($id);
+        $purposeCheck = $this->ensurePurposeAllowsAction($workflow, 'acknowledge');
+        if ($purposeCheck) return $purposeCheck;
         
         // Ensure this is a dissemination purpose workflow
         if ($workflow->purpose !== 'dissemination') {
@@ -1268,65 +1486,89 @@ class DocumentWorkflowController extends Controller
             'current_status' => $currentWorkflow->status
         ]);
 
-        // Find the next step in the sequence
-        $nextStep = DocumentWorkflow::where('document_id', $currentWorkflow->document_id)
+        // Ensure all recipients in the current step have completed their action before proceeding
+        $currentStepWorkflows = DocumentWorkflow::where('document_id', $currentWorkflow->document_id)
+            ->where('workflow_type', 'sequential')
+            ->where('step_order', $currentWorkflow->step_order)
+            ->get();
+
+        $completedStatuses = ['approved', 'rejected', 'returned', 'commented', 'acknowledged', 'forwarded'];
+        $allCompleted = $currentStepWorkflows->every(function($workflow) use ($completedStatuses) {
+            return in_array($workflow->status, $completedStatuses);
+        });
+
+        if (!$allCompleted) {
+            \Log::info('Sequential step not fully completed by all recipients; holding next step', [
+                'step_order' => $currentWorkflow->step_order,
+                'document_id' => $currentWorkflow->document_id,
+                'pending_count' => $currentStepWorkflows->whereNotIn('status', $completedStatuses)->count()
+            ]);
+            return false;
+        }
+
+        // Find all next step entries in the sequence
+        $nextSteps = DocumentWorkflow::where('document_id', $currentWorkflow->document_id)
             ->where('workflow_type', 'sequential')
             ->where('step_order', $currentWorkflow->step_order + 1)
             ->where('status', 'waiting')
-            ->first();
+            ->get();
 
-        if ($nextStep) {
-            \Log::info('Found next sequential step, activating it', [
-                'next_workflow_id' => $nextStep->id,
-                'next_step_order' => $nextStep->step_order,
-                'next_recipient_id' => $nextStep->recipient_id
-            ]);
-
-            // Activate the next step
-            $nextStep->status = 'pending';
-            $nextStep->save();
-
-            // Send notification to the next recipient
-            if ($nextStep->recipient_id) {
-                \App\Models\Notifications::create([
-                    'user_id' => $nextStep->recipient_id,
-                    'type' => 'document_sequential_next',
-                    'data' => json_encode([
-                        'document_id' => $currentWorkflow->document_id,
-                        'message' => 'A document is now ready for your action in sequential workflow.',
-                        'title' => $currentWorkflow->document->title,
-                        'step_order' => $nextStep->step_order,
-                        'previous_step_completed_by' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
-                        'workflow_type' => 'sequential',
-                        'previous_action' => $currentWorkflow->status, // Include what action was taken
-                    ]),
+        if ($nextSteps->isNotEmpty()) {
+            $notifiedSender = false;
+            foreach ($nextSteps as $nextStep) {
+                \Log::info('Activating next sequential step', [
+                    'next_workflow_id' => $nextStep->id,
+                    'next_step_order' => $nextStep->step_order,
+                    'next_recipient_id' => $nextStep->recipient_id
                 ]);
+
+                // Activate the next step
+                $nextStep->status = 'pending';
+                $nextStep->save();
+
+                // Send notification to the next recipient
+                if ($nextStep->recipient_id) {
+                    \App\Models\Notifications::create([
+                        'user_id' => $nextStep->recipient_id,
+                        'type' => 'document_sequential_next',
+                        'data' => json_encode([
+                            'document_id' => $currentWorkflow->document_id,
+                            'message' => 'A document is now ready for your action in sequential workflow.',
+                            'title' => $currentWorkflow->document->title,
+                            'step_order' => $nextStep->step_order,
+                            'previous_step_completed_by' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
+                            'workflow_type' => 'sequential',
+                            'previous_action' => $currentWorkflow->status, // Include what action was taken
+                        ]),
+                    ]);
+                }
+
+                // Notify the sender once about the progression
+                if (!$notifiedSender && $currentWorkflow->sender_id && $currentWorkflow->sender_id != auth()->id()) {
+                    $actionText = $currentWorkflow->status === 'commented' ? 'commented on' : 'completed';
+                    \App\Models\Notifications::create([
+                        'user_id' => $currentWorkflow->sender_id,
+                        'type' => 'document_sequential_progress',
+                        'data' => json_encode([
+                            'document_id' => $currentWorkflow->document_id,
+                            'message' => "Sequential workflow has progressed to the next step after being {$actionText}.",
+                            'title' => $currentWorkflow->document->title,
+                            'completed_step' => $currentWorkflow->step_order,
+                            'next_step' => $nextStep->step_order,
+                            'completed_by' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
+                            'action_taken' => $currentWorkflow->status,
+                            'next_recipient' => $nextStep->recipient ? 
+                                $nextStep->recipient->first_name . ' ' . $nextStep->recipient->last_name : 
+                                ($nextStep->recipientOffice ? 'Office: ' . $nextStep->recipientOffice->name : 'Unknown Office'),
+                        ]),
+                    ]);
+                    $notifiedSender = true;
+                }
             }
 
-            // Also notify the sender that the workflow progressed
-            if ($currentWorkflow->sender_id && $currentWorkflow->sender_id != auth()->id()) {
-                $actionText = $currentWorkflow->status === 'commented' ? 'commented on' : 'completed';
-                \App\Models\Notifications::create([
-                    'user_id' => $currentWorkflow->sender_id,
-                    'type' => 'document_sequential_progress',
-                    'data' => json_encode([
-                        'document_id' => $currentWorkflow->document_id,
-                        'message' => "Sequential workflow has progressed to the next step after being {$actionText}.",
-                        'title' => $currentWorkflow->document->title,
-                        'completed_step' => $currentWorkflow->step_order,
-                        'next_step' => $nextStep->step_order,
-                        'completed_by' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
-                        'action_taken' => $currentWorkflow->status,
-                        'next_recipient' => $nextStep->recipient ? 
-                            $nextStep->recipient->first_name . ' ' . $nextStep->recipient->last_name : 
-                            ($nextStep->recipientOffice ? 'Office: ' . $nextStep->recipientOffice->name : 'Unknown Office'),
-                    ]),
-                ]);
-            }
-
-            \Log::info('Successfully activated next sequential step', [
-                'next_workflow_id' => $nextStep->id,
-                'next_step_order' => $nextStep->step_order
+            \Log::info('Successfully activated next sequential step(s)', [
+                'activated_count' => $nextSteps->count(),
+                'step_order' => $currentWorkflow->step_order + 1
             ]);
 
             return true;
