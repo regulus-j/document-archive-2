@@ -160,6 +160,19 @@ class DocumentWorkflow extends Model
         
         // Terminal/completed action statuses (forwarded counts because it means the step is done — sub-workflow handles the rest)
         $completedStatuses = ['approved', 'commented', 'acknowledged', 'forwarded'];
+
+        // A top-level workflow is only considered complete when forwarded branches are fully terminal.
+        $isTopLevelWorkflowComplete = function (DocumentWorkflow $workflow) use ($completedStatuses) {
+            if (!in_array($workflow->status, $completedStatuses, true)) {
+                return false;
+            }
+
+            if ($workflow->status !== 'forwarded') {
+                return true;
+            }
+
+            return $this->isForwardBranchComplete($workflow->id);
+        };
         
         // Determine overall document status based on workflow states
         $statuses = $allWorkflows->pluck('status')->unique();
@@ -170,7 +183,7 @@ class DocumentWorkflow extends Model
             $document->status()->update(['status' => 'returned']);
         } elseif ($isSequential) {
             // For sequential workflows, be more nuanced about status
-            $allComplete = $allWorkflows->every(fn($w) => in_array($w->status, $completedStatuses));
+            $allComplete = $allWorkflows->every(fn($w) => $isTopLevelWorkflowComplete($w));
             $hasWaiting = $allWorkflows->where('status', 'waiting')->isNotEmpty();
             $hasPending = $allWorkflows->where('status', 'pending')->isNotEmpty();
             $hasReceived = $allWorkflows->where('status', 'received')->isNotEmpty();
@@ -194,7 +207,7 @@ class DocumentWorkflow extends Model
             }
         } elseif ($allWorkflows->every(fn($w) => $w->status === 'received')) {
             $document->status()->update(['status' => 'received']);
-        } elseif ($allWorkflows->every(fn($w) => in_array($w->status, $completedStatuses))) {
+        } elseif ($allWorkflows->every(fn($w) => $isTopLevelWorkflowComplete($w))) {
             // For parallel workflows, mark complete when all are processed (includes forwarded)
             $document->status()->update(['status' => 'complete']);
         } elseif ($statuses->contains('commented')) {
@@ -204,6 +217,33 @@ class DocumentWorkflow extends Model
         } elseif ($statuses->contains('pending')) {
             $document->status()->update(['status' => 'forwarded']);
         }
+    }
+
+    /**
+     * A forwarded workflow branch is complete only when every descendant is terminal.
+     */
+    private function isForwardBranchComplete(int $workflowId): bool
+    {
+        $children = static::where('parent_workflow_id', $workflowId)->get();
+
+        // No sub-workflows means nothing is pending in this branch.
+        if ($children->isEmpty()) {
+            return true;
+        }
+
+        $terminalStatuses = ['approved', 'rejected', 'acknowledged', 'commented', 'returned', 'forwarded'];
+
+        foreach ($children as $child) {
+            if (!in_array($child->status, $terminalStatuses, true)) {
+                return false;
+            }
+
+            if ($child->status === 'forwarded' && !$this->isForwardBranchComplete($child->id)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function changeStatus($action)
