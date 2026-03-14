@@ -110,10 +110,36 @@
                             <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Description</label>
                             <p class="text-sm text-slate-600 mt-1">{{ $document->description ?? 'No description' }}</p>
                         </div>
-                        @if($document->content)
+                        @php
+                            $summaryText = trim($document->content ?? '');
+                            $summaryLen = strlen($summaryText);
+                            $summaryLetters = preg_match_all('/[A-Za-z]/', $summaryText);
+                            $summarySpaces = substr_count($summaryText, ' ');
+                            $summaryWords = str_word_count($summaryText);
+                            $summaryHasLongWord = preg_match('/\\b\\w{30,}\\b/', $summaryText) === 1;
+                            $summaryHasRepeatChars = preg_match('/(.)\\1{5,}/', $summaryText) === 1;
+                            $summaryLooksJumbled = $summaryLen >= 20 && (
+                                $summaryWords < 5 ||
+                                ($summaryLetters / max($summaryLen, 1)) < 0.6 ||
+                                ($summarySpaces / max($summaryLen, 1)) < 0.06 ||
+                                $summaryHasLongWord ||
+                                $summaryHasRepeatChars
+                            );
+                        @endphp
+                        @if($summaryText !== '')
                         <div>
                             <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Summary</label>
-                            <p class="text-sm text-slate-600 mt-1 leading-relaxed">{{ $document->content }}</p>
+                            @if($summaryLooksJumbled)
+                                <div class="mt-1 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                                    The AI-generated summary looks unclear. Showing a fallback note instead.
+                                </div>
+                                <details class="mt-2">
+                                    <summary class="text-xs text-slate-500 cursor-pointer">Show raw summary</summary>
+                                    <p class="text-sm text-slate-600 mt-1 leading-relaxed">{{ $summaryText }}</p>
+                                </details>
+                            @else
+                                <p class="text-sm text-slate-600 mt-1 leading-relaxed">{{ $summaryText }}</p>
+                            @endif
                         </div>
                         @endif
                         @if($document->classification)
@@ -122,10 +148,19 @@
                             <p class="text-sm text-slate-700 mt-1">{{ $document->classification }}</p>
                         </div>
                         @endif
-                        @if($document->category)
+                        @php
+                            $categoryLabel = '';
+                            if (method_exists($document, 'categories')) {
+                                $categoryLabel = $document->categories->pluck('category')->implode(', ');
+                            }
+                            if ($categoryLabel === '' && !empty($document->category)) {
+                                $categoryLabel = optional(\App\Models\DocumentCategory::find($document->category))->category ?? $document->category;
+                            }
+                        @endphp
+                        @if($categoryLabel !== '')
                         <div>
                             <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Category</label>
-                            <p class="text-sm text-slate-700 mt-1">{{ $document->category }}</p>
+                            <p class="text-sm text-slate-700 mt-1">{{ $categoryLabel }}</p>
                         </div>
                         @endif
                         <div>
@@ -503,6 +538,15 @@
                                                class="p-1.5 rounded-lg hover:bg-indigo-100 text-indigo-500" title="Download">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                             </a>
+                                            @if((int) $attachment->uploaded_by === (int) auth()->id())
+                                            <form action="{{ route('documents.attachments.destroy', $document->id) }}?attachment_id={{ $attachment->id }}" method="POST" class="inline" onsubmit="return confirm('Delete this attachment?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="p-1.5 rounded-lg hover:bg-red-100 text-red-500 transition-colors" title="Delete attachment" onclick="event.stopPropagation()">
+                                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                </button>
+                                            </form>
+                                            @endif
                                         </div>
                                     </div>
                                 @endforeach
@@ -600,6 +644,52 @@
                                 </div>
                             </div>
                         @elseif($isActionable)
+                        @php
+                            $purposeActionGuide = [
+                                'appropriate_action' => [
+                                    'badge' => 'bg-amber-50 border-amber-200 text-amber-800',
+                                    'title' => 'For Appropriate Action',
+                                    'items' => [
+                                        'Approve, reject, return, or forward this document.',
+                                        'Reroute is available from the workflow pipeline when enabled for your role.',
+                                    ],
+                                ],
+                                'for_comment' => [
+                                    'badge' => 'bg-indigo-50 border-indigo-200 text-indigo-800',
+                                    'title' => 'For Comment',
+                                    'items' => [
+                                        'Leave your remarks in Add Comment.',
+                                        'No approval, rejection, forwarding, or acknowledgment is needed for this step.',
+                                    ],
+                                ],
+                                'dissemination' => [
+                                    'badge' => 'bg-emerald-50 border-emerald-200 text-emerald-800',
+                                    'title' => 'For Dissemination of Information',
+                                    'items' => [
+                                        'Acknowledge to confirm you have received the information.',
+                                        'Forward only for further dissemination; the forwarded step stays as dissemination.',
+                                    ],
+                                ],
+                                'default' => [
+                                    'badge' => 'bg-slate-50 border-slate-200 text-slate-700',
+                                    'title' => 'General Review',
+                                    'items' => [
+                                        'Choose the action that best fits this document step.',
+                                    ],
+                                ],
+                            ];
+                            $currentGuide = $purposeActionGuide[$workflow->purpose ?? 'default'] ?? $purposeActionGuide['default'];
+                        @endphp
+
+                            <div class="mb-4 p-3 rounded-lg border {{ $currentGuide['badge'] }}">
+                                <p class="text-sm font-semibold">{{ $currentGuide['title'] }} - What you can do</p>
+                                <ul class="mt-2 space-y-1">
+                                    @foreach($currentGuide['items'] as $guideLine)
+                                        <li class="text-xs">{{ $guideLine }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+
                         @if($workflow->purpose === 'appropriate_action')
                             <div class="flex flex-wrap gap-2">
                                 <button type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium border border-green-200 text-green-700 bg-white hover:bg-green-50 rounded-lg transition-colors" onclick="showActionForm('approval-form')">
@@ -678,6 +768,7 @@
                             </div>
 
                             {{-- Approval Form --}}
+                            @if($workflow->purpose === 'appropriate_action' || !$workflow->purpose)
                             <div id="approval-form" class="hidden p-4 border border-green-200 rounded-lg bg-green-50">
                                 <h3 class="font-medium text-green-800 mb-3">Approve Document</h3>
                                 <form action="{{ route('documents.approveWorkflow', $workflow->id) }}" method="POST" onsubmit="return injectSignature(this)">
@@ -692,8 +783,10 @@
                                     </button>
                                 </form>
                             </div>
+                            @endif
 
                             {{-- Rejection Form --}}
+                            @if($workflow->purpose === 'appropriate_action' || !$workflow->purpose)
                             <div id="rejection-form" class="hidden p-4 border border-red-200 rounded-lg bg-red-50">
                                 <h3 class="font-medium text-red-800 mb-3">Reject Document</h3>
                                 <form method="POST" action="{{ route('documents.rejectWorkflow', $workflow->id) }}" onsubmit="return injectSignature(this)">
@@ -708,8 +801,10 @@
                                     </button>
                                 </form>
                             </div>
+                            @endif
 
                             {{-- Return Form --}}
+                            @if($workflow->purpose === 'appropriate_action')
                             <div id="return-form" class="hidden p-4 border border-yellow-200 rounded-lg bg-yellow-50">
                                 <h3 class="font-medium text-yellow-800 mb-3">Return Document</h3>
                                 <form method="POST" action="{{ route('documents.returnWorkflow', $workflow->id) }}" onsubmit="return injectSignature(this)">
@@ -724,32 +819,92 @@
                                     </button>
                                 </form>
                             </div>
+                            @endif
 
                             {{-- Forward Form --}}
+                            @if($workflow->purpose === 'appropriate_action' || $workflow->purpose === 'dissemination' || !$workflow->purpose)
                             <div id="forward-form" class="hidden p-4 border border-purple-200 rounded-lg bg-purple-50">
                                 <h3 class="font-medium text-purple-800 mb-3">Forward Document</h3>
                                 <form method="POST" action="{{ route('documents.forwardFromWorkflow', $workflow->id) }}">
                                     @csrf
-                                    <div class="mb-4">
-                                        <label class="block text-sm font-medium text-slate-700 mb-2">Forward To</label>
-                                        <select name="recipients[]" multiple class="w-full rounded-md border-slate-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-200" required>
-                                            @foreach($companyUsers as $user)
-                                                <option value="{{ $user->id }}">{{ $user->first_name }} {{ $user->last_name }}</option>
-                                            @endforeach
-                                        </select>
-                                        <p class="text-xs text-slate-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
+                                    @if($workflow->workflow_type === 'parallel' && $workflow->purpose === 'appropriate_action')
+                                        <div class="mb-4 flex items-center gap-3">
+                                            <input type="checkbox" id="use_step_forward" value="1" class="rounded border-purple-300 text-purple-600 focus:ring-purple-400">
+                                            <label for="use_step_forward" class="text-sm text-slate-700">Forward in steps with specific actions</label>
+                                        </div>
+                                    @endif
+
+                                    <div id="simple-forward-block">
+                                        <div class="mb-4">
+                                            <label class="block text-sm font-medium text-slate-700 mb-2">Forward To</label>
+                                            <select id="simple-forward-select" name="recipients[]" multiple class="w-full rounded-md border-slate-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-200" {{ ($workflow->workflow_type === 'parallel' && $workflow->purpose === 'appropriate_action') ? '' : 'required' }}>
+                                                @foreach($companyUsers as $user)
+                                                    <option value="{{ $user->id }}">{{ $user->first_name }} {{ $user->last_name }}</option>
+                                                @endforeach
+                                            </select>
+                                            <p class="text-xs text-slate-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
+                                        </div>
+                                        <div class="mb-4">
+                                            @if($workflow->purpose === 'appropriate_action')
+                                                <label class="block text-sm font-medium text-slate-700 mb-2">Specific Action Needed (Required)</label>
+                                                <textarea id="forward-remarks" name="remarks" rows="3" class="w-full rounded-md border-slate-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-200" placeholder="Describe the required action..." required data-requires-action="1"></textarea>
+                                                <p class="text-xs text-slate-500 mt-1">Required for appropriate action workflows.</p>
+                                            @elseif($workflow->purpose === 'dissemination')
+                                                <label class="block text-sm font-medium text-slate-700 mb-2">Dissemination Notes (Optional)</label>
+                                                <textarea id="forward-remarks" name="remarks" rows="3" class="w-full rounded-md border-slate-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-200" placeholder="Optional context for the next recipient..."></textarea>
+                                                <p class="text-xs text-slate-500 mt-1">Forwarded recipients will still receive this as dissemination.</p>
+                                            @else
+                                                <label class="block text-sm font-medium text-slate-700 mb-2">Forward Remarks</label>
+                                                <textarea id="forward-remarks" name="remarks" rows="3" class="w-full rounded-md border-slate-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-200" placeholder="Additional instructions..."></textarea>
+                                            @endif
+                                        </div>
                                     </div>
-                                    <div class="mb-4">
-                                        <label class="block text-sm font-medium text-slate-700 mb-2">Forward Remarks</label>
-                                        <textarea name="remarks" rows="3" class="w-full rounded-md border-slate-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-200" placeholder="Additional instructions..."></textarea>
-                                    </div>
+
+                                    @if($workflow->workflow_type === 'parallel' && $workflow->purpose === 'appropriate_action')
+                                        <input type="hidden" id="use_step_forward_flag" name="use_step_forward" value="0">
+                                        <div id="step-forward-block" class="hidden">
+                                            <div id="step-forward-steps" class="space-y-3"></div>
+                                            <div class="flex items-center gap-2 mt-3">
+                                                <button type="button" id="add-step-btn" class="inline-flex items-center px-3 py-2 bg-white border border-purple-300 text-purple-700 rounded-md hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-200 text-sm">
+                                                    Add Step
+                                                </button>
+                                                <p class="text-xs text-slate-500">Recipients in Step 1 act first; later steps activate after prior ones finish.</p>
+                                            </div>
+                                        </div>
+
+                                        <template id="step-forward-template">
+                                            <div class="step-card bg-white border border-purple-200 rounded-md p-3 shadow-sm">
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <span class="step-label text-sm font-semibold text-purple-700">Step</span>
+                                                    <button type="button" class="remove-step text-xs text-red-600 hover:text-red-700">Remove</button>
+                                                </div>
+                                                <div class="space-y-2">
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-slate-600 mb-1">Recipients</label>
+                                                        <select multiple class="step-recipient-select w-full rounded-md border-slate-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-200">
+                                                            @foreach($companyUsers as $user)
+                                                                <option value="{{ $user->id }}">{{ $user->first_name }} {{ $user->last_name }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-slate-600 mb-1">Specific Action</label>
+                                                        <input type="text" class="step-action-input w-full rounded-md border-slate-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-200" placeholder="Describe the required action">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    @endif
+
                                     <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-purple-500 hover:bg-purple-600 transition">
                                         Confirm Forward
                                     </button>
                                 </form>
                             </div>
+                            @endif
 
                             {{-- Comment Form --}}
+                            @if($workflow->purpose === 'for_comment')
                             <div id="comment-form" class="hidden p-4 border border-indigo-200 rounded-lg bg-indigo-50">
                                 <h3 class="font-medium text-indigo-800 mb-3">Add Your Comment</h3>
                                 <form method="POST" action="{{ route('documents.addComment', $workflow->id) }}" onsubmit="return injectSignature(this)">
@@ -764,8 +919,10 @@
                                     </button>
                                 </form>
                             </div>
+                            @endif
 
                             {{-- Acknowledge Form --}}
+                            @if($workflow->purpose === 'dissemination')
                             <div id="acknowledge-form" class="hidden p-4 border border-green-200 rounded-lg bg-green-50">
                                 <h3 class="font-medium text-green-800 mb-3">Acknowledge Receipt</h3>
                                 <form method="POST" action="{{ route('documents.acknowledgeWorkflow', $workflow->id) }}" onsubmit="return injectSignature(this)">
@@ -780,6 +937,7 @@
                                     </button>
                                 </form>
                             </div>
+                            @endif
                         </div>
                         @endif {{-- end action forms isActionable --}}
 
@@ -1234,6 +1392,94 @@ document.addEventListener('DOMContentLoaded', function() {
         if (iframe) iframe.style.height = (500 * currentZoom / 100) + 'px';
         if (img) img.style.transform = 'scale(' + (currentZoom / 100) + ')';
     };
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggle = document.getElementById('use_step_forward');
+    const hiddenFlag = document.getElementById('use_step_forward_flag');
+    const simpleBlock = document.getElementById('simple-forward-block');
+    const simpleSelect = document.getElementById('simple-forward-select');
+    const stepBlock = document.getElementById('step-forward-block');
+    const stepContainer = document.getElementById('step-forward-steps');
+    const template = document.getElementById('step-forward-template');
+    const addStepBtn = document.getElementById('add-step-btn');
+    const remarksInput = document.getElementById('forward-remarks');
+    const remarksRequiresAction = remarksInput && remarksInput.dataset.requiresAction === '1';
+
+    if (!toggle || !hiddenFlag || !stepBlock || !stepContainer || !template) {
+        return;
+    }
+
+    function reindexSteps() {
+        const steps = stepContainer.querySelectorAll('.step-card');
+        steps.forEach((step, index) => {
+            const label = step.querySelector('.step-label');
+            if (label) {
+                label.textContent = `Step ${index + 1}`;
+            }
+
+            const select = step.querySelector('.step-recipient-select');
+            if (select) {
+                select.name = `step_recipients[${index}][]`;
+                select.required = toggle.checked;
+            }
+
+            const actionInput = step.querySelector('.step-action-input');
+            if (actionInput) {
+                actionInput.name = `step_actions[${index}]`;
+                actionInput.required = toggle.checked;
+            }
+
+            const removeBtn = step.querySelector('.remove-step');
+            if (removeBtn) {
+                removeBtn.disabled = steps.length === 1;
+                removeBtn.onclick = function () {
+                    if (steps.length > 1) {
+                        step.remove();
+                        reindexSteps();
+                    }
+                };
+            }
+        });
+    }
+
+    function addStep() {
+        const clone = template.content.firstElementChild.cloneNode(true);
+        stepContainer.appendChild(clone);
+        reindexSteps();
+    }
+
+    function setMode(useSteps) {
+        hiddenFlag.value = useSteps ? 1 : 0;
+        simpleBlock.classList.toggle('hidden', useSteps);
+        stepBlock.classList.toggle('hidden', !useSteps);
+        if (simpleSelect) {
+            simpleSelect.required = !useSteps;
+        }
+        if (remarksInput && remarksRequiresAction) {
+            remarksInput.required = !useSteps;
+        }
+        if (useSteps && stepContainer.children.length === 0) {
+            addStep();
+        } else {
+            reindexSteps();
+        }
+    }
+
+    toggle.addEventListener('change', function() {
+        setMode(toggle.checked);
+    });
+
+    if (addStepBtn) {
+        addStepBtn.addEventListener('click', function() {
+            addStep();
+        });
+    }
+
+    // Initialize state on load
+    setMode(toggle.checked);
 });
 </script>
 

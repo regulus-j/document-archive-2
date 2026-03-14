@@ -241,9 +241,9 @@
                                         @foreach ($offices as $office)
                                             <div class="p-2">
                                                 <label class="flex items-center gap-3 text-sm text-slate-700">
-                                                    <input type="radio"
-                                                           class="office-radio"
-                                                           name="recipient_batch[0]"
+                                                    <input type="checkbox"
+                                                           class="office-checkbox recipient-option"
+                                                           name="recipient_batch[0][]"
                                                            id="step0_office{{ $office->id }}"
                                                            value="office_{{ $office->id }}">
                                                     <span>{{ $office->name }}</span>
@@ -282,9 +282,9 @@
                                         @foreach ($users as $user)
                                             <div class="user-item p-2" data-office-ids="{{ json_encode($user->offices->pluck('id')) }}">
                                                 <label class="flex items-center gap-3 text-sm text-slate-700">
-                                                    <input type="radio"
-                                                           class="user-radio"
-                                                           name="recipient_batch[0]"
+                                                    <input type="checkbox"
+                                                           class="user-checkbox recipient-option"
+                                                           name="recipient_batch[0][]"
                                                            id="step0_user{{ $user->id }}"
                                                            value="user_{{ $user->id }}">
                                                     <span>{{ $user->first_name . ' ' . $user->last_name }}</span>
@@ -362,6 +362,16 @@
                 </div>
             </div>
         </label>
+    </div>
+    <div x-show="selectedPurpose === 'appropriate_action'" class="mt-3 action-required-container">
+        <label class="block text-xs font-medium text-slate-600 mb-1">Specific Action Needed</label>
+        <input type="text"
+               name="action_required_batch[0]"
+               class="w-full rounded-lg border-slate-200 text-sm text-slate-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+               placeholder="e.g., Approve budget, revise section 3, schedule meeting"
+               :required="selectedPurpose === 'appropriate_action'"
+               :disabled="selectedPurpose !== 'appropriate_action'">
+        <p class="text-xs text-slate-500 mt-1">Required when sending for appropriate action.</p>
     </div>
 </div>
     <!-- Urgency Selection -->
@@ -609,31 +619,29 @@
         }
 
         function addBatchEventListeners(batch) {
-            // Add event listeners for office radio buttons
-            batch.querySelectorAll('.office-radio').forEach(radio => {
-                radio.addEventListener('change', function() {
-                    if (this.checked) {
-                        const batch = this.closest('.batch-group');
-                        const userRadios = batch.querySelectorAll('.user-radio');
-                        userRadios.forEach(userRadio => {
-                            userRadio.checked = false;
-                        });
-                    }
-                });
+            const purposeRadios = batch.querySelectorAll('input[name^="purpose_batch"]');
+            const actionContainer = batch.querySelector('.action-required-container');
+            const actionInput = batch.querySelector('input[name^="action_required_batch"]');
+
+            function syncActionRequired() {
+                const selected = batch.querySelector('input[name^="purpose_batch"]:checked');
+                const isAppropriate = selected && selected.value === 'appropriate_action';
+
+                if (actionContainer) {
+                    actionContainer.classList.toggle('hidden', !isAppropriate);
+                }
+                if (actionInput) {
+                    actionInput.disabled = !isAppropriate;
+                    actionInput.required = isAppropriate;
+                }
+            }
+
+            purposeRadios.forEach(radio => {
+                radio.addEventListener('change', syncActionRequired);
             });
 
-            // Add event listeners for user radio buttons
-            batch.querySelectorAll('.user-radio').forEach(radio => {
-                radio.addEventListener('change', function() {
-                    if (this.checked) {
-                        const batch = this.closest('.batch-group');
-                        const officeRadios = batch.querySelectorAll('.office-radio');
-                        officeRadios.forEach(officeRadio => {
-                            officeRadio.checked = false;
-                        });
-                    }
-                });
-            });
+            // Initialize the state for this batch
+            syncActionRequired();
         }
 
         function enableDragAndDrop() {
@@ -810,28 +818,32 @@
                     ordinalLabel.innerText = ordinals[index] || ('Step ' + (index + 1));
                 }
 
-                // Update radio button names & ids for each batch
-                const recipientRadios = batch.querySelectorAll('input[type="radio"].office-radio, input[type="radio"].user-radio');
-                recipientRadios.forEach((radio) => {
-                    radio.name = `recipient_batch[${index}]`; // Shared name for radio group in this batch
+                // Update recipient input names & ids for each batch (checkboxes)
+                const recipientInputs = batch.querySelectorAll('.recipient-option');
+                recipientInputs.forEach((input) => {
+                    input.name = `recipient_batch[${index}][]`;
 
                     // Update id attribute to include the batch index
-                    const parts = radio.id.split('_'); // e.g., step0_officeID or step0_userID
-                    radio.id = `step${index}_${parts.slice(1).join('_')}`; // e.g. step1_officeID
+                    const parts = input.id.split('_'); // e.g., step0_officeID or step0_userID
+                    input.id = `step${index}_${parts.slice(1).join('_')}`; // e.g. step1_officeID
 
-                    // Also update the corresponding label's "for" attribute
-                    const label = radio.nextElementSibling;
-                    if (label && label.tagName.toLowerCase() === 'label') {
-                        label.htmlFor = radio.id;
+                    // Update wrapping label "for" attribute if present
+                    const parentLabel = input.closest('label');
+                    if (parentLabel) {
+                        parentLabel.htmlFor = input.id;
                     }
+                });
+
+                // Update purpose radio groups for this batch
+                const purposeRadios = batch.querySelectorAll('input[name^="purpose_batch"]');
+                purposeRadios.forEach((radio) => {
+                    radio.name = `purpose_batch[${index}]`;
                 });
 
                 // Update purpose_batch, urgency_batch and due_date_batch names
                 const selects = batch.querySelectorAll('select');
                 selects.forEach((select) => {
-                    if (select.name.startsWith('purpose_batch')) {
-                        select.name = "purpose_batch[" + index + "]";
-                    } else if (select.name.startsWith('urgency_batch')) {
+                    if (select.name.startsWith('urgency_batch')) {
                         select.name = "urgency_batch[" + index + "]";
                     }
                 });
@@ -842,6 +854,12 @@
                         input.name = "due_date_batch[" + index + "]";
                     }
                 });
+
+                // Update action-required input name
+                const actionInput = batch.querySelector('input[name^="action_required_batch"]');
+                if (actionInput) {
+                    actionInput.name = `action_required_batch[${index}]`;
+                }
             });
             
             // Update step indicators
@@ -877,11 +895,21 @@
             const template = container.querySelector('.batch-group');
             const newBatch = template.cloneNode(true);
 
-            // Reset radio buttons in the new batch
-            const radios = newBatch.querySelectorAll('input[type="radio"].office-radio, input[type="radio"].user-radio');
-            radios.forEach(radio => {
-                radio.checked = false;
+            // Reset recipient checkboxes in the new batch
+            const recipientInputs = newBatch.querySelectorAll('.recipient-option');
+            recipientInputs.forEach(input => {
+                input.checked = false;
             });
+
+            // Reset purpose radios and related action text
+            const purposeRadios = newBatch.querySelectorAll('input[name^="purpose_batch"]');
+            purposeRadios.forEach(radio => radio.checked = false);
+
+            const actionInput = newBatch.querySelector('input[name^="action_required_batch"]');
+            if (actionInput) {
+                actionInput.value = '';
+                actionInput.disabled = true;
+            }
 
             // Reset select and input fields
             const selects = newBatch.querySelectorAll('select');
@@ -934,19 +962,32 @@
             batches.forEach(batch => {
                 const batchIdx = batch.dataset.index; // string value
                 const batchNumForDisplay = parseInt(batchIdx) + 1;
-                const recipientSelected = batch.querySelector(`input[name="recipient_batch[${batchIdx}]"]:checked`);
+                const recipientSelections = batch.querySelectorAll(`input[name="recipient_batch[${batchIdx}][]"]:checked`);
 
-                // Each batch must have one recipient selected
-                if (!recipientSelected) {
+                // Each batch must have at least one recipient selected
+                if (!recipientSelections.length) {
                     isValid = false;
 
                     // Create and display error message
                     const errorMsg = document.createElement('div');
                     errorMsg.className = 'validation-error text-red-600 mt-2 mb-2';
-                    errorMsg.textContent = `Please select one recipient (office or user) in Step ${batchNumForDisplay}.`;
+                    errorMsg.textContent = `Please select at least one recipient (office or user) in Step ${batchNumForDisplay}.`;
 
                     // Insert error before the end of this batch
                     batch.appendChild(errorMsg);
+                }
+
+                // If appropriate action, require specific action text
+                const purposeSelected = batch.querySelector(`input[name="purpose_batch[${batchIdx}]"]:checked`);
+                if (purposeSelected && purposeSelected.value === 'appropriate_action') {
+                    const actionInput = batch.querySelector(`input[name="action_required_batch[${batchIdx}]"]`);
+                    if (!actionInput || actionInput.value.trim() === '') {
+                        isValid = false;
+                        const errorMsg = document.createElement('div');
+                        errorMsg.className = 'validation-error text-red-600 mt-2 mb-2';
+                        errorMsg.textContent = `Please specify the required action for Step ${batchNumForDisplay}.`;
+                        batch.appendChild(errorMsg);
+                    }
                 }
             });
 
@@ -974,9 +1015,9 @@
                         userItem.style.display = 'none';
 
                         // If a hidden user was selected, uncheck them
-                        const userRadio = userItem.querySelector('input[type="radio"]');
-                        if (userRadio && userRadio.checked) {
-                            userRadio.checked = false;
+                        const userInput = userItem.querySelector('input[type="checkbox"]');
+                        if (userInput && userInput.checked) {
+                            userInput.checked = false;
                         }
                     }
                 }
