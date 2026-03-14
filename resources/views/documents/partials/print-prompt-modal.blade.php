@@ -61,13 +61,17 @@
 
         {{-- document info --}}
         <div class="px-6 py-4">
-            <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-1">
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-2">
                 <p class="text-sm font-medium text-slate-800 truncate">{{ $pp['title'] }}</p>
                 @if(!empty($pp['tracking_number']))
                 <p class="text-xs font-mono text-indigo-600 bg-indigo-50 inline-block px-2 py-0.5 rounded">
                     {{ $pp['tracking_number'] }}
                 </p>
                 @endif
+                <div class="flex justify-center">
+                    <img src="{{ route('documents.barcode', $pp['id']) }}" alt="Barcode"
+                         class="w-56 h-16 object-contain bg-white border border-slate-200 rounded">
+                </div>
             </div>
         </div>
 
@@ -82,17 +86,6 @@
                           d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                 </svg>
                 Print / Download Document
-            </a>
-
-            {{-- Print tracking barcode --}}
-            <a href="{{ route('documents.barcode', $pp['id']) }}" target="_blank"
-               onclick="closePrintPromptModal()"
-               class="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1z"/>
-                </svg>
-                Print Tracking Barcode
             </a>
 
             {{-- Skip --}}

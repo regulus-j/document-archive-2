@@ -226,7 +226,7 @@
                     <td>{{ $log->document->title ?? 'Document #' . $log->document_id }}</td>
                     <td><span class="badge badge-indigo">{{ ucfirst($log->action) }}</span></td>
                     <td>{{ ucfirst($log->status ?? '-') }}</td>
-                    <td class="text-wrap">{{ $log->details ?? '-' }}</td>
+                    <td class="text-wrap">{{ \App\Http\Controllers\AuditReportController::formatAuditDetails($log->details) }}</td>
                 </tr>
                 @empty
                 <tr><td colspan="{{ $audit_target === 'office' ? 6 : 5 }}" class="no-data">No actions recorded.</td></tr>

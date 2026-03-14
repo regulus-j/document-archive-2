@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-        <div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white py-12">
+        <div class="min-h-screen bg-slate-50 py-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Header Box -->
-            <div class="bg-white rounded-xl mb-8 border border-indigo-200/80 overflow-hidden">
-                <div class="bg-white p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="ds-page-header">
+                <div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div class="flex items-center space-x-3">
-                        <div class="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg shadow-md">
+                        <div class="p-3 bg-indigo-600 rounded-lg shadow-sm">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -15,12 +15,12 @@
                             </svg>
                         </div>
                         <div>
-                            <h1 class="text-2xl font-bold text-slate-800">Create Document</h1>
+                            <h1>Create Document</h1>
                             <p class="text-sm text-slate-500">Create and upload new document</p>
                         </div>
                     </div>
                 <a href="{{ route('documents.index') }}"
-                    class="inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                    class="ds-btn ds-btn-secondary">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                     </svg>
@@ -33,8 +33,8 @@
             @csrf
 
             <!-- Document Information Card -->
-            <div class="bg-white rounded-xl overflow-hidden border border-indigo-200/80 transition-all duration-300 hover:border-indigo-300/80">
-                <div class="bg-white p-6 border-b border-indigo-200/60">
+            <div class="ds-card overflow-hidden">
+                <div class="bg-white p-6 border-b border-slate-100">
                     <div class="flex items-center space-x-3">
                         <div class="p-2 bg-indigo-100 rounded-lg">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none"
@@ -52,18 +52,18 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Document Title -->
                         <div class="space-y-2">
-                            <label for="title" class="block text-sm font-medium text-slate-700">Document Title</label>
+                            <label for="title" class="ds-label">Document Title</label>
                             <input type="text" name="title" id="title" required
-                                class="w-full rounded-lg border-slate-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                                class="ds-input"
                                 placeholder="Enter document title">
                             <p class="text-xs text-slate-500">Provide a clear, descriptive title for the document</p>
                         </div>
 
                         <!-- Description -->
                         <div class="space-y-2">
-                            <label for="description" class="block text-sm font-medium text-slate-700">Description</label>
+                            <label for="description" class="ds-label">Description</label>
                             <textarea name="description" id="description" rows="3"
-                                class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                class="ds-input"
                                 placeholder="Enter document description">{{ old('description') }}</textarea>
                             <p class="text-xs text-slate-500">Provide additional details about the document</p>
                         </div>
@@ -73,11 +73,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                         <div>
-                            <label for="category" class="block text-sm font-medium text-slate-700">Document Category
+                            <label for="category" class="ds-label">Document Category
                                 <span class="text-red-500">*</span></label>
                             <div class="flex items-center gap-2 mt-1">
                                 <select name="category" id="category"
-                                    class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                    class="ds-input"
                                     required>
                                     <option value="">Select Document Category</option>
                                     @foreach($categories as $category)
@@ -101,9 +101,9 @@
 
                         <!-- Classification -->
                         <div class="space-y-2">
-                            <label for="classification" class="block text-sm font-medium text-slate-700">Classification <span class="text-red-500">*</span></label>
+                            <label for="classification" class="ds-label">Classification <span class="text-red-500">*</span></label>
                             <select name="classification" id="classification" required
-                                class="w-full rounded-lg border-slate-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition-all">
+                                class="ds-input">
                                 <option value="Public" {{ old('classification', 'Public') == 'Public' ? 'selected' : '' }}>Public</option>
                                 <option value="Office Only" {{ old('classification') == 'Office Only' ? 'selected' : '' }}>Office Only</option>
                                 <option value="Custom Offices" {{ old('classification') == 'Custom Offices' ? 'selected' : '' }}>Custom Offices</option>
@@ -116,7 +116,7 @@
 
                     <!-- Custom Offices Section -->
                     <div id="custom-offices-section" class="{{ old('classification') == 'Custom Offices' ? '' : 'hidden' }} mt-2 space-y-2">
-                        <label class="block text-sm font-medium text-slate-700">Select Allowed Offices <span class="text-red-500">*</span></label>
+                        <label class="ds-label">Select Allowed Offices <span class="text-red-500">*</span></label>
                         <div class="max-h-48 overflow-y-auto border border-slate-300 rounded-lg p-3 bg-slate-50 space-y-2">
                             @foreach($offices as $office)
                             <label class="flex items-center">
@@ -312,15 +312,6 @@
                                             <input id="main-document" name="main_document" type="file"
                                                 accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.odt,.ods,.odp,.rtf,.jpg,.jpeg,.png" class="sr-only" required>
                                         </label>
-                                        <span class="text-slate-400">or</span>
-                                        <button id="btn-opencam" type="button"
-                                            class="relative inline-flex items-center gap-2 px-4 py-2 rounded-md font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-300 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            </svg>
-                                            Capture
-                                        </button>
                                         <p class="pl-1">or drag and drop</p>
                                     </div>
                                     <p class="text-xs text-slate-500">PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, CSV, ODT, RTF, JPG, PNG up to 8MB</p>
@@ -407,8 +398,6 @@
                 </div>
         </form>
 
-        <!-- Camera Capture Modal -->
-        @include('documents.partials.webcam')
     </div>
 
     <!-- Popup Notification Styles -->

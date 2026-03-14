@@ -26,24 +26,24 @@ if (!function_exists('wfTimeDiff')) {
     }
 }
 @endphp
-<div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white" x-data="{ activeTab: 'receive', showArchiveConfirm: false, archiveDocId: null }">
+<div class="min-h-screen bg-slate-50" x-data="{ activeTab: 'receive', showArchiveConfirm: false, archiveDocId: null }">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
         {{-- Header --}}
-        <div class="bg-white rounded-xl border border-indigo-200/80 overflow-hidden">
+        <div class="ds-page-header">
             <div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div class="flex items-center space-x-3">
-                    <div class="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg shadow-md">
+                    <div class="p-3 bg-indigo-600 rounded-lg shadow-sm">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-slate-800">{{ __('Workflow Dashboard') }}</h1>
+                        <h1>{{ __('Workflow Dashboard') }}</h1>
                         <p class="text-sm text-slate-500">Manage all your document workflows in one place</p>
                     </div>
                 </div>
-                <a href="{{ route('documents.index') }}" class="inline-flex items-center px-4 py-2 border border-indigo-600 text-sm font-medium rounded-lg text-indigo-600 hover:bg-indigo-50 transition-colors">
+                <a href="{{ route('documents.index') }}" class="ds-btn ds-btn-secondary">
                     <svg class="mr-2 -ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
                     {{ __('All Documents') }}
                 </a>
@@ -52,7 +52,7 @@ if (!function_exists('wfTimeDiff')) {
 
         {{-- Success/Error Messages --}}
         @if(session('success'))
-        <div class="bg-emerald-50/60 border-l-4 border-emerald-500 text-emerald-700 p-4 rounded-lg" role="alert">
+        <div class="ds-alert-success" role="alert">
             <div class="flex items-center">
                 <svg class="h-5 w-5 text-emerald-500 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                 <p class="font-medium">{{ session('success') }}</p>
@@ -60,7 +60,7 @@ if (!function_exists('wfTimeDiff')) {
         </div>
         @endif
         @if(session('error'))
-        <div class="bg-red-50/60 border-l-4 border-red-500 text-red-700 p-4 rounded-lg" role="alert">
+        <div class="ds-alert-error" role="alert">
             <div class="flex items-center">
                 <svg class="h-5 w-5 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
                 <p class="font-medium">{{ session('error') }}</p>
@@ -69,7 +69,7 @@ if (!function_exists('wfTimeDiff')) {
         @endif
 
         {{-- Tab Navigation --}}
-        <div class="bg-white rounded-xl overflow-hidden border border-indigo-200/80">
+        <div class="ds-card overflow-hidden">
             <div class="flex">
                 {{-- Receive Tab --}}
                 <button @click="activeTab = 'receive'"

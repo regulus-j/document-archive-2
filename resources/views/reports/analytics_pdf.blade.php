@@ -4,9 +4,13 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Analytics Report</title>
     <style>
+        @page {
+            size: A4 landscape;
+            margin: 16mm 14mm;
+        }
         body {
             font-family: 'DejaVu Sans', sans-serif;
-            padding: 20px;
+            padding: 0;
             color: #333;
         }
         h1, h2, h3 {
@@ -42,9 +46,9 @@
             margin-top: 2px;
         }
         .report-meta {
-            font-size: 0.9em;
+            font-size: 0.85em;
             color: #6b7280;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
         table {
             width: 100%;
@@ -61,30 +65,51 @@
             color: #ffffff;
             font-weight: bold;
         }
-        .metrics-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .metric-card {
-            flex: 1;
-            min-width: 200px;
-            padding: 15px;
+        .metrics-table {
+            width: 100%;
             border: 1px solid #e5e7eb;
-            border-left: 4px solid {{ $companyColor }};
-            border-radius: 8px;
-            background-color: #f9fafb;
+            border-radius: 6px;
+            margin-bottom: 18px;
         }
-        .metric-title {
-            font-size: 0.9em;
+        .metrics-table td {
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+        }
+        .metric-label {
+            font-size: 0.8em;
             color: #6b7280;
-            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
         }
         .metric-value {
-            font-size: 1.8em;
+            font-size: 1.1em;
             font-weight: bold;
             color: {{ $companyColor }};
+            margin-top: 4px;
+        }
+        .charts-grid {
+            width: 100%;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+        }
+        .chart-title {
+            font-size: 0.95em;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 6px;
+        }
+        .chart-img {
+            width: 100%;
+            height: auto;
+        }
+        .charts-row {
+            width: 100%;
+        }
+        .charts-row td {
+            vertical-align: top;
+            padding: 8px;
         }
         .footer {
             margin-top: 30px;
@@ -122,26 +147,52 @@
     </div>
 
     <h2>Summary Metrics</h2>
-    <div class="metrics-container">
-        <div class="metric-card">
-            <div class="metric-title">Average Time to Receive</div>
-            <div class="metric-value">{{ $averageTimeToReceive }}</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-title">Average Time to Review</div>
-            <div class="metric-value">{{ $averageTimeToReview }}</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-title">Documents Forwarded</div>
-            <div class="metric-value">{{ $averageDocsForwarded }}</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-title">Documents Uploaded</div>
-            <div class="metric-value">{{ $documentsUploaded }}</div>
-        </div>
+    <table class="metrics-table">
+        <tr>
+            <td>
+                <div class="metric-label">Average Time to Receive</div>
+                <div class="metric-value">{{ $averageTimeToReceive }}</div>
+            </td>
+            <td>
+                <div class="metric-label">Average Time to Review</div>
+                <div class="metric-value">{{ $averageTimeToReview }}</div>
+            </td>
+            <td>
+                <div class="metric-label">Documents Forwarded</div>
+                <div class="metric-value">{{ $averageDocsForwarded }}</div>
+            </td>
+            <td>
+                <div class="metric-label">Documents Uploaded</div>
+                <div class="metric-value">{{ $documentsUploaded }}</div>
+            </td>
+        </tr>
+    </table>
+
+    @if(!empty($charts))
+    <div class="charts-grid">
+        <div class="chart-title">Monthly Trends</div>
+        <img class="chart-img" src="{{ $charts['monthlyTrends'] }}" alt="Monthly trends chart">
     </div>
 
-    <h2>Monthly Trends</h2>
+    <table class="charts-row">
+        <tr>
+            <td style="width: 66%;">
+                <div class="charts-grid">
+                    <div class="chart-title">Processing Times</div>
+                    <img class="chart-img" src="{{ $charts['processingTimes'] }}" alt="Processing times chart">
+                </div>
+            </td>
+            <td style="width: 34%;">
+                <div class="charts-grid">
+                    <div class="chart-title">Document Distribution</div>
+                    <img class="chart-img" src="{{ $charts['distribution'] }}" alt="Document distribution chart">
+                </div>
+            </td>
+        </tr>
+    </table>
+    @endif
+
+    <h2>Monthly Trends (Table)</h2>
     <table>
         <thead>
             <tr>

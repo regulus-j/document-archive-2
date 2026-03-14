@@ -87,7 +87,7 @@
                     {{-- Preview container --}}
                     <div data-role="preview-container"
                          class="relative border-2 border-slate-200 rounded-lg bg-slate-100 overflow-hidden select-none"
-                         style="min-height:400px;">
+                         style="min-height:400px; max-height:560px;">
 
                         {{-- Loading state --}}
                         <div data-role="preview-loading"
@@ -99,10 +99,11 @@
                             <p class="text-sm text-slate-400">Loading document preview…</p>
                         </div>
 
-                        {{-- PDF preview iframe — no sandbox: blob: URLs are local/user-supplied,
-                             and browsers' built-in PDF viewer cannot activate inside a sandboxed iframe. --}}
+                        {{-- PDF preview iframe --}}
                         <iframe data-role="preview-frame"
-                                class="hidden w-full h-full border-0 absolute inset-0"></iframe>
+                                class="hidden w-full h-full border-0 absolute inset-0"
+                                style="min-height:400px; height:560px;"
+                                sandbox="allow-same-origin allow-scripts"></iframe>
 
                         {{-- Image preview --}}
                         <img data-role="preview-img"
@@ -278,28 +279,41 @@
         return modal.querySelector('[data-role="' + role + '"]');
     }
 
-    /* ── px ↔ mm conversion (based on actual displayed content dimensions) ── */
-    function getScale(modal) {
+    /* ── px ↔ mm conversion (based on preview container size) ── */
+    function getPreviewRect(modal) {
         const container = q(modal, 'preview-container');
-        if (!container) return { sx: 1, sy: 1 };
-        // When an image is visible, use the img element's actual rendered dimensions.
-        // The server maps mm→px proportionally across the full image (treating it as A4),
-        // so we must use the same rendered image size — NOT the container, which may be
-        // taller/shorter than the image due to min-height / max-height CSS.
-        const imgEl = q(modal, 'preview-img');
-        if (imgEl && !imgEl.classList.contains('hidden')) {
-            const iw = imgEl.offsetWidth  || container.offsetWidth  || 1;
-            const ih = imgEl.offsetHeight || container.offsetHeight || 1;
-            return { sx: iw / A4_W_MM, sy: ih / A4_H_MM };
+        if (!container) return { left: 0, top: 0, width: 0, height: 0, container: null };
+        const cr = container.getBoundingClientRect();
+
+        const frame = q(modal, 'preview-frame');
+        const img   = q(modal, 'preview-img');
+        let target = null;
+        if (frame && !frame.classList.contains('hidden')) target = frame;
+        if (!target && img && !img.classList.contains('hidden')) target = img;
+
+        if (!target) {
+            return { left: 0, top: 0, width: cr.width, height: cr.height, container };
         }
-        // For PDF (or any other state), use the container dimensions.
-        // The PDF iframe.onload handler forces the container to A4 aspect-ratio height,
-        // so sx ≈ sy and coordinate mapping is accurate.
-        const cw = container.offsetWidth  || 1;
-        const ch = container.offsetHeight || 1;
+
+        const tr = target.getBoundingClientRect();
+        const left = Math.max(0, tr.left - cr.left);
+        const top  = Math.max(0, tr.top  - cr.top);
+        const width  = Math.min(tr.width, cr.width);
+        const height = Math.min(tr.height, cr.height);
+        return { left, top, width, height, container };
+    }
+
+    function getScale(modal) {
+        const preview = getPreviewRect(modal);
+        const cw = preview.width || 1;
+        const ch = preview.height || 1;
         return {
             sx: cw / A4_W_MM,
             sy: ch / A4_H_MM,
+            offsetX: preview.left,
+            offsetY: preview.top,
+            previewW: cw,
+            previewH: ch,
         };
     }
 
@@ -316,17 +330,17 @@
         const w = parseFloat(q(modal,'barcode-w')?.value) || 60;
         const h = parseFloat(q(modal,'barcode-h')?.value) || 15;
 
-        overlay.style.left   = (x * sx) + 'px';
-        overlay.style.top    = (y * sy) + 'px';
+        overlay.style.left   = (offsetX + (x * sx)) + 'px';
+        overlay.style.top    = (offsetY + (y * sy)) + 'px';
         overlay.style.width  = (w * sx) + 'px';
         overlay.style.height = (h * sy) + 'px';
     }
 
     /* ── sync drag overlay position → number inputs ── */
     function syncOverlayToInputs(modal, overlay) {
-        const { sx, sy } = getScale(modal);
-        const left = parseFloat(overlay.style.left) || 0;
-        const top  = parseFloat(overlay.style.top)  || 0;
+        const { sx, sy, offsetX, offsetY } = getScale(modal);
+        const left = (parseFloat(overlay.style.left) || 0) - offsetX;
+        const top  = (parseFloat(overlay.style.top)  || 0) - offsetY;
         const w    = parseFloat(overlay.style.width) || 60 * sx;
         const h    = parseFloat(overlay.style.height)|| 15 * sy;
 
@@ -411,7 +425,6 @@
         const imgEl      = q(modal, 'preview-img');
         const noticeEl   = q(modal, 'preview-notice');
         const overlayEl  = q(modal, 'barcode-drag-overlay');
-        const container  = q(modal, 'preview-container');
 
         // Hide everything
         if (frameEl)   frameEl.classList.add('hidden');
@@ -441,26 +454,16 @@
         }
 
         if (ext === 'pdf') {
-            // PDF: create local object URL and load in iframe.
-            // After load, resize the container to exact A4 aspect-ratio so that
-            // getScale() yields the same sx and sy (accurate mm→px mapping).
+            // PDF: create local object URL and load in iframe
             const url = URL.createObjectURL(file);
             frameEl.onload = function() {
-                if (container) {
-                    const cw = container.offsetWidth || 420;
-                    const a4h = Math.round(cw * A4_H_MM / A4_W_MM);
-                    container.style.height = Math.min(a4h, 640) + 'px';
-                }
                 if (loadingEl) loadingEl.classList.add('hidden');
                 frameEl.classList.remove('hidden');
                 showOverlay();
             };
             frameEl.src = url;
         } else if (imageExts.includes(ext)) {
-            // Image: clear any manually-set height so the container auto-sizes
-            // to the img element's natural aspect-ratio height (h-auto).
-            // getScale() will then use imgEl.offsetWidth/offsetHeight directly.
-            if (container) container.style.height = '';
+            // Image: show directly
             const url = URL.createObjectURL(file);
             imgEl.onload = function() {
                 if (loadingEl) loadingEl.classList.add('hidden');
@@ -470,7 +473,6 @@
             imgEl.src = url;
         } else {
             // Unsupported format (including DOCX/XLSX) — show notice with fallback A4 diagram
-            if (container) container.style.height = '';
             if (loadingEl) loadingEl.classList.add('hidden');
             if (noticeEl)  noticeEl.classList.remove('hidden');
             syncInputsToA4Diagram(modal);
@@ -516,18 +518,18 @@
 
         document.addEventListener('mousemove', function(e) {
             if (!isDragging && !isResizing) return;
-            const cr = container.getBoundingClientRect();
+            const preview = getPreviewRect(modal);
             const ow  = parseFloat(overlay.style.width)  || 100;
             const oh  = parseFloat(overlay.style.height) || 30;
             const dx = e.clientX - startX;
             const dy = e.clientY - startY;
 
             if (isDragging) {
-                overlay.style.left = clamp(startLeft + dx, 0, cr.width  - ow) + 'px';
-                overlay.style.top  = clamp(startTop  + dy, 0, cr.height - oh) + 'px';
+                overlay.style.left = clamp(startLeft + dx, preview.left, preview.left + preview.width  - ow) + 'px';
+                overlay.style.top  = clamp(startTop  + dy, preview.top,  preview.top  + preview.height - oh) + 'px';
             } else if (isResizing) {
-                overlay.style.width  = clamp(startW + dx, 30, cr.width  - parseFloat(overlay.style.left)) + 'px';
-                overlay.style.height = clamp(startH + dy, 16, cr.height - parseFloat(overlay.style.top))  + 'px';
+                overlay.style.width  = clamp(startW + dx, 30, (preview.left + preview.width)  - parseFloat(overlay.style.left)) + 'px';
+                overlay.style.height = clamp(startH + dy, 16, (preview.top  + preview.height) - parseFloat(overlay.style.top))  + 'px';
             }
 
             syncOverlayToInputs(modal, overlay);
@@ -557,11 +559,11 @@
         overlay.addEventListener('touchmove', function(e) {
             if (!isDragging) return;
             const t  = e.touches[0];
-            const cr = container.getBoundingClientRect();
+            const preview = getPreviewRect(modal);
             const ow  = parseFloat(overlay.style.width)  || 100;
             const oh  = parseFloat(overlay.style.height) || 30;
-            overlay.style.left = clamp(startLeft + t.clientX - startX, 0, cr.width  - ow) + 'px';
-            overlay.style.top  = clamp(startTop  + t.clientY - startY, 0, cr.height - oh) + 'px';
+            overlay.style.left = clamp(startLeft + t.clientX - startX, preview.left, preview.left + preview.width  - ow) + 'px';
+            overlay.style.top  = clamp(startTop  + t.clientY - startY, preview.top,  preview.top  + preview.height - oh) + 'px';
             syncOverlayToInputs(modal, overlay);
             e.preventDefault();
         }, { passive: false });

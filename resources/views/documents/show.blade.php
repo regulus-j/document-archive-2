@@ -35,13 +35,13 @@
 @endpush
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white">
+<div class="min-h-screen bg-slate-50">
     <div class="max-w-7xl mx-auto space-y-8 p-4 md:p-8">
         <!-- Header -->
-        <div class="bg-white rounded-xl border border-indigo-200/80 transition-all duration-300 hover:border-indigo-300/80 hover:shadow-sm">
+        <div class="ds-page-header">
             <div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div class="flex items-center space-x-3">
-                    <div class="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg">
+                    <div class="p-3 bg-indigo-600 rounded-lg">
                         <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -49,12 +49,12 @@
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-slate-800">{{ __('Document Details') }}</h1>
+                        <h1>{{ __('Document Details') }}</h1>
                         <p class="text-sm text-slate-500">View complete document information and history</p>
                     </div>
                 </div>
                 <a href="javascript:history.back()"
-                    class="inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg shadow-sm text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                    class="ds-btn ds-btn-secondary">
                     <svg class="mr-2 -ml-1 h-5 w-5 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

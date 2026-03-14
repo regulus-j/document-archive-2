@@ -6,14 +6,14 @@
 
         {{-- Success / Error Messages --}}
         @if (session('success'))
-        <div class="mb-6 flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 px-5 py-4 rounded-lg shadow-sm" role="alert">
+        <div class="mb-6 ds-alert-success" role="alert">
             <svg class="w-5 h-5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             <p class="text-sm font-medium">{{ session('success') }}</p>
         </div>
         @endif
 
         @if ($errors->any())
-        <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-5 py-4 rounded-lg shadow-sm">
+        <div class="mb-6 ds-alert-error">
             <ul class="list-disc list-inside text-sm">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -23,7 +23,7 @@
         @endif
 
         {{-- PAGE HEADER --}}
-        <div class="bg-white rounded-lg shadow-card border border-slate-200/80 p-6 mb-6">
+        <div class="ds-page-header">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div class="flex items-center gap-4">
                     <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-indigo-600 flex items-center justify-center">
@@ -31,18 +31,26 @@
                     </div>
                     <div>
                         <h1 class="text-2xl font-bold text-slate-900">{{ __('Audit Report') }}</h1>
-                        <p class="text-sm text-slate-500 mt-0.5">Generate detailed audit trails for users or offices</p>
+                        <p class="text-sm text-slate-500 mt-0.5">Generate detailed audit trails for users, offices, or the entire company</p>
                     </div>
                 </div>
-                <a href="{{ route('reports.index') }}" class="inline-flex items-center px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 transition shadow-sm">
+                <a href="{{ route('reports.index') }}" class="ds-btn ds-btn-secondary">
                     <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                     Back to Reports
                 </a>
             </div>
         </div>
 
+        <div class="ds-alert-info mb-6">
+            <svg class="w-5 h-5 text-indigo-600 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div>
+                <p class="text-sm font-medium text-indigo-800">Audit reports are detailed, action-by-action logs.</p>
+                <p class="text-sm text-indigo-700">Use this page for compliance and traceability. For trends and KPIs, use the Analytics page.</p>
+            </div>
+        </div>
+
         {{-- AUDIT FORM --}}
-        <div class="bg-white rounded-lg shadow-card border border-slate-200/80 p-6 mb-6" x-data="auditForm()">
+        <div class="ds-card p-6 mb-6" x-data="auditForm()">
             <h2 class="text-lg font-semibold text-slate-900 mb-4">Configure Audit</h2>
             <form action="{{ route('reports.audit.generate') }}" method="POST" id="auditForm">
                 @csrf
@@ -55,6 +63,7 @@
                                 class="w-full rounded-lg border-slate-300 text-sm focus:ring-indigo-500 focus:border-indigo-500">
                             <option value="user">User</option>
                             <option value="office">Office / Team</option>
+                            <option value="company">Entire Company</option>
                         </select>
                     </div>
 
@@ -128,6 +137,7 @@
                             </div>
                         </div>
                     </div>
+
 
                     {{-- Date Range --}}
                     <div>
@@ -269,11 +279,11 @@
                     </h3>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200">
+                    <table class="min-w-full divide-y divide-slate-200 js-paginated-table" data-page-size="12">
                         <thead class="bg-slate-50">
                             <tr>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
-                                @if($audit_target === 'office')<th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">User</th>@endif
+                                @if(in_array($audit_target, ['office', 'company']))<th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">User</th>@endif
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Document</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Action</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
@@ -284,7 +294,7 @@
                             @forelse($audit_logs as $log)
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{{ $log->created_at->format('M d, Y h:i A') }}</td>
-                                @if($audit_target === 'office')<td class="px-4 py-3 text-sm text-slate-900 font-medium">{{ $log->user ? $log->user->first_name . ' ' . $log->user->last_name : 'N/A' }}</td>@endif
+                                @if(in_array($audit_target, ['office', 'company']))<td class="px-4 py-3 text-sm text-slate-900 font-medium">{{ $log->user ? $log->user->first_name . ' ' . $log->user->last_name : 'N/A' }}</td>@endif
                                 <td class="px-4 py-3 text-sm text-slate-900 font-medium">{{ $log->document->title ?? 'Document #' . $log->document_id }}</td>
                                 <td class="px-4 py-3 text-sm">
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">{{ ucfirst($log->action) }}</span>
@@ -293,10 +303,21 @@
                                 <td class="px-4 py-3 text-sm text-slate-500 max-w-xs truncate">{{ $log->details ?? '-' }}</td>
                             </tr>
                             @empty
-                            <tr><td colspan="{{ $audit_target === 'office' ? 6 : 5 }}" class="px-4 py-8 text-center text-sm text-slate-400">No actions found for this period.</td></tr>
+                            <tr><td colspan="{{ in_array($audit_target, ['office', 'company']) ? 6 : 5 }}" class="px-4 py-8 text-center text-sm text-slate-400">No actions found for this period.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+                <div class="flex items-center justify-between px-6 py-3 border-t border-slate-200 bg-slate-50/60 audit-pagination" data-pagination>
+                    <div class="text-xs text-slate-500" data-page-info></div>
+                    <div class="inline-flex items-center gap-2">
+                        <button type="button" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border border-slate-200 text-slate-600 hover:bg-white" data-page-prev>
+                            Prev
+                        </button>
+                        <button type="button" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border border-slate-200 text-slate-600 hover:bg-white" data-page-next>
+                            Next
+                        </button>
+                    </div>
                 </div>
             </div>
             @endif
@@ -311,11 +332,11 @@
                     </h3>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200">
+                    <table class="min-w-full divide-y divide-slate-200 js-paginated-table" data-page-size="12">
                         <thead class="bg-slate-50">
                             <tr>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
-                                @if($audit_target === 'office')<th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Uploaded By</th>@endif
+                                @if(in_array($audit_target, ['office', 'company']))<th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Uploaded By</th>@endif
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Title</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Tracking #</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Category</th>
@@ -326,7 +347,7 @@
                             @forelse($uploaded_documents as $doc)
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{{ $doc->created_at->format('M d, Y h:i A') }}</td>
-                                @if($audit_target === 'office')<td class="px-4 py-3 text-sm text-slate-900 font-medium">{{ $doc->user ? $doc->user->first_name . ' ' . $doc->user->last_name : 'N/A' }}</td>@endif
+                                @if(in_array($audit_target, ['office', 'company']))<td class="px-4 py-3 text-sm text-slate-900 font-medium">{{ $doc->user ? $doc->user->first_name . ' ' . $doc->user->last_name : 'N/A' }}</td>@endif
                                 <td class="px-4 py-3 text-sm text-slate-900 font-medium">{{ $doc->title }}</td>
                                 <td class="px-4 py-3 text-sm text-slate-600">{{ $doc->trackingNumber->tracking_number ?? '-' }}</td>
                                 <td class="px-4 py-3 text-sm text-slate-600">{{ $doc->categories->pluck('category')->join(', ') ?: ($doc->category ?? '-') }}</td>
@@ -335,10 +356,21 @@
                                 </td>
                             </tr>
                             @empty
-                            <tr><td colspan="{{ $audit_target === 'office' ? 6 : 5 }}" class="px-4 py-8 text-center text-sm text-slate-400">No uploads found for this period.</td></tr>
+                            <tr><td colspan="{{ in_array($audit_target, ['office', 'company']) ? 6 : 5 }}" class="px-4 py-8 text-center text-sm text-slate-400">No uploads found for this period.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+                <div class="flex items-center justify-between px-6 py-3 border-t border-slate-200 bg-slate-50/60 audit-pagination" data-pagination>
+                    <div class="text-xs text-slate-500" data-page-info></div>
+                    <div class="inline-flex items-center gap-2">
+                        <button type="button" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border border-slate-200 text-slate-600 hover:bg-white" data-page-prev>
+                            Prev
+                        </button>
+                        <button type="button" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border border-slate-200 text-slate-600 hover:bg-white" data-page-next>
+                            Next
+                        </button>
+                    </div>
                 </div>
             </div>
             @endif
@@ -353,11 +385,11 @@
                     </h3>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200">
+                    <table class="min-w-full divide-y divide-slate-200 js-paginated-table" data-page-size="12">
                         <thead class="bg-slate-50">
                             <tr>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
-                                @if($audit_target === 'office')<th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Received By</th>@endif
+                                @if(in_array($audit_target, ['office', 'company']))<th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Received By</th>@endif
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Document</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Sent By</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Purpose</th>
@@ -368,7 +400,7 @@
                             @forelse($received_workflows as $wf)
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{{ $wf->created_at->format('M d, Y h:i A') }}</td>
-                                @if($audit_target === 'office')<td class="px-4 py-3 text-sm text-slate-900 font-medium">{{ $wf->recipient ? $wf->recipient->first_name . ' ' . $wf->recipient->last_name : 'Office' }}</td>@endif
+                                @if(in_array($audit_target, ['office', 'company']))<td class="px-4 py-3 text-sm text-slate-900 font-medium">{{ $wf->recipient ? $wf->recipient->first_name . ' ' . $wf->recipient->last_name : 'Office' }}</td>@endif
                                 <td class="px-4 py-3 text-sm text-slate-900 font-medium">{{ $wf->document->title ?? 'Document #' . $wf->document_id }}</td>
                                 <td class="px-4 py-3 text-sm text-slate-600">{{ $wf->sender ? $wf->sender->first_name . ' ' . $wf->sender->last_name : 'N/A' }}</td>
                                 <td class="px-4 py-3 text-sm text-slate-600">{{ ucfirst($wf->purpose ?? '-') }}</td>
@@ -377,10 +409,21 @@
                                 </td>
                             </tr>
                             @empty
-                            <tr><td colspan="{{ $audit_target === 'office' ? 6 : 5 }}" class="px-4 py-8 text-center text-sm text-slate-400">No received documents found for this period.</td></tr>
+                            <tr><td colspan="{{ in_array($audit_target, ['office', 'company']) ? 6 : 5 }}" class="px-4 py-8 text-center text-sm text-slate-400">No received documents found for this period.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+                <div class="flex items-center justify-between px-6 py-3 border-t border-slate-200 bg-slate-50/60 audit-pagination" data-pagination>
+                    <div class="text-xs text-slate-500" data-page-info></div>
+                    <div class="inline-flex items-center gap-2">
+                        <button type="button" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border border-slate-200 text-slate-600 hover:bg-white" data-page-prev>
+                            Prev
+                        </button>
+                        <button type="button" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border border-slate-200 text-slate-600 hover:bg-white" data-page-next>
+                            Next
+                        </button>
+                    </div>
                 </div>
             </div>
             @endif
@@ -395,11 +438,11 @@
                     </h3>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200">
+                    <table class="min-w-full divide-y divide-slate-200 js-paginated-table" data-page-size="12">
                         <thead class="bg-slate-50">
                             <tr>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
-                                @if($audit_target === 'office')<th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Added By</th>@endif
+                                @if(in_array($audit_target, ['office', 'company']))<th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Added By</th>@endif
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Document</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Filename</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</th>
@@ -410,17 +453,28 @@
                             @forelse($attachments_added as $att)
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{{ $att->created_at->format('M d, Y h:i A') }}</td>
-                                @if($audit_target === 'office')<td class="px-4 py-3 text-sm text-slate-900 font-medium">{{ $att->uploader ? $att->uploader->first_name . ' ' . $att->uploader->last_name : 'N/A' }}</td>@endif
+                                @if(in_array($audit_target, ['office', 'company']))<td class="px-4 py-3 text-sm text-slate-900 font-medium">{{ $att->uploader ? $att->uploader->first_name . ' ' . $att->uploader->last_name : 'N/A' }}</td>@endif
                                 <td class="px-4 py-3 text-sm text-slate-900 font-medium">{{ $att->document->title ?? 'Document #' . $att->document_id }}</td>
                                 <td class="px-4 py-3 text-sm text-slate-600">{{ $att->filename }}</td>
                                 <td class="px-4 py-3 text-sm text-slate-500">{{ $att->mime_type ?? '-' }}</td>
                                 <td class="px-4 py-3 text-sm text-slate-500">{{ $att->storage_size ? number_format($att->storage_size / 1024, 1) . ' KB' : '-' }}</td>
                             </tr>
                             @empty
-                            <tr><td colspan="{{ $audit_target === 'office' ? 6 : 5 }}" class="px-4 py-8 text-center text-sm text-slate-400">No attachments found for this period.</td></tr>
+                            <tr><td colspan="{{ in_array($audit_target, ['office', 'company']) ? 6 : 5 }}" class="px-4 py-8 text-center text-sm text-slate-400">No attachments found for this period.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+                <div class="flex items-center justify-between px-6 py-3 border-t border-slate-200 bg-slate-50/60 audit-pagination" data-pagination>
+                    <div class="text-xs text-slate-500" data-page-info></div>
+                    <div class="inline-flex items-center gap-2">
+                        <button type="button" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border border-slate-200 text-slate-600 hover:bg-white" data-page-prev>
+                            Prev
+                        </button>
+                        <button type="button" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border border-slate-200 text-slate-600 hover:bg-white" data-page-next>
+                            Next
+                        </button>
+                    </div>
                 </div>
             </div>
             @endif
@@ -435,11 +489,11 @@
                     </h3>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200">
+                    <table class="min-w-full divide-y divide-slate-200 js-paginated-table" data-page-size="12">
                         <thead class="bg-slate-50">
                             <tr>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
-                                @if($audit_target === 'office')<th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Reviewed By</th>@endif
+                                @if(in_array($audit_target, ['office', 'company']))<th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Reviewed By</th>@endif
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Document</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Sent By</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Decision</th>
@@ -459,7 +513,7 @@
                             @endphp
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{{ $wf->created_at->format('M d, Y h:i A') }}</td>
-                                @if($audit_target === 'office')<td class="px-4 py-3 text-sm text-slate-900 font-medium">{{ $wf->recipient ? $wf->recipient->first_name . ' ' . $wf->recipient->last_name : 'Office' }}</td>@endif
+                                @if(in_array($audit_target, ['office', 'company']))<td class="px-4 py-3 text-sm text-slate-900 font-medium">{{ $wf->recipient ? $wf->recipient->first_name . ' ' . $wf->recipient->last_name : 'Office' }}</td>@endif
                                 <td class="px-4 py-3 text-sm text-slate-900 font-medium">{{ $wf->document->title ?? 'Document #' . $wf->document_id }}</td>
                                 <td class="px-4 py-3 text-sm text-slate-600">{{ $wf->sender ? $wf->sender->first_name . ' ' . $wf->sender->last_name : 'N/A' }}</td>
                                 <td class="px-4 py-3 text-sm">
@@ -468,10 +522,21 @@
                                 <td class="px-4 py-3 text-sm text-slate-500 max-w-xs truncate">{{ $wf->remarks ?? '-' }}</td>
                             </tr>
                             @empty
-                            <tr><td colspan="{{ $audit_target === 'office' ? 6 : 5 }}" class="px-4 py-8 text-center text-sm text-slate-400">No reviewed documents found for this period.</td></tr>
+                            <tr><td colspan="{{ in_array($audit_target, ['office', 'company']) ? 6 : 5 }}" class="px-4 py-8 text-center text-sm text-slate-400">No reviewed documents found for this period.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+                <div class="flex items-center justify-between px-6 py-3 border-t border-slate-200 bg-slate-50/60 audit-pagination" data-pagination>
+                    <div class="text-xs text-slate-500" data-page-info></div>
+                    <div class="inline-flex items-center gap-2">
+                        <button type="button" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border border-slate-200 text-slate-600 hover:bg-white" data-page-prev>
+                            Prev
+                        </button>
+                        <button type="button" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border border-slate-200 text-slate-600 hover:bg-white" data-page-next>
+                            Next
+                        </button>
+                    </div>
                 </div>
             </div>
             @endif
@@ -483,6 +548,10 @@
 
 @push('scripts')
 <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initAuditTablePagination();
+    });
+
     function auditForm() {
         return {
             auditTarget: '{{ old('audit_target', 'user') }}',
@@ -519,6 +588,74 @@
                 }
             }
         }
+    }
+
+    function initAuditTablePagination() {
+        document.querySelectorAll('.js-paginated-table').forEach((table) => {
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const pagination = table.closest('.bg-white')?.querySelector('[data-pagination]');
+            const pageSize = parseInt(table.dataset.pageSize || '12', 10);
+
+            if (!pagination || rows.length === 0 || pageSize <= 0) {
+                return;
+            }
+
+            const emptyRow = rows.length === 1 && rows[0].querySelector('td[colspan]');
+            if (emptyRow || rows.length <= pageSize) {
+                pagination.classList.add('hidden');
+                return;
+            }
+
+            let currentPage = 1;
+            const totalPages = Math.ceil(rows.length / pageSize);
+            const info = pagination.querySelector('[data-page-info]');
+            const prevBtn = pagination.querySelector('[data-page-prev]');
+            const nextBtn = pagination.querySelector('[data-page-next]');
+
+            const updateButtons = () => {
+                const atStart = currentPage === 1;
+                const atEnd = currentPage === totalPages;
+                prevBtn.classList.toggle('opacity-50', atStart);
+                prevBtn.classList.toggle('pointer-events-none', atStart);
+                nextBtn.classList.toggle('opacity-50', atEnd);
+                nextBtn.classList.toggle('pointer-events-none', atEnd);
+            };
+
+            const renderPage = () => {
+                const start = (currentPage - 1) * pageSize;
+                const end = start + pageSize;
+                rows.forEach((row, index) => {
+                    row.style.display = index >= start && index < end ? '' : 'none';
+                });
+
+                if (info) {
+                    const showingStart = start + 1;
+                    const showingEnd = Math.min(end, rows.length);
+                    info.textContent = `Showing ${showingStart}-${showingEnd} of ${rows.length}`;
+                }
+
+                updateButtons();
+            };
+
+            prevBtn.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage -= 1;
+                    renderPage();
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    currentPage += 1;
+                    renderPage();
+                }
+            });
+
+            renderPage();
+        });
     }
 </script>
 @endpush

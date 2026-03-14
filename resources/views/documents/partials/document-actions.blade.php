@@ -1,6 +1,6 @@
 <div class="relative" x-data="{ open: false }">
     <!-- Three dot menu button -->
-    <button @click="open = !open" type="button" class="p-1.5 rounded-full text-slate-400 hover:text-[#0066FF] focus:outline-none">
+    <button @click="open = !open" type="button" class="p-1.5 rounded-full text-slate-400 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
         <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
         </svg>
@@ -16,19 +16,19 @@
          x-transition:leave="transition ease-in duration-75"
          x-transition:leave-start="opacity-100 scale-100"
          x-transition:leave-end="opacity-0 scale-95"
-         class="absolute right-0 top-1/2 -translate-y-1/2 z-50 bg-white rounded-lg shadow-lg border border-slate-200 py-2 px-3 min-w-[200px]"
-         style="transform-origin: center right;">
-            <div class="flex items-center space-x-2">
+            class="document-actions-dropdown absolute top-1/2 z-50 bg-white rounded-lg shadow-dropdown border border-slate-200 py-2 min-w-max"
+         style="transform: translateY(-50%); right: calc(100% + 0.5rem); max-width: calc(100vw - 2rem);">
+            <div class="flex flex-col items-stretch space-y-0">
                 <!-- View Action -->
                 <a href="{{ route('documents.show', $document->id) }}"
-                    class="group inline-flex items-center p-1.5 text-sm text-slate-700 hover:bg-indigo-50 hover:text-[#0066FF] rounded-lg transition-colors duration-150"
+                    class="group inline-flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors duration-150 whitespace-nowrap"
                     title="View Document">
-                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
+                    <svg class="h-5 w-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg"
                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
-                    <span class="ml-1.5">View</span>
+                    View
                 </a>
 
     @php
@@ -47,57 +47,57 @@
     @if ($isUploader)
         @if ($status == 'uploaded' || $status == 'pending')
             <a href="{{ route('documents.forward', $document->id) }}"
-                class="group inline-flex items-center p-1.5 text-sm text-slate-700 hover:bg-amber-50 hover:text-amber-600 rounded-lg transition-colors duration-150"
+                class="group inline-flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-amber-50 hover:text-amber-700 transition-colors duration-150 whitespace-nowrap"
                 title="Forward Document">
-                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
+                <svg class="h-5 w-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg"
                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                 </svg>
-                <span class="ml-1.5">Forward</span>
+                Forward
             </a>
         @elseif($status == 'forwarded')
-            <form action="{{ route('documents.recall', $document) }}" method="POST" class="inline-block">
+            <form action="{{ route('documents.recall', $document) }}" method="POST" class="inline-block w-full">
                 @csrf
                 <button type="submit" onclick="return handleRecallDocument(this.form);"
-                    class="group inline-flex items-center p-1.5 text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-600 rounded-lg transition-colors duration-150"
+                    class="w-full group inline-flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-700 transition-colors duration-150 whitespace-nowrap"
                     title="Recall Document">
-                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
+                    <svg class="h-5 w-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg"
                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z" />
                     </svg>
-                    <span class="ml-1.5">Recall</span>
+                    Recall
                 </button>
             </form>
         @endif
 
             @if(isset($document->status) && strtolower($document->status->status) === 'recalled' && ($document->uploader == auth()->id() || $document->user->id == auth()->user()->id || auth()->user()->can('document-manage')))
-                <form action="{{ route('documents.resume', $document) }}" method="POST" class="inline-block">
+                <form action="{{ route('documents.resume', $document) }}" method="POST" class="inline-block w-full">
                     @csrf
                     <button type="submit" onclick="return handleResumeDocument(this.form);"
-                        class="group inline-flex items-center p-1.5 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors duration-150"
+                        class="w-full group inline-flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors duration-150 whitespace-nowrap"
                         title="Resume Document">
-                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
+                        <svg class="h-5 w-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
                         </svg>
-                        <span class="ml-1.5">Resume</span>
+                        Resume
                     </button>
                 </form>
 
-                <form action="{{ route('documents.createNewWorkflow', $document) }}" method="POST" class="inline-block">
+                <form action="{{ route('documents.createNewWorkflow', $document) }}" method="POST" class="inline-block w-full">
                     @csrf
                     <button type="submit" onclick="return handleCreateNewWorkflow(this.form);"
-                        class="group inline-flex items-center p-1.5 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors duration-150"
+                        class="w-full group inline-flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors duration-150 whitespace-nowrap"
                         title="Create New Workflow">
-                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
+                        <svg class="h-5 w-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 4v16m8-8H4" />
                         </svg>
-                        <span class="ml-1.5">New Workflow</span>
+                        New Workflow
                     </button>
                 </form>
             @endif
@@ -105,26 +105,26 @@
 
     @if ($canEdit)
         <a href="{{ route('documents.edit', $document->id) }}"
-            class="group inline-flex items-center p-1.5 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors duration-150"
+            class="group inline-flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors duration-150 whitespace-nowrap"
             title="Edit Document">
-            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
+            <svg class="h-5 w-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg"
                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
-            <span class="ml-1.5">Edit</span>
+            Edit
         </a>
     @endif
 
                 <!-- Download Action -->
                 <a href="{{ route('documents.download', $document->id) }}"
-                    class="group inline-flex items-center p-1.5 text-sm text-slate-700 hover:bg-indigo-50 hover:text-[#0066FF] rounded-lg transition-colors duration-150"
+                    class="group inline-flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors duration-150 whitespace-nowrap"
                     title="Download Document">
-                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
+                    <svg class="h-5 w-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg"
                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span class="ml-1.5">Download</span>
+                    Download
                 </a>
                 @php
                     $documentComplete = false;
@@ -140,12 +140,12 @@
                 @endphp
 
                 @if ($documentComplete && $documentStatus !== 'archived')
-                    <form action="{{ route('documents.archive.store', $document) }}" method="POST" class="inline-block">
+                    <form action="{{ route('documents.archive.store', $document) }}" method="POST" class="inline-block w-full">
                         @csrf
                         <button type="submit" onclick="return handleArchiveDocument(this.form);"
-                            class="group inline-flex items-center p-1.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-600 rounded-lg transition-colors duration-150 w-full"
+                            class="w-full group inline-flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 hover:text-slate-700 transition-colors duration-150 whitespace-nowrap"
                             title="Archive Document">
-                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
+                            <svg class="h-5 w-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg"
                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
@@ -157,11 +157,11 @@
 
                 @if ($canDelete)
                     <form action="{{ route('documents.destroy', $document->id) }}" method="POST"
-                        onsubmit="return handleDeleteDocument(this);" class="inline-block">
+                        onsubmit="return handleDeleteDocument(this);" class="inline-block w-full">
                         @csrf
                         @method('DELETE')
                         <button type="submit"
-                            class="group inline-flex items-center p-1.5 text-sm text-rose-600 hover:bg-rose-50 hover:text-rose-700 rounded-lg transition-colors duration-150 w-full"
+                            class="group inline-flex items-center px-3 py-2 text-sm text-rose-600 hover:bg-rose-50 hover:text-rose-700 rounded-lg transition-colors duration-150 w-full"
                             title="Delete Document">
                             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
