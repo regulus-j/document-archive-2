@@ -219,9 +219,9 @@
                          x-transition:leave="transition ease-in duration-75"
                          x-transition:leave-start="opacity-100 scale-100"
                          x-transition:leave-end="opacity-0 scale-95"
-                         class="absolute right-0 mt-2 z-50 origin-top-right overflow-hidden"
+                         class="absolute right-0 mt-2 z-50 origin-top-right overflow-visible lg:overflow-hidden"
                          @mouseenter="open = true" @mouseleave="open = false"
-                         style="width: 420px;">
+                         style="width: min(420px, calc(100vw - 1.5rem)); right: 0; left: auto;">
                         @include('components.notification-modal', [
                             'notifications' => App\Models\Notifications::where('user_id', auth()->id())
                                 ->orderBy('created_at', 'desc')->take(20)->get()
@@ -279,7 +279,7 @@
                 {{-- Mobile hamburger --}}
                 <div class="flex lg:hidden">
                     <button @click="open = !open"
-                            class="inline-flex items-center justify-center p-2 rounded-lg
+                            class="inline-flex items-center justify-center p-2.5 rounded-lg
                                    text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/60
                                    focus:outline-none transition-colors duration-150">
                         <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
@@ -349,6 +349,47 @@
                     </x-responsive-nav-link>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <!-- Mobile bottom navigation (primary shortcuts) -->
+    <div class="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-slate-200 bg-white/98 backdrop-blur supports-[backdrop-filter]:bg-white/90">
+        <div class="grid grid-cols-4 gap-0 divide-x divide-slate-200">
+            <a href="{{ route('dashboard') }}"
+               class="flex flex-col items-center justify-center gap-0.5 py-3 px-1 text-xs font-medium {{ request()->routeIs('dashboard') || request()->routeIs('admin.dashboard') ? 'text-indigo-600' : 'text-slate-500' }} hover:bg-slate-50/50 transition-colors"
+               title="Home">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                <span class="leading-tight">Home</span>
+            </a>
+
+            <a href="{{ route('documents.index') }}"
+               class="flex flex-col items-center justify-center gap-0.5 py-3 px-1 text-xs font-medium {{ request()->routeIs('documents.index') ? 'text-indigo-600' : 'text-slate-500' }} hover:bg-slate-50/50 transition-colors"
+               title="Documents">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span class="leading-tight">Documents</span>
+            </a>
+
+            <a href="{{ route('documents.create') }}"
+               class="flex flex-col items-center justify-center gap-0.5 py-3 px-1 text-xs font-medium {{ request()->routeIs('documents.create') ? 'text-indigo-600' : 'text-slate-500' }} hover:bg-slate-50/50 transition-colors"
+               title="Upload">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                <span class="leading-tight">Upload</span>
+            </a>
+
+            <a href="{{ route('documents.workflow-dashboard') }}"
+               class="flex flex-col items-center justify-center gap-0.5 py-3 px-1 text-xs font-medium {{ request()->routeIs('documents.workflow-dashboard') ? 'text-indigo-600' : 'text-slate-500' }} hover:bg-slate-50/50 transition-colors"
+               title="Workflow">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/>
+                </svg>
+                <span class="leading-tight">Workflow</span>
+            </a>
         </div>
     </div>
 </nav>

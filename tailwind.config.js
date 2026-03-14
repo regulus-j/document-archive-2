@@ -19,6 +19,9 @@ export default {
         { pattern: /bg-(sky|blue|indigo|violet|purple|emerald|amber)-(50|100|200)/ },
         { pattern: /text-(sky|blue|indigo|violet|purple|emerald|amber)-(600|700|800|900)/ },
         { pattern: /border-(sky|blue|indigo|violet|purple|emerald|amber)-200/ },
+        // Force responsive variants for grid layout
+        { pattern: /(lg:)?(grid-cols-|col-span-)/ },
+        { pattern: /(lg:)?grid/ },
     ],
 
     theme: {

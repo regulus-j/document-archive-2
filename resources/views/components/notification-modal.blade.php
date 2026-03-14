@@ -17,9 +17,9 @@
     $defaultIcon = ['icon' => 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9', 'bg' => 'bg-slate-100', 'text' => 'text-slate-500'];
 @endphp
 
-<div class="min-w-[420px] max-w-[420px] bg-white shadow-card rounded-lg border border-slate-200/80">
+<div class="w-full sm:min-w-[420px] sm:max-w-[420px] max-w-full bg-white shadow-card rounded-lg border border-slate-200/80 max-h-[60vh] flex flex-col overflow-hidden">
     {{-- Header --}}
-    <div class="px-4 py-3 border-b border-slate-200/80 flex items-center justify-between">
+    <div class="px-4 py-3 border-b border-slate-200/80 flex items-center justify-between flex-shrink-0">
         <h5 class="text-sm font-semibold text-slate-800 m-0">Notifications</h5>
         <a href="{{ route('notifications.index') }}" class="text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
             View All &rarr;
@@ -27,7 +27,7 @@
     </div>
 
     {{-- Notification list --}}
-    <ul class="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">
+    <ul class="divide-y divide-slate-100 overflow-y-auto flex-1 min-h-0">
         @forelse($notifications as $notification)
             @php
                 $nIcon   = $iconMap[$notification->type] ?? $defaultIcon;

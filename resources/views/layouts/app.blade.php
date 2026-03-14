@@ -18,7 +18,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- jQuery (for legacy Ajax helpers) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
     <!-- Alpine.js cloak -->
     <style>[x-cloak] { display: none !important; }</style>
@@ -64,6 +64,54 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Lazy-load non-critical images by default.
+            document.querySelectorAll('img:not([loading])').forEach(function (img) {
+                if (!img.closest('header, nav')) {
+                    img.setAttribute('loading', 'lazy');
+                    img.setAttribute('decoding', 'async');
+                }
+            });
+
+            // Global mobile table policy:
+            // - default: card/stacked rows on small screens
+            // - opt-out with data-mobile-table="scroll" for essential wide tables
+            document.querySelectorAll('.overflow-x-auto').forEach(function (wrapper) {
+                var table = wrapper.querySelector(':scope > table, :scope > .min-w-full');
+                if (!table || table.tagName !== 'TABLE') return;
+
+                if (wrapper.dataset.mobileTable === 'scroll') {
+                    wrapper.classList.add('mobile-table-scroll');
+                    if (!wrapper.previousElementSibling || !wrapper.previousElementSibling.classList.contains('mobile-scroll-indicator')) {
+                        var hint = document.createElement('p');
+                        hint.className = 'mobile-scroll-indicator';
+                        hint.textContent = 'Swipe left/right to view more columns';
+                        wrapper.parentNode.insertBefore(hint, wrapper);
+                    }
+                } else {
+                    wrapper.classList.add('mobile-card-table');
+                }
+            });
+
+            // Prepare mobile card-table labels using table headers.
+            document.querySelectorAll('.mobile-card-table table').forEach(function (table) {
+                var headers = Array.from(table.querySelectorAll('thead th')).map(function (th) {
+                    return (th.textContent || '').trim() || 'Field';
+                });
+                if (!headers.length) return;
+
+                table.querySelectorAll('tbody tr').forEach(function (row) {
+                    Array.from(row.children).forEach(function (cell, index) {
+                        if (cell && cell.tagName === 'TD' && !cell.hasAttribute('data-label')) {
+                            cell.setAttribute('data-label', headers[index] || 'Field');
+                        }
+                    });
+                });
+            });
+        });
+    </script>
 
     @stack('scripts')
 

@@ -21,45 +21,36 @@
     <script src="//unpkg.com/alpinejs" defer></script>
 </head>
 
-<body class="font-sans text-slate-900 antialiased">
+<body class="font-sans text-slate-900 antialiased bg-slate-50">
     <div class="min-h-screen flex">
-        <!-- Left side - Blue background with welcome message -->
-        <div
-            class="hidden md:flex md:w-1/2 bg-blue-500 text-white flex-col justify-center items-center p-12 relative overflow-hidden">
-            <div class="absolute inset-0">
-                <div class="absolute inset-0 bg-blue-500 opacity-90"></div>
-                <div class="absolute inset-0 bg-[url('/images/grid-pattern.png')] bg-cover bg-center opacity-20"></div>
-                <!-- Decorative circles -->
-                <div class="absolute top-20 left-20 w-32 h-32 rounded-full border border-blue-300 opacity-30"></div>
-                <div class="absolute bottom-40 right-10 w-24 h-24 rounded-full border border-blue-300 opacity-30"></div>
-                <div class="absolute top-1/2 left-10 w-16 h-16 rounded-full border border-blue-300 opacity-30"></div>
-                <!-- Decorative dots -->
-                <div class="absolute top-1/4 right-1/4 w-2 h-2 rounded-full bg-blue-300 opacity-70"></div>
-                <div class="absolute bottom-1/3 left-1/3 w-2 h-2 rounded-full bg-blue-300 opacity-70"></div>
-                <div class="absolute top-2/3 right-1/3 w-2 h-2 rounded-full bg-blue-300 opacity-70"></div>
+        <!-- Left side - Indigo brand panel -->
+        <div class="hidden md:flex md:w-1/2 text-white flex-col justify-center items-center p-12 relative overflow-hidden bg-gradient-to-br from-indigo-700 via-indigo-600 to-indigo-500">
+            <div class="absolute inset-0 opacity-30">
+                <div class="absolute -top-20 -left-16 w-64 h-64 rounded-full border border-white/30"></div>
+                <div class="absolute bottom-12 right-12 w-40 h-40 rounded-full border border-white/25"></div>
+                <div class="absolute top-1/2 left-10 w-24 h-24 rounded-full border border-white/25"></div>
             </div>
 
-            <div class="relative z-10 max-w-md text-center">
-                <div class="mb-20">
-                    <p class="text-sm uppercase tracking-wider mb-2">DOCTRACK</p>
-                </div>
-
-                <p class="text-lg mb-2">Nice to see you</p>
-                <h1 class="text-5xl font-bold mb-6">Welcome to     Document Tracking</h1>
-                <div class="w-16 h-1 bg-white mx-auto mb-6"></div>
-                <p class="text-sm opacity-80 mb-8">
-                    Access your secure document repository with ease. DocTrack provides efficient storage,
-                    organization, and retrieval of all your important documents. Your digital archive is just a login
-                    away.
+            <div class="relative z-10 max-w-md text-center space-y-4">
+                <p class="text-xs uppercase tracking-[0.3em] text-white/80">DocTrack</p>
+                <h1 class="text-4xl font-semibold leading-tight">Document Tracking &amp; Archiving</h1>
+                <p class="text-base text-white/90">
+                    Securely store, route, and retrieve documents with clear visibility across your organization.
                 </p>
+                <div class="inline-flex items-center gap-2 text-sm text-white/80">
+                    <span class="inline-block h-1 w-8 rounded-full bg-white/70"></span>
+                    Built for compliance and clarity
+                </div>
             </div>
         </div>
 
-        <!-- Right side - Login form -->
-        <div class="w-full md:w-1/2 flex items-center justify-center p-8">
+        <!-- Right side - Auth form -->
+        <div class="w-full md:w-1/2 flex items-center justify-center p-6 sm:p-10">
             <div class="w-full max-w-md">
-                <x-success-message/>
-                {{ $slot }}
+                <div class="ds-card p-6 sm:p-8">
+                    <x-success-message/>
+                    {{ $slot }}
+                </div>
             </div>
         </div>
     </div>
