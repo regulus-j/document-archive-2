@@ -1097,20 +1097,10 @@ class DocumentController extends Controller
         $totalPrintCopies = $document->prints->sum('copies');
         $printHistory = $document->prints->sortByDesc('created_at');
 
-        // === Attachment Deletion Permission ===
-        // Allow uploader, admins, or users with an active workflow step on this document
-        $canDeleteAttachments = $document->uploader === auth()->id()
-            || auth()->user()->hasRole('super-admin')
-            || auth()->user()->hasRole('company-admin')
-            || $document->documentWorkflow()
-                ->where('recipient_id', auth()->id())
-                ->whereIn('status', ['received', 'pending'])
-                ->exists();
-
         return view('documents.show', compact(
             'document', 'auditLogs', 'attachments', 'docRoute', 'workflows',
             'rerouteLogs', 'canReroute', 'canUploadVersion',
-            'totalPrintCopies', 'printHistory', 'canDeleteAttachments'
+            'totalPrintCopies', 'printHistory'
         ));
     }
 
@@ -1558,14 +1548,12 @@ class DocumentController extends Controller
         $attachment = DocumentAttachment::findOrFail($attachmentId);
         $document = Document::findOrFail($documentId);
 
-        // Allow uploader, admins, or users with an active workflow step
-        $canDelete = $document->uploader === auth()->id()
-            || auth()->user()->hasRole('super-admin')
-            || auth()->user()->hasRole('company-admin')
-            || $document->documentWorkflow()
-                ->where('recipient_id', auth()->id())
-                ->whereIn('status', ['received', 'pending'])
-                ->exists();
+        if ((int) $attachment->document_id !== (int) $document->id) {
+            return redirect()->back()->with('error', 'Invalid attachment for this document.');
+        }
+
+        // Only the user who uploaded this attachment can delete it.
+        $canDelete = (int) $attachment->uploaded_by === (int) auth()->id();
 
         if (!$canDelete) {
             return redirect()->back()->with('error', 'You are not authorized to delete this attachment.');
