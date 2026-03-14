@@ -38,7 +38,7 @@ class AuditReportController extends Controller
     public function generate(Request $request)
     {
         $request->validate([
-            'audit_target' => 'required|in:user,office',
+            'audit_target' => 'required|in:user,office,company',
             'user_id' => 'required_if:audit_target,user|nullable|integer',
             'office_id' => 'required_if:audit_target,office|nullable|integer',
             'start_date' => 'required|date',
@@ -70,7 +70,7 @@ class AuditReportController extends Controller
             }
 
             $data = $this->gatherUserAuditData($userId, $startDate, $endDate, $filters, $companyUserIds);
-        } else {
+        } elseif ($auditTarget === 'office') {
             $officeId = $request->input('office_id');
             $office = Office::findOrFail($officeId);
             $targetLabel = $office->name;
@@ -84,11 +84,21 @@ class AuditReportController extends Controller
             $officeUserIds = $office->users()->pluck('users.id');
             $data = $this->gatherOfficeAuditData($officeId, $officeUserIds, $startDate, $endDate, $filters, $companyUserIds);
             $data['office_users'] = User::whereIn('id', $officeUserIds)->get();
+        } else {
+            $targetLabel = $company ? $company->company_name : 'Entire Company';
+            $officeIds = $company ? Office::where('company_id', $company->id)->pluck('id') : collect();
+            $data = $this->gatherCompanyAuditData($companyUserIds, $officeIds, $startDate, $endDate, $filters);
         }
 
         $data['audit_target'] = $auditTarget;
         $data['target_label'] = $targetLabel;
-        $data['target_id'] = $auditTarget === 'user' ? $request->input('user_id') : $request->input('office_id');
+        if ($auditTarget === 'user') {
+            $data['target_id'] = $request->input('user_id');
+        } elseif ($auditTarget === 'office') {
+            $data['target_id'] = $request->input('office_id');
+        } else {
+            $data['target_id'] = $company?->id;
+        }
         $data['start_date'] = $startDate;
         $data['end_date'] = $endDate;
         $data['filters'] = $filters;
@@ -218,6 +228,68 @@ class AuditReportController extends Controller
     }
 
     /**
+     * Gather audit data for the entire company (all users + offices).
+     */
+    private function gatherCompanyAuditData($companyUserIds, $companyOfficeIds, string $startDate, string $endDate, array $filters): array
+    {
+        $data = [];
+
+        if (in_array('actions', $filters)) {
+            $data['audit_logs'] = DocumentAudit::with(['document', 'user'])
+                ->whereIn('user_id', $companyUserIds)
+                ->whereBetween('created_at', [$startDate, Carbon::parse($endDate)->endOfDay()])
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+
+        if (in_array('uploads', $filters)) {
+            $data['uploaded_documents'] = Document::with(['status', 'trackingNumber', 'categories', 'user'])
+                ->whereIn('uploader', $companyUserIds)
+                ->whereBetween('created_at', [$startDate, Carbon::parse($endDate)->endOfDay()])
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+
+        if (in_array('received', $filters)) {
+            $data['received_workflows'] = DocumentWorkflow::with(['document', 'sender', 'recipient'])
+                ->where(function ($q) use ($companyOfficeIds, $companyUserIds) {
+                    if ($companyOfficeIds->isNotEmpty()) {
+                        $q->whereIn('recipient_office', $companyOfficeIds);
+                    }
+                    $q->orWhereIn('recipient_id', $companyUserIds);
+                })
+                ->where('status', 'received')
+                ->whereBetween('created_at', [$startDate, Carbon::parse($endDate)->endOfDay()])
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+
+        if (in_array('attachments', $filters)) {
+            $data['attachments_added'] = DocumentAttachment::with(['document', 'uploader'])
+                ->whereIn('uploaded_by', $companyUserIds)
+                ->whereBetween('created_at', [$startDate, Carbon::parse($endDate)->endOfDay()])
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+
+        if (in_array('reviewed', $filters)) {
+            $data['reviewed_workflows'] = DocumentWorkflow::with(['document', 'sender', 'recipient'])
+                ->where(function ($q) use ($companyOfficeIds, $companyUserIds) {
+                    if ($companyOfficeIds->isNotEmpty()) {
+                        $q->whereIn('recipient_office', $companyOfficeIds);
+                    }
+                    $q->orWhereIn('recipient_id', $companyUserIds);
+                })
+                ->whereIn('status', ['approved', 'rejected', 'returned', 'commented', 'acknowledged'])
+                ->whereBetween('created_at', [$startDate, Carbon::parse($endDate)->endOfDay()])
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+
+        return $data;
+    }
+
+    /**
      * Export audit data to landscape PDF (GET route — opens in new tab).
      */
     public function exportPdf(Request $request)
@@ -244,7 +316,7 @@ class AuditReportController extends Controller
 
         $title = 'Audit Report: ' . $data['target_label'];
         $dateRange = Carbon::parse($data['start_date'])->format('M d, Y') . ' — ' . Carbon::parse($data['end_date'])->format('M d, Y');
-        $isOffice = $data['audit_target'] === 'office';
+        $isOffice = in_array($data['audit_target'], ['office', 'company'], true);
 
         $spreadsheet->getProperties()
             ->setCreator($data['generated_by'])
@@ -270,7 +342,7 @@ class AuditReportController extends Controller
                     $log->document->title ?? 'Document #' . $log->document_id,
                     ucfirst($log->action),
                     ucfirst($log->status ?? '-'),
-                    $log->details ?? '-',
+                    self::formatAuditDetails($log->details),
                 ];
                 if ($isOffice) array_splice($rowData, 1, 0, [$log->user ? $log->user->first_name . ' ' . $log->user->last_name : 'N/A']);
                 $this->writeExcelRow($sheet, $row, $rowData);
@@ -378,7 +450,7 @@ class AuditReportController extends Controller
                     $wf->document->title ?? 'Document #' . $wf->document_id,
                     $wf->sender ? $wf->sender->first_name . ' ' . $wf->sender->last_name : 'N/A',
                     ucfirst($wf->status),
-                    $wf->remarks ?? '-',
+                    self::formatAuditDetails($wf->remarks),
                 ];
                 if ($isOffice) array_splice($rowData, 1, 0, [$wf->recipient ? $wf->recipient->first_name . ' ' . $wf->recipient->last_name : 'Office']);
                 $this->writeExcelRow($sheet, $row, $rowData);
@@ -411,8 +483,8 @@ class AuditReportController extends Controller
     private function gatherExportData(Request $request): array
     {
         $request->validate([
-            'audit_target' => 'required|in:user,office',
-            'target_id' => 'required|integer',
+            'audit_target' => 'required|in:user,office,company',
+            'target_id' => 'required_if:audit_target,user,office|nullable|integer',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'filters' => 'required|array|min:1',
@@ -439,7 +511,7 @@ class AuditReportController extends Controller
                 abort(403, 'User does not belong to your company.');
             }
             $data = $this->gatherUserAuditData($targetId, $startDate, $endDate, $filters, $companyUserIds);
-        } else {
+        } elseif ($auditTarget === 'office') {
             $office = Office::findOrFail($targetId);
             $targetLabel = $office->name;
             if ($company && $office->company_id != $company->id) {
@@ -448,6 +520,11 @@ class AuditReportController extends Controller
             $officeUserIds = $office->users()->pluck('users.id');
             $data = $this->gatherOfficeAuditData($targetId, $officeUserIds, $startDate, $endDate, $filters, $companyUserIds);
             $data['office_users'] = User::whereIn('id', $officeUserIds)->get();
+        } else {
+            $targetLabel = $company ? $company->company_name : 'Entire Company';
+            $officeIds = $company ? Office::where('company_id', $company->id)->pluck('id') : collect();
+            $data = $this->gatherCompanyAuditData($companyUserIds, $officeIds, $startDate, $endDate, $filters);
+            $targetId = $company?->id;
         }
 
         $data['audit_target'] = $auditTarget;
@@ -590,5 +667,42 @@ class AuditReportController extends Controller
             'id' => $o->id,
             'name' => $o->name,
         ])->values());
+    }
+
+    /**
+     * Format audit details: convert JSON to human-readable text.
+     */
+    public static function formatAuditDetails(?string $details): string
+    {
+        if (!$details || $details === '-') {
+            return '-';
+        }
+
+        // Check if the details string is JSON
+        if (strpos($details, '{') === 0) {
+            $decoded = json_decode($details, true);
+            if (is_array($decoded)) {
+                // If there's a 'message' key, use that for a clean output
+                if (isset($decoded['message'])) {
+                    return $decoded['message'];
+                }
+                
+                // Otherwise, format all key-value pairs in a readable way
+                $formatted = [];
+                foreach ($decoded as $key => $value) {
+                    $readableKey = str_replace('_', ' ', ucfirst($key));
+                    if (is_string($value)) {
+                        $formatted[] = "$readableKey: $value";
+                    } elseif (is_array($value) || is_object($value)) {
+                        $formatted[] = "$readableKey: " . json_encode($value);
+                    } else {
+                        $formatted[] = "$readableKey: $value";
+                    }
+                }
+                return implode(' | ', $formatted);
+            }
+        }
+
+        return $details;
     }
 }

@@ -119,6 +119,12 @@ class DashboardController extends Controller
             $countCompanyUsers = 0;
             $incomingDocuments = 0;
             $countOffices = "No Offices Found";
+            $documentTrendLabels = collect(range(6, 0))->map(function ($offset) {
+                return now()->subDays($offset)->format('M d');
+            })->all();
+            $documentTrendCounts = array_fill(0, 7, 0);
+            $dashboardRecentDocuments = collect();
+            $workflowStatusCounts = collect();
 
             return view('dashboard-office-user', compact(
                 'totalDocuments',
@@ -132,14 +138,26 @@ class DashboardController extends Controller
                 'incomingDocuments',
                 'countOffices',
                 'isOfficeLead',
-                'needsSubscription'
+                'needsSubscription',
+                'documentTrendLabels',
+                'documentTrendCounts',
+                'dashboardRecentDocuments',
+                'workflowStatusCounts'
             ))->with('info', 'Please set up your company profile first.');
         }
 
         // Fetch dashboard data
-        $incomingDocuments = DocumentWorkflow::where('recipient_id', $user->id)
-            ->whereIn('status', ['pending', 'appeal_requested'])
-            ->count();
+        $companyUserIds = $userCompany ? $userCompany->employees()->pluck('id') : collect();
+
+        if ($user->hasRole('company-admin') && $userCompany) {
+            $incomingDocuments = DocumentWorkflow::whereIn('recipient_id', $companyUserIds)
+                ->whereIn('status', ['pending', 'appeal_requested'])
+                ->count();
+        } else {
+            $incomingDocuments = DocumentWorkflow::where('recipient_id', $user->id)
+                ->whereIn('status', ['pending', 'appeal_requested'])
+                ->count();
+        }
 
         // Ensure userCompany is not null before accessing employees
         $countCompanyUsers = $userCompany ? $userCompany->employees()->count() : 0;
@@ -149,36 +167,48 @@ class DashboardController extends Controller
 
         // Get total documents for company if admin, otherwise just user's documents
         if ($user->hasRole('company-admin') && $userCompany) {
-            $companyUserIds = $userCompany->employees()->pluck('id');
-            $totalDocuments = Document::whereIn('uploader', $companyUserIds)
-                ->orWhereHas('workflow', function($query) use ($companyUserIds) {
-                    $query->whereIn('recipient_id', $companyUserIds);
+            $totalDocuments = Document::where('company_id', $userCompany->id)
+                ->where(function ($query) use ($companyUserIds) {
+                    $query->whereIn('uploader', $companyUserIds)
+                        ->orWhereHas('workflow', function ($workflow) use ($companyUserIds) {
+                            $workflow->whereIn('recipient_id', $companyUserIds);
+                        });
                 })
                 ->count();
         } else {
-            $totalDocuments = Document::where('uploader', $user->id)
-                ->orWhereHas('workflow', function($query) use ($user) {
-                    $query->where('recipient_id', $user->id);
+            $totalDocuments = Document::where(function ($query) use ($user) {
+                    $query->where('uploader', $user->id)
+                        ->orWhereHas('workflow', function ($workflow) use ($user) {
+                            $workflow->where('recipient_id', $user->id);
+                        });
                 })
                 ->count();
         }
 
-        $recentDocuments = Document::where('uploader', $user->id)
-            ->orWhereHas('workflow', function($query) use ($user) {
-                $query->where('recipient_id', $user->id);
+        $recentDocuments = Document::where(function ($query) use ($user) {
+                $query->where('uploader', $user->id)
+                    ->orWhereHas('workflow', function ($workflow) use ($user) {
+                        $workflow->where('recipient_id', $user->id);
+                    });
             })
             ->with('user', 'office', 'categories')
             ->latest()
             ->take(5)
             ->get();
 
-        // Get pending documents for current user
-        $pendingDocuments = DocumentWorkflow::where('status', 'pending')
-            ->where(function($query) use ($user) {
-                $query->where('sender_id', $user->id)
-                    ->orWhere('recipient_id', $user->id);
-            })
-            ->count();
+        // Get pending documents for current user (or company if admin)
+        if ($user->hasRole('company-admin') && $userCompany) {
+            $pendingDocuments = DocumentWorkflow::where('status', 'pending')
+                ->whereIn('recipient_id', $companyUserIds)
+                ->count();
+        } else {
+            $pendingDocuments = DocumentWorkflow::where('status', 'pending')
+                ->where(function ($query) use ($user) {
+                    $query->where('sender_id', $user->id)
+                        ->orWhere('recipient_id', $user->id);
+                })
+                ->count();
+        }
 
         // Get today's documents for current user
         $todayDocuments = Document::where(function($query) use ($user) {
@@ -207,6 +237,71 @@ class DashboardController extends Controller
             })
             ->count();
 
+        // Shared dashboard trend data (last 7 days)
+        $visibleDocumentQuery = Document::query()
+            ->when($userCompany, function ($query) use ($userCompany) {
+                $query->where('company_id', $userCompany->id);
+            })
+            ->where(function ($query) use ($user, $companyUserIds) {
+                if ($user->hasRole('company-admin') && $companyUserIds->isNotEmpty()) {
+                    $query->whereIn('uploader', $companyUserIds)
+                        ->orWhereHas('workflow', function ($workflow) use ($companyUserIds) {
+                            $workflow->whereIn('recipient_id', $companyUserIds);
+                        });
+                } else {
+                    $query->where('uploader', $user->id)
+                        ->orWhereHas('workflow', function ($workflow) use ($user) {
+                            $workflow->where('recipient_id', $user->id);
+                        });
+                }
+            });
+
+        $trendStart = now()->subDays(6)->startOfDay();
+        $trendEnd = now()->endOfDay();
+        $trendDates = collect(range(6, 0))->map(function ($offset) {
+            return now()->subDays($offset)->toDateString();
+        });
+
+        $trendCountsMap = (clone $visibleDocumentQuery)
+            ->whereBetween('created_at', [$trendStart, $trendEnd])
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as total')
+            ->groupBy('date')
+            ->pluck('total', 'date');
+
+        $documentTrendLabels = [];
+        $documentTrendCounts = [];
+        foreach ($trendDates as $date) {
+            $documentTrendLabels[] = date('M d', strtotime($date));
+            $documentTrendCounts[] = (int) ($trendCountsMap[$date] ?? 0);
+        }
+
+        $dashboardRecentDocuments = (clone $visibleDocumentQuery)
+            ->with('user', 'categories', 'workflow', 'status')
+            ->latest()
+            ->take(6)
+            ->get();
+
+        $officeActivity = collect();
+        $workflowStatusCounts = collect();
+
+        if ($user->hasRole('company-admin') && $userCompany) {
+            $officeActivity = Office::where('company_id', $userCompany->id)
+                ->leftJoin('documents', 'documents.from_office', '=', 'offices.id')
+                ->select('offices.id', 'offices.name', DB::raw('COUNT(documents.id) as total'))
+                ->groupBy('offices.id', 'offices.name')
+                ->orderByDesc('total')
+                ->take(5)
+                ->get();
+        } else {
+            $workflowStatusCounts = DocumentWorkflow::where(function ($query) use ($user) {
+                    $query->where('sender_id', $user->id)
+                        ->orWhere('recipient_id', $user->id);
+                })
+                ->select('status', DB::raw('COUNT(*) as total'))
+                ->groupBy('status')
+                ->pluck('total', 'status');
+        }
+
         // For company admins show the admin dashboard
         if ($user->hasRole('company-admin')) {
             return view('dashboard', compact(
@@ -229,7 +324,11 @@ class DashboardController extends Controller
                 'officeDocumentCount',
                 'officeDocumentsTodayCount',
                 'officePendingWorkflowsCount',
-                'needsSubscription'
+                'needsSubscription',
+                'documentTrendLabels',
+                'documentTrendCounts',
+                'dashboardRecentDocuments',
+                'officeActivity'
             ));
         }
 
@@ -252,7 +351,11 @@ class DashboardController extends Controller
             'officeDocumentCount',
             'officeDocumentsTodayCount',
             'officePendingWorkflowsCount',
-            'needsSubscription'
+            'needsSubscription',
+            'documentTrendLabels',
+            'documentTrendCounts',
+            'dashboardRecentDocuments',
+            'workflowStatusCounts'
         ));
     }
 }

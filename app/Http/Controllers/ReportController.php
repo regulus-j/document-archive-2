@@ -332,8 +332,9 @@ class ReportController extends Controller
             $officeDetails = Office::find($officeId);
         }
         
-        // Get monthly trend data for the chart
+        // Get monthly trend data for the table and charts
         $monthlyData = $this->getMonthlyAnalyticsData($startDate, $endDate, $userId, $officeId);
+        $monthlyChartData = $this->getMonthlyAnalyticsChartData($startDate, $endDate, $userId, $officeId);
         
         // Get company branding for the PDF header
         $branding = $this->getCompanyBranding();
@@ -349,16 +350,135 @@ class ReportController extends Controller
             'averageDocsForwarded' => $averageDocsForwarded,
             'documentsUploaded' => $documentsUploaded,
             'monthlyData' => $monthlyData,
+            'charts' => $this->buildAnalyticsChartUrls(
+                $monthlyChartData,
+                $averageDocsForwarded,
+                $documentsUploaded,
+                $branding['companyColor']
+            ),
             'generatedAt' => now()->format('F j, Y h:i A'),
             'generatedBy' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
             'logoDataUri'  => $branding['logoDataUri'],
             'companyColor' => $branding['companyColor'],
             'companyName'  => $branding['companyName'],
-        ]);
+        ])
+            ->setPaper('a4', 'landscape')
+            ->setOptions(['isRemoteEnabled' => true]);
         
         $fileName = 'analytics_report_' . now()->format('Y_m_d_H_i_s') . '.pdf';
         
         return $pdf->download($fileName);
+    }
+
+    private function buildAnalyticsChartUrls(array $monthlyChartData, int $docsForwarded, int $docsUploaded, string $accentColor): array
+    {
+        $lineChart = [
+            'type' => 'line',
+            'data' => [
+                'labels' => $monthlyChartData['months'],
+                'datasets' => [
+                    [
+                        'label' => 'Docs Forwarded',
+                        'data' => $monthlyChartData['docsForwarded'],
+                        'borderColor' => $accentColor,
+                        'backgroundColor' => 'rgba(99,102,241,0.15)',
+                        'fill' => true,
+                        'tension' => 0.35,
+                        'pointRadius' => 2,
+                    ],
+                    [
+                        'label' => 'Docs Uploaded',
+                        'data' => $monthlyChartData['docsUploaded'],
+                        'borderColor' => '#94a3b8',
+                        'backgroundColor' => 'rgba(148,163,184,0.12)',
+                        'fill' => true,
+                        'tension' => 0.35,
+                        'pointRadius' => 2,
+                    ],
+                ],
+            ],
+            'options' => [
+                'plugins' => [
+                    'legend' => ['position' => 'top'],
+                ],
+                'scales' => [
+                    'y' => ['beginAtZero' => true],
+                ],
+            ],
+        ];
+
+        $barChart = [
+            'type' => 'bar',
+            'data' => [
+                'labels' => $monthlyChartData['months'],
+                'datasets' => [
+                    [
+                        'label' => 'Avg Time to Receive (min)',
+                        'data' => $monthlyChartData['receiveTimes'],
+                        'backgroundColor' => 'rgba(99,102,241,0.2)',
+                        'borderColor' => $accentColor,
+                        'borderWidth' => 1,
+                    ],
+                    [
+                        'label' => 'Avg Time to Review (min)',
+                        'data' => $monthlyChartData['reviewTimes'],
+                        'backgroundColor' => 'rgba(148,163,184,0.25)',
+                        'borderColor' => '#94a3b8',
+                        'borderWidth' => 1,
+                    ],
+                ],
+            ],
+            'options' => [
+                'plugins' => [
+                    'legend' => ['position' => 'top'],
+                ],
+                'scales' => [
+                    'y' => ['beginAtZero' => true],
+                ],
+            ],
+        ];
+
+        $doughnutChart = [
+            'type' => 'doughnut',
+            'data' => [
+                'labels' => ['Forwarded', 'Uploaded'],
+                'datasets' => [
+                    [
+                        'data' => [$docsForwarded, $docsUploaded],
+                        'backgroundColor' => [
+                            $accentColor,
+                            '#cbd5f5',
+                        ],
+                        'borderColor' => ['#ffffff', '#ffffff'],
+                        'borderWidth' => 2,
+                    ],
+                ],
+            ],
+            'options' => [
+                'plugins' => [
+                    'legend' => ['position' => 'bottom'],
+                ],
+                'cutout' => '60%',
+            ],
+        ];
+
+        return [
+            'monthlyTrends' => $this->buildQuickChartUrl($lineChart, 900, 320),
+            'processingTimes' => $this->buildQuickChartUrl($barChart, 900, 320),
+            'distribution' => $this->buildQuickChartUrl($doughnutChart, 420, 320),
+        ];
+    }
+
+    private function buildQuickChartUrl(array $config, int $width, int $height): string
+    {
+        $query = http_build_query([
+            'c' => json_encode($config),
+            'w' => $width,
+            'h' => $height,
+            'backgroundColor' => 'white',
+        ]);
+
+        return 'https://quickchart.io/chart?' . $query;
     }
 
     /**
