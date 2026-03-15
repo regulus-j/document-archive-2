@@ -36,9 +36,9 @@ Route::get('/', function () {
     return view('welcome', compact('plans'));
 });
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth')->name('dashboard');
 Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])
-    ->middleware(['auth', 'verified', 'role:super-admin'])
+    ->middleware(['auth', 'role:super-admin'])
     ->name('admin.dashboard');
 
 Route::get('/trial', [TrialController::class, 'start'])->name('trial.start');

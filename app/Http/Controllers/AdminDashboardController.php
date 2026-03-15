@@ -17,6 +17,12 @@ class AdminDashboardController extends Controller
      */
     public function index()
     {
+        // Redirect unverified users to email verification
+        if (!auth()->user()->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice')
+                ->with('info', 'Please verify your email address to continue.');
+        }
+
         // Check for proper role authorization first
         if (!auth()->user()->hasRole('super-admin')) {
             // Redirect company admins to regular dashboard
