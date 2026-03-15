@@ -149,6 +149,11 @@ class Document extends Model
         return $this->hasMany(DocumentOfficePermission::class);
     }
 
+    public function allowedViewers()
+    {
+        return $this->hasMany(DocumentAllowedViewer::class, 'doc_id');
+    }
+
     /**
      * Get total copies printed across all print events.
      */

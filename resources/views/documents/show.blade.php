@@ -599,6 +599,84 @@
                     @endif
                 </div>
 
+                <!-- Document Viewers (Based on Classification) -->
+                <div x-data="{ viewersOpen: false }" class="bg-slate-50/60 p-4 rounded-lg border border-slate-200/60 transition-all duration-300 hover:border-slate-300/80 mb-8">
+                    <div class="flex items-center justify-between mb-3 cursor-pointer" @click="viewersOpen = !viewersOpen">
+                        <div class="flex items-center">
+                            <svg class="h-4 w-4 text-slate-500 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            <p class="text-sm font-medium text-slate-700">Who Can View This Document</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            @if(isset($documentViewers['count']) && $documentViewers['count'] > 0)
+                                <span class="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">{{ $documentViewers['count'] }} user(s)</span>
+                            @endif
+                            <svg class="w-4 h-4 text-slate-400 transition-transform" :class="viewersOpen && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-2 mb-3">
+                        @php
+                            $badgeClasses = match($document->classification) {
+                                'Public' => 'bg-blue-100 text-blue-700',
+                                'Office Only' => 'bg-green-100 text-green-700',
+                                'Custom Offices' => 'bg-purple-100 text-purple-700',
+                                'Private' => 'bg-red-100 text-red-700',
+                                default => 'bg-gray-100 text-gray-700',
+                            };
+                        @endphp
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold {{ $badgeClasses }}">
+                            {{ $document->classification }}
+                        </span>
+                        <span class="text-xs text-slate-500">{{ $documentViewers['description'] ?? 'Access level unknown' }}</span>
+                    </div>
+
+                    @if(!empty($documentViewers['offices']))
+                        <div class="mb-3">
+                            <p class="text-xs font-medium text-slate-600 mb-2">Allowed Offices:</p>
+                            <div class="flex flex-wrap gap-1.5">
+                                @foreach($documentViewers['offices'] as $office)
+                                    <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                                        <svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                        </svg>
+                                        {{ $office['name'] }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    <div x-show="viewersOpen" x-transition>
+                        @if(!empty($documentViewers['users']))
+                            <div class="mt-3 pt-3 border-t border-slate-200">
+                                <p class="text-xs font-medium text-slate-600 mb-2">Users with Access:</p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-60 overflow-y-auto">
+                                    @foreach($documentViewers['users'] as $user)
+                                        <div class="flex items-center gap-2 p-2 rounded bg-white border border-slate-100 hover:border-slate-200 transition">
+                                            <div class="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-slate-400 to-slate-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                                {{ strtoupper(substr($user['name'], 0, 1)) }}
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <p class="text-xs font-medium text-slate-700 truncate">{{ $user['name'] }}</p>
+                                                @if(!empty($user['email']))
+                                                    <p class="text-[10px] text-slate-400 truncate">{{ $user['email'] }}</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @else
+                            <p class="text-sm text-slate-500 mt-2">No specific users have been granted access.</p>
+                        @endif
+                    </div>
+                </div>
+
                 <!-- Version History -->
                 <div x-data="{ versionOpen: true }" class="bg-white p-4 rounded-lg border border-slate-200 mb-8">
                     <div class="flex items-center justify-between mb-3 cursor-pointer" @click="versionOpen = !versionOpen">

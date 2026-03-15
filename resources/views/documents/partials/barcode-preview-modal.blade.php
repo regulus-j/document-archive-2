@@ -463,13 +463,31 @@
             };
             frameEl.src = url;
         } else if (imageExts.includes(ext)) {
-            // Image: show directly
+            // Image: show directly with optimization for large files
             const url = URL.createObjectURL(file);
+            
+            // Add error handling for image load failures
+            imgEl.onerror = function() {
+                if (loadingEl) loadingEl.classList.add('hidden');
+                if (noticeEl) {
+                    noticeEl.classList.remove('hidden');
+                    const noticeText = noticeEl.querySelector('p');
+                    if (noticeText) {
+                        noticeText.textContent = 'Failed to load image preview. The file may be corrupted or too large.';
+                    }
+                }
+                URL.revokeObjectURL(url); // Clean up
+            };
+            
             imgEl.onload = function() {
                 if (loadingEl) loadingEl.classList.add('hidden');
                 imgEl.classList.remove('hidden');
                 showOverlay();
+                
+                // Revoke object URL after a short delay to prevent memory leaks
+                setTimeout(() => URL.revokeObjectURL(url), 100);
             };
+            
             imgEl.src = url;
         } else {
             // Unsupported format (including DOCX/XLSX) — show notice with fallback A4 diagram

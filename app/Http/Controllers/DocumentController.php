@@ -802,10 +802,11 @@ class DocumentController extends Controller
                 $file = $request->file('image');
                 // A-02 FIX: random storage name.
                 $fileName = Str::random(40) . '.' . $file->getClientOriginalExtension();
-                $filePath = $file->storeAs('documents', $fileName, 'public');
-                $fullPath = storage_path("app/public/temp/{$filePath}");
+                $filePath = $file->storeAs('temp', $fileName, 'public');
+                $fullPath = storage_path("app/public/{$filePath}");
 
                 if ($this->isImage($file)) {
+                    // Try QR code scanning first
                     $qrResult = $this->scanQr($fullPath);
 
                     if (!empty($qrResult)) {
@@ -815,11 +816,34 @@ class DocumentController extends Controller
                         if ($documentTracking) {
                             $document = Document::find($documentTracking->doc_id);
                             if ($document) {
+                                // Clean up temp file
+                                Storage::disk('public')->delete($filePath);
                                 return redirect()->route('documents.show', $document->id)
                                     ->with('success', 'Document found by QR code.');
                             }
                         }
                     }
+
+                    // If QR code scanning failed, try barcode scanning
+                    $barcodeResult = $this->scanBarcode($fullPath);
+
+                    if (!empty($barcodeResult)) {
+                        // If barcode contains a tracking number
+                        $documentTracking = DocumentTrackingNumber::where('tracking_number', $barcodeResult)->first();
+
+                        if ($documentTracking) {
+                            $document = Document::find($documentTracking->doc_id);
+                            if ($document) {
+                                // Clean up temp file
+                                Storage::disk('public')->delete($filePath);
+                                return redirect()->route('documents.show', $document->id)
+                                    ->with('success', 'Document found by barcode.');
+                            }
+                        }
+                    }
+
+                    // Clean up temp file if no match found
+                    Storage::disk('public')->delete($filePath);
                 }
             }
 
@@ -1097,10 +1121,13 @@ class DocumentController extends Controller
         $totalPrintCopies = $document->prints->sum('copies');
         $printHistory = $document->prints->sortByDesc('created_at');
 
+        // === Document Viewers (based on classification) ===
+        $documentViewers = $this->documentAccessService->getDocumentViewers($document);
+
         return view('documents.show', compact(
             'document', 'auditLogs', 'attachments', 'docRoute', 'workflows',
             'rerouteLogs', 'canReroute', 'canUploadVersion',
-            'totalPrintCopies', 'printHistory'
+            'totalPrintCopies', 'printHistory', 'documentViewers'
         ));
     }
 
@@ -1905,8 +1932,24 @@ class DocumentController extends Controller
             $content = $qrReader->text();
             return $content;
         } catch (\Throwable $e) {
-            // oopsies!
-            return $e->getMessage();
+            \Log::info('QR scan failed: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Scan barcode from image to extract tracking number
+     */
+    private function scanBarcode($imagePath)
+    {
+        try {
+            // Try using ZXing BarcodeReader for various barcode formats
+            $reader = new \Zxing\BarcodeReader($imagePath);
+            $content = $reader->text();
+            return $content;
+        } catch (\Throwable $e) {
+            \Log::info('Barcode scan failed: ' . $e->getMessage());
+            return null;
         }
     }
 

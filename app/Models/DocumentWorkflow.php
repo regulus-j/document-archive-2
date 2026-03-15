@@ -221,6 +221,8 @@ class DocumentWorkflow extends Model
 
     /**
      * A forwarded workflow branch is complete only when every descendant is terminal.
+     * A workflow is only terminal when it has been actually processed (approved, rejected, etc.),
+     * not when it's been forwarded to create another sub-workflow.
      */
     private function isForwardBranchComplete(int $workflowId): bool
     {
@@ -231,14 +233,22 @@ class DocumentWorkflow extends Model
             return true;
         }
 
-        $terminalStatuses = ['approved', 'rejected', 'acknowledged', 'commented', 'returned', 'forwarded'];
+        // Truly terminal statuses - these mean the workflow step is actually done.
+        // 'forwarded' is NOT terminal because it means delegation to a sub-workflow.
+        $terminalStatuses = ['approved', 'rejected', 'acknowledged', 'commented', 'returned'];
 
         foreach ($children as $child) {
+            // If child is in a non-terminal status (pending, waiting, received, forwarded), not complete
             if (!in_array($child->status, $terminalStatuses, true)) {
-                return false;
-            }
-
-            if ($child->status === 'forwarded' && !$this->isForwardBranchComplete($child->id)) {
+                // Special case: if child is 'forwarded', check its descendants recursively
+                if ($child->status === 'forwarded') {
+                    if (!$this->isForwardBranchComplete($child->id)) {
+                        return false;
+                    }
+                    // If all descendants are complete, this forwarded child is considered complete
+                    continue;
+                }
+                // For any other non-terminal status (pending, waiting, received), branch is incomplete
                 return false;
             }
         }

@@ -244,9 +244,133 @@ class DocumentAccessService
                 return 'Visible to users in the same office';
             case 'Private':
                 return 'Visible to selected users only';
+            case 'Custom Offices':
+                return 'Visible to users in selected offices';
             default:
                 return 'Access level unknown';
         }
+    }
+
+    /**
+     * Get list of users/offices who can view this document
+     *
+     * @param Document $document
+     * @return array
+     */
+    public function getDocumentViewers(Document $document): array
+    {
+        $viewers = [
+            'type' => $document->classification,
+            'description' => $this->getAccessDescription($document),
+            'users' => [],
+            'offices' => [],
+            'count' => 0,
+        ];
+
+        switch ($document->classification) {
+            case 'Public':
+                // Get all users in the same company as the uploader
+                $uploaderCompanyIds = CompanyUser::where('user_id', $document->uploader)
+                    ->pluck('company_id')
+                    ->toArray();
+                
+                if (!empty($uploaderCompanyIds)) {
+                    $companyUsers = CompanyUser::whereIn('company_id', $uploaderCompanyIds)
+                        ->with('user')
+                        ->get();
+                    
+                    $viewers['users'] = $companyUsers->map(function($cu) {
+                        return $cu->user ? [
+                            'id' => $cu->user->id,
+                            'name' => $cu->user->first_name . ' ' . $cu->user->last_name,
+                            'email' => $cu->user->email,
+                        ] : null;
+                    })->filter()->unique('id')->values()->toArray();
+                    
+                    $viewers['count'] = count($viewers['users']);
+                }
+                break;
+
+            case 'Office Only':
+                // Get users in the same office(s) as the uploader
+                if (!$document->user) {
+                    break;
+                }
+                $uploaderOffices = $document->user->offices;
+                
+                $viewers['offices'] = $uploaderOffices->map(function($office) {
+                    return [
+                        'id' => $office->id,
+                        'name' => $office->name,
+                    ];
+                })->toArray();
+                
+                // Get all users in these offices
+                $officeIds = $uploaderOffices->pluck('id')->toArray();
+                if (!empty($officeIds)) {
+                    $users = User::whereHas('offices', function($q) use ($officeIds) {
+                        $q->whereIn('offices.id', $officeIds);
+                    })->get();
+                    
+                    $viewers['users'] = $users->map(function($user) {
+                        return [
+                            'id' => $user->id,
+                            'name' => $user->first_name . ' ' . $user->last_name,
+                            'email' => $user->email,
+                        ];
+                    })->toArray();
+                    
+                    $viewers['count'] = count($viewers['users']);
+                }
+                break;
+
+            case 'Custom Offices':
+                // Get the allowed offices
+                $allowedOffices = $document->allowedOffices()->with('office')->get();
+                
+                $viewers['offices'] = $allowedOffices->map(function($allowed) {
+                    return $allowed->office ? [
+                        'id' => $allowed->office->id,
+                        'name' => $allowed->office->name,
+                    ] : null;
+                })->filter()->toArray();
+                
+                // Get all users in the allowed offices
+                $officeIds = $allowedOffices->pluck('office_id')->toArray();
+                if (!empty($officeIds)) {
+                    $users = User::whereHas('offices', function($q) use ($officeIds) {
+                        $q->whereIn('offices.id', $officeIds);
+                    })->get();
+                    
+                    $viewers['users'] = $users->map(function($user) {
+                        return [
+                            'id' => $user->id,
+                            'name' => $user->first_name . ' ' . $user->last_name,
+                            'email' => $user->email,
+                        ];
+                    })->toArray();
+                    
+                    $viewers['count'] = count($viewers['users']);
+                }
+                break;
+
+            case 'Private':
+                // Get specifically allowed viewers
+                $allowedViewers = $document->allowedViewers()->with('user')->get();
+                
+                $viewers['users'] = $allowedViewers->map(function($allowed) {
+                    return $allowed->user ? [
+                        'id' => $allowed->user->id,
+                        'name' => $allowed->user->first_name . ' ' . $allowed->user->last_name,
+                        'email' => $allowed->user->email,
+                    ] : null;
+                })->filter()->toArray();
+                
+                $viewers['count'] = count($viewers['users']);
+                break;
+        }
+
+        return $viewers;
     }
 
     /**

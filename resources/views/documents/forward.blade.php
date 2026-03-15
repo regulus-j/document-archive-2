@@ -311,11 +311,10 @@
                               <!-- Purpose Selection -->
 <div>
     <label class="block text-xs font-medium text-slate-600 mb-2">Purpose</label>
-    <div class="flex gap-4" x-data="{ selectedPurpose: '{{ old('purpose_batch.0') }}' }">
-        <label class="flex-1 flex items-start p-3 border-2 rounded-lg border-slate-200 cursor-pointer hover:bg-slate-50 transition-all"
-               :class="selectedPurpose === 'appropriate_action' ? 'border-indigo-500 bg-indigo-50' : ''">
+    <div class="flex gap-4">
+        <label class="flex-1 flex items-start p-3 border-2 rounded-lg border-slate-200 cursor-pointer hover:bg-slate-50 transition-all purpose-label" data-purpose="appropriate_action">
             <input type="radio" name="purpose_batch[0]" value="appropriate_action" 
-                   class="mt-6 mr-3" x-model="selectedPurpose" required>
+                   class="mt-6 mr-3 purpose-radio" required>
             <div class="flex flex-col items-center space-y-2 min-h-[80px] justify-center flex-1">
                 <div class="flex-shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -329,10 +328,9 @@
             </div>
         </label>
         
-        <label class="flex-1 flex items-start p-3 border-2 rounded-lg border-slate-200 cursor-pointer hover:bg-slate-50 transition-all"
-               :class="selectedPurpose === 'dissemination' ? 'border-indigo-500 bg-indigo-50' : ''">
+        <label class="flex-1 flex items-start p-3 border-2 rounded-lg border-slate-200 cursor-pointer hover:bg-slate-50 transition-all purpose-label" data-purpose="dissemination">
             <input type="radio" name="purpose_batch[0]" value="dissemination" 
-                   class="mt-6 mr-3" x-model="selectedPurpose">
+                   class="mt-6 mr-3 purpose-radio">
             <div class="flex flex-col items-center space-y-2 min-h-[80px] justify-center flex-1">
                 <div class="flex-shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -346,10 +344,9 @@
             </div>
         </label>
         
-        <label class="flex-1 flex items-start p-3 border-2 rounded-lg border-slate-200 cursor-pointer hover:bg-slate-50 transition-all"
-               :class="selectedPurpose === 'for_comment' ? 'border-indigo-500 bg-indigo-50' : ''">
+        <label class="flex-1 flex items-start p-3 border-2 rounded-lg border-slate-200 cursor-pointer hover:bg-slate-50 transition-all purpose-label" data-purpose="for_comment">
             <input type="radio" name="purpose_batch[0]" value="for_comment" 
-                   class="mt-6 mr-3" x-model="selectedPurpose">
+                   class="mt-6 mr-3 purpose-radio">
             <div class="flex flex-col items-center space-y-2 min-h-[80px] justify-center flex-1">
                 <div class="flex-shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -363,14 +360,13 @@
             </div>
         </label>
     </div>
-    <div x-show="selectedPurpose === 'appropriate_action'" class="mt-3 action-required-container">
+    <div class="mt-3 action-required-container hidden">
         <label class="block text-xs font-medium text-slate-600 mb-1">Specific Action Needed</label>
         <input type="text"
                name="action_required_batch[0]"
                class="w-full rounded-lg border-slate-200 text-sm text-slate-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                placeholder="e.g., Approve budget, revise section 3, schedule meeting"
-               :required="selectedPurpose === 'appropriate_action'"
-               :disabled="selectedPurpose !== 'appropriate_action'">
+               disabled>
         <p class="text-xs text-slate-500 mt-1">Required when sending for appropriate action.</p>
     </div>
 </div>
@@ -620,6 +616,7 @@
 
         function addBatchEventListeners(batch) {
             const purposeRadios = batch.querySelectorAll('input[name^="purpose_batch"]');
+            const purposeLabels = batch.querySelectorAll('.purpose-label');
             const actionContainer = batch.querySelector('.action-required-container');
             const actionInput = batch.querySelector('input[name^="action_required_batch"]');
 
@@ -627,6 +624,19 @@
                 const selected = batch.querySelector('input[name^="purpose_batch"]:checked');
                 const isAppropriate = selected && selected.value === 'appropriate_action';
 
+                // Update visual styling for purpose labels
+                purposeLabels.forEach(label => {
+                    const radio = label.querySelector('input[type="radio"]');
+                    if (radio && radio.checked) {
+                        label.classList.add('border-indigo-500', 'bg-indigo-50');
+                        label.classList.remove('border-slate-200');
+                    } else {
+                        label.classList.remove('border-indigo-500', 'bg-indigo-50');
+                        label.classList.add('border-slate-200');
+                    }
+                });
+
+                // Show/hide action required container
                 if (actionContainer) {
                     actionContainer.classList.toggle('hidden', !isAppropriate);
                 }
