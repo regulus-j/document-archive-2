@@ -66,7 +66,7 @@
                                     </td>
                                     <td class="px-6 py-4 text-sm text-slate-500 max-w-xs truncate">{{ $plan->description }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
-                                        P{{ number_format($plan->price * 100, 2) }}</td>
+                                        P{{ number_format($plan->price / 100, 2) }}</td>
 
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $plan->billing_cycle }}
                                     </td>

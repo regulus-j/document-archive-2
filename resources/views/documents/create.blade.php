@@ -29,7 +29,7 @@
             </div>
         </div>
 
-        <form action="{{ route('documents.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
+        <form action="{{ route('documents.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
             @csrf
 
             <!-- Document Information Card -->
@@ -47,9 +47,9 @@
                     </div>
                 </div>
 
-                <div class="p-6 space-y-6">
+                <div class="p-6 space-y-5">
                     <!-- Basic Information -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <!-- Document Title -->
                         <div class="space-y-2">
                             <label for="title" class="ds-label">Document Title</label>
@@ -70,7 +70,7 @@
                     </div>
 
                     <!-- Additional Information -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
                         <div>
                             <label for="category" class="ds-label">Document Category
@@ -115,7 +115,7 @@
                     </div>
 
                     <!-- Custom Offices Section -->
-                    <div id="custom-offices-section" class="{{ old('classification') == 'Custom Offices' ? '' : 'hidden' }} mt-2 space-y-2">
+                    <div id="custom-offices-section" class="{{ old('classification') == 'Custom Offices' ? '' : 'hidden' }} space-y-2">
                         <label class="ds-label">Select Allowed Offices <span class="text-red-500">*</span></label>
                         <div class="max-h-48 overflow-y-auto border border-slate-300 rounded-lg p-3 bg-slate-50 space-y-2">
                             @foreach($offices as $office)
@@ -223,163 +223,162 @@
                     </div>
                     @endif
 
-                    <!-- Routing Section -->
-                    <div class="border-t border-slate-200 pt-6">
-                        <h3 class="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M7 16l-4-4m0 0l4-4m-4 4h18" />
-                            </svg>
-                            Routing Information
-                        </h3>
-
-                        <!-- Originating Team -->
-                        <div class="space-y-2 mb-4">
-                            <label for="from_office" class="block text-sm font-medium text-slate-700">Originating
-                                Team</label>
-                            @php
-                                $userOffices = auth()->user()->offices;
-                            @endphp
-                            @if($userOffices->count() > 1)
-                                {{-- User belongs to multiple teams - show dropdown --}}
-                                <select name="from_office" id="from_office" required
-                                    class="w-full rounded-lg border-slate-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition-all">
-                                    @foreach($userOffices as $office)
-                                        <option value="{{ $office->id }}" {{ old('from_office', $originatingOfficeId) == $office->id ? 'selected' : '' }}>
-                                            {{ $office->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            @elseif($userOffices->count() == 1)
-                                {{-- User belongs to only one team - show read-only with hidden input --}}
-                                <input type="text" id="from_office_display"
-                                    value="{{ $userOffices->first()->name }}"
-                                    class="w-full rounded-lg border-slate-300 bg-slate-100 cursor-not-allowed" readonly>
-                                <input type="hidden" name="from_office" value="{{ $userOffices->first()->id }}">
-                            @else
-                                {{-- User has no team assigned --}}
-                                <input type="text" id="from_office_display"
-                                    value="No Team Assigned"
-                                    class="w-full rounded-lg border-slate-300 bg-slate-100 cursor-not-allowed" readonly>
-                                <p class="text-red-500 text-sm mt-1">Please contact your administrator to be assigned to a team.</p>
-                            @endif
-                        </div>
-
-                        <!-- Forward to Users Option -->
-                        <div class="mt-6">
-                            <label class="inline-flex items-center bg-white px-4 py-3 rounded-lg border border-slate-300 hover:bg-slate-50 transition-colors">
-                                <input type="checkbox" name="forward" value="1"
-                                    class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-                                <span class="ml-2">
-                                    <span class="text-sm font-medium text-slate-700">Forward to user/s</span>
-                                    <p class="text-xs text-slate-500 mt-1">
-                                        Checking this option will redirect you to the forwarding page after document creation to select recipients
-                                    </p>
-                                </span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Document Upload Section -->
-                    <div class="border-t border-slate-200 pt-6">
-                        <h3 class="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                            </svg>
-                            Document Files
-                        </h3>
-
-                        <!-- Main Document Upload -->
-                        <div class="mb-6">
-                            <label for="main-document" class="block text-sm font-medium text-slate-700 mb-2">Upload Main
-                                Document</label>
-                            <div
-                                class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-lg hover:border-indigo-400 transition-colors">
-                                <div class="space-y-1 text-center">
-                                    <svg class="mx-auto h-12 w-12 text-slate-400" stroke="currentColor" fill="none"
-                                        viewBox="0 0 48 48" aria-hidden="true">
-                                        <path
-                                            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 border-t border-slate-200 pt-5">
+                        <div class="xl:col-span-4 space-y-4">
+                            <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+                                <h3 class="text-base font-semibold text-slate-900 mb-3 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M7 16l-4-4m0 0l4-4m-4 4h18" />
                                     </svg>
-                                    <div class="flex text-sm text-slate-600 justify-center gap-4 items-center">
-                                        <label for="main-document"
-                                            class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                                            <span>Upload a file</span>
-                                            <input id="main-document" name="main_document" type="file"
-                                                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.odt,.ods,.odp,.rtf,.jpg,.jpeg,.png" class="sr-only" required>
-                                        </label>
-                                        <p class="pl-1">or drag and drop</p>
+                                    Routing Information
+                                </h3>
+
+                                <div class="space-y-3">
+                                    <div class="space-y-2">
+                                        <label for="from_office" class="block text-sm font-medium text-slate-700">Originating
+                                            Team</label>
+                                        @php
+                                            $userOffices = auth()->user()->offices;
+                                        @endphp
+                                        @if($userOffices->count() > 1)
+                                            <select name="from_office" id="from_office" required
+                                                class="w-full rounded-lg border-slate-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition-all">
+                                                @foreach($userOffices as $office)
+                                                    <option value="{{ $office->id }}" {{ old('from_office', $originatingOfficeId) == $office->id ? 'selected' : '' }}>
+                                                        {{ $office->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        @elseif($userOffices->count() == 1)
+                                            <input type="text" id="from_office_display"
+                                                value="{{ $userOffices->first()->name }}"
+                                                class="w-full rounded-lg border-slate-300 bg-slate-100 cursor-not-allowed" readonly>
+                                            <input type="hidden" name="from_office" value="{{ $userOffices->first()->id }}">
+                                        @else
+                                            <input type="text" id="from_office_display"
+                                                value="No Team Assigned"
+                                                class="w-full rounded-lg border-slate-300 bg-slate-100 cursor-not-allowed" readonly>
+                                            <p class="text-red-500 text-sm mt-1">Please contact your administrator to be assigned to a team.</p>
+                                        @endif
                                     </div>
-                                    <p class="text-xs text-slate-500">PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, CSV, ODT, RTF, JPG, PNG up to 8MB</p>
+
+                                    <label class="flex items-start bg-white px-4 py-3 rounded-lg border border-slate-300 hover:bg-slate-50 transition-colors">
+                                        <input type="checkbox" name="forward" value="1"
+                                            class="mt-0.5 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                        <span class="ml-3">
+                                            <span class="text-sm font-medium text-slate-700">Forward to user/s</span>
+                                            <p class="text-xs text-slate-500 mt-1">
+                                                Redirect to the forwarding page after document creation to select recipients.
+                                            </p>
+                                        </span>
+                                    </label>
                                 </div>
                             </div>
-                            <div class="upload-feedback hidden mt-2 text-sm text-indigo-600"></div>
                         </div>
 
-                        <!-- Barcode Overlay — opens modal on PDF file select -->
-                        <div class="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200" id="barcode-settings-section">
-                            <div class="flex items-center justify-between">
-                                <h4 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                        <div class="xl:col-span-8 space-y-4">
+                            <div class="rounded-xl border border-slate-200 p-4">
+                                <h3 class="text-base font-semibold text-slate-900 mb-3 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                                     </svg>
-                                    Barcode Overlay
-                                </h4>
-                                <button type="button" onclick="openBarcodePreviewModal('createBarcodeModal')"
-                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-100 rounded-lg hover:bg-indigo-200 transition-colors">
-                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                    Preview &amp; Configure
-                                </button>
-                            </div>
-                            <p class="text-xs text-slate-500 mt-2">When you select a supported file (PDF, Image, DOCX, or XLSX), the barcode overlay preview will open automatically. You can also click the button above to configure it manually.</p>
-                            <div id="barcode-confirmed-badge" class="hidden mt-2">
-                                <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                    Barcode overlay configured
-                                </span>
-                            </div>
-                        </div>
+                                    Document Files
+                                </h3>
 
-                        <!-- Attachments Upload -->
-                        <div>
-                            <label for="attachments" class="block text-sm font-medium text-slate-700 mb-2">Upload
-                                Attachments</label>
-                            <div class="flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-lg hover:border-indigo-400 transition-colors">
-                                <div class="space-y-1 text-center w-full">
-                                    <svg class="mx-auto h-12 w-12 text-slate-400" stroke="currentColor" fill="none"
-                                        viewBox="0 0 48 48" aria-hidden="true">
-                                        <path
-                                            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                    </svg>
-                                    <div class="flex text-sm text-slate-600 justify-center">
-                                        <label for="attachments"
-                                            class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                                            <span>Upload attachments</span>
-                                            <input id="attachments" name="attachments[]" type="file" multiple
-                                                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.odt,.ods,.odp,.rtf,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg" class="sr-only">
-                                        </label>
-                                        <p class="pl-1">or drag and drop</p>
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                    <div class="space-y-2">
+                                        <label for="main-document" class="block text-sm font-medium text-slate-700">Upload Main
+                                            Document</label>
+                                        <div
+                                            class="flex min-h-[180px] justify-center px-4 py-5 border-2 border-slate-300 border-dashed rounded-lg hover:border-indigo-400 transition-colors">
+                                            <div class="space-y-2 text-center self-center">
+                                                <svg class="mx-auto h-10 w-10 text-slate-400" stroke="currentColor" fill="none"
+                                                    viewBox="0 0 48 48" aria-hidden="true">
+                                                    <path
+                                                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                                </svg>
+                                                <div class="flex flex-wrap text-sm text-slate-600 justify-center gap-x-3 gap-y-1 items-center">
+                                                    <label for="main-document"
+                                                        class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                                                        <span>Upload a file</span>
+                                                        <input id="main-document" name="main_document" type="file"
+                                                            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.odt,.ods,.odp,.rtf,.jpg,.jpeg,.png" class="sr-only" required>
+                                                    </label>
+                                                    <p>or drag and drop</p>
+                                                </div>
+                                                <p class="text-xs text-slate-500">PDF, Office docs, and images up to 8MB</p>
+                                            </div>
+                                        </div>
+                                        <div class="upload-feedback hidden text-sm text-indigo-600"></div>
                                     </div>
-                                    <p class="text-xs text-slate-500">PDF, Office docs, images up to 8MB each (Maximum 5 attachments)</p>
+
+                                    <div class="space-y-4">
+                                        <div class="p-4 bg-slate-50 rounded-lg border border-slate-200" id="barcode-settings-section">
+                                            <div class="flex items-start justify-between gap-3">
+                                                <h4 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                                                    </svg>
+                                                    Barcode Overlay
+                                                </h4>
+                                                <button type="button" onclick="openBarcodePreviewModal('createBarcodeModal')"
+                                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-100 rounded-lg hover:bg-indigo-200 transition-colors whitespace-nowrap">
+                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                    Preview &amp; Configure
+                                                </button>
+                                            </div>
+                                            <p class="text-xs text-slate-500 mt-2">Preview opens automatically for supported files, or configure it manually here.</p>
+                                            <div id="barcode-confirmed-badge" class="hidden mt-2">
+                                                <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                    Barcode overlay configured
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="space-y-2">
+                                            <label for="attachments" class="block text-sm font-medium text-slate-700">Upload
+                                                Attachments</label>
+                                            <div class="flex min-h-[180px] justify-center px-4 py-5 border-2 border-slate-300 border-dashed rounded-lg hover:border-indigo-400 transition-colors">
+                                                <div class="space-y-2 text-center w-full self-center">
+                                                    <svg class="mx-auto h-10 w-10 text-slate-400" stroke="currentColor" fill="none"
+                                                        viewBox="0 0 48 48" aria-hidden="true">
+                                                        <path
+                                                            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                                    </svg>
+                                                    <div class="flex flex-wrap text-sm text-slate-600 justify-center gap-x-3 gap-y-1">
+                                                        <label for="attachments"
+                                                            class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                                                            <span>Upload attachments</span>
+                                                            <input id="attachments" name="attachments[]" type="file" multiple
+                                                                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.odt,.ods,.odp,.rtf,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg" class="sr-only">
+                                                        </label>
+                                                        <p>or drag and drop</p>
+                                                    </div>
+                                                    <p class="text-xs text-slate-500">Up to 5 files, 8MB each</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <!-- Attachment Files Preview -->
-                            <div id="attachment-files-preview" class="hidden mt-4">
-                                <h4 class="text-sm font-medium text-slate-700 mb-2">Selected Attachments</h4>
-                                <ul id="attachment-files-list" class="divide-y divide-slate-200 border border-slate-200 rounded-md overflow-hidden bg-white">
-                                    <!-- Selected files will be displayed here -->
-                                </ul>
+
+                                <div id="attachment-files-preview" class="hidden mt-4">
+                                    <h4 class="text-sm font-medium text-slate-700 mb-2">Selected Attachments</h4>
+                                    <ul id="attachment-files-list" class="divide-y divide-slate-200 border border-slate-200 rounded-md overflow-hidden bg-white">
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Form Actions -->
-                    <div class="border-t border-indigo-200/60 pt-6">
+                    <div class="border-t border-indigo-200/60 pt-5">
                         <div class="flex justify-end items-center space-x-4">
                             <a href="{{ route('documents.index') }}"
                                 class="px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">Cancel</a>

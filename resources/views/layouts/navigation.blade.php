@@ -40,8 +40,9 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
 
-                    {{-- Documents --}}
+                    {{-- Documents (hide for super-admin) --}}
                     @can('document-list')
+                    @if(!auth()->user()->isSuperAdmin())
                     <x-nav-link
                         :href="route('documents.index')"
                         :active="request()->routeIs('documents.index')"
@@ -54,9 +55,11 @@
                         </svg>
                         {{ __('Documents') }}
                     </x-nav-link>
+                    @endif
                     @endcan
 
-                    {{-- Reports Dropdown --}}
+                    {{-- Reports Dropdown (hide for super-admin, they have their own dashboard) --}}
+                    @if(!auth()->user()->isSuperAdmin())
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
                             <button class="flex items-center gap-2 text-sm font-medium text-slate-600
@@ -89,9 +92,11 @@
                             </x-dropdown-link>
                         </x-slot>
                     </x-dropdown>
+                    @endif
 
-                    {{-- Document Actions Dropdown --}}
+                    {{-- Document Actions Dropdown (hide for super-admin) --}}
                     @can('document-list')
+                    @if(!auth()->user()->isSuperAdmin())
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
                             <button class="flex items-center gap-2 text-sm font-medium text-slate-600
@@ -135,10 +140,99 @@
                             </x-dropdown-link>
                         </x-slot>
                     </x-dropdown>
+                    @endif
                     @endcan
 
-                    {{-- Admin Menu --}}
-                    @if(auth()->user()->isSuperAdmin() || auth()->user()->hasRole('company-admin'))
+                    {{-- Super Admin: Site Audit Link --}}
+                    @if(auth()->user()->isSuperAdmin())
+                    <x-nav-link
+                        :href="route('admin.audit')"
+                        :active="request()->routeIs('admin.audit')"
+                        class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium
+                               text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/60
+                               transition-colors duration-150">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                        </svg>
+                        {{ __('Site Audit') }}
+                    </x-nav-link>
+
+                    {{-- Super Admin: System Dropdown --}}
+                    <x-dropdown align="right" width="48">
+                        <x-slot name="trigger">
+                            <button class="flex items-center gap-2 text-sm font-medium text-slate-600
+                                           hover:text-indigo-600 rounded-lg px-3 py-2
+                                           hover:bg-indigo-50/60 transition-colors duration-150
+                                           focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                </svg>
+                                {{ __('System') }}
+                                <svg class="w-4 h-4 opacity-50" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </x-slot>
+                        <x-slot name="content">
+                            <x-dropdown-link :href="route('admin.users-index')">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                                    {{ __('Users') }}
+                                </div>
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('roles.index')">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                    {{ __('Roles') }}
+                                </div>
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('companies.index')">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                    {{ __('Companies') }}
+                                </div>
+                            </x-dropdown-link>
+                        </x-slot>
+                    </x-dropdown>
+
+                    {{-- Super Admin: Billing Dropdown --}}
+                    <x-dropdown align="right" width="48">
+                        <x-slot name="trigger">
+                            <button class="flex items-center gap-2 text-sm font-medium text-slate-600
+                                           hover:text-indigo-600 rounded-lg px-3 py-2
+                                           hover:bg-indigo-50/60 transition-colors duration-150
+                                           focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                </svg>
+                                {{ __('Billing') }}
+                                <svg class="w-4 h-4 opacity-50" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </x-slot>
+                        <x-slot name="content">
+                            <x-dropdown-link :href="route('admin.plans.index')">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                                    {{ __('Plans') }}
+                                </div>
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('admin.subscriptions.index')">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                                    {{ __('Subscriptions') }}
+                                </div>
+                            </x-dropdown-link>
+                        </x-slot>
+                    </x-dropdown>
+                    @endif
+
+                    {{-- Company Admin Menu --}}
+                    @if(auth()->user()->hasRole('company-admin') && !auth()->user()->isSuperAdmin())
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
                             <button class="flex items-center gap-2 text-sm font-medium text-slate-600
@@ -157,23 +251,30 @@
                             </button>
                         </x-slot>
                         <x-slot name="content">
-                            @if(auth()->user()->isSuperAdmin())
-                                <div class="px-3 py-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">System</div>
-                                <x-dropdown-link :href="route('admin.users-index')">{{ __('Users') }}</x-dropdown-link>
-                                <x-dropdown-link :href="route('roles.index')">{{ __('Roles') }}</x-dropdown-link>
-                                <x-dropdown-link :href="route('companies.index')">{{ __('Companies') }}</x-dropdown-link>
-                                <div class="border-t border-slate-100 my-1"></div>
-                                <div class="px-3 py-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Subscriptions</div>
-                                <x-dropdown-link :href="route('admin.plans.index')">{{ __('Plans') }}</x-dropdown-link>
-                                <x-dropdown-link :href="route('admin.subscriptions.index')">{{ __('Subscriptions') }}</x-dropdown-link>
-                            @endif
-                            @if(auth()->user()->hasRole('company-admin'))
-                                <div class="px-3 py-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Company</div>
-                                <x-dropdown-link :href="route('users.index')">{{ __('Users') }}</x-dropdown-link>
-                                <x-dropdown-link :href="route('roles.index')">{{ __('Roles') }}</x-dropdown-link>
-                                <x-dropdown-link :href="route('office.index')">{{ __('Teams') }}</x-dropdown-link>
-                                <x-dropdown-link :href="route('categories.index')">{{ __('Document Categories') }}</x-dropdown-link>
-                            @endif
+                            <x-dropdown-link :href="route('users.index')">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                                    {{ __('Users') }}
+                                </div>
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('roles.index')">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                    {{ __('Roles') }}
+                                </div>
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('office.index')">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                    {{ __('Teams') }}
+                                </div>
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('categories.index')">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                                    {{ __('Document Categories') }}
+                                </div>
+                            </x-dropdown-link>
                         </x-slot>
                     </x-dropdown>
                     @endif
@@ -315,6 +416,9 @@
             <x-responsive-nav-link :href="route('reports.audit')" :active="request()->routeIs('reports.audit')">{{ __('Audit Report') }}</x-responsive-nav-link>
 
             @if(auth()->user()->isSuperAdmin())
+                <div class="px-3 pt-3 pb-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Overseer</div>
+                <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">{{ __('Dashboard') }}</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.audit')" :active="request()->routeIs('admin.audit')">{{ __('Site Audit') }}</x-responsive-nav-link>
                 <div class="px-3 pt-3 pb-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Administration</div>
                 <x-responsive-nav-link :href="route('admin.users-index')" :active="request()->routeIs('admin.users-index')">{{ __('Users') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('roles.index')" :active="request()->routeIs('roles.index')">{{ __('Roles') }}</x-responsive-nav-link>

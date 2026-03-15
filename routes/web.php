@@ -40,6 +40,21 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('aut
 Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])
     ->middleware(['auth', 'role:super-admin'])
     ->name('admin.dashboard');
+Route::get('/admin/dashboard/export-pdf', [AdminDashboardController::class, 'exportPdf'])
+    ->middleware(['auth', 'role:super-admin'])
+    ->name('admin.dashboard.export-pdf');
+Route::get('/admin/dashboard/export-excel', [AdminDashboardController::class, 'exportExcel'])
+    ->middleware(['auth', 'role:super-admin'])
+    ->name('admin.dashboard.export-excel');
+Route::get('/admin/audit', [AdminDashboardController::class, 'audit'])
+    ->middleware(['auth', 'role:super-admin'])
+    ->name('admin.audit');
+Route::get('/admin/audit/export-pdf', [AdminDashboardController::class, 'auditExportPdf'])
+    ->middleware(['auth', 'role:super-admin'])
+    ->name('admin.audit.export-pdf');
+Route::get('/admin/audit/export-excel', [AdminDashboardController::class, 'auditExportExcel'])
+    ->middleware(['auth', 'role:super-admin'])
+    ->name('admin.audit.export-excel');
 
 Route::get('/trial', [TrialController::class, 'start'])->name('trial.start');
 

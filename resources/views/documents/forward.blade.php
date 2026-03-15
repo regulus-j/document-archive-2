@@ -20,7 +20,7 @@
                             <p class="text-sm text-slate-500">Select recipients to forward this document</p>
                         </div>
                     </div>
-                    <a href="{{ route('documents.show', $document->id) }}?prompt_print=1" class="inline-flex items-center px-4 py-2 bg-white border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors duration-200">
+                    <a href="{{ route('documents.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors duration-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
                         </svg>
@@ -66,6 +66,41 @@
                     </div>
                 </div>
             @endif
+
+            <!-- Floating Document Details Widget Button -->
+            <div class="fixed bottom-4 right-24 sm:bottom-6 sm:right-24 z-50 flex flex-col items-end" x-data="{ showTooltip: true }">
+                <!-- Chat-box shaped tooltip -->
+                <div x-show="showTooltip" 
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-2"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-200"
+                     x-transition:leave-start="opacity-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 translate-y-2"
+                     class="absolute bottom-full right-0 mb-3 mr-2">
+                    <div class="relative bg-white text-slate-800 px-4 py-2.5 rounded-lg shadow-xl border border-slate-200 max-w-xs">
+                        <p class="text-sm font-medium whitespace-nowrap">Click to see document details here.</p>
+                        <!-- Chat bubble arrow -->
+                        <div class="absolute -bottom-2 right-6 w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 border-t-white drop-shadow"></div>
+                        <!-- Close tooltip button -->
+                        <button @click="showTooltip = false" class="absolute -top-1 -right-1 bg-slate-800 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-slate-700 transition-colors">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Widget Button -->
+                <button @click="showTooltip = false; $dispatch('open-doc-details')" 
+                        class="group relative bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-full p-4 shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-indigo-300">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <!-- Pulse animation -->
+                    <span class="absolute inset-0 rounded-full bg-indigo-400 animate-ping opacity-20"></span>
+                </button>
+            </div>
 
             <!-- Main Content -->
             @if ($users->isEmpty())
@@ -1076,10 +1111,388 @@
             document.querySelectorAll('.batch-group').forEach(batch => {
                 addBatchEventListeners(batch);
             });
+
+            // Doc Viewer helpers (full-screen preview)
+            window.openDocViewer = function(previewUrl, title, downloadUrl, fileExt) {
+                const modal = document.getElementById('doc-viewer-modal');
+                if (!modal) return window.open(previewUrl, '_blank');
+
+                const titleEl = document.getElementById('doc-viewer-title');
+                const frame = document.getElementById('doc-viewer-frame');
+                const imageDiv = document.getElementById('doc-viewer-image');
+                const imgEl = document.getElementById('doc-viewer-img');
+                const unsupported = document.getElementById('doc-viewer-unsupported');
+                const loading = document.getElementById('doc-viewer-loading');
+                const downloadBtn = document.getElementById('doc-viewer-download');
+                const newtabBtn = document.getElementById('doc-viewer-newtab');
+                const fallbackBtn = document.getElementById('doc-viewer-fallback-download');
+
+                const ext = (fileExt || '').toLowerCase();
+
+                // reset views
+                frame.classList.add('hidden');
+                imageDiv.classList.add('hidden');
+                unsupported.classList.add('hidden');
+                loading.classList.remove('hidden');
+
+                titleEl.textContent = title || 'Document Preview';
+                downloadBtn.href = downloadUrl || previewUrl;
+                fallbackBtn.href = downloadUrl || previewUrl;
+                newtabBtn.href = previewUrl;
+
+                // open modal
+                modal.classList.remove('hidden');
+
+                const isPdf = ext === 'pdf';
+                const isImage = ['jpg','jpeg','png','gif','webp','bmp'].includes(ext);
+
+                if (isPdf) {
+                    frame.src = previewUrl;
+                    frame.onload = () => loading.classList.add('hidden');
+                    frame.onerror = () => {
+                        loading.classList.add('hidden');
+                        unsupported.classList.remove('hidden');
+                    };
+                    frame.classList.remove('hidden');
+                } else if (isImage) {
+                    imgEl.onload = () => loading.classList.add('hidden');
+                    imgEl.onerror = () => {
+                        loading.classList.add('hidden');
+                        unsupported.classList.remove('hidden');
+                    };
+                    imgEl.src = previewUrl;
+                    imageDiv.classList.remove('hidden');
+                } else {
+                    loading.classList.add('hidden');
+                    unsupported.classList.remove('hidden');
+                }
+            };
+
+            window.closeDocViewer = function() {
+                const modal = document.getElementById('doc-viewer-modal');
+                if (!modal) return;
+                const frame = document.getElementById('doc-viewer-frame');
+                const imgEl = document.getElementById('doc-viewer-img');
+                frame.src = '';
+                imgEl.src = '';
+                modal.classList.add('hidden');
+            };
         });
     </script>
 
 {{-- ═══════ Print Prompt Modal ═══════ --}}
 @include('documents.partials.print-prompt-modal')
+
+{{-- ═══ Document Viewer Modal (shared with doc details modal full-screen) ═══ --}}
+<div id="doc-viewer-modal" class="hidden fixed inset-0 z-[95] overflow-hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeDocViewer()"></div>
+    <div class="relative w-full max-w-5xl mx-auto my-6 bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col" style="height: 90vh;">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-gradient-to-r from-indigo-50 to-white">
+            <div>
+                <p id="doc-viewer-title" class="text-base font-semibold text-slate-800">Document Preview</p>
+                <p class="text-xs text-slate-500">Full-screen viewer</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <a id="doc-viewer-newtab" href="#" target="_blank" class="p-2 rounded-lg text-indigo-600 hover:bg-indigo-50" title="Open in new tab">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7m0 0v7m0-7L10 14m-4 7h1a2 2 0 002-2v-3.5a1.5 1.5 0 00-1.5-1.5H8a2 2 0 00-2 2v1a2 2 0 002 2z"/></svg>
+                </a>
+                <a id="doc-viewer-download" href="#" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100" title="Download">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                </a>
+                <button onclick="closeDocViewer()" class="p-2 rounded-lg text-slate-500 hover:bg-slate-100" title="Close">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex-1 bg-slate-50 relative">
+            <div id="doc-viewer-loading" class="absolute inset-0 flex items-center justify-center">
+                <div class="flex flex-col items-center gap-2 text-slate-500">
+                    <svg class="animate-spin h-8 w-8 text-indigo-400" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                    <p class="text-sm">Loading preview…</p>
+                </div>
+            </div>
+
+            <iframe id="doc-viewer-frame" class="hidden w-full h-full border-0" title="Document iframe preview"></iframe>
+
+            <div id="doc-viewer-image" class="hidden w-full h-full flex items-center justify-center bg-white">
+                <img id="doc-viewer-img" alt="Document image preview" class="max-h-full max-w-full object-contain" />
+            </div>
+
+            <div id="doc-viewer-unsupported" class="hidden absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+                <svg class="w-12 h-12 text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <p class="text-sm font-medium text-slate-700 mb-1">Preview not available for this file type.</p>
+                <p class="text-xs text-slate-500 mb-3">Use the Download button above to view this file.</p>
+                <a id="doc-viewer-fallback-download" href="#" class="inline-flex items-center px-3 py-2 bg-indigo-600 text-white rounded-md text-xs hover:bg-indigo-700 transition">
+                    <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Download file
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@php
+    $fileSizeLabel = 'Unknown';
+    try {
+        if (!empty($document->path) && \Illuminate\Support\Facades\Storage::disk('public')->exists($document->path)) {
+            $bytes = \Illuminate\Support\Facades\Storage::disk('public')->size($document->path);
+            $units = ['B','KB','MB','GB','TB'];
+            $i = 0;
+            while ($bytes >= 1024 && $i < count($units) - 1) {
+                $bytes /= 1024;
+                $i++;
+            }
+            $fileSizeLabel = number_format($bytes, 2) . ' ' . $units[$i];
+        }
+    } catch (\Throwable $e) {
+        $fileSizeLabel = 'Unknown';
+    }
+@endphp
+
+{{-- ═══ Document Details Modal ═══════ --}}
+<div x-data="{ open: false }" 
+     @open-doc-details.window="open = true"
+     x-show="open" 
+     x-cloak
+     class="fixed inset-0 z-[80] overflow-y-auto" 
+     aria-labelledby="modal-title" 
+     role="dialog" 
+     aria-modal="true">
+    
+    <!-- Backdrop -->
+    <div x-show="open" 
+         x-transition:enter="ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm transition-opacity" 
+         @click="open = false"></div>
+
+    <!-- Modal Container -->
+    <div class="flex min-h-full items-center justify-center p-4">
+        <div x-show="open" 
+             x-transition:enter="ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave="ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+             class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+            
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-indigo-50 to-white px-6 py-4 border-b border-indigo-200/60 flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-indigo-100 rounded-lg">
+                        <svg class="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800">Document Details</h3>
+                        <p class="text-sm text-slate-500">{{ $document->title }}</p>
+                    </div>
+                </div>
+                <button @click="open = false" class="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="flex-1 overflow-y-auto p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    
+                    <!-- Left Column: Document Information -->
+                    <div class="space-y-6">
+                        <!-- Document Info Card -->
+                        <div class="bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-xl p-5">
+                            <h4 class="text-sm font-semibold text-slate-700 mb-4 flex items-center">
+                                <svg class="w-4 h-4 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Document Information
+                            </h4>
+                            <dl class="space-y-3">
+                                <div>
+                                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wide">Title</dt>
+                                    <dd class="mt-1 text-sm font-semibold text-slate-800">{{ $document->title }}</dd>
+                                </div>
+                                @if($document->description)
+                                <div>
+                                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wide">Description</dt>
+                                    <dd class="mt-1 text-sm text-slate-700">{{ $document->description }}</dd>
+                                </div>
+                                @endif
+                                <div>
+                                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wide">Category</dt>
+                                    <dd class="mt-1">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">
+                                            {{ $document->category ?? 'Uncategorized' }}
+                                        </span>
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wide">Classification</dt>
+                                    <dd class="mt-1">
+                                        @php
+                                            $badgeClasses = match($document->classification ?? 'Public') {
+                                                'Public' => 'bg-blue-100 text-blue-700',
+                                                'Office Only' => 'bg-green-100 text-green-700',
+                                                'Custom Offices' => 'bg-purple-100 text-purple-700',
+                                                'Private' => 'bg-red-100 text-red-700',
+                                                default => 'bg-gray-100 text-gray-700',
+                                            };
+                                        @endphp
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $badgeClasses }}">
+                                            {{ $document->classification ?? 'Public' }}
+                                        </span>
+                                    </dd>
+                                </div>
+                                @if($document->trackingNumber)
+                                <div>
+                                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wide">Tracking Number</dt>
+                                    <dd class="mt-1 text-sm font-mono font-semibold text-indigo-600">{{ $document->trackingNumber->tracking_number }}</dd>
+                                </div>
+                                @endif
+                                <div>
+                                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wide">Uploaded By</dt>
+                                    <dd class="mt-1 text-sm text-slate-700">{{ $document->user->first_name ?? '' }} {{ $document->user->last_name ?? '' }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wide">Upload Date</dt>
+                                    <dd class="mt-1 text-sm text-slate-700">{{ $document->created_at->format('M d, Y h:i A') }}</dd>
+                                </div>
+                            </dl>
+                        </div>
+
+                        <!-- Attachments Card -->
+                        @if($document->attachments && $document->attachments->isNotEmpty())
+                        <div class="bg-gradient-to-br from-amber-50 to-white border border-amber-200 rounded-xl p-5">
+                            <h4 class="text-sm font-semibold text-slate-700 mb-4 flex items-center">
+                                <svg class="w-4 h-4 mr-2 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                </svg>
+                                Attachments ({{ $document->attachments->count() }})
+                            </h4>
+                            <div class="space-y-2 max-h-60 overflow-y-auto pr-2">
+                                @foreach($document->attachments as $attachment)
+                                <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-amber-100 hover:border-amber-300 transition-colors group">
+                                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                                        @php
+                                            $ext = strtolower(pathinfo($attachment->path, PATHINFO_EXTENSION));
+                                            $iconColor = match($ext) {
+                                                'pdf' => 'text-red-500',
+                                                'doc', 'docx' => 'text-blue-500',
+                                                'xls', 'xlsx' => 'text-green-500',
+                                                'jpg', 'jpeg', 'png', 'gif' => 'text-purple-500',
+                                                default => 'text-slate-500',
+                                            };
+                                        @endphp
+                                        <svg class="w-5 h-5 flex-shrink-0 {{ $iconColor }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                        </svg>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-sm font-medium text-slate-700 truncate">{{ $attachment->filename }}</p>
+                                            <p class="text-xs text-slate-500">{{ strtoupper($ext) }}</p>
+                                        </div>
+                                    </div>
+                                    <button onclick="openDocViewer('{{ route('attachments.preview', $attachment->id) }}', '{{ addslashes($attachment->filename) }}', '{{ route('attachments.download', $attachment->id) }}', '{{ $ext }}')"
+                                            class="flex-shrink-0 ml-3 p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+
+                    <!-- Right Column: Document Preview -->
+                    <div class="space-y-4">
+                        <div class="bg-gradient-to-br from-indigo-50 to-white border border-indigo-200 rounded-xl p-5">
+                            <h4 class="text-sm font-semibold text-slate-700 mb-4 flex items-center justify-between">
+                                <span class="flex items-center">
+                                    <svg class="w-4 h-4 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                    Document Preview
+                                </span>
+                                <button onclick="openDocViewer('{{ route('documents.preview', $document->id) }}', '{{ addslashes($document->title) }}', '{{ route('documents.download', $document->id) }}', '{{ pathinfo($document->path, PATHINFO_EXTENSION) }}')"
+                                        class="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                                    </svg>
+                                    Full Screen
+                                </button>
+                            </h4>
+                            
+                            <!-- Preview Container -->
+                            <div class="relative bg-slate-100 rounded-lg overflow-hidden" style="height: 500px;">
+                                @php
+                                    $ext = strtolower(pathinfo($document->path, PATHINFO_EXTENSION));
+                                    $isPdf = $ext === 'pdf';
+                                    $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+                                @endphp
+                                
+                                @if($isPdf)
+                                    <iframe src="{{ route('documents.preview', $document->id) }}" 
+                                            class="w-full h-full border-0"
+                                            title="Document Preview"></iframe>
+                                @elseif($isImage)
+                                    <img src="{{ route('documents.preview', $document->id) }}" 
+                                         alt="{{ $document->title }}"
+                                         class="w-full h-full object-contain">
+                                @else
+                                    <div class="flex flex-col items-center justify-center h-full text-center p-8">
+                                        <svg class="w-16 h-16 text-slate-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                        <p class="text-sm font-medium text-slate-600 mb-2">Preview not available for this file type</p>
+                                        <p class="text-xs text-slate-500 mb-4">{{ strtoupper($ext) }} files cannot be previewed directly</p>
+                                        <a href="{{ route('documents.download', $document->id) }}" 
+                                           class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                                            <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                            </svg>
+                                            Download to View
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex items-center justify-between flex-shrink-0">
+                <div class="text-xs text-slate-500">
+                    <span class="font-medium">File Size:</span> {{ $fileSizeLabel }}
+                </div>
+                <div class="flex gap-3">
+                    <a href="{{ route('documents.download', $document->id) }}" 
+                       class="inline-flex items-center px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Download
+                    </a>
+                    <button @click="open = false" 
+                            class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @endsection
