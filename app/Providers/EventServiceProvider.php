@@ -15,9 +15,10 @@ class EventServiceProvider extends ServiceProvider
      * @var array<class-string, array<int, class-string>>
      */
     protected $listen = [
-        Registered::class => [
-            SendEmailVerificationNotification::class,
-        ],
+        // Disabled: Using custom verification code system instead of built-in signed URL verification
+        // Registered::class => [
+        //     SendEmailVerificationNotification::class,
+        // ],
         // Add your custom events and listeners here
     ];
 

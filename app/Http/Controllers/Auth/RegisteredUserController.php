@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\CompanyAccount;
 use App\Models\CompanyAddress;
 use App\Models\CompanyUser;
+use App\Mail\verificationMail;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 
 class RegisteredUserController extends Controller
@@ -76,8 +78,30 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        // Generate verification code before redirecting to verification notice
-        $user->generateVerificationCode();
+        // Generate verification code
+        $code = $user->generateVerificationCode();
+
+        // Send verification email with code
+        try {
+            Mail::to($user->email)
+                ->send(new verificationMail(
+                    $user->first_name,
+                    $user->last_name,
+                    $code,
+                    route('login')
+                ));
+            Log::info('Verification email sent on registration', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to send verification email on registration', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'error' => $e->getMessage(),
+            ]);
+            // Don't fail registration if email fails - user can resend later
+        }
 
         // Get registered_name or default to company_name if not provided
         $registeredName = $request->registered_name ?: $request->company_name;
