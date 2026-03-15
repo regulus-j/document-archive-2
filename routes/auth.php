@@ -36,6 +36,11 @@ Route::middleware('guest')->group(function () {
         ->name('password.store');
 });
 
+// Email verification link: accessible without auth to support email clicks from unauthenticated users
+Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('verification.verify');
+
 Route::middleware('auth')->group(function () {
     Route::get('verify-email', [VerifiedEmailController::class, 'userVerifiesMail'])
         ->name('verification.notice');
@@ -45,10 +50,6 @@ Route::middleware('auth')->group(function () {
         
     Route::post('resend-code', [VerifiedEmailController::class, 'resend'])
         ->name('verification-code.resend');
-
-    Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
-        ->middleware(['signed', 'throttle:6,1'])
-        ->name('verification.verify');
 
     Route::post('verify-email/{id}', [VerifiedEmailController::class, 'verify'])
         ->name('verification.verify-code');
