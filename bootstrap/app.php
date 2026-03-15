@@ -3,7 +3,6 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Routing\Exceptions\InvalidSignatureException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -22,9 +21,5 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        // Handle invalid signature exceptions (e.g., from signed URL middleware)
-        // This prevents 500 errors when URLs are tampered with or APP_URL doesn't match
-        $exceptions->render(function (InvalidSignatureException $e, $request) {
-            return response()->view('errors.419', [], 419);
-        });
+        //
     })->create();
