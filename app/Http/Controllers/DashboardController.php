@@ -286,7 +286,7 @@ class DashboardController extends Controller
         $workflowStatusCounts = collect();
 
         if ($user->hasRole('company-admin') && $userCompany) {
-            $officeActivity = Office::where('company_id', $userCompany->id)
+            $officeActivity = Office::where('offices.company_id', $userCompany->id)
                 ->leftJoin('documents', 'documents.from_office', '=', 'offices.id')
                 ->select('offices.id', 'offices.name', DB::raw('COUNT(documents.id) as total'))
                 ->groupBy('offices.id', 'offices.name')
