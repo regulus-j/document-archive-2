@@ -47,7 +47,7 @@ class UserController extends Controller
             $roles = Role::all();
         } elseif ($authUser->hasRole('company-admin')) {
             $company = $authUser->companies()->first();
-            $roles = $company ? Role::companyOnly($company->id)->get() : collect();
+            $roles = $company ? Role::companyOnly($company->id)->where('name', '!=', 'super-admin')->get() : collect();
         } else {
             $company = $authUser->companies()->first();
             $roles = $company ? Role::where('name', 'user')->where('company_id', $company->id)->get() : collect();
@@ -100,7 +100,7 @@ class UserController extends Controller
             $roles = Role::all();
         } elseif ($authUser->hasRole('company-admin')) {
             $company = $authUser->companies()->first();
-            $roles = $company ? Role::companyOnly($company->id)->get() : collect();
+            $roles = $company ? Role::companyOnly($company->id)->where('name', '!=', 'super-admin')->get() : collect();
         } else {
             $company = $authUser->companies()->first();
             $roles = $company ? Role::where('name', 'user')->where('company_id', $company->id)->get() : collect();
@@ -337,8 +337,8 @@ class UserController extends Controller
                 abort(403, 'You can only edit users from your company.');
             }
 
-            // Company admins see only their company's roles
-            $roles = Role::companyOnly($company->id)->pluck('name', 'id')->all();
+            // Company admins see only their company's roles (excluding super-admin)
+            $roles = Role::companyOnly($company->id)->where('name', '!=', 'super-admin')->pluck('name', 'id')->all();
         } else {
             // Regular users can only edit themselves
             if ($user->id !== $authUser->id) {

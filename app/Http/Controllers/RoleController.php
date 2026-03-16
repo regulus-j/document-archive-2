@@ -27,7 +27,7 @@ class RoleController extends Controller
     {
         $user = Auth::user();
 
-        // Super-admin sees all roles; others see only their company's roles + global
+        // Super-admin sees all roles; others see only their company's roles (excluding super-admin)
         if ($user->hasRole('super-admin')) {
             $query = Role::withCount('permissions')->orderBy('id', 'DESC');
         } else {
@@ -35,6 +35,7 @@ class RoleController extends Controller
             $companyId = $company ? $company->id : null;
             $query = Role::withCount('permissions')
                 ->forCompany($companyId)
+                ->where('name', '!=', 'super-admin')
                 ->orderBy('id', 'DESC');
         }
 

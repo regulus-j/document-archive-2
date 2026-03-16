@@ -409,10 +409,12 @@ class DocumentWorkflowController extends Controller
         $request->validate([
             'recipient_batch' => 'required|array',
             'recipient_batch.*' => 'required|array|min:1',
-            'recipient_batch.*.*' => ['required','string','regex:/^(user|office)_\\d+$/'],
-            'step_order' => 'required|array',
             'purpose_batch' => 'required|array',
-            'purpose_batch.*' => 'required|string|in:appropriate_action,dissemination,for_comment',
+            'purpose_batch.*' => 'required|in:appropriate_action,dissemination,for_comment',
+            'delegation_type_batch' => 'nullable|array',
+            'delegation_type_batch.*' => 'nullable|in:retain,delegate',
+            'wait_policy_batch' => 'nullable|array',
+            'wait_policy_batch.*' => 'nullable|in:wait_all,decide_anytime',
             'urgency_batch' => 'nullable|array',
             'urgency_batch.*' => 'nullable|string|in:low,medium,high,critical',
             'due_date_batch' => 'nullable|array',
@@ -497,6 +499,10 @@ class DocumentWorkflowController extends Controller
             $purpose = $request->purpose_batch[$batchIndex] ?? null;
             $actionInstruction = trim($request->action_required_batch[$batchIndex] ?? '');
             $remarksForStep = $actionInstruction !== '' ? $actionInstruction : ($request->remarks[$batchIndex] ?? null);
+            
+            // Get per-batch delegation options
+            $delegationType = $request->delegation_type_batch[$batchIndex] ?? 'retain';
+            $waitPolicy = $request->wait_policy_batch[$batchIndex] ?? 'wait_all';
 
             \Log::info('Creating workflow batch', [
                 'step_order' => $stepOrder,
@@ -544,6 +550,8 @@ class DocumentWorkflowController extends Controller
                         'purpose' => $purpose,
                         'urgency' => $request->urgency_batch[$batchIndex] ?? null,
                         'due_date' => $request->due_date_batch[$batchIndex] ?? null,
+                        'delegation_type' => $purpose === 'appropriate_action' ? $delegationType : null,
+                        'wait_policy' => $purpose === 'appropriate_action' && $delegationType === 'retain' ? $waitPolicy : null,
                     ]);
 
                     // Notify the user recipient (only if status is pending)
@@ -590,6 +598,8 @@ class DocumentWorkflowController extends Controller
                                 'purpose' => $purpose,
                                 'urgency' => $request->urgency_batch[$batchIndex] ?? null,
                                 'due_date' => $request->due_date_batch[$batchIndex] ?? null,
+                                'delegation_type' => $purpose === 'appropriate_action' ? $delegationType : null,
+                                'wait_policy' => $purpose === 'appropriate_action' && $delegationType === 'retain' ? $waitPolicy : null,
                             ]);
 
                             // Notify each user in the office (only if status is pending)
@@ -1250,10 +1260,15 @@ class DocumentWorkflowController extends Controller
                         continue;
                     }
                     
-                    // Get the user's office ID
+                    // Get the user's office ID with null safety
                     $user = \App\Models\User::with('offices')->find($recipientId);
-                    $senderOffice = auth()->user()->offices->first();
-                    $recipientOfficeId = $user && $user->offices->isNotEmpty()
+                    if (!$user) {
+                        \Log::warning('Attempted to forward to non-existent user', ['recipient_id' => $recipientId]);
+                        continue;
+                    }
+                    
+                    $senderOffice = auth()->user()->offices ? auth()->user()->offices->first() : null;
+                    $recipientOfficeId = $user->offices && $user->offices->isNotEmpty()
                         ? $user->offices->first()->id
                         : ($senderOffice ? $senderOffice->id : null);
                     
@@ -1311,10 +1326,15 @@ class DocumentWorkflowController extends Controller
                     continue;
                 }
                 
-                // Get the user's office ID
+                // Get the user's office ID with null safety
                 $user = \App\Models\User::with('offices')->find($recipientId);
-                $senderOffice = auth()->user()->offices->first();
-                $recipientOfficeId = $user && $user->offices->isNotEmpty()
+                if (!$user) {
+                    \Log::warning('Attempted to forward to non-existent user', ['recipient_id' => $recipientId]);
+                    continue;
+                }
+                
+                $senderOffice = auth()->user()->offices ? auth()->user()->offices->first() : null;
+                $recipientOfficeId = $user->offices && $user->offices->isNotEmpty()
                     ? $user->offices->first()->id
                     : ($senderOffice ? $senderOffice->id : null);
                 

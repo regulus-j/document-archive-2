@@ -274,6 +274,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/{document}', [DocumentController::class, 'update'])->name('documents.update');
         Route::post('/{document}/upload-version', [DocumentController::class, 'uploadVersion'])->name('documents.uploadVersion');
         Route::get('/{document}/versions/{version}/preview', [DocumentController::class, 'previewVersion'])->name('documents.versionPreview');
+        Route::delete('/{document}/versions/{version}', [DocumentController::class, 'deleteVersion'])->name('documents.versionDelete');
         Route::get('/{document}/preview-current', [DocumentController::class, 'previewCurrent'])->name('documents.previewCurrent');
         Route::delete('/{document}/delete', [DocumentController::class, 'destroy'])->name('documents.destroy');
         Route::delete('/{document}/delete-attachment', [DocumentController::class, 'deleteAttachment'])->name('documents.attachments.destroy');

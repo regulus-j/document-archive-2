@@ -405,12 +405,12 @@
         <p class="text-xs text-slate-500 mt-1">Required when sending for appropriate action.</p>
     </div>
     
-    <!-- Delegation Options (for appropriate action only) -->
+    <!-- Delegation Options (for appropriate action only) - Per Batch -->
     <div class="mt-4 delegation-options-container hidden">
-        <label class="block text-xs font-medium text-slate-600 mb-2">Decision Authority</label>
+        <label class="block text-xs font-medium text-slate-600 mb-2">Decision Authority for This Batch</label>
         <div class="space-y-3">
             <label class="flex items-start p-3 border-2 border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-all delegation-option" data-type="retain">
-                <input type="radio" name="delegation_type" value="retain" class="mt-1 mr-3 delegation-radio" checked>
+                <input type="radio" name="delegation_type_batch[0]" value="retain" class="mt-1 mr-3 delegation-radio" checked>
                 <div class="flex-1">
                     <div class="flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -425,11 +425,11 @@
                         <label class="block text-xs font-medium text-slate-600 mb-1.5">When can you decide?</label>
                         <div class="space-y-2">
                             <label class="flex items-center text-xs text-slate-700">
-                                <input type="radio" name="wait_policy" value="wait_all" class="mr-2 text-indigo-600" checked>
+                                <input type="radio" name="wait_policy_batch[0]" value="wait_all" class="mr-2 text-indigo-600" checked>
                                 <span>Wait for all consultations to complete</span>
                             </label>
                             <label class="flex items-center text-xs text-slate-700">
-                                <input type="radio" name="wait_policy" value="decide_anytime" class="mr-2 text-indigo-600">
+                                <input type="radio" name="wait_policy_batch[0]" value="decide_anytime" class="mr-2 text-indigo-600">
                                 <span>Decide after any consultation completes</span>
                             </label>
                         </div>
@@ -438,7 +438,7 @@
             </label>
             
             <label class="flex items-start p-3 border-2 border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-all delegation-option" data-type="delegate">
-                <input type="radio" name="delegation_type" value="delegate" class="mt-1 mr-3 delegation-radio">
+                <input type="radio" name="delegation_type_batch[0]" value="delegate" class="mt-1 mr-3 delegation-radio">
                 <div class="flex-1">
                     <div class="flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -773,7 +773,8 @@
             }
             
             function syncDelegationOptions() {
-                const selectedDelegation = batch.querySelector('input[name="delegation_type"]:checked');
+                const batchIndex = batch.getAttribute('data-index');
+                const selectedDelegation = batch.querySelector(`input[name="delegation_type_batch[${batchIndex}]"]:checked`);
                 const isRetain = selectedDelegation && selectedDelegation.value === 'retain';
                 
                 // Update visual styling for delegation options

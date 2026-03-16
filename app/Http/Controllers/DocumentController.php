@@ -1514,6 +1514,45 @@ class DocumentController extends Controller
     }
 
     /**
+     * Delete a document version uploaded by the current user.
+     */
+    public function deleteVersion(Document $document, DocumentVersion $version): RedirectResponse
+    {
+        // Ensure the version belongs to this document
+        if ($version->doc_id !== $document->id) {
+            return redirect()->back()->with('error', 'Version does not belong to this document.');
+        }
+
+        // Check if user is the uploader or admin
+        $isOwner = (int)$version->uploaded_by === (int)auth()->id();
+        $isAdmin = auth()->user()->hasRole('super-admin') || auth()->user()->hasRole('company-admin');
+        
+        if (!$isOwner && !$isAdmin) {
+            return redirect()->back()->with('error', 'You may only delete versions that you uploaded.');
+        }
+
+        // Delete the file from storage
+        if ($version->file_path) {
+            Storage::disk('public')->delete($version->file_path);
+        }
+
+        $deletedVersionNumber = $version->version_number;
+        $version->delete();
+
+        // Audit log
+        DocumentAudit::logDocumentAction(
+            $document->id,
+            auth()->id(),
+            'version_deleted',
+            $document->status?->status ?? 'uploaded',
+            "Version v{$deletedVersionNumber} deleted by " . auth()->user()->first_name . ' ' . auth()->user()->last_name
+        );
+
+        return redirect()->route('documents.show', $document->id)
+            ->with('success', "Version v{$deletedVersionNumber} deleted successfully.");
+    }
+
+    /**
      * Preview a specific document version file inline in the browser.
      */
     public function previewVersion(Document $document, DocumentVersion $version)
