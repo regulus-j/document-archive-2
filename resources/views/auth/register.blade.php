@@ -67,7 +67,7 @@
                     </svg>
                     Personal Information
                 </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                         <x-input-label for="first_name" :value="__('First Name')" class="text-slate-700" />
                         <x-text-input id="first_name"
@@ -88,7 +88,7 @@
                         <x-input-error :messages="$errors->get('middle_name')" class="mt-2" />
                     </div>
 
-                    <div class="md:col-span-2">
+                    <div>
                         <x-input-label for="last_name" :value="__('Last Name')" class="text-slate-700" />
                         <x-text-input id="last_name"
                             class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
@@ -98,7 +98,7 @@
                         <x-input-error :messages="$errors->get('last_name')" class="mt-2" />
                     </div>
 
-                    <div class="md:col-span-2">
+                    <div class="md:col-span-3">
                         <x-input-label for="email" :value="__('Email')" class="text-slate-700" />
                         <x-text-input id="email"
                             class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
