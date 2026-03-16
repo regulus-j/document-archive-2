@@ -661,8 +661,15 @@ class DocumentWorkflowController extends Controller
             }
         }
 
-        $docQR = $document->trackingNumber();
-        $barcodeData = app(DocumentController::class)->generateTrackingSlip($document->id, auth()->id(), $trackingNumber);
+        $barcodeData = null;
+        try {
+            $barcodeData = app(DocumentController::class)->generateTrackingSlip($document->id, auth()->id(), $trackingNumber);
+        } catch (\Throwable $e) {
+            \Log::warning('Barcode generation failed during forward (non-blocking)', [
+                'document_id' => $document->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
         
         $successMessage = $isSequential ? 
             'Document forwarded successfully with sequential workflow. Recipients will process in order.' :
@@ -1193,7 +1200,7 @@ class DocumentWorkflowController extends Controller
         // Add delegation validation for appropriate_action workflows
         if ($workflow->purpose === 'appropriate_action') {
             $validationRules = array_merge($validationRules, [
-                'delegation_type' => 'required|in:retain,delegate',
+                'delegation_type' => 'nullable|in:retain,delegate',
                 'wait_policy' => 'nullable|in:wait_all,decide_anytime',
             ]);
         }
@@ -1739,6 +1746,38 @@ class DocumentWorkflowController extends Controller
     }
 
     /**
+     * Get the correct MIME type for a file, fixing mime_content_type() returning
+     * wrong types for Office documents (e.g. application/zip for .docx).
+     */
+    private function getCorrectMimeType(string $filePath): string
+    {
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        $mimeMap = [
+            'pdf'  => 'application/pdf',
+            'doc'  => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'xls'  => 'application/vnd.ms-excel',
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'ppt'  => 'application/vnd.ms-powerpoint',
+            'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'csv'  => 'text/csv',
+            'rtf'  => 'application/rtf',
+            'odt'  => 'application/vnd.oasis.opendocument.text',
+            'ods'  => 'application/vnd.oasis.opendocument.spreadsheet',
+            'odp'  => 'application/vnd.oasis.opendocument.presentation',
+            'jpg'  => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png'  => 'image/png',
+            'gif'  => 'image/gif',
+            'webp' => 'image/webp',
+            'bmp'  => 'image/bmp',
+            'svg'  => 'image/svg+xml',
+        ];
+
+        return $mimeMap[$ext] ?? mime_content_type($filePath);
+    }
+
+    /**
      * Preview/view a document file inline in the browser
      */
     public function previewDocument($id)
@@ -1755,13 +1794,11 @@ class DocumentWorkflowController extends Controller
             abort(404, 'File not found.');
         }
 
-        $mimeType = mime_content_type($filePath);
+        $mimeType = $this->getCorrectMimeType($filePath);
 
         return response()->file($filePath, [
             'Content-Type' => $mimeType,
             'Content-Disposition' => 'inline; filename="' . basename($document->path) . '"',
-            'X-Frame-Options' => 'SAMEORIGIN',
-            'Content-Security-Policy' => 'frame-ancestors \'self\'',
         ]);
     }
 
@@ -1783,13 +1820,11 @@ class DocumentWorkflowController extends Controller
             abort(404, 'File not found.');
         }
 
-        $mimeType = $attachment->mime_type ?? mime_content_type($filePath);
+        $mimeType = $attachment->mime_type ?? $this->getCorrectMimeType($filePath);
 
         return response()->file($filePath, [
             'Content-Type' => $mimeType,
             'Content-Disposition' => 'inline; filename="' . $attachment->filename . '"',
-            'X-Frame-Options' => 'SAMEORIGIN',
-            'Content-Security-Policy' => 'frame-ancestors \'self\'',
         ]);
     }
 

@@ -1578,7 +1578,7 @@ class DocumentController extends Controller
             abort(404, 'Version file not found.');
         }
 
-        $mimeType = mime_content_type($filePath);
+        $mimeType = self::getCorrectMimeType($filePath);
 
         return response()->file($filePath, [
             'Content-Type'        => $mimeType,
@@ -1601,12 +1601,44 @@ class DocumentController extends Controller
             abort(404, 'Document file not found.');
         }
 
-        $mimeType = mime_content_type($filePath);
+        $mimeType = self::getCorrectMimeType($filePath);
 
         return response()->file($filePath, [
             'Content-Type'        => $mimeType,
             'Content-Disposition' => 'inline; filename="' . basename($document->path) . '"',
         ]);
+    }
+
+    /**
+     * Get the correct MIME type for a file based on extension.
+     * Fixes mime_content_type() returning application/zip for Office XML formats.
+     */
+    public static function getCorrectMimeType(string $filePath): string
+    {
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        $mimeMap = [
+            'pdf'  => 'application/pdf',
+            'doc'  => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'xls'  => 'application/vnd.ms-excel',
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'ppt'  => 'application/vnd.ms-powerpoint',
+            'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'csv'  => 'text/csv',
+            'rtf'  => 'application/rtf',
+            'odt'  => 'application/vnd.oasis.opendocument.text',
+            'ods'  => 'application/vnd.oasis.opendocument.spreadsheet',
+            'odp'  => 'application/vnd.oasis.opendocument.presentation',
+            'jpg'  => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png'  => 'image/png',
+            'gif'  => 'image/gif',
+            'webp' => 'image/webp',
+            'bmp'  => 'image/bmp',
+            'svg'  => 'image/svg+xml',
+        ];
+
+        return $mimeMap[$ext] ?? mime_content_type($filePath);
     }
 
     /**
