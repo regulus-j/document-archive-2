@@ -58,18 +58,20 @@
             </div>
         </div>
 
+        <p class="text-sm text-slate-500 mb-6">Fields marked with <span class="text-red-500">*</span> are required.</p>
+
         <!-- Step 1: Personal Information -->
         <div class="step-content space-y-4" id="step1">
             <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100">
-                <h2 class="text-xl font-semibold mb-6 text-slate-800 flex items-center">
+                <h2 class="text-xl font-semibold mb-2 text-slate-800 flex items-center">
                     <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                     Personal Information
                 </h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <x-input-label for="first_name" :value="__('First Name')" class="text-slate-700" />
+                        <x-input-label for="first_name" :value="__('First Name')" class="text-slate-700" :required="true" />
                         <x-text-input id="first_name"
                             class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                             type="text" name="first_name" :value="old('first_name')" required autofocus
@@ -79,7 +81,7 @@
                     </div>
 
                     <div>
-                        <x-input-label for="middle_name" :value="__('Middle Name (Optional)')" class="text-slate-700" />
+                        <x-input-label for="middle_name" :value="__('Middle Name')" class="text-slate-700" />
                         <x-text-input id="middle_name"
                             class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                             type="text" name="middle_name" :value="old('middle_name')"
@@ -88,8 +90,8 @@
                         <x-input-error :messages="$errors->get('middle_name')" class="mt-2" />
                     </div>
 
-                    <div>
-                        <x-input-label for="last_name" :value="__('Last Name')" class="text-slate-700" />
+                    <div class="md:col-span-2">
+                        <x-input-label for="last_name" :value="__('Last Name')" class="text-slate-700" :required="true" />
                         <x-text-input id="last_name"
                             class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                             type="text" name="last_name" :value="old('last_name')" required
@@ -98,8 +100,8 @@
                         <x-input-error :messages="$errors->get('last_name')" class="mt-2" />
                     </div>
 
-                    <div class="md:col-span-3">
-                        <x-input-label for="email" :value="__('Email')" class="text-slate-700" />
+                    <div class="md:col-span-2">
+                        <x-input-label for="email" :value="__('Email')" class="text-slate-700" :required="true" />
                         <x-text-input id="email"
                             class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                             type="email" name="email" :value="old('email')" required
@@ -122,7 +124,7 @@
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="md:col-span-2">
-                        <x-input-label for="company_name" :value="__('Organization Name')" class="text-slate-700" />
+                        <x-input-label for="company_name" :value="__('Organization Name')" class="text-slate-700" :required="true" />
                         <x-text-input id="company_name"
                             class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                             type="text" name="company_name" :value="old('company_name')" required
@@ -132,7 +134,7 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <x-input-label for="registered_name" :value="__('Registered Name')" class="text-slate-700" />
+                        <x-input-label for="registered_name" :value="__('Registered Name')" class="text-slate-700" :required="true" />
                         <x-text-input id="registered_name"
                             class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                             type="text" name="registered_name" :value="old('registered_name')" required placeholder="legal registered business name" />
@@ -173,7 +175,7 @@
                     <template x-if="showAddress">
                         <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
                             <div>
-                                <x-input-label for="company_email" :value="__('Company Email')" class="text-slate-700" />
+                                <x-input-label for="company_email" :value="__('Company Email')" class="text-slate-700" :required="true" />
                                 <x-text-input id="company_email"
                                     class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-white focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                                     type="email" name="company_email" :value="old('company_email')" required
@@ -182,7 +184,7 @@
                             </div>
 
                             <div>
-                                <x-input-label for="company_phone" :value="__('Company Phone')" class="text-slate-700" />
+                                <x-input-label for="company_phone" :value="__('Company Phone')" class="text-slate-700" :required="true" />
                                 <x-text-input id="company_phone"
                                     class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-white focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                                     type="tel" name="company_phone" :value="old('company_phone')" required placeholder="company contact number" />
@@ -190,7 +192,7 @@
                             </div>
 
                             <div class="md:col-span-2">
-                                <x-input-label for="address" :value="__('Address')" class="text-slate-700" />
+                                <x-input-label for="address" :value="__('Address')" class="text-slate-700" :required="true" />
                                 <x-text-input id="address"
                                     class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-white focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                                     type="text" name="address" :value="old('address')" placeholder="complete street address" />
@@ -198,7 +200,7 @@
                             </div>
 
                             <div>
-                                <x-input-label for="city" :value="__('City')" class="text-slate-700" />
+                                <x-input-label for="city" :value="__('City')" class="text-slate-700" :required="true" />
                                 <x-text-input id="city"
                                     class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-white focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                                     type="text" name="city" :value="old('city')" placeholder="Enter city name" />
@@ -206,7 +208,7 @@
                             </div>
 
                             <div>
-                                <x-input-label for="state" :value="__('State/Province')" class="text-slate-700" />
+                                <x-input-label for="state" :value="__('State/Province')" class="text-slate-700" :required="true" />
                                 <x-text-input id="state"
                                     class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-white focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                                     type="text" name="state" :value="old('state')" placeholder="state or province" />
@@ -214,7 +216,7 @@
                             </div>
 
                             <div>
-                                <x-input-label for="zip_code" :value="__('ZIP/Postal Code')" class="text-slate-700" />
+                                <x-input-label for="zip_code" :value="__('ZIP/Postal Code')" class="text-slate-700" :required="true" />
                                 <x-text-input id="zip_code"
                                     class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-white focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                                     type="text" name="zip_code" :value="old('zip_code')" placeholder="postal code" />
@@ -222,7 +224,7 @@
                             </div>
 
                             <div>
-                                <x-input-label for="country" :value="__('Country')" class="text-slate-700" />
+                                <x-input-label for="country" :value="__('Country')" class="text-slate-700" :required="true" />
                                 <x-text-input id="country"
                                     class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-white focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                                     type="text" name="country" :value="old('country')" placeholder="country name" />
@@ -245,7 +247,7 @@
                 </h2>
                 <div class="space-y-6">
                     <div>
-                        <x-input-label for="password" :value="__('Password')" class="text-slate-700" />
+                        <x-input-label for="password" :value="__('Password')" class="text-slate-700" :required="true" />
                         <x-text-input id="password"
                             class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                             type="password" name="password" required
@@ -255,7 +257,7 @@
                     </div>
 
                     <div>
-                        <x-input-label for="password_confirmation" :value="__('Confirm Password')" class="text-slate-700" />
+                        <x-input-label for="password_confirmation" :value="__('Confirm Password')" class="text-slate-700" :required="true" />
                         <x-text-input id="password_confirmation"
                             class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                             type="password" name="password_confirmation" required
