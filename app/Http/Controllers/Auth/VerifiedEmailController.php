@@ -235,11 +235,27 @@ class VerifiedEmailController extends Controller
     }
 
     /*
-    // Handle the case when the user clicks the verification link in the email
+    // Handle the case when the user clicks the signed verification link in the default Laravel email
     */
-    public function handleVerificationLink(Request $request)
+    public function verifyViaLink(Request $request, $id, $hash)
     {
-        // Logic to handle the verification link
-        // This could involve checking the token in the URL and marking the email as verified
+        $user = User::findOrFail($id);
+
+        if (! hash_equals(sha1($user->getEmailForVerification()), $hash)) {
+            return redirect()->route('verification.notice')
+                ->withErrors(['verification_code' => 'Invalid verification link.']);
+        }
+
+        if (! $user->hasVerifiedEmail()) {
+            $user->email_verified_at = now();
+            $user->save();
+
+            Log::info('User email verified via signed link', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+            ]);
+        }
+
+        return redirect()->route('dashboard')->with('status', 'Your email has been verified successfully!');
     }
 }

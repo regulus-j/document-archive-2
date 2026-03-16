@@ -99,11 +99,6 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->save();
     }
 
-    /**
-     * Check if the user's email is verified.
-     *
-     * @return bool
-     */
     public function hasVerifiedEmail(): bool
     {
         return $this->email_verified_at !== null &&

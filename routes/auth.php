@@ -43,6 +43,10 @@ Route::middleware('auth')->group(function () {
     Route::post('resend-code', [VerifiedEmailController::class, 'resend'])
         ->name('verification-code.resend');
 
+    Route::get('verify-email/{id}/{hash}', [VerifiedEmailController::class, 'verifyViaLink'])
+        ->middleware('signed')
+        ->name('verification.verify');
+
     Route::post('verify-email/{id}', [VerifiedEmailController::class, 'verify'])
         ->name('verification.verify-code');
 
