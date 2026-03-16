@@ -804,10 +804,13 @@ class DocumentController extends Controller
             $query = Document::with(['user', 'status', 'transaction.fromOffice', 'transaction.toOffice']);
 
             if (!auth()->user()->hasRole('company-admin')) {
-                $userOfficeIds = auth()->user()->offices->pluck('id')->toArray();
-                $query->whereHas('user.offices', function ($q) use ($userOfficeIds) {
-                    $q->whereIn('offices.id', $userOfficeIds);
-                });
+                $userOffices = auth()->user()->offices;
+                $userOfficeIds = $userOffices ? $userOffices->pluck('id')->toArray() : [];
+                if (!empty($userOfficeIds)) {
+                    $query->whereHas('user.offices', function ($q) use ($userOfficeIds) {
+                        $q->whereIn('offices.id', $userOfficeIds);
+                    });
+                }
             }
 
             if ($request->hasFile('image')) {
@@ -922,7 +925,8 @@ class DocumentController extends Controller
     public function create(): View
     {
         $currentUserCompany = auth()->user()->companies()->first();
-        $originatingOfficeId = auth()->user()->offices->first()->id ?? null;
+        $userOffice = auth()->user()->offices ? auth()->user()->offices->first() : null;
+        $originatingOfficeId = $userOffice ? $userOffice->id : null;
 
         // Use the correct model with company-based filtering
         $categories = DocumentCategory::where(function($query) use ($currentUserCompany) {
@@ -1157,7 +1161,8 @@ class DocumentController extends Controller
         $document->load('attachments');
 
         // Retrieve necessary data for the view
-        $userOffice = auth()->user()->offices->pluck('name', 'id');
+        $userOffices = auth()->user()->offices;
+        $userOffice = $userOffices ? $userOffices->pluck('name', 'id') : collect();
         $categories = DocumentCategory::all()->pluck('category', 'id');
 
         // Get all offices from the user's company for Custom Offices selection
@@ -2055,7 +2060,8 @@ class DocumentController extends Controller
 public function receiveIndex(): View
 {
     $currentUserId = auth()->id();
-    $userOfficeIds = auth()->user()->offices->pluck('id')->toArray();
+    $userOffices = auth()->user()->offices;
+    $userOfficeIds = $userOffices ? $userOffices->pluck('id')->toArray() : [];
 
     // Build query to get documents that can be received by the current user
     $documentsQuery = Document::with([

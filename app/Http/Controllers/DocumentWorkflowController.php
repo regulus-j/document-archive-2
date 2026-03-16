@@ -462,8 +462,18 @@ class DocumentWorkflowController extends Controller
         }
 
         // Ensure document from_office is set to the uploader's office if missing or mismatched
-        $uploaderOffice = auth()->user()->offices->first();
-        if (!$document->from_office && $uploaderOffice) {
+        $authUser = auth()->user();
+        if (!$authUser) {
+            return back()->with('error', 'Authentication failed. Please log in again.');
+        }
+        
+        // ROOT CAUSE FIX: Validate sender has an office before allowing forwarding
+        $uploaderOffice = $authUser->offices ? $authUser->offices->first() : null;
+        if (!$uploaderOffice) {
+            return back()->with('error', 'You must be assigned to an office before forwarding documents. Please contact your administrator.');
+        }
+        
+        if (!$document->from_office) {
             $document->from_office = $uploaderOffice->id;
             $document->save();
         }
@@ -531,8 +541,13 @@ class DocumentWorkflowController extends Controller
                     
                     // Get the recipient user's office - use their first office, or fall back to the sender's office
                     $user = \App\Models\User::with('offices')->find($recipientId);
-                    $senderOffice = auth()->user()->offices->first();
-                    $recipientOfficeId = $user && $user->offices->isNotEmpty()
+                    if (!$user) {
+                        \Log::warning('Attempted to forward to non-existent user', ['recipient_id' => $recipientId]);
+                        continue;
+                    }
+                    
+                    $senderOffice = auth()->user()->offices ? auth()->user()->offices->first() : null;
+                    $recipientOfficeId = $user->offices && $user->offices->isNotEmpty()
                         ? $user->offices->first()->id
                         : ($senderOffice ? $senderOffice->id : null);
                     
@@ -1102,10 +1117,15 @@ class DocumentWorkflowController extends Controller
                 continue;
             }
             
-            // Get the user's office ID
+            // Get the user's office ID with null safety
             $user = \App\Models\User::with('offices')->find($recipientId);
-            $senderOffice = auth()->user()->offices->first();
-            $recipientOfficeId = $user && $user->offices->isNotEmpty()
+            if (!$user) {
+                \Log::warning('Attempted to refer to non-existent user', ['recipient_id' => $recipientId]);
+                continue;
+            }
+            
+            $senderOffice = auth()->user()->offices ? auth()->user()->offices->first() : null;
+            $recipientOfficeId = $user->offices && $user->offices->isNotEmpty()
                 ? $user->offices->first()->id
                 : ($senderOffice ? $senderOffice->id : null);
             
