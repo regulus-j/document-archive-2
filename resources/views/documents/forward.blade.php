@@ -404,65 +404,6 @@
                disabled>
         <p class="text-xs text-slate-500 mt-1">Required when sending for appropriate action.</p>
     </div>
-    
-    <!-- Delegation Options (for appropriate action only) - Per Batch -->
-    <div class="mt-4 delegation-options-container hidden">
-        <label class="block text-xs font-medium text-slate-600 mb-2">Decision Authority for This Batch</label>
-        <div class="space-y-3">
-            <label class="flex items-start p-3 border-2 border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-all delegation-option" data-type="retain">
-                <input type="radio" name="delegation_type_batch[0]" value="retain" class="mt-1 mr-3 delegation-radio" checked>
-                <div class="flex-1">
-                    <div class="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span class="text-sm font-medium text-slate-800">Get Input Then I'll Decide</span>
-                    </div>
-                    <p class="text-xs text-slate-500 mt-1 ml-7">You will make the final decision after reviewing their input. You must approve or reject after consultations complete.</p>
-                    
-                    <!-- Wait Policy (shown when retain is selected) -->
-                    <div class="mt-3 ml-7 wait-policy-container">
-                        <label class="block text-xs font-medium text-slate-600 mb-1.5">When can you decide?</label>
-                        <div class="space-y-2">
-                            <label class="flex items-center text-xs text-slate-700">
-                                <input type="radio" name="wait_policy_batch[0]" value="wait_all" class="mr-2 text-indigo-600" checked>
-                                <span>Wait for all consultations to complete</span>
-                            </label>
-                            <label class="flex items-center text-xs text-slate-700">
-                                <input type="radio" name="wait_policy_batch[0]" value="decide_anytime" class="mr-2 text-indigo-600">
-                                <span>Decide after any consultation completes</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </label>
-            
-            <label class="flex items-start p-3 border-2 border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-all delegation-option" data-type="delegate">
-                <input type="radio" name="delegation_type_batch[0]" value="delegate" class="mt-1 mr-3 delegation-radio">
-                <div class="flex-1">
-                    <div class="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                        </svg>
-                        <span class="text-sm font-medium text-slate-800">Delegate Decision Authority</span>
-                    </div>
-                    <p class="text-xs text-slate-500 mt-1 ml-7">Transfer decision responsibility to recipient. They will approve or reject. You will be notified of their decision.</p>
-                </div>
-            </label>
-        </div>
-        
-        <!-- Delegation Depth Warning -->
-        <div class="mt-3 delegation-warning hidden" id="delegation-warning">
-            <div class="flex items-start p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600 mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                <div class="flex-1">
-                    <p class="text-xs font-medium text-amber-800" id="delegation-warning-text"></p>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
     <!-- Urgency Selection -->
     <div>
@@ -736,10 +677,6 @@
             const purposeLabels = batch.querySelectorAll('.purpose-label');
             const actionContainer = batch.querySelector('.action-required-container');
             const actionInput = batch.querySelector('input[name^="action_required_batch"]');
-            const delegationContainer = batch.querySelector('.delegation-options-container');
-            const delegationRadios = batch.querySelectorAll('.delegation-radio');
-            const delegationOptions = batch.querySelectorAll('.delegation-option');
-            const waitPolicyContainer = batch.querySelector('.wait-policy-container');
 
             function syncActionRequired() {
                 const selected = batch.querySelector('input[name^="purpose_batch"]:checked');
@@ -765,47 +702,14 @@
                     actionInput.disabled = !isAppropriate;
                     actionInput.required = isAppropriate;
                 }
-                
-                // Show/hide delegation options container
-                if (delegationContainer) {
-                    delegationContainer.classList.toggle('hidden', !isAppropriate);
-                }
-            }
-            
-            function syncDelegationOptions() {
-                const batchIndex = batch.getAttribute('data-index');
-                const selectedDelegation = batch.querySelector(`input[name="delegation_type_batch[${batchIndex}]"]:checked`);
-                const isRetain = selectedDelegation && selectedDelegation.value === 'retain';
-                
-                // Update visual styling for delegation options
-                delegationOptions.forEach(option => {
-                    const radio = option.querySelector('input[type="radio"]');
-                    if (radio && radio.checked) {
-                        option.classList.add('border-indigo-500', 'bg-slate-50');
-                        option.classList.remove('border-slate-200');
-                    } else {
-                        option.classList.remove('border-indigo-500', 'bg-slate-50');
-                        option.classList.add('border-slate-200');
-                    }
-                });
-                
-                // Show/hide wait policy based on delegation type
-                if (waitPolicyContainer) {
-                    waitPolicyContainer.classList.toggle('hidden', !isRetain);
-                }
             }
 
             purposeRadios.forEach(radio => {
                 radio.addEventListener('change', syncActionRequired);
             });
-            
-            delegationRadios.forEach(radio => {
-                radio.addEventListener('change', syncDelegationOptions);
-            });
 
             // Initialize the state for this batch
             syncActionRequired();
-            syncDelegationOptions();
         }
 
         function enableDragAndDrop() {

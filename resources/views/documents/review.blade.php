@@ -920,33 +920,6 @@
                                         </template>
                                     @endif
 
-                                    @if($workflow->purpose === 'appropriate_action')
-                                    <div class="mb-4 p-3 bg-white border border-purple-200 rounded-md">
-                                        <label class="block text-sm font-medium text-slate-700 mb-2">Decision Authority</label>
-                                        <div class="space-y-2">
-                                            <label class="flex items-center gap-2 text-sm text-slate-700">
-                                                <input type="radio" name="delegation_type" value="retain" checked class="text-purple-600 focus:ring-purple-400">
-                                                <span><strong>Retain</strong> — Get input, then I'll decide</span>
-                                            </label>
-                                            <label class="flex items-center gap-2 text-sm text-slate-700">
-                                                <input type="radio" name="delegation_type" value="delegate" class="text-purple-600 focus:ring-purple-400">
-                                                <span><strong>Delegate</strong> — Transfer decision authority</span>
-                                            </label>
-                                        </div>
-                                        <div id="review-wait-policy" class="mt-2 ml-6">
-                                            <label class="block text-xs font-medium text-slate-600 mb-1">When can you decide?</label>
-                                            <label class="flex items-center gap-2 text-xs text-slate-600">
-                                                <input type="radio" name="wait_policy" value="wait_all" checked class="text-purple-600 focus:ring-purple-400">
-                                                Wait for all to complete
-                                            </label>
-                                            <label class="flex items-center gap-2 text-xs text-slate-600">
-                                                <input type="radio" name="wait_policy" value="decide_anytime" class="text-purple-600 focus:ring-purple-400">
-                                                Decide after any completes
-                                            </label>
-                                        </div>
-                                    </div>
-                                    @endif
-
                                     <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-purple-500 hover:bg-purple-600 transition">
                                         Confirm Forward
                                     </button>
