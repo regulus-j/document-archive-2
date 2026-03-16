@@ -37,7 +37,7 @@ return new class extends Migration
 
                 $table->foreign('workflow_id')->references('id')->on('document_workflows')->onDelete('cascade');
                 $table->foreign('recipient_user_id')->references('id')->on('users')->onDelete('set null');
-                $table->index(['document_id', 'workflow_id', 'notification_type']);
+                $table->index(['document_id', 'workflow_id', 'notification_type'], 'urgency_notif_doc_wf_type_idx');
             });
         }
 

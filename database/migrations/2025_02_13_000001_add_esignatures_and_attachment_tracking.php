@@ -10,7 +10,7 @@ return new class extends Migration
     {
         // Add uploaded_by to document_attachments so we know who uploaded each attachment
         Schema::table('document_attachments', function (Blueprint $table) {
-            $table->unsignedBigInteger('uploaded_by')->nullable()->after('mime_type');
+            $table->unsignedBigInteger('uploaded_by')->nullable()->after('path');
             $table->foreign('uploaded_by')->references('id')->on('users')->onDelete('set null');
         });
 
