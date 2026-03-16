@@ -83,6 +83,13 @@ supervisorctl status laravel-scheduler
 docker-compose exec php php artisan migrate --force
 ```
 
+**CRITICAL**: The migration `2026_03_16_132138_ensure_permissions_exist` automatically creates 19 required permissions. These permissions are **essential** for user registration to work. Without them, registration will fail with a 500 error when the system tries to create company-specific roles.
+
+The system now includes automatic safeguards:
+- Missing permissions are auto-created during registration
+- Role creation failures are logged but don't break registration
+- See `DEPLOYMENT_CHECKLIST.md` for detailed verification steps
+
 #### 5. Create Storage Symlink
 
 ```bash
@@ -343,6 +350,42 @@ php artisan notifications:fast-forward --type=escalation
 - SMTP credentials wrong
 - MAIL_FROM_ADDRESS not set or invalid
 - Firewall blocking SMTP port 587
+
+### Registration Returning 500 Errors
+
+**Symptoms**: New users cannot register, receiving 500 internal server error
+
+**Root Cause**: Missing permissions in the database prevent role creation during company account setup
+
+**Solutions** (in order of preference):
+
+1. **Run migrations** (includes automatic permission seeding):
+   ```bash
+   php artisan migrate
+   ```
+
+2. **Verify permissions exist**:
+   ```bash
+   php artisan tinker
+   >>> \Spatie\Permission\Models\Permission::count()
+   # Should return 19
+   >>> exit
+   ```
+
+3. **Manual permission seeding** (if migrations already run):
+   ```bash
+   php artisan db:seed --class=PermissionTableSeeder
+   ```
+
+**Prevention**: The system now auto-creates missing permissions during registration. However, running migrations ensures optimal performance by creating all permissions upfront.
+
+**Logs to check**:
+```bash
+grep "Failed to create default role" storage/logs/laravel.log
+grep "Failed to create permission" storage/logs/laravel.log
+```
+
+See `DEPLOYMENT_CHECKLIST.md` for detailed verification steps.
 
 ---
 

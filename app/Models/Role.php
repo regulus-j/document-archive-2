@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Log;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role as SpatieRole;
 
 class Role extends SpatieRole
@@ -70,13 +72,48 @@ class Role extends SpatieRole
         ];
 
         foreach ($defaultRoles as $roleName => $permissions) {
-            $role = static::firstOrCreate([
-                'name' => $roleName,
-                'guard_name' => 'web',
-                'company_id' => $companyId,
-            ]);
+            try {
+                $role = static::firstOrCreate([
+                    'name' => $roleName,
+                    'guard_name' => 'web',
+                    'company_id' => $companyId,
+                ]);
 
-            $role->syncPermissions($permissions);
+                // Ensure all required permissions exist before syncing
+                static::ensurePermissionsExist($permissions);
+
+                $role->syncPermissions($permissions);
+            } catch (\Exception $e) {
+                Log::error('Failed to create default role for company', [
+                    'company_id' => $companyId,
+                    'role_name' => $roleName,
+                    'error' => $e->getMessage(),
+                ]);
+                
+                // Don't fail registration if role creation fails
+                // The company admin can set up roles manually later
+            }
+        }
+    }
+
+    /**
+     * Ensure all required permissions exist in the database.
+     * Creates missing permissions automatically.
+     */
+    protected static function ensurePermissionsExist(array $permissionNames): void
+    {
+        foreach ($permissionNames as $permissionName) {
+            try {
+                Permission::firstOrCreate([
+                    'name' => $permissionName,
+                    'guard_name' => 'web',
+                ]);
+            } catch (\Exception $e) {
+                Log::warning('Failed to create permission', [
+                    'permission' => $permissionName,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
     }
 }
