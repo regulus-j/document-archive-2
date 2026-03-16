@@ -1901,12 +1901,12 @@ class DocumentController extends Controller
     public function applyBarcodeOverlay(Request $request, Document $document)
     {
         $request->validate([
-            'barcode_x'         => 'required|numeric|min:0|max:500',
-            'barcode_y'         => 'required|numeric|min:0|max:800',
-            'barcode_width'     => 'required|numeric|min:10|max:200',
-            'barcode_height'    => 'required|numeric|min:5|max:100',
-            'barcode_page'      => 'nullable|integer|min:0',
-            'barcode_show_text' => 'nullable|boolean',
+            'barcode_x_percent'     => 'required|numeric|min:0|max:100',
+            'barcode_y_percent'     => 'required|numeric|min:0|max:100',
+            'barcode_width_percent' => 'required|numeric|min:5|max:100',
+            'barcode_height_percent'=> 'required|numeric|min:2|max:50',
+            'barcode_page'          => 'nullable|integer|min:0',
+            'barcode_show_text'     => 'nullable|boolean',
         ]);
 
         $trackingNumber = $document->trackingNumber->tracking_number ?? null;
@@ -1921,12 +1921,12 @@ class DocumentController extends Controller
         }
 
         $options = [
-            'x'         => (float) $request->barcode_x,
-            'y'         => (float) $request->barcode_y,
-            'width'     => (float) $request->barcode_width,
-            'height'    => (float) $request->barcode_height,
-            'page'      => (int) ($request->barcode_page ?? 1),
-            'show_text' => (bool) ($request->barcode_show_text ?? true),
+            'x_percent'      => (float) $request->barcode_x_percent,
+            'y_percent'      => (float) $request->barcode_y_percent,
+            'width_percent'  => (float) $request->barcode_width_percent,
+            'height_percent' => (float) $request->barcode_height_percent,
+            'page'           => (int) ($request->barcode_page ?? 1),
+            'show_text'      => (bool) ($request->barcode_show_text ?? true),
         ];
 
         try {
@@ -1941,8 +1941,12 @@ class DocumentController extends Controller
             }
 
             $document->update([
-                'barcode_settings' => $options,
-                'barcode_applied'  => true,
+                'barcode_x_percent'      => $options['x_percent'],
+                'barcode_y_percent'      => $options['y_percent'],
+                'barcode_width_percent'  => $options['width_percent'],
+                'barcode_height_percent' => $options['height_percent'],
+                'barcode_settings'       => $options,
+                'barcode_applied'        => true,
             ]);
 
             $this->logDocumentAction($document, 'barcode_applied', null, 'Barcode overlay applied to document');

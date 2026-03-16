@@ -922,23 +922,23 @@
                         @csrf
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                             <div>
-                                <label class="block text-xs text-slate-500 mb-1">X (mm)</label>
-                                <input type="number" name="barcode_x" id="reapply-barcode-x" value="{{ $document->barcode_settings['x'] ?? 10 }}" min="0" max="500"
+                                <label class="block text-xs text-slate-500 mb-1">X (%)</label>
+                                <input type="number" name="barcode_x_percent" id="reapply-barcode-x" value="{{ $document->barcode_x_percent ?? 5 }}" min="0" max="100" step="0.1"
                                     class="w-full text-xs rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200">
                             </div>
                             <div>
-                                <label class="block text-xs text-slate-500 mb-1">Y (mm)</label>
-                                <input type="number" name="barcode_y" id="reapply-barcode-y" value="{{ $document->barcode_settings['y'] ?? 10 }}" min="0" max="800"
+                                <label class="block text-xs text-slate-500 mb-1">Y (%)</label>
+                                <input type="number" name="barcode_y_percent" id="reapply-barcode-y" value="{{ $document->barcode_y_percent ?? 3 }}" min="0" max="100" step="0.1"
                                     class="w-full text-xs rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200">
                             </div>
                             <div>
-                                <label class="block text-xs text-slate-500 mb-1">Width (mm)</label>
-                                <input type="number" name="barcode_width" id="reapply-barcode-w" value="{{ $document->barcode_settings['width'] ?? 60 }}" min="10" max="200"
+                                <label class="block text-xs text-slate-500 mb-1">Width (%)</label>
+                                <input type="number" name="barcode_width_percent" id="reapply-barcode-w" value="{{ $document->barcode_width_percent ?? 25 }}" min="5" max="100" step="0.1"
                                     class="w-full text-xs rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200">
                             </div>
                             <div>
-                                <label class="block text-xs text-slate-500 mb-1">Height (mm)</label>
-                                <input type="number" name="barcode_height" id="reapply-barcode-h" value="{{ $document->barcode_settings['height'] ?? 15 }}" min="5" max="100"
+                                <label class="block text-xs text-slate-500 mb-1">Height (%)</label>
+                                <input type="number" name="barcode_height_percent" id="reapply-barcode-h" value="{{ $document->barcode_height_percent ?? 5 }}" min="2" max="50" step="0.1"
                                     class="w-full text-xs rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200">
                             </div>
                         </div>

@@ -70,25 +70,88 @@ class BarcodeService
     }
 
     /**
+     * Convert percentage coordinates to mm based on actual page dimensions.
+     *
+     * @param float $xPercent X position as percentage (0-100)
+     * @param float $yPercent Y position as percentage (0-100)
+     * @param float $widthPercent Width as percentage (0-100)
+     * @param float $heightPercent Height as percentage (0-100)
+     * @param float $pageWidthMm Actual page width in mm
+     * @param float $pageHeightMm Actual page height in mm
+     * @return array ['x' => mm, 'y' => mm, 'width' => mm, 'height' => mm]
+     */
+    private function convertPercentToMm(
+        float $xPercent,
+        float $yPercent,
+        float $widthPercent,
+        float $heightPercent,
+        float $pageWidthMm,
+        float $pageHeightMm
+    ): array {
+        return [
+            'x' => ($xPercent / 100.0) * $pageWidthMm,
+            'y' => ($yPercent / 100.0) * $pageHeightMm,
+            'width' => ($widthPercent / 100.0) * $pageWidthMm,
+            'height' => ($heightPercent / 100.0) * $pageHeightMm,
+        ];
+    }
+
+    /**
+     * Convert percentage coordinates to pixels based on actual image dimensions.
+     *
+     * @param float $xPercent X position as percentage (0-100)
+     * @param float $yPercent Y position as percentage (0-100)
+     * @param float $widthPercent Width as percentage (0-100)
+     * @param float $heightPercent Height as percentage (0-100)
+     * @param int $imageWidth Actual image width in pixels
+     * @param int $imageHeight Actual image height in pixels
+     * @return array ['x' => px, 'y' => px, 'width' => px, 'height' => px]
+     */
+    private function convertPercentToPixels(
+        float $xPercent,
+        float $yPercent,
+        float $widthPercent,
+        float $heightPercent,
+        int $imageWidth,
+        int $imageHeight
+    ): array {
+        return [
+            'x' => (int) round(($xPercent / 100.0) * $imageWidth),
+            'y' => (int) round(($yPercent / 100.0) * $imageHeight),
+            'width' => (int) round(($widthPercent / 100.0) * $imageWidth),
+            'height' => (int) round(($heightPercent / 100.0) * $imageHeight),
+        ];
+    }
+
+    /**
      * Overlay a barcode onto a PDF document.
      *
      * @param string $pdfPath     Absolute path to the source PDF
      * @param string $trackingNumber
      * @param array  $options     Overlay options:
-     *                            - x: X position in mm from left (default: 10)
-     *                            - y: Y position in mm from top (default: 10)
-     *                            - width: Barcode width in mm (default: 60)
-     *                            - height: Barcode height in mm (default: 15)
+     *                            - x_percent: X position as % (0-100, default: 5)
+     *                            - y_percent: Y position as % (0-100, default: 3)
+     *                            - width_percent: Width as % (0-100, default: 25)
+     *                            - height_percent: Height as % (0-100, default: 5)
+     *                            - x, y, width, height: Legacy mm-based (for backward compatibility)
      *                            - page: Page number to overlay on, 0 = all pages (default: 1)
      *                            - show_text: Whether to show tracking number text below barcode (default: true)
      * @return string Path to the new PDF with barcode overlay
      */
     public function overlayBarcodeOnPdf(string $pdfPath, string $trackingNumber, array $options = []): string
     {
-        $x          = $options['x'] ?? 10;
-        $y          = $options['y'] ?? 10;
-        $width      = $options['width'] ?? 60;
-        $height     = $options['height'] ?? 15;
+        // Default percentage values
+        $xPercent      = $options['x_percent'] ?? null;
+        $yPercent      = $options['y_percent'] ?? null;
+        $widthPercent  = $options['width_percent'] ?? null;
+        $heightPercent = $options['height_percent'] ?? null;
+        
+        // Legacy mm values (for backward compatibility)
+        $xMm      = $options['x'] ?? null;
+        $yMm      = $options['y'] ?? null;
+        $widthMm  = $options['width'] ?? null;
+        $heightMm = $options['height'] ?? null;
+        
         $targetPage = $options['page'] ?? 1;
         $showText   = $options['show_text'] ?? true;
 
@@ -118,6 +181,34 @@ class BarcodeService
                 $shouldOverlay = ($targetPage === 0 || $targetPage === $pageNo);
 
                 if ($shouldOverlay) {
+                    // Get actual page dimensions in mm (FPDI returns points, convert to mm)
+                    $pageWidthMm = $size['width'] * 25.4 / 72.0;  // points to mm
+                    $pageHeightMm = $size['height'] * 25.4 / 72.0;
+
+                    // Determine final coordinates (prefer percentage, fall back to mm)
+                    if ($xPercent !== null && $yPercent !== null && $widthPercent !== null && $heightPercent !== null) {
+                        // Use percentage-based positioning
+                        $coords = $this->convertPercentToMm(
+                            $xPercent,
+                            $yPercent,
+                            $widthPercent,
+                            $heightPercent,
+                            $pageWidthMm,
+                            $pageHeightMm
+                        );
+                        $x = $coords['x'] * 72.0 / 25.4;  // mm back to points for FPDI
+                        $y = $coords['y'] * 72.0 / 25.4;
+                        $width = $coords['width'] * 72.0 / 25.4;
+                        $height = $coords['height'] * 72.0 / 25.4;
+                    } else {
+                        // Use legacy mm-based positioning (backward compatibility)
+                        // Convert mm to points for FPDI
+                        $x = ($xMm ?? 10) * 72.0 / 25.4;
+                        $y = ($yMm ?? 10) * 72.0 / 25.4;
+                        $width = ($widthMm ?? 60) * 72.0 / 25.4;
+                        $height = ($heightMm ?? 15) * 72.0 / 25.4;
+                    }
+
                     // Place barcode image
                     $pdf->Image($tempBarcodePath, $x, $y, $width, $height);
 
@@ -200,26 +291,36 @@ class BarcodeService
 
     /**
      * Overlay a barcode onto an image file using the GD library.
-     * The barcode is placed at the specified X/Y position (in mm on an A4 page,
-     * scaled proportionally to the image dimensions).
+     * Supports both percentage-based and legacy mm-based positioning.
      *
      * @param string $absolutePath  Absolute path to the image file
      * @param string $storagePath   Relative storage path (for logging only)
      * @param string $trackingNumber
-     * @param array  $options       Overlay options (x, y, width, height in mm, show_text)
+     * @param array  $options       Overlay options:
+     *                              - x_percent, y_percent, width_percent, height_percent (0-100)
+     *                              - x, y, width, height (legacy mm-based for backward compatibility)
+     *                              - show_text
      * @return bool  True on success, false on failure
      */
     public function overlayBarcodeOnImage(string $absolutePath, string $storagePath, string $trackingNumber, array $options = []): bool
     {
         if (!extension_loaded('gd')) {
-            Log::error('GD extension not loaded â€” cannot overlay barcode on image.');
+            Log::error('GD extension not loaded â€" cannot overlay barcode on image.');
             return false;
         }
 
-        $x         = $options['x']         ?? 10;
-        $y         = $options['y']         ?? 10;
-        $widthMm   = $options['width']     ?? 60;
-        $heightMm  = $options['height']    ?? 15;
+        // Percentage values (preferred)
+        $xPercent      = $options['x_percent'] ?? null;
+        $yPercent      = $options['y_percent'] ?? null;
+        $widthPercent  = $options['width_percent'] ?? null;
+        $heightPercent = $options['height_percent'] ?? null;
+        
+        // Legacy mm values (for backward compatibility)
+        $xMm       = $options['x'] ?? null;
+        $yMm       = $options['y'] ?? null;
+        $widthMm   = $options['width'] ?? null;
+        $heightMm  = $options['height'] ?? null;
+        
         $showText  = $options['show_text'] ?? true;
 
         try {
@@ -243,12 +344,29 @@ class BarcodeService
             $imgW = imagesx($src);
             $imgH = imagesy($src);
 
-            // Scale mm â†’ pixels (assuming A4 = 210Ã—297 mm)
-            $A4W = 210.0; $A4H = 297.0;
-            $pxX = (int) round(($x       / $A4W) * $imgW);
-            $pxY = (int) round(($y       / $A4H) * $imgH);
-            $pxW = (int) round(($widthMm / $A4W) * $imgW);
-            $pxH = (int) round(($heightMm/ $A4H) * $imgH);
+            // Determine pixel coordinates (prefer percentage, fall back to mm)
+            if ($xPercent !== null && $yPercent !== null && $widthPercent !== null && $heightPercent !== null) {
+                // Use percentage-based positioning with actual image dimensions
+                $coords = $this->convertPercentToPixels(
+                    $xPercent,
+                    $yPercent,
+                    $widthPercent,
+                    $heightPercent,
+                    $imgW,
+                    $imgH
+                );
+                $pxX = $coords['x'];
+                $pxY = $coords['y'];
+                $pxW = $coords['width'];
+                $pxH = $coords['height'];
+            } else {
+                // Legacy: scale mm to pixels (assuming A4 = 210×297 mm for backward compatibility)
+                $A4W = 210.0; $A4H = 297.0;
+                $pxX = (int) round((($xMm ?? 10) / $A4W) * $imgW);
+                $pxY = (int) round((($yMm ?? 10) / $A4H) * $imgH);
+                $pxW = (int) round((($widthMm ?? 60) / $A4W) * $imgW);
+                $pxH = (int) round((($heightMm ?? 15) / $A4H) * $imgH);
+            }
 
             // Generate barcode PNG
             $barcodeRaw = $this->generateBarcodeRaw($trackingNumber, 2, max(50, $pxH));

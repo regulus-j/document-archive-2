@@ -186,26 +186,26 @@
 
                     {{-- Coordinate inputs (synced with drag) --}}
                     <div>
-                        <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2">Position <span class="font-normal normal-case text-slate-400">(mm on A4)</span></p>
+                        <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2">Position <span class="font-normal normal-case text-slate-400">(% of document)</span></p>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
-                                <label class="block text-xs text-slate-500 mb-0.5">X</label>
-                                <input type="number" data-role="barcode-x" value="10" min="0" max="500" step="1"
+                                <label class="block text-xs text-slate-500 mb-0.5">X (%)</label>
+                                <input type="number" data-role="barcode-x" value="5" min="0" max="100" step="0.1"
                                        class="w-full text-sm rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200">
                             </div>
                             <div>
-                                <label class="block text-xs text-slate-500 mb-0.5">Y</label>
-                                <input type="number" data-role="barcode-y" value="10" min="0" max="800" step="1"
+                                <label class="block text-xs text-slate-500 mb-0.5">Y (%)</label>
+                                <input type="number" data-role="barcode-y" value="3" min="0" max="100" step="0.1"
                                        class="w-full text-sm rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200">
                             </div>
                             <div>
-                                <label class="block text-xs text-slate-500 mb-0.5">Width</label>
-                                <input type="number" data-role="barcode-w" value="60" min="10" max="200" step="1"
+                                <label class="block text-xs text-slate-500 mb-0.5">Width (%)</label>
+                                <input type="number" data-role="barcode-w" value="25" min="5" max="100" step="0.1"
                                        class="w-full text-sm rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200">
                             </div>
                             <div>
-                                <label class="block text-xs text-slate-500 mb-0.5">Height</label>
-                                <input type="number" data-role="barcode-h" value="15" min="5" max="100" step="1"
+                                <label class="block text-xs text-slate-500 mb-0.5">Height (%)</label>
+                                <input type="number" data-role="barcode-h" value="5" min="2" max="50" step="0.1"
                                        class="w-full text-sm rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200">
                             </div>
                         </div>
@@ -268,9 +268,9 @@
 <script>
 /**
  * Barcode Preview Modal — drag & resize live preview edition
+ * Uses percentage-based positioning for accurate scaling across all document sizes
  */
 (function() {
-    const A4_W_MM = 210, A4_H_MM = 297;   // A4 in mm
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
     const previewApiUrl = "{{ route('documents.barcodePreview') }}";
 
@@ -308,8 +308,8 @@
         const cw = preview.width || 1;
         const ch = preview.height || 1;
         return {
-            sx: cw / A4_W_MM,
-            sy: ch / A4_H_MM,
+            sx: cw / 100.0,  // pixels per 1% of width
+            sy: ch / 100.0,  // pixels per 1% of height
             offsetX: preview.left,
             offsetY: preview.top,
             previewW: cw,
@@ -324,11 +324,11 @@
             syncInputsToA4Diagram(modal);
             return;
         }
-        const { sx, sy } = getScale(modal);
-        const x = parseFloat(q(modal,'barcode-x')?.value) || 10;
-        const y = parseFloat(q(modal,'barcode-y')?.value) || 10;
-        const w = parseFloat(q(modal,'barcode-w')?.value) || 60;
-        const h = parseFloat(q(modal,'barcode-h')?.value) || 15;
+        const { sx, sy, offsetX, offsetY } = getScale(modal);
+        const x = parseFloat(q(modal,'barcode-x')?.value) || 5;
+        const y = parseFloat(q(modal,'barcode-y')?.value) || 3;
+        const w = parseFloat(q(modal,'barcode-w')?.value) || 25;
+        const h = parseFloat(q(modal,'barcode-h')?.value) || 5;
 
         overlay.style.left   = (offsetX + (x * sx)) + 'px';
         overlay.style.top    = (offsetY + (y * sy)) + 'px';
@@ -341,17 +341,17 @@
         const { sx, sy, offsetX, offsetY } = getScale(modal);
         const left = (parseFloat(overlay.style.left) || 0) - offsetX;
         const top  = (parseFloat(overlay.style.top)  || 0) - offsetY;
-        const w    = parseFloat(overlay.style.width) || 60 * sx;
-        const h    = parseFloat(overlay.style.height)|| 15 * sy;
+        const w    = parseFloat(overlay.style.width) || 25 * sx;
+        const h    = parseFloat(overlay.style.height)|| 5 * sy;
 
         const xInput = q(modal, 'barcode-x');
         const yInput = q(modal, 'barcode-y');
         const wInput = q(modal, 'barcode-w');
         const hInput = q(modal, 'barcode-h');
-        if (xInput) xInput.value = Math.max(0, Math.round(left / sx));
-        if (yInput) yInput.value = Math.max(0, Math.round(top  / sy));
-        if (wInput) wInput.value = Math.max(10, Math.round(w / sx));
-        if (hInput) hInput.value = Math.max(5,  Math.round(h / sy));
+        if (xInput) xInput.value = Math.max(0, Math.min(100, (left / sx).toFixed(1)));
+        if (yInput) yInput.value = Math.max(0, Math.min(100, (top  / sy).toFixed(1)));
+        if (wInput) wInput.value = Math.max(5, Math.min(100, (w / sx).toFixed(1)));
+        if (hInput) hInput.value = Math.max(2, Math.min(50, (h / sy).toFixed(1)));
 
         // Also update simple A4 diagram if visible
         syncInputsToA4Diagram(modal);
@@ -365,12 +365,12 @@
         if (!ind) return;
         const dw = diag.offsetWidth  || 140;
         const dh = diag.offsetHeight || 198;
-        const sx = dw / A4_W_MM;
-        const sy = dh / A4_H_MM;
-        const x = parseFloat(q(modal,'barcode-x')?.value) || 10;
-        const y = parseFloat(q(modal,'barcode-y')?.value) || 10;
-        const w = parseFloat(q(modal,'barcode-w')?.value) || 60;
-        const h = parseFloat(q(modal,'barcode-h')?.value) || 15;
+        const sx = dw / 100.0;  // pixels per 1%
+        const sy = dh / 100.0;  // pixels per 1%
+        const x = parseFloat(q(modal,'barcode-x')?.value) || 5;
+        const y = parseFloat(q(modal,'barcode-y')?.value) || 3;
+        const w = parseFloat(q(modal,'barcode-w')?.value) || 25;
+        const h = parseFloat(q(modal,'barcode-h')?.value) || 5;
         ind.style.left   = Math.min(x * sx, dw - 4) + 'px';
         ind.style.top    = Math.min(y * sy, dh - 4) + 'px';
         ind.style.width  = Math.min(w * sx, dw) + 'px';
@@ -714,7 +714,7 @@
     window.bpmResetPosition = function(modalId) {
         const modal = document.getElementById(modalId);
         if (!modal) return;
-        const defaults = { 'barcode-x': 10, 'barcode-y': 10, 'barcode-w': 60, 'barcode-h': 15 };
+        const defaults = { 'barcode-x': 5, 'barcode-y': 3, 'barcode-w': 25, 'barcode-h': 5 };
         Object.entries(defaults).forEach(([role, val]) => {
             const inp = q(modal, role);
             if (inp) inp.value = val;
