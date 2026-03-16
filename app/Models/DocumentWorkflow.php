@@ -28,6 +28,7 @@ class DocumentWorkflow extends Model
         'last_activity_at',
         'inactivity_notified_at',
         'is_rerouted',
+        'requires_terminal_decision',
     ];
 
     protected $casts = [
@@ -36,6 +37,7 @@ class DocumentWorkflow extends Model
         'inactivity_notified_at' => 'datetime',
         'is_rerouted'            => 'boolean',
         'is_paused'              => 'boolean',
+        'requires_terminal_decision' => 'boolean',
     ];
 
     public function document()

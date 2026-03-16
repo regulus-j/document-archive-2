@@ -681,6 +681,12 @@
                             $currentGuide = $purposeActionGuide[$workflow->purpose ?? 'default'] ?? $purposeActionGuide['default'];
                         @endphp
 
+                            @if($workflow->requires_terminal_decision)
+                            <div class="mb-4 p-3 rounded-lg border-2 border-indigo-400 bg-indigo-50">
+                                <p class="text-sm font-bold text-indigo-900">Your Decision is Required</p>
+                                <p class="text-xs text-indigo-700 mt-1">All forwarded consultations are complete. You must now approve or reject this document.</p>
+                            </div>
+                            @else
                             <div class="mb-4 p-3 rounded-lg border {{ $currentGuide['badge'] }}">
                                 <p class="text-sm font-semibold">{{ $currentGuide['title'] }} - What you can do</p>
                                 <ul class="mt-2 space-y-1">
@@ -689,6 +695,7 @@
                                     @endforeach
                                 </ul>
                             </div>
+                            @endif
 
                         @if($workflow->purpose === 'appropriate_action')
                             <div class="flex flex-wrap gap-2">
@@ -700,6 +707,7 @@
                                     <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                     Reject
                                 </button>
+                                @if(!$workflow->requires_terminal_decision)
                                 <button type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium border border-yellow-200 text-yellow-700 bg-white hover:bg-yellow-50 rounded-lg transition-colors" onclick="showActionForm('return-form')">
                                     <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
                                     Return
@@ -708,6 +716,7 @@
                                     <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                                     Forward
                                 </button>
+                                @endif
                             </div>
                         @endif
                         @if($workflow->purpose === 'for_comment')

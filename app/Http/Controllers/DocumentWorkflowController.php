@@ -149,6 +149,14 @@ class DocumentWorkflowController extends Controller
      */
     private function ensurePurposeAllowsAction(DocumentWorkflow $workflow, string $action): ?RedirectResponse
     {
+        // Terminal decision enforcement: after all sub-workflows complete,
+        // the last recipient must approve or reject — no forwarding allowed.
+        if ($workflow->requires_terminal_decision && !in_array($action, ['approve', 'reject'], true)) {
+            return redirect()->back()->with('error',
+                'All consultations are complete. You must approve or reject this document.'
+            );
+        }
+
         $allowedActions = $this->getAllowedActionsForPurpose($workflow->purpose);
         if (in_array($action, $allowedActions, true)) {
             return null;
@@ -215,12 +223,19 @@ class DocumentWorkflowController extends Controller
 
         // All sub-workflows completed — reactivate the parent workflow
         $parentWorkflow->status = 'received';
+        
+        // If parent is appropriate_action, force terminal decision (approve/reject only)
+        if ($parentWorkflow->purpose === 'appropriate_action') {
+            $parentWorkflow->requires_terminal_decision = true;
+        }
+        
         $parentWorkflow->save();
 
         \Log::info('Sub-workflow completed, reactivating parent workflow', [
             'completed_workflow_id' => $completedWorkflow->id,
             'parent_workflow_id' => $parentWorkflow->id,
             'parent_recipient_id' => $parentWorkflow->recipient_id,
+            'requires_terminal_decision' => $parentWorkflow->requires_terminal_decision ?? false,
         ]);
 
         // Collect results from child workflows for the notification
