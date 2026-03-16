@@ -29,6 +29,11 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
     
         $request->session()->regenerate();
+
+        // If user hasn't verified email, redirect to verification page
+        if (!auth()->user()->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice');
+        }
     
         // Check if the user's password_set column is false
         if (auth()->user()->password_set == 0) {

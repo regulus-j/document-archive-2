@@ -36,29 +36,29 @@ Route::get('/', function () {
     return view('welcome', compact('plans'));
 });
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth')->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])
-    ->middleware(['auth', 'role:super-admin'])
+    ->middleware(['auth', 'verified', 'role:super-admin'])
     ->name('admin.dashboard');
 Route::get('/admin/dashboard/export-pdf', [AdminDashboardController::class, 'exportPdf'])
-    ->middleware(['auth', 'role:super-admin'])
+    ->middleware(['auth', 'verified', 'role:super-admin'])
     ->name('admin.dashboard.export-pdf');
 Route::get('/admin/dashboard/export-excel', [AdminDashboardController::class, 'exportExcel'])
-    ->middleware(['auth', 'role:super-admin'])
+    ->middleware(['auth', 'verified', 'role:super-admin'])
     ->name('admin.dashboard.export-excel');
 Route::get('/admin/audit', [AdminDashboardController::class, 'audit'])
-    ->middleware(['auth', 'role:super-admin'])
+    ->middleware(['auth', 'verified', 'role:super-admin'])
     ->name('admin.audit');
 Route::get('/admin/audit/export-pdf', [AdminDashboardController::class, 'auditExportPdf'])
-    ->middleware(['auth', 'role:super-admin'])
+    ->middleware(['auth', 'verified', 'role:super-admin'])
     ->name('admin.audit.export-pdf');
 Route::get('/admin/audit/export-excel', [AdminDashboardController::class, 'auditExportExcel'])
-    ->middleware(['auth', 'role:super-admin'])
+    ->middleware(['auth', 'verified', 'role:super-admin'])
     ->name('admin.audit.export-excel');
 
 Route::get('/trial', [TrialController::class, 'start'])->name('trial.start');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'set'])->name('profile.set');
@@ -74,7 +74,7 @@ Route::get('/plans/view', [PlanController::class, 'index'])->name('subscriptions
 Route::get('/register/{plan}', [PlanController::class, 'register'])->name('plans.register');
 Route::post('/plans/{plan}/subscribe', [PlanController::class, 'subscribe'])->name('plans.subscribe');
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/plans/store', [PlanSelectionController::class, 'store'])->name('plans.selection.store');
 
     // Subscription management for company admins
@@ -95,7 +95,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/subscriptions/{subscription}/activate', [SubscriptionController::class, 'activate'])->name('subscriptions.activate');
 });
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('addresses', AddressController::class);
     Route::get('/admin/users', [UserController::class, 'index'])->name('admin.users-index');
     Route::get('/archived-documents', [\App\Http\Controllers\ArchivedDocumentController::class, 'index'])->middleware('role:company-admin')->name('archived-documents.index');
@@ -103,7 +103,7 @@ Route::middleware(['auth'])->group(function () {
 
 //--------------------------------------------------------------------------------------------------------------------
 
-Route::middleware(['auth', 'role:super-admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:super-admin'])->prefix('admin')->name('admin.')->group(function () {
     // Subscription Management
     Route::get('/subscriptions', [SubscriptionController::class, 'indexAdmin'])->name('subscriptions.index');
     Route::get('/subscriptions/assign', [SubscriptionController::class, 'assignForm'])->name('subscriptions.assign.form');
@@ -120,7 +120,7 @@ Route::middleware(['auth', 'role:super-admin'])->prefix('admin')->name('admin.')
     Route::get('/user-manual', [UserManualController::class, 'show'])->name('userManual.manual');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('roles', RoleController::class);
 
     Route::prefix('users')->group(function () {
@@ -355,7 +355,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{report}', [ReportController::class, 'destroy'])->name('reports.destroy');
     });
 
-    Route::middleware(['auth'])->group(function () {
+    Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/plans', [PlanController::class, 'index'])->name('plans.index');
         Route::get('/plans/create', [PlanController::class, 'create'])->name('plans.create');
         Route::post('/plans', [PlanController::class, 'store'])->name('plans.store');
@@ -381,11 +381,11 @@ Route::middleware('auth')->group(function () {
 
 
 
-    Route::middleware(['auth'])->group(function () {
+    Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('payments', PaymentController::class)->only(['index', 'show']);
     });
 
-    Route::middleware(['auth'])->group(function () {
+    Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('addresses', AddressController::class);
     });
 
@@ -397,7 +397,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Document Management for Company Admins
-Route::middleware(['auth', 'role:company-admin'])->prefix('admin/documents')->name('admin.document-management.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:company-admin'])->prefix('admin/documents')->name('admin.document-management.')->group(function () {
     Route::get('/', [App\Http\Controllers\Admin\DocumentManagementController::class, 'index'])->name('index');
     Route::get('/list', [App\Http\Controllers\Admin\DocumentManagementController::class, 'documents'])->name('documents');
     Route::get('/show/{id}', [App\Http\Controllers\Admin\DocumentManagementController::class, 'show'])->name('show');
@@ -433,14 +433,14 @@ Route::middleware(['auth', 'role:company-admin'])->prefix('admin/documents')->na
 require __DIR__ . '/auth.php';
 
 // Notifications
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/unread-count', [\App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
     Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
 });
 
 // Chatbot
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/chatbot/ask', [\App\Http\Controllers\ChatbotController::class, 'ask'])
         ->middleware('throttle:chatbot')
         ->name('chatbot.ask');

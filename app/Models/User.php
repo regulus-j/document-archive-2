@@ -15,7 +15,6 @@ use Carbon\Carbon;
 class User extends Authenticatable implements MustVerifyEmail
 {
 
-    use Notifiable;
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, HasRoles, Notifiable, SoftDeletes;
 
