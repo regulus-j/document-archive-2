@@ -101,7 +101,7 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex items-center space-x-3">
                                             <a href="{{ route('plans.show', $plan->id) }}"
-                                                class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 p-1.5 rounded-md hover:bg-indigo-100 transition-colors">
+                                                class="text-indigo-600 hover:text-indigo-900 bg-indigo-100/50 p-1.5 rounded-md hover:bg-indigo-100 transition-colors">
                                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                                     viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -111,7 +111,7 @@
                                                 </svg>
                                             </a>
                                             <a href="{{ route('plans.edit', $plan->id) }}"
-                                                class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 p-1.5 rounded-md hover:bg-indigo-100 transition-colors">
+                                                class="text-indigo-600 hover:text-indigo-900 bg-indigo-100/50 p-1.5 rounded-md hover:bg-indigo-100 transition-colors">
                                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                                     viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

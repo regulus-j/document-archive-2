@@ -32,7 +32,7 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <!-- Header Box -->
-        <div class="bg-white rounded-xl mb-6 border border-indigo-200/80 overflow-hidden">
+        <div class="bg-white rounded-xl mb-6 border border-slate-200 overflow-hidden">
             <div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div class="flex items-center space-x-3">
                     <div class="p-3 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg shadow-md">
@@ -70,7 +70,7 @@
         </div>
 
         <!-- Tabs -->
-        <div class="bg-white rounded-xl overflow-hidden border border-indigo-200/80 mb-6">
+        <div class="bg-white rounded-xl overflow-hidden border border-slate-200 mb-6">
             <div class="flex">
                 <a href="{{ route('documents.complete', ['tab' => 'received']) }}"
                    class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm {{ $tab === 'received' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">
@@ -94,7 +94,7 @@
         </div>
 
         <!-- Document List -->
-        <div class="bg-white rounded-xl overflow-visible border border-indigo-200/80 transition-all duration-300 hover:border-indigo-300/80">
+        <div class="bg-white rounded-xl overflow-visible border border-slate-200 transition-all duration-300 hover:border-indigo-300/80">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-slate-200">
                     <thead>

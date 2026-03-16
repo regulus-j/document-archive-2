@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('content')
     <div class="min-h-screen py-6">
@@ -230,7 +230,7 @@
                                     <div class="bg-white p-2 rounded-xl shadow-md border border-indigo-200">
                                         <img id="preview-image" src="#" alt="Preview" class="w-full rounded-lg">
                                         <button type="button" onclick="clearImage()"
-                                            class="absolute top-4 right-4 p-1.5 bg-white rounded-full shadow-md hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 border border-slate-200">
+                                            class="absolute top-4 right-4 p-1.5 bg-white rounded-full shadow-md hover:bg-slate-100/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 border border-slate-200">
                                             <svg class="h-5 w-5 text-slate-500" xmlns="http://www.w3.org/2000/svg"
                                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -245,7 +245,7 @@
                         </form>
 
                         <div class="border-t border-slate-100 pt-6 mt-6">
-                            <button type="button" class="w-full px-5 py-4 border border-indigo-100 rounded-lg flex items-center justify-between select-none bg-indigo-50/40 hover:bg-indigo-50/60 transition-colors shadow-sm" id="filterToggleHeader" onclick="toggleFilterPanel()">
+                            <button type="button" class="w-full px-5 py-4 border border-indigo-100 rounded-lg flex items-center justify-between select-none bg-indigo-100/50/40 hover:bg-indigo-100/50/60 transition-colors shadow-sm" id="filterToggleHeader" onclick="toggleFilterPanel()">
                                 <div class="flex items-center space-x-3">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -312,9 +312,9 @@
                                             <input type="text" class="ss-search w-full rounded-md border-slate-300 text-sm px-3 py-1.5 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Search users...">
                                         </div>
                                         <ul class="ss-options max-h-48 overflow-y-auto py-1">
-                                            <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 transition-colors" data-value="">All Users</li>
+                                            <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-100/50 transition-colors" data-value="">All Users</li>
                                             @foreach($filterUsers as $u)
-                                                <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 transition-colors" data-value="{{ $u->id }}">{{ $u->first_name }} {{ $u->last_name }}</li>
+                                                <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-100/50 transition-colors" data-value="{{ $u->id }}">{{ $u->first_name }} {{ $u->last_name }}</li>
                                             @endforeach
                                         </ul>
                                         <div class="ss-empty hidden px-3 py-4 text-sm text-slate-400 text-center">No results found</div>
@@ -344,9 +344,9 @@
                                             <input type="text" class="ss-search w-full rounded-md border-slate-300 text-sm px-3 py-1.5 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Search teams...">
                                         </div>
                                         <ul class="ss-options max-h-48 overflow-y-auto py-1">
-                                            <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 transition-colors" data-value="">All Teams</li>
+                                            <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-100/50 transition-colors" data-value="">All Teams</li>
                                             @foreach($filterTeams as $team)
-                                                <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 transition-colors" data-value="{{ $team->id }}">{{ $team->name }}</li>
+                                                <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-100/50 transition-colors" data-value="{{ $team->id }}">{{ $team->name }}</li>
                                             @endforeach
                                         </ul>
                                         <div class="ss-empty hidden px-3 py-4 text-sm text-slate-400 text-center">No results found</div>
@@ -376,9 +376,9 @@
                                             <input type="text" class="ss-search w-full rounded-md border-slate-300 text-sm px-3 py-1.5 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Search categories...">
                                         </div>
                                         <ul class="ss-options max-h-48 overflow-y-auto py-1">
-                                            <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 transition-colors" data-value="">All Categories</li>
+                                            <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-100/50 transition-colors" data-value="">All Categories</li>
                                             @foreach($filterCategories as $cat)
-                                                <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 transition-colors" data-value="{{ $cat->id }}">{{ $cat->category }}</li>
+                                                <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-100/50 transition-colors" data-value="{{ $cat->id }}">{{ $cat->category }}</li>
                                             @endforeach
                                         </ul>
                                         <div class="ss-empty hidden px-3 py-4 text-sm text-slate-400 text-center">No results found</div>
@@ -417,7 +417,7 @@
                         <a href="{{ route('documents.index', array_merge(request()->except('tab', 'page'), ['tab' => 'my'])) }}"
                            class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm transition-colors
                                   {{ ($tab ?? 'all') === 'my'
-                                     ? 'border-indigo-500 text-indigo-600 bg-indigo-50/50'
+                                     ? 'border-indigo-500 text-indigo-600 bg-indigo-100/50/50'
                                      : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">
                             <div class="flex items-center justify-center gap-2">
                                 <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -425,7 +425,7 @@
                                 </svg>
                                 My Documents
                                 <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full
-                                             {{ ($tab ?? 'all') === 'my' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600' }}">
+                                             {{ ($tab ?? 'all') === 'my' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100/50 text-slate-600' }}">
                                     {{ $myDocCount }}
                                 </span>
                             </div>
@@ -435,7 +435,7 @@
                         <a href="{{ route('documents.index', array_merge(request()->except('tab', 'page'), ['tab' => 'all'])) }}"
                            class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm transition-colors relative group
                                   {{ ($tab ?? 'all') === 'all'
-                                     ? 'border-indigo-500 text-indigo-600 bg-indigo-50/50'
+                                     ? 'border-indigo-500 text-indigo-600 bg-indigo-100/50/50'
                                      : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">
                             <div class="flex items-center justify-center gap-2">
                                 <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -443,7 +443,7 @@
                                 </svg>
                                 All Documents
                                 <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full
-                                             {{ ($tab ?? 'all') === 'all' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600' }}">
+                                             {{ ($tab ?? 'all') === 'all' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100/50 text-slate-600' }}">
                                     {{ $allDocCount }}
                                 </span>
                                 <!-- Info Icon -->
@@ -478,7 +478,7 @@
                                 </svg>
                                 Archived
                                 <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full
-                                             {{ ($tab ?? 'all') === 'archived' ? 'bg-slate-200 text-slate-700' : 'bg-slate-100 text-slate-600' }}">
+                                             {{ ($tab ?? 'all') === 'archived' ? 'bg-slate-200 text-slate-700' : 'bg-slate-100/50 text-slate-600' }}">
                                     {{ $archivedCount }}
                                 </span>
                                 <!-- Info Icon -->
@@ -569,12 +569,12 @@
                     ];
 
                     $statusColors = [
-                        'all' => ['bg' => 'bg-indigo-50', 'text' => 'text-indigo-600'],
+                        'all' => ['bg' => 'bg-indigo-100/50', 'text' => 'text-indigo-600'],
                         'pending' => ['bg' => 'bg-yellow-50', 'text' => 'text-yellow-600'],
-                        'forwarded' => ['bg' => 'bg-indigo-50', 'text' => 'text-indigo-600'],
+                        'forwarded' => ['bg' => 'bg-indigo-100/50', 'text' => 'text-indigo-600'],
                         'received' => ['bg' => 'bg-green-50', 'text' => 'text-green-600'],
-                        'approved' => ['bg' => 'bg-emerald-50', 'text' => 'text-emerald-600'],
-                        'acknowledged' => ['bg' => 'bg-indigo-50', 'text' => 'text-indigo-600'],
+                        'approved' => ['bg' => 'bg-emerald-100/50', 'text' => 'text-emerald-600'],
+                        'acknowledged' => ['bg' => 'bg-indigo-100/50', 'text' => 'text-indigo-600'],
                         'commented' => ['bg' => 'bg-cyan-50', 'text' => 'text-cyan-600'],
                         'returned' => ['bg' => 'bg-orange-50', 'text' => 'text-orange-600'],
                         'rejected' => ['bg' => 'bg-red-50', 'text' => 'text-red-600'],
@@ -865,7 +865,7 @@
             chevron.classList.toggle('rotate-180');
         }
 
-        // ── Searchable Select Dropdowns ──
+        // -- Searchable Select Dropdowns --
         document.querySelectorAll('.searchable-select').forEach(wrapper => {
             const targetId  = wrapper.dataset.target;
             const hidden    = document.getElementById(targetId);
@@ -898,8 +898,8 @@
                     label.textContent = opt.textContent.trim();
                     dropdown.classList.add('hidden');
                     // Highlight selected
-                    options.forEach(o => o.classList.remove('bg-indigo-50', 'font-semibold'));
-                    opt.classList.add('bg-indigo-50', 'font-semibold');
+                    options.forEach(o => o.classList.remove('bg-indigo-100/50', 'font-semibold'));
+                    opt.classList.add('bg-indigo-100/50', 'font-semibold');
                 });
             });
 
@@ -921,7 +921,7 @@
             if (hidden.value) {
                 options.forEach(opt => {
                     if (opt.dataset.value === hidden.value) {
-                        opt.classList.add('bg-indigo-50', 'font-semibold');
+                        opt.classList.add('bg-indigo-100/50', 'font-semibold');
                     }
                 });
             }
@@ -1542,7 +1542,7 @@
                 if (typeof startCamera === 'function') startCamera();
 
                 // Update button style
-                button.classList.add('bg-indigo-50', 'border-indigo-500', 'text-indigo-600');
+                button.classList.add('bg-indigo-100/50', 'border-indigo-500', 'text-indigo-600');
                 imageIcon.classList.add('opacity-0');
                 closeIcon.classList.remove('opacity-0');
                 if (buttonText) buttonText.textContent = 'Close Scanner';
@@ -1560,7 +1560,7 @@
                 }, 300);
 
                 // Reset button style
-                button.classList.remove('bg-indigo-50', 'border-indigo-500', 'text-indigo-600');
+                button.classList.remove('bg-indigo-100/50', 'border-indigo-500', 'text-indigo-600');
                 imageIcon.classList.remove('opacity-0');
                 closeIcon.classList.add('opacity-0');
                 if (buttonText) buttonText.textContent = 'Scan Barcode';
@@ -1876,7 +1876,7 @@
         }
     </script>
 
-{{-- ═══════ Print Prompt Modal ═══════ --}}
+{{-- ------- Print Prompt Modal ------- --}}
 @include('documents.partials.print-prompt-modal')
 
 @endsection

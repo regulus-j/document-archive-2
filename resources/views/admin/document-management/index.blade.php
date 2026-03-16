@@ -42,15 +42,15 @@
                             <h3 class="ml-3 text-xl font-semibold text-slate-900">Document Statistics</h3>
                         </div>
                         <div class="space-y-4">
-                            <div class="flex justify-between items-center p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+                            <div class="flex justify-between items-center p-4 bg-indigo-100/50 rounded-lg border border-indigo-100">
                                 <span class="text-sm font-medium text-slate-600">Total Documents:</span>
                                 <strong class="text-lg font-semibold text-slate-900">{{ $totalDocuments }}</strong>
                             </div>
-                            <div class="flex justify-between items-center p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+                            <div class="flex justify-between items-center p-4 bg-indigo-100/50 rounded-lg border border-indigo-100">
                                 <span class="text-sm font-medium text-slate-600">Archived Documents:</span>
                                 <strong class="text-lg font-semibold text-slate-900">{{ $archivedDocuments }}</strong>
                             </div>
-                            <div class="flex justify-between items-center p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+                            <div class="flex justify-between items-center p-4 bg-indigo-100/50 rounded-lg border border-indigo-100">
                                 <span class="text-sm font-medium text-slate-600">Storage Used:</span>
                                 <strong class="text-lg font-semibold text-slate-900">{{ $storageUsageMB }} MB</strong>
                             </div>
@@ -85,7 +85,7 @@
                         <p class="text-sm text-slate-500 mb-6">Manage document deletion and archiving</p>
                         <div class="flex flex-col gap-4">
                             <a href="{{ route('admin.document-management.documents', ['show_archived' => 1]) }}"
-                                class="w-full flex justify-center items-center px-5 py-3 border border-emerald-200 text-base font-medium rounded-xl shadow text-emerald-700 bg-emerald-50 hover:bg-emerald-100 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-200">
+                                class="w-full flex justify-center items-center px-5 py-3 border border-emerald-200 text-base font-medium rounded-xl shadow text-emerald-700 bg-emerald-100/50 hover:bg-emerald-100 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-200">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -94,7 +94,7 @@
                                 View Archived Documents
                             </a>
                             <button type="button" data-bs-toggle="modal" data-bs-target="#bulkDeleteModal"
-                                class="w-full flex justify-center items-center px-5 py-3 border border-amber-200 text-base font-medium rounded-xl shadow text-amber-700 bg-amber-50 hover:bg-amber-100 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-all duration-200">
+                                class="w-full flex justify-center items-center px-5 py-3 border border-amber-200 text-base font-medium rounded-xl shadow text-amber-700 bg-amber-100/50 hover:bg-amber-100 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-all duration-200">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -121,7 +121,7 @@
                         </div>
                         <div class="space-y-4">
                             @forelse($auditLogs->take(3) as $log)
-                                <div class="p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+                                <div class="p-4 bg-indigo-100/50 rounded-lg border border-indigo-100">
                                     <div class="flex justify-between items-center mb-2">
                                         <span class="font-medium text-slate-900 truncate">
                                             {{ $log->document->title ?? 'Document #' . $log->document_id }}
@@ -130,7 +130,7 @@
                                             {{ $log->status === 'completed' ? 'bg-emerald-100 text-emerald-800' : '' }}
                                             {{ $log->status === 'pending' ? 'bg-amber-100 text-amber-800' : '' }}
                                             {{ $log->status === 'failed' ? 'bg-rose-100 text-rose-800' : '' }}
-                                            {{ !in_array($log->status, ['completed', 'pending', 'failed']) ? 'bg-slate-100 text-slate-800' : '' }}">
+                                            {{ !in_array($log->status, ['completed', 'pending', 'failed']) ? 'bg-slate-100/50 text-slate-800' : '' }}">
                                             {{ ucfirst($log->status) }}
                                         </span>
                                     </div>
@@ -174,7 +174,7 @@
                 </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-slate-200">
-                        <thead class="bg-indigo-50">
+                        <thead class="bg-indigo-100/50">
                             <tr>
                                 <th scope="col"
                                     class="px-6 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider">
@@ -198,7 +198,7 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-slate-200">
                             @forelse($auditLogs as $log)
-                                <tr class="hover:bg-indigo-50 transition-colors">
+                                <tr class="hover:bg-indigo-100/50 transition-colors">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         <a href="{{ route('admin.document-management.show', $log->document_id) }}"
                                             class="text-indigo-600 hover:text-indigo-900">
@@ -217,7 +217,7 @@
                                                 {{ $log->status === 'completed' ? 'bg-emerald-100 text-emerald-800' : '' }}
                                                 {{ $log->status === 'pending' ? 'bg-amber-100 text-amber-800' : '' }}
                                                 {{ $log->status === 'failed' ? 'bg-rose-100 text-rose-800' : '' }}
-                                                {{ !in_array($log->status, ['completed', 'pending', 'failed']) ? 'bg-slate-100 text-slate-800' : '' }}">
+                                                {{ !in_array($log->status, ['completed', 'pending', 'failed']) ? 'bg-slate-100/50 text-slate-800' : '' }}">
                                             {{ ucfirst($log->status) }}
                                         </span>
                                     </td>
@@ -278,7 +278,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body p-6">
-                        <div class="rounded-md bg-amber-50 p-4 mb-6 border border-amber-200">
+                        <div class="rounded-md bg-amber-100/50 p-4 mb-6 border border-amber-200">
                             <div class="flex">
                                 <div class="flex-shrink-0">
                                     <svg class="h-5 w-5 text-amber-400" xmlns="http://www.w3.org/2000/svg"
@@ -310,7 +310,7 @@
                                 class="block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                         </div>
                     </div>
-                    <div class="modal-footer flex justify-end space-x-3 bg-indigo-50 px-6 py-4 border-t border-indigo-200">
+                    <div class="modal-footer flex justify-end space-x-3 bg-indigo-100/50 px-6 py-4 border-t border-indigo-200">
                         <button type="button"
                             class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-medium rounded-lg transition-colors"
                             data-bs-dismiss="modal">Cancel</button>

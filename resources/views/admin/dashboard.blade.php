@@ -30,7 +30,7 @@
                 <div class="flex gap-1 overflow-x-auto py-0">
                     @foreach(['overview' => 'Overview', 'users' => 'Users', 'documents' => 'Documents', 'companies' => 'Companies', 'subscriptions' => 'Subscriptions', 'audit' => 'Audit'] as $tab => $label)
                     <button @click="activeTab = '{{ $tab }}'"
-                            :class="activeTab === '{{ $tab }}' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'"
+                            :class="activeTab === '{{ $tab }}' ? 'border-indigo-600 text-indigo-600 bg-indigo-100/50/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'"
                             class="px-4 py-2.5 text-sm font-medium border-b-2 rounded-t-lg transition-colors whitespace-nowrap">
                         {{ $label }}
                     </button>
@@ -276,7 +276,7 @@
                                     <td class="px-5 py-2.5 text-slate-600">{{ $doc->user ? $doc->user->first_name . ' ' . $doc->user->last_name : 'N/A' }}</td>
                                     <td class="px-5 py-2.5">
                                         @php $s = $doc->status->status ?? 'unknown'; @endphp
-                                        <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium {{ $s === 'approved' ? 'bg-emerald-100 text-emerald-700' : ($s === 'pending' ? 'bg-amber-100 text-amber-700' : ($s === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600')) }}">{{ ucfirst($s) }}</span>
+                                        <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium {{ $s === 'approved' ? 'bg-emerald-100 text-emerald-700' : ($s === 'pending' ? 'bg-amber-100 text-amber-700' : ($s === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-slate-100/50 text-slate-600')) }}">{{ ucfirst($s) }}</span>
                                     </td>
                                     <td class="px-5 py-2.5 text-slate-500 text-xs">{{ $doc->categories->pluck('category')->join(', ') ?: ($doc->category ?? '-') }}</td>
                                     <td class="px-5 py-2.5 text-slate-400 text-xs">{{ $doc->created_at?->format('M d, Y') }}</td>
@@ -355,7 +355,7 @@
                                 <div class="text-xl font-bold text-indigo-600 mt-1">P{{ number_format($plan->price / 100, 2) }}</div>
                                 <div class="text-xs text-slate-500 mt-0.5">{{ ucfirst($plan->billing_cycle) }}</div>
                             </div>
-                            <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium {{ $plan->is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500' }}">{{ $plan->is_active ? 'Active' : 'Inactive' }}</span>
+                            <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium {{ $plan->is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100/50 text-slate-500' }}">{{ $plan->is_active ? 'Active' : 'Inactive' }}</span>
                         </div>
                         <div class="text-xs text-slate-400 mt-2">{{ $plan->subscriptions_count }} subscriptions</div>
                     </div>

@@ -7,7 +7,7 @@
     <div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white p-4 md:p-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Header Box -->
-            <div class="bg-white rounded-xl mb-6 border border-indigo-200/80 overflow-hidden">
+            <div class="bg-white rounded-xl mb-6 border border-slate-200 overflow-hidden">
                 <div class="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div class="flex items-center">
                         <div class="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg">
@@ -20,7 +20,7 @@
                             <p class="text-sm text-slate-500">Select recipients to forward this document</p>
                         </div>
                     </div>
-                    <a href="{{ route('documents.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors duration-200">
+                    <a href="{{ route('documents.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-indigo-600 text-indigo-600 rounded-lg hover:bg-slate-50 transition-colors duration-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
                         </svg>
@@ -104,7 +104,7 @@
 
             <!-- Main Content -->
             @if ($users->isEmpty())
-                <div class="bg-white rounded-xl p-8 text-center border border-indigo-200/80">
+                <div class="bg-white rounded-xl p-8 text-center border border-slate-200">
                     <div class="flex flex-col items-center justify-center py-12">
                         <svg class="h-16 w-16 text-slate-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
@@ -114,7 +114,7 @@
                         <h2 class="text-xl font-semibold text-slate-700 mb-2">No Recipients Available</h2>
                         <p class="text-slate-500 text-lg mb-6">There are no users available to forward the document to.</p>
                         <a href="{{ route('documents.index') }}"
-                            class="inline-flex items-center px-5 py-3 border border-indigo-600 text-indigo-600 bg-white text-base font-medium rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+                            class="inline-flex items-center px-5 py-3 border border-indigo-600 text-indigo-600 bg-white text-base font-medium rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
                             <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -125,8 +125,8 @@
                     </div>
                 </div>
             @else
-                <div class="bg-white rounded-xl border border-indigo-200/80 overflow-hidden">
-                    <div class="bg-white p-6 border-b border-indigo-200/60">
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                    <div class="bg-white p-6 border-b border-slate-200">
                         <div class="flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
@@ -142,7 +142,7 @@
                     @csrf
                     
                     <!-- Workflow Type Selection -->
-                    <div class="mb-6 bg-gradient-to-r from-indigo-50 to-indigo-50 p-6 rounded-xl border border-indigo-200/60">
+                    <div class="mb-6 bg-white p-6 rounded-xl border border-slate-200">
                         <div class="flex items-center justify-between mb-4">
                             <div>
                                 <h3 class="text-lg font-semibold text-slate-800 flex items-center">
@@ -166,7 +166,7 @@
                         </div>
                         
                         <!-- Workflow Description -->
-                        <div id="workflow-description" class="bg-white p-4 rounded-lg border border-indigo-200/60">
+                        <div id="workflow-description" class="bg-white p-4 rounded-lg border border-slate-200">
                             <div id="parallel-description" class="workflow-description">
                                 <div class="flex items-start">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mt-0.5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -209,7 +209,7 @@
                     </div>
 
                     <div id="batches-container" class="space-y-6">
-                        <div class="batch-group bg-indigo-50/50 p-6 rounded-xl border border-indigo-200/60 transition-all duration-200 hover:shadow-lg" data-index="0">
+                        <div class="batch-group bg-white p-6 rounded-xl border border-slate-200 transition-all duration-200 hover:shadow-lg" data-index="0">
                             <!-- Sequential Step Indicator -->
                             <div class="sequential-step-indicator hidden mb-4">
                                 <div class="flex items-center justify-between bg-white p-3 rounded-lg border border-amber-200">
@@ -221,7 +221,7 @@
                                         <span class="ml-2 text-amber-600">- Document will be sent to this recipient only after the previous step is completed</span>
                                     </div>
                                     <div class="flex items-center space-x-2">
-                                        <span class="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">Drag to reorder</span>
+                                        <span class="text-xs text-slate-500 bg-slate-100/50 px-2 py-1 rounded">Drag to reorder</span>
                                         <button type="button" class="drag-handle cursor-move p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -250,7 +250,7 @@
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <!-- Offices Selection -->
-                                <div class="bg-white p-5 rounded-xl border border-indigo-200/60">
+                                <div class="bg-white p-5 rounded-xl border border-slate-200">
                                     <h3 class="text-sm font-semibold text-slate-800 mb-3 flex items-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2"
                                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -261,7 +261,7 @@
                                     </h3>
                                     
                                     <!-- Office Selection Info -->
-                                    <div class="mb-3 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+                                    <div class="mb-3 p-3 bg-slate-50 border border-indigo-200 rounded-lg">
                                         <div class="flex items-start">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-600 mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -292,7 +292,7 @@
                                 </div>
 
                                 <!-- Users Selection -->
-                                <div class="bg-white p-5 rounded-xl border border-indigo-200/60">
+                                <div class="bg-white p-5 rounded-xl border border-slate-200">
                                     <h3 class="text-sm font-semibold text-slate-800 mb-3 flex items-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2"
                                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -331,7 +331,7 @@
                             </div>
 
                             <!-- Purpose and Urgency Selection -->
-                            <div class="bg-white p-5 rounded-xl border border-indigo-200/60 mt-4">
+                            <div class="bg-white p-5 rounded-xl border border-slate-200 mt-4">
                                 <h3 class="text-sm font-semibold text-slate-800 mb-3 flex items-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2"
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -403,6 +403,65 @@
                placeholder="e.g., Approve budget, revise section 3, schedule meeting"
                disabled>
         <p class="text-xs text-slate-500 mt-1">Required when sending for appropriate action.</p>
+    </div>
+    
+    <!-- Delegation Options (for appropriate action only) -->
+    <div class="mt-4 delegation-options-container hidden">
+        <label class="block text-xs font-medium text-slate-600 mb-2">Decision Authority</label>
+        <div class="space-y-3">
+            <label class="flex items-start p-3 border-2 border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-all delegation-option" data-type="retain">
+                <input type="radio" name="delegation_type" value="retain" class="mt-1 mr-3 delegation-radio" checked>
+                <div class="flex-1">
+                    <div class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="text-sm font-medium text-slate-800">Get Input Then I'll Decide</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1 ml-7">You will make the final decision after reviewing their input. You must approve or reject after consultations complete.</p>
+                    
+                    <!-- Wait Policy (shown when retain is selected) -->
+                    <div class="mt-3 ml-7 wait-policy-container">
+                        <label class="block text-xs font-medium text-slate-600 mb-1.5">When can you decide?</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center text-xs text-slate-700">
+                                <input type="radio" name="wait_policy" value="wait_all" class="mr-2 text-indigo-600" checked>
+                                <span>Wait for all consultations to complete</span>
+                            </label>
+                            <label class="flex items-center text-xs text-slate-700">
+                                <input type="radio" name="wait_policy" value="decide_anytime" class="mr-2 text-indigo-600">
+                                <span>Decide after any consultation completes</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </label>
+            
+            <label class="flex items-start p-3 border-2 border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-all delegation-option" data-type="delegate">
+                <input type="radio" name="delegation_type" value="delegate" class="mt-1 mr-3 delegation-radio">
+                <div class="flex-1">
+                    <div class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                        <span class="text-sm font-medium text-slate-800">Delegate Decision Authority</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1 ml-7">Transfer decision responsibility to recipient. They will approve or reject. You will be notified of their decision.</p>
+                </div>
+            </label>
+        </div>
+        
+        <!-- Delegation Depth Warning -->
+        <div class="mt-3 delegation-warning hidden" id="delegation-warning">
+            <div class="flex items-start p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600 mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div class="flex-1">
+                    <p class="text-xs font-medium text-amber-800" id="delegation-warning-text"></p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
     <!-- Urgency Selection -->
@@ -498,6 +557,29 @@
     <script>
         let batchIndex = 1; // This is used to give a unique starting point for cloned batch elements before updateBatchOrders standardizes them.
         let isSequentialMode = false;
+        
+        // Display delegation warning if present
+        @if(isset($delegationWarning) && $delegationWarning)
+        document.addEventListener('DOMContentLoaded', function() {
+            const warningContainer = document.getElementById('delegation-warning');
+            const warningText = document.getElementById('delegation-warning-text');
+            if (warningContainer && warningText) {
+                warningText.textContent = '{{ $delegationWarning['message'] }}';
+                warningContainer.classList.remove('hidden');
+                
+                @if($delegationWarning['level'] === 'high')
+                warningContainer.querySelector('.bg-amber-50').classList.remove('bg-amber-50');
+                warningContainer.querySelector('.bg-amber-50').classList.add('bg-red-50');
+                warningContainer.querySelector('.border-amber-200').classList.remove('border-amber-200');
+                warningContainer.querySelector('.border-amber-200').classList.add('border-red-200');
+                warningContainer.querySelector('.text-amber-600').classList.remove('text-amber-600');
+                warningContainer.querySelector('.text-amber-600').classList.add('text-red-600');
+                warningContainer.querySelector('.text-amber-800').classList.remove('text-amber-800');
+                warningContainer.querySelector('.text-amber-800').classList.add('text-red-800');
+                @endif
+            }
+        });
+        @endif
 
         function updateWorkflowDisplay() {
             const isSequential = document.querySelector('input[name="workflow_mode"]:checked').value === 'sequential';
@@ -635,7 +717,7 @@
                     }
                     
                     // Update batch styling for sequential mode
-                    batch.classList.remove('bg-indigo-50/50');
+                    batch.classList.remove('bg-white');
                     batch.classList.add('bg-gradient-to-r', 'from-white', 'to-slate-50/50');
                     
                 } else {
@@ -644,7 +726,7 @@
                     
                     // Reset batch styling for parallel mode
                     batch.classList.remove('bg-gradient-to-r', 'from-white', 'to-slate-50/50');
-                    batch.classList.add('bg-indigo-50/50');
+                    batch.classList.add('bg-white');
                 }
             });
         }
@@ -654,6 +736,10 @@
             const purposeLabels = batch.querySelectorAll('.purpose-label');
             const actionContainer = batch.querySelector('.action-required-container');
             const actionInput = batch.querySelector('input[name^="action_required_batch"]');
+            const delegationContainer = batch.querySelector('.delegation-options-container');
+            const delegationRadios = batch.querySelectorAll('.delegation-radio');
+            const delegationOptions = batch.querySelectorAll('.delegation-option');
+            const waitPolicyContainer = batch.querySelector('.wait-policy-container');
 
             function syncActionRequired() {
                 const selected = batch.querySelector('input[name^="purpose_batch"]:checked');
@@ -663,10 +749,10 @@
                 purposeLabels.forEach(label => {
                     const radio = label.querySelector('input[type="radio"]');
                     if (radio && radio.checked) {
-                        label.classList.add('border-indigo-500', 'bg-indigo-50');
+                        label.classList.add('border-indigo-500', 'bg-slate-50');
                         label.classList.remove('border-slate-200');
                     } else {
-                        label.classList.remove('border-indigo-500', 'bg-indigo-50');
+                        label.classList.remove('border-indigo-500', 'bg-slate-50');
                         label.classList.add('border-slate-200');
                     }
                 });
@@ -679,14 +765,46 @@
                     actionInput.disabled = !isAppropriate;
                     actionInput.required = isAppropriate;
                 }
+                
+                // Show/hide delegation options container
+                if (delegationContainer) {
+                    delegationContainer.classList.toggle('hidden', !isAppropriate);
+                }
+            }
+            
+            function syncDelegationOptions() {
+                const selectedDelegation = batch.querySelector('input[name="delegation_type"]:checked');
+                const isRetain = selectedDelegation && selectedDelegation.value === 'retain';
+                
+                // Update visual styling for delegation options
+                delegationOptions.forEach(option => {
+                    const radio = option.querySelector('input[type="radio"]');
+                    if (radio && radio.checked) {
+                        option.classList.add('border-indigo-500', 'bg-slate-50');
+                        option.classList.remove('border-slate-200');
+                    } else {
+                        option.classList.remove('border-indigo-500', 'bg-slate-50');
+                        option.classList.add('border-slate-200');
+                    }
+                });
+                
+                // Show/hide wait policy based on delegation type
+                if (waitPolicyContainer) {
+                    waitPolicyContainer.classList.toggle('hidden', !isRetain);
+                }
             }
 
             purposeRadios.forEach(radio => {
                 radio.addEventListener('change', syncActionRequired);
             });
+            
+            delegationRadios.forEach(radio => {
+                radio.addEventListener('change', syncDelegationOptions);
+            });
 
             // Initialize the state for this batch
             syncActionRequired();
+            syncDelegationOptions();
         }
 
         function enableDragAndDrop() {
@@ -1193,13 +1311,13 @@
                 <p class="text-xs text-slate-500">Full-screen viewer</p>
             </div>
             <div class="flex items-center gap-2">
-                <a id="doc-viewer-newtab" href="#" target="_blank" class="p-2 rounded-lg text-indigo-600 hover:bg-indigo-50" title="Open in new tab">
+                <a id="doc-viewer-newtab" href="#" target="_blank" class="p-2 rounded-lg text-indigo-600 hover:bg-slate-50" title="Open in new tab">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7m0 0v7m0-7L10 14m-4 7h1a2 2 0 002-2v-3.5a1.5 1.5 0 00-1.5-1.5H8a2 2 0 00-2 2v1a2 2 0 002 2z"/></svg>
                 </a>
-                <a id="doc-viewer-download" href="#" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100" title="Download">
+                <a id="doc-viewer-download" href="#" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100/50" title="Download">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 </a>
-                <button onclick="closeDocViewer()" class="p-2 rounded-lg text-slate-500 hover:bg-slate-100" title="Close">
+                <button onclick="closeDocViewer()" class="p-2 rounded-lg text-slate-500 hover:bg-slate-100/50" title="Close">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
@@ -1283,9 +1401,9 @@
              class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
             
             <!-- Modal Header -->
-            <div class="bg-gradient-to-r from-indigo-50 to-white px-6 py-4 border-b border-indigo-200/60 flex items-center justify-between flex-shrink-0">
+            <div class="bg-gradient-to-r from-indigo-50 to-white px-6 py-4 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
                 <div class="flex items-center gap-3">
-                    <div class="p-2 bg-indigo-100 rounded-lg">
+                    <div class="p-2 bg-indigo-100/50 rounded-lg">
                         <svg class="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
@@ -1295,7 +1413,7 @@
                         <p class="text-sm text-slate-500">{{ $document->title }}</p>
                     </div>
                 </div>
-                <button @click="open = false" class="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors">
+                <button @click="open = false" class="p-2 rounded-lg hover:bg-slate-100/50 text-slate-400 hover:text-slate-600 transition-colors">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -1330,7 +1448,7 @@
                                 <div>
                                     <dt class="text-xs font-medium text-slate-500 uppercase tracking-wide">Category</dt>
                                     <dd class="mt-1">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100/50 text-indigo-700">
                                             {{ $document->category ?? 'Uncategorized' }}
                                         </span>
                                     </dd>
@@ -1401,7 +1519,7 @@
                                         </div>
                                     </div>
                                     <button onclick="openDocViewer('{{ route('attachments.preview', $attachment->id) }}', '{{ addslashes($attachment->filename) }}', '{{ route('attachments.download', $attachment->id) }}', '{{ $ext }}')"
-                                            class="flex-shrink-0 ml-3 p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors">
+                                            class="flex-shrink-0 ml-3 p-2 text-amber-600 hover:bg-amber-100/50 rounded-lg transition-colors">
                                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -1435,7 +1553,7 @@
                             </h4>
                             
                             <!-- Preview Container -->
-                            <div class="relative bg-slate-100 rounded-lg overflow-hidden" style="height: 500px;">
+                            <div class="relative bg-slate-100/50 rounded-lg overflow-hidden" style="height: 500px;">
                                 @php
                                     $ext = strtolower(pathinfo($document->path, PATHINFO_EXTENSION));
                                     $isPdf = $ext === 'pdf';

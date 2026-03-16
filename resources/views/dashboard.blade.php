@@ -46,7 +46,7 @@
                                 'value' => $totalDocuments,
                                 'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
                                 'accent' => 'border-indigo-400',
-                                'iconBg' => 'bg-indigo-50',
+                                'iconBg' => 'bg-indigo-100/50',
                                 'iconColor' => 'text-indigo-500'
                             ],
                             [
@@ -54,7 +54,7 @@
                                 'value' => $incomingDocuments,
                                 'icon' => 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
                                 'accent' => 'border-amber-400',
-                                'iconBg' => 'bg-amber-50',
+                                'iconBg' => 'bg-amber-100/50',
                                 'iconColor' => 'text-amber-500'
                             ],
                             [
@@ -62,7 +62,7 @@
                                 'value' => $pendingDocuments,
                                 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
                                 'accent' => 'border-slate-400',
-                                'iconBg' => 'bg-slate-100',
+                                'iconBg' => 'bg-slate-100/50',
                                 'iconColor' => 'text-slate-500'
                             ],
                             [
@@ -70,11 +70,11 @@
                                 'value' => $countCompanyUsers,
                                 'icon' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
                                 'accent' => 'border-emerald-400',
-                                'iconBg' => 'bg-emerald-50',
+                                'iconBg' => 'bg-emerald-100/50',
                                 'iconColor' => 'text-emerald-500'
                             ],
                         ] as $stat)
-                        <div class="bg-white rounded-lg p-4 border border-slate-200/80 border-l-[3px] {{ $stat['accent'] }} shadow-card">
+                        <div class="bg-white rounded-lg p-4 border border-slate-200 border-l-[3px] {{ $stat['accent'] }} shadow-sm hover:shadow-md transition-shadow">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0 {{ $stat['iconBg'] }} rounded-lg p-3">
                                     <svg class="h-5 w-5 {{ $stat['iconColor'] }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -90,7 +90,7 @@
                         @endforeach
                     </div>
 
-                    <div class="bg-white rounded-lg p-6 border border-slate-200/80 shadow-card">
+                    <div class="bg-white rounded-lg p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                         <div class="flex items-center justify-between mb-4">
                             <div>
                                 <h3 class="text-lg font-semibold text-slate-900">Documents Trend</h3>
@@ -128,29 +128,29 @@
                 </div>
 
                 <div class="lg:col-span-4 space-y-6">
-                    <div class="bg-white rounded-lg p-6 border border-slate-200/80 shadow-card">
+                    <div class="bg-white rounded-lg p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                         <h3 class="text-sm font-semibold text-slate-700 mb-4">Quick Actions</h3>
                         <div class="grid grid-cols-2 gap-3">
-                            <a href="{{ route('documents.create') }}" class="flex flex-col items-center p-4 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 transition">
+                            <a href="{{ route('documents.create') }}" class="flex flex-col items-center p-4 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition">
                                 <svg class="w-5 h-5 text-slate-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                                 <span class="text-xs font-medium text-slate-700">New Document</span>
                             </a>
-                            <a href="{{ route('documents.workflows') }}" class="flex flex-col items-center p-4 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 transition">
+                            <a href="{{ route('documents.workflows') }}" class="flex flex-col items-center p-4 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition">
                                 <svg class="w-5 h-5 text-slate-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                                 <span class="text-xs font-medium text-slate-700">My Workflows</span>
                             </a>
-                            <a href="{{ route('documents.index') }}" class="flex flex-col items-center p-4 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 transition">
+                            <a href="{{ route('documents.index') }}" class="flex flex-col items-center p-4 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition">
                                 <svg class="w-5 h-5 text-slate-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                                 <span class="text-xs font-medium text-slate-700">Browse Docs</span>
                             </a>
-                            <a href="{{ route('documents.workflow-dashboard') }}" class="flex flex-col items-center p-4 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 transition">
+                            <a href="{{ route('documents.workflow-dashboard') }}" class="flex flex-col items-center p-4 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition">
                                 <svg class="w-5 h-5 text-slate-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                 <span class="text-xs font-medium text-slate-700">Receive Docs</span>
                             </a>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-lg p-6 border border-slate-200/80 shadow-card">
+                    <div class="bg-white rounded-lg p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-sm font-semibold text-slate-700">Office Activity</h3>
                             <span class="text-xs text-slate-400">Top {{ $officeActivity->count() }}</span>
@@ -163,8 +163,8 @@
                                         <span class="font-medium text-slate-700">{{ $office->name }}</span>
                                         <span>{{ $office->total }}</span>
                                     </div>
-                                    <div class="h-2 bg-slate-100 rounded-full mt-1">
-                                        <div class="h-2 bg-indigo-500 rounded-full" style="width: {{ ($office->total / $officeMax) * 100 }}%"></div>
+                                    <div class="h-2 bg-slate-100/50 rounded-full mt-1">
+                                        <div class="h-2 bg-indigo-100/500 rounded-full" style="width: {{ ($office->total / $officeMax) * 100 }}%"></div>
                                     </div>
                                 </div>
                             @empty
@@ -176,7 +176,7 @@
             </div>
 
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div class="xl:col-span-2 bg-white rounded-lg border border-slate-200/80 shadow-card">
+                <div class="xl:col-span-2 bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                     <div class="flex items-center justify-between p-6 border-b border-slate-100">
                         <div>
                             <h3 class="text-lg font-semibold text-slate-900">Recent Documents</h3>
@@ -199,11 +199,11 @@
                                     @php
                                         $statusValue = $document->effective_status ?? optional($document->status)->status ?? 'unknown';
                                         $statusClass = match ($statusValue) {
-                                            'approved' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                            'approved' => 'bg-emerald-100/50 text-emerald-700 border-emerald-200',
                                             'rejected' => 'bg-rose-50 text-rose-700 border-rose-200',
-                                            'pending' => 'bg-amber-50 text-amber-700 border-amber-200',
-                                            'returned' => 'bg-slate-100 text-slate-700 border-slate-200',
-                                            default => 'bg-slate-100 text-slate-700 border-slate-200',
+                                            'pending' => 'bg-amber-100/50 text-amber-700 border-amber-200',
+                                            'returned' => 'bg-slate-100/50 text-slate-700 border-slate-200',
+                                            default => 'bg-slate-100/50 text-slate-700 border-slate-200',
                                         };
                                     @endphp
                                     <tr>
@@ -235,7 +235,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-lg p-6 border border-slate-200/80 shadow-card">
+                <div class="bg-white rounded-lg p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                     <h3 class="text-sm font-semibold text-slate-700 mb-3">Find Document</h3>
                     <p class="text-xs text-slate-500 mb-4">Search by tracking number or scan a barcode.</p>
                     <form id="quick-action-form" action="{{ route('trackingNumber-search') }}" method="POST" class="space-y-4">
@@ -369,7 +369,7 @@
             const colors = {
                 success: 'bg-green-50 border-green-200 text-green-800',
                 error: 'bg-red-50 border-red-200 text-red-800',
-                info: 'bg-indigo-50 border-indigo-200 text-indigo-800'
+                info: 'bg-indigo-100/50 border-indigo-200 text-indigo-800'
             };
             const icons = {
                 success: '<svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>',

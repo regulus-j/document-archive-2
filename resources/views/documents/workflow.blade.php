@@ -4,7 +4,7 @@
     <div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white p-4 md:p-8">
         <div class="max-w-7xl mx-auto px-6">
             <!-- Header Box -->
-            <div class="bg-white rounded-xl mb-6 border border-indigo-200/80 overflow-hidden">
+            <div class="bg-white rounded-xl mb-6 border border-slate-200 overflow-hidden">
                 <div class="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div class="flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -101,7 +101,7 @@
             @endif
 
             <!-- Workflow Instructions -->
-            <div class="bg-white rounded-xl mb-6 border-l-4 border-indigo-500 border-t border-b border-r border-indigo-200/80">
+            <div class="bg-white rounded-xl mb-6 border-l-4 border-indigo-500 border-t border-b border-r border-slate-200">
                 <div class="p-4 flex items-start space-x-3">
                     <p class="text-sm text-slate-600">
                         <span class="font-medium text-indigo-600">Document Tracking:</span>
@@ -164,7 +164,7 @@
                     </div>
                 </div> --}}
             </div>            <!-- Main Content -->
-            <div class="bg-white rounded-xl overflow-hidden border border-indigo-200/80 transition-all duration-300 hover:border-indigo-300/80">
+            <div class="bg-white rounded-xl overflow-hidden border border-slate-200 transition-all duration-300 hover:border-indigo-300/80">
                 <div class="bg-gradient-to-r from-indigo-50 to-white p-6 border-b border-indigo-200/60">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center">

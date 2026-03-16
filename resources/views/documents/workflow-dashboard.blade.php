@@ -122,7 +122,7 @@ if (!function_exists('wfTimeDiff')) {
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl overflow-hidden border border-indigo-200/80">
+            <div class="bg-white rounded-xl overflow-hidden border border-slate-200">
                 @if($receiveDocuments->isEmpty())
                     <div class="flex flex-col items-center justify-center py-16 px-4">
                         <div class="p-3 bg-indigo-100 rounded-lg mb-4">
@@ -220,7 +220,7 @@ if (!function_exists('wfTimeDiff')) {
                 </div>
 
                 {{-- Received Pending Documents --}}
-                <div x-show="pendingTab === 'received'" class="bg-white rounded-xl overflow-visible border border-indigo-200/80">
+                <div x-show="pendingTab === 'received'" class="bg-white rounded-xl overflow-visible border border-slate-200">
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-slate-200">
                             <thead>
@@ -337,7 +337,7 @@ if (!function_exists('wfTimeDiff')) {
                 </div>
 
                 {{-- Sent Pending Documents --}}
-                <div x-show="pendingTab === 'sent'" x-cloak class="bg-white rounded-xl overflow-visible border border-indigo-200/80">
+                <div x-show="pendingTab === 'sent'" x-cloak class="bg-white rounded-xl overflow-visible border border-slate-200">
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-slate-200">
                             <thead>
@@ -457,7 +457,7 @@ if (!function_exists('wfTimeDiff')) {
                 </div>
 
                 {{-- Received Completed --}}
-                <div x-show="completedTab === 'received'" class="bg-white rounded-xl overflow-visible border border-indigo-200/80">
+                <div x-show="completedTab === 'received'" class="bg-white rounded-xl overflow-visible border border-slate-200">
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-slate-200">
                             <thead>
@@ -549,7 +549,7 @@ if (!function_exists('wfTimeDiff')) {
                 </div>
 
                 {{-- Sent Completed --}}
-                <div x-show="completedTab === 'sent'" x-cloak class="bg-white rounded-xl overflow-visible border border-indigo-200/80">
+                <div x-show="completedTab === 'sent'" x-cloak class="bg-white rounded-xl overflow-visible border border-slate-200">
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-slate-200">
                             <thead>

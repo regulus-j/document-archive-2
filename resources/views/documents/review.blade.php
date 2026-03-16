@@ -43,7 +43,7 @@
         @endif
 
         <!-- Header Box -->
-        <div class="bg-white rounded-xl mb-6 border border-indigo-200/80 overflow-hidden">
+        <div class="bg-white rounded-xl mb-6 border border-slate-200 overflow-hidden">
             <div class="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div class="flex items-center">
                     <div class="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg">
@@ -78,8 +78,8 @@
             {{-- ============================================= --}}
             <div class="flex gap-6 items-start">
                 {{-- Document Information (left, ~22vw) --}}
-                <div class="bg-white rounded-xl border border-indigo-200/80 overflow-hidden flex-shrink-0" style="width: 22vw; min-width: 220px;">
-                    <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-200/60">
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden flex-shrink-0" style="width: 22vw; min-width: 220px;">
+                    <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-slate-200">
                         <h2 class="text-lg font-semibold text-slate-700">Document Information</h2>
                     </div>
                     <div class="p-5 space-y-4 overflow-y-auto" style="min-height: 200px; max-height: 70vh;">
@@ -210,9 +210,9 @@
                 </div>
 
                 {{-- Document Viewer (flex-grow, takes remaining width) --}}
-                <div class="flex-1 min-w-0 bg-white rounded-xl border border-indigo-200/80 overflow-hidden">
+                <div class="flex-1 min-w-0 bg-white rounded-xl border border-slate-200 overflow-hidden">
                     {{-- Viewer: title + version selector --}}
-                    <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-200/60 flex items-center justify-between">
+                    <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-slate-200 flex items-center justify-between">
                         <div class="flex items-center gap-3">
                             <h2 class="text-lg font-semibold text-slate-700">Document Viewer</h2>
                             <span id="version-badge" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">
@@ -289,8 +289,8 @@
             <div class="flex gap-6 items-start">
 
             {{-- Version History (flex-1) --}}
-            <div class="flex-1 min-w-0 bg-white rounded-xl border border-indigo-200/80 overflow-hidden">
-                <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-200/60 flex items-center justify-between">
+            <div class="flex-1 min-w-0 bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-slate-200 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <h2 class="text-lg font-semibold text-slate-700">Version History</h2>
                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
@@ -397,7 +397,7 @@
                         <form id="review-version-upload-form" action="{{ route('documents.reviewUploadVersion', $workflow->id) }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <div class="space-y-3">
-                                <label class="flex items-center justify-center px-4 py-3 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition">
+                                <label class="flex items-center justify-center px-4 py-3 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-slate-50 transition">
                                     <svg class="w-5 h-5 text-slate-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                                     <span class="text-sm text-slate-500" id="version-file-label">Choose file...</span>
                                     <input type="file" name="version_file" id="review-version-file-input" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.odt,.ods,.odp,.rtf,.jpg,.jpeg,.png"
@@ -448,8 +448,8 @@
             </div>
 
             {{-- E-Signatures (30vw) --}}
-            <div class="bg-white rounded-xl border border-indigo-200/80 overflow-hidden flex-shrink-0" style="width: 30vw; min-width: 280px;">
-                <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-200/60">
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden flex-shrink-0" style="width: 30vw; min-width: 280px;">
+                <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-slate-200">
                     <h2 class="text-lg font-semibold text-slate-700">E-Signatures</h2>
                 </div>
                 <div class="p-4 overflow-y-auto" style="min-height: 120px; max-height: 420px;">
@@ -493,8 +493,8 @@
             {{-- ============================================= --}}
             <div class="flex gap-6 items-start">
                 {{-- Attachments --}}
-                <div class="flex-1 min-w-0 bg-white rounded-xl border border-indigo-200/80 overflow-hidden">
-                    <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-200/60 flex items-center justify-between">
+                <div class="flex-1 min-w-0 bg-white rounded-xl border border-slate-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-slate-200 flex items-center justify-between">
                         <h2 class="text-lg font-semibold text-slate-700">Attachments</h2>
                         <span class="text-xs font-medium text-slate-400">{{ $document->attachments->count() }} file(s)</span>
                     </div>
@@ -568,7 +568,7 @@
                             <form action="{{ route('documents.uploadProcessorAttachment', $workflow->id) }}" method="POST" enctype="multipart/form-data">
                                 @csrf
                                 <div class="flex items-center gap-2">
-                                    <label class="flex-1 flex items-center justify-center px-4 py-3 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition">
+                                    <label class="flex-1 flex items-center justify-center px-4 py-3 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-slate-50 transition">
                                         <svg class="w-5 h-5 text-slate-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                                         <span class="text-sm text-slate-500" id="file-label">Choose files...</span>
                                         <input type="file" name="attachments[]" multiple class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.odt,.ods,.odp,.rtf,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg"
@@ -586,8 +586,8 @@
                 </div>
 
                 {{-- Available Actions (30vw) --}}
-                <div class="bg-white rounded-xl border border-indigo-200/80 overflow-hidden flex-shrink-0" style="width: 30vw; min-width: 280px;">
-                    <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-200/60">
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden flex-shrink-0" style="width: 30vw; min-width: 280px;">
+                    <div class="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-slate-200">
                         <h2 class="text-lg font-semibold text-slate-700">Available Actions</h2>
                     </div>
                     <div class="p-4 overflow-y-auto" style="min-height: 120px; max-height: 420px;">
@@ -681,6 +681,27 @@
                             $currentGuide = $purposeActionGuide[$workflow->purpose ?? 'default'] ?? $purposeActionGuide['default'];
                         @endphp
 
+                            @if($workflow->requires_terminal_decision)
+                            <div class="mb-4 p-4 rounded-lg border-2 border-indigo-500 bg-indigo-50">
+                                <div class="flex items-start gap-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <div>
+                                        <p class="text-sm font-bold text-indigo-900">Decision Required</p>
+                                        <p class="text-xs text-indigo-700 mt-1">All consultations have been completed. You must approve or reject this document. Forwarding is not allowed at this stage.</p>
+                                        @if($workflow->childWorkflows && $workflow->childWorkflows->count() > 0)
+                                        <div class="mt-2 text-xs text-indigo-600">
+                                            <strong>Consultation Results:</strong>
+                                            @foreach($workflow->childWorkflows as $child)
+                                                <div class="ml-2">• {{ optional($child->recipient)->first_name }} {{ optional($child->recipient)->last_name }}: <span class="font-medium">{{ ucfirst($child->status) }}</span></div>
+                                            @endforeach
+                                        </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                            @else
                             <div class="mb-4 p-3 rounded-lg border {{ $currentGuide['badge'] }}">
                                 <p class="text-sm font-semibold">{{ $currentGuide['title'] }} - What you can do</p>
                                 <ul class="mt-2 space-y-1">
@@ -689,6 +710,7 @@
                                     @endforeach
                                 </ul>
                             </div>
+                            @endif
 
                         @if($workflow->purpose === 'appropriate_action')
                             <div class="flex flex-wrap gap-2">
@@ -700,6 +722,7 @@
                                     <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                     Reject
                                 </button>
+                                @if(!$workflow->requires_terminal_decision)
                                 <button type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium border border-yellow-200 text-yellow-700 bg-white hover:bg-yellow-50 rounded-lg transition-colors" onclick="showActionForm('return-form')">
                                     <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
                                     Return
@@ -708,6 +731,7 @@
                                     <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                                     Forward
                                 </button>
+                                @endif
                             </div>
                         @endif
                         @if($workflow->purpose === 'for_comment')
@@ -751,7 +775,7 @@
                         @if($isActionable)
                         <div class="mt-4 space-y-4">
                             {{-- E-Signature Pad --}}
-                            <div id="signature-pad-section" class="hidden p-4 border border-indigo-200 rounded-lg bg-indigo-50/50">
+                            <div id="signature-pad-section" class="hidden p-4 border border-indigo-200 rounded-lg bg-slate-50">
                                 <h4 class="font-medium text-indigo-800 mb-3 flex items-center gap-2">
                                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                     E-Signature (Optional)

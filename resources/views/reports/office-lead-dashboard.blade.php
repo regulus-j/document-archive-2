@@ -36,15 +36,15 @@
                     </button>
                     <div class="flex ml-auto border border-slate-200 rounded-lg overflow-hidden">
                         <a href="{{ route('reports.office-dashboard', ['start_date' => now()->subDays(7)->format('Y-m-d'), 'end_date' => now()->format('Y-m-d')]) }}" 
-                           class="px-3 py-2 text-xs font-medium hover:bg-slate-50 border-r border-slate-200 {{ now()->subDays(7)->format('Y-m-d') == $startDate ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600' }}">7D</a>
+                           class="px-3 py-2 text-xs font-medium hover:bg-slate-50 border-r border-slate-200 {{ now()->subDays(7)->format('Y-m-d') == $startDate ? 'bg-indigo-100/50 text-indigo-700' : 'text-slate-600' }}">7D</a>
                         <a href="{{ route('reports.office-dashboard', ['start_date' => now()->subMonth()->format('Y-m-d'), 'end_date' => now()->format('Y-m-d')]) }}" 
-                           class="px-3 py-2 text-xs font-medium hover:bg-slate-50 border-r border-slate-200 {{ now()->subMonth()->format('Y-m-d') == $startDate ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600' }}">1M</a>
+                           class="px-3 py-2 text-xs font-medium hover:bg-slate-50 border-r border-slate-200 {{ now()->subMonth()->format('Y-m-d') == $startDate ? 'bg-indigo-100/50 text-indigo-700' : 'text-slate-600' }}">1M</a>
                         <a href="{{ route('reports.office-dashboard', ['start_date' => now()->subMonths(3)->format('Y-m-d'), 'end_date' => now()->format('Y-m-d')]) }}" 
-                           class="px-3 py-2 text-xs font-medium hover:bg-slate-50 border-r border-slate-200 {{ now()->subMonths(3)->format('Y-m-d') == $startDate ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600' }}">3M</a>
+                           class="px-3 py-2 text-xs font-medium hover:bg-slate-50 border-r border-slate-200 {{ now()->subMonths(3)->format('Y-m-d') == $startDate ? 'bg-indigo-100/50 text-indigo-700' : 'text-slate-600' }}">3M</a>
                         <a href="{{ route('reports.office-dashboard', ['start_date' => now()->subMonths(6)->format('Y-m-d'), 'end_date' => now()->format('Y-m-d')]) }}" 
-                           class="px-3 py-2 text-xs font-medium hover:bg-slate-50 border-r border-slate-200 {{ now()->subMonths(6)->format('Y-m-d') == $startDate ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600' }}">6M</a>
+                           class="px-3 py-2 text-xs font-medium hover:bg-slate-50 border-r border-slate-200 {{ now()->subMonths(6)->format('Y-m-d') == $startDate ? 'bg-indigo-100/50 text-indigo-700' : 'text-slate-600' }}">6M</a>
                         <a href="{{ route('reports.office-dashboard', ['start_date' => now()->subYear()->format('Y-m-d'), 'end_date' => now()->format('Y-m-d')]) }}" 
-                           class="px-3 py-2 text-xs font-medium hover:bg-slate-50 {{ now()->subYear()->format('Y-m-d') == $startDate ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600' }}">1Y</a>
+                           class="px-3 py-2 text-xs font-medium hover:bg-slate-50 {{ now()->subYear()->format('Y-m-d') == $startDate ? 'bg-indigo-100/50 text-indigo-700' : 'text-slate-600' }}">1Y</a>
                     </div>
                 </form>
             </div>
@@ -118,7 +118,7 @@
                 </div>
                 <div class="p-6">
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                        <div class="rounded-xl bg-indigo-50 border border-indigo-100 p-4">
+                        <div class="rounded-xl bg-indigo-100/50 border border-indigo-100 p-4">
                             <p class="text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-1">Sent</p>
                             <p class="text-2xl font-bold text-indigo-900">{{ $workflowStats['workflows_sent'] }}</p>
                         </div>
@@ -126,7 +126,7 @@
                             <p class="text-xs font-semibold text-green-600 uppercase tracking-wider mb-1">Received</p>
                             <p class="text-2xl font-bold text-green-900">{{ $workflowStats['workflows_received'] }}</p>
                         </div>
-                        <div class="rounded-xl bg-indigo-50 border border-indigo-100 p-4">
+                        <div class="rounded-xl bg-indigo-100/50 border border-indigo-100 p-4">
                             <p class="text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-1">Approved</p>
                             <p class="text-2xl font-bold text-indigo-900">{{ $workflowStats['workflows_approved'] }}</p>
                         </div>
@@ -136,7 +136,7 @@
                         </div>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <div class="rounded-xl bg-amber-50 border border-amber-100 p-4 flex items-center justify-between">
+                        <div class="rounded-xl bg-amber-100/50 border border-amber-100 p-4 flex items-center justify-between">
                             <div>
                                 <p class="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-1">Avg Processing Time</p>
                                 <p class="text-2xl font-bold text-amber-900">{{ $workflowStats['avg_processing_time'] }}</p>
@@ -145,7 +145,7 @@
                                 <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             </span>
                         </div>
-                        <div class="rounded-xl bg-emerald-50 border border-emerald-100 p-4 flex items-center justify-between">
+                        <div class="rounded-xl bg-emerald-100/50 border border-emerald-100 p-4 flex items-center justify-between">
                             <div>
                                 <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-1">Approval Rate</p>
                                 <p class="text-2xl font-bold text-emerald-900">{{ $workflowStats['approval_rate'] }}%</p>
@@ -223,7 +223,7 @@
                         </thead>
                         <tbody class="divide-y divide-slate-50">
                             @forelse($memberPerformanceMetrics as $metric)
-                            <tr class="hover:bg-indigo-50/30 transition">
+                            <tr class="hover:bg-indigo-100/50/30 transition">
                                 <td class="px-5 py-3">
                                     <div class="flex items-center gap-3">
                                         <div class="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
@@ -245,7 +245,7 @@
                                 </td>
                                 <td class="px-5 py-3">
                                     <div class="flex items-center gap-2">
-                                        <div class="flex-1 bg-slate-100 rounded-full h-2">
+                                        <div class="flex-1 bg-slate-100/50 rounded-full h-2">
                                             <div class="h-2 rounded-full transition-all duration-700 {{ $metric['performance_score'] >= 70 ? 'bg-green-500' : ($metric['performance_score'] >= 40 ? 'bg-amber-400' : 'bg-red-500') }}"
                                                  style="width: {{ $metric['performance_score'] }}%"></div>
                                         </div>
@@ -292,7 +292,7 @@
 
                         @if($slowestMember['performance_score'] < 50)
                         @php $insightCount++; @endphp
-                        <div class="flex gap-3 p-4 rounded-lg bg-amber-50 border border-amber-100">
+                        <div class="flex gap-3 p-4 rounded-lg bg-amber-100/50 border border-amber-100">
                             <span class="flex-shrink-0 mt-0.5">
                                 <svg class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                             </span>
@@ -319,7 +319,7 @@
 
                     @if($workflowStats['avg_processing_minutes'] > 120)
                     @php $insightCount++; @endphp
-                    <div class="flex gap-3 p-4 rounded-lg bg-amber-50 border border-amber-100">
+                    <div class="flex gap-3 p-4 rounded-lg bg-amber-100/50 border border-amber-100">
                         <span class="flex-shrink-0 mt-0.5">
                             <svg class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </span>
@@ -354,7 +354,7 @@
                     </div>
                     @elseif($workflowStats['approval_rate'] > 95)
                     @php $insightCount++; @endphp
-                    <div class="flex gap-3 p-4 rounded-lg bg-indigo-50 border border-indigo-100">
+                    <div class="flex gap-3 p-4 rounded-lg bg-indigo-100/50 border border-indigo-100">
                         <span class="flex-shrink-0 mt-0.5">
                             <svg class="w-5 h-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </span>

@@ -14,6 +14,7 @@ use App\Models\DocumentVersion;
 use App\Models\ESignature;
 use App\Services\DocumentAccessService;
 use App\Services\BarcodeService;
+use App\Services\DelegationService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -22,11 +23,16 @@ class DocumentWorkflowController extends Controller
 {
     protected $documentAccessService;
     protected $barcodeService;
+    protected $delegationService;
 
-    public function __construct(DocumentAccessService $documentAccessService, BarcodeService $barcodeService)
-    {
+    public function __construct(
+        DocumentAccessService $documentAccessService, 
+        BarcodeService $barcodeService,
+        DelegationService $delegationService
+    ) {
         $this->documentAccessService = $documentAccessService;
         $this->barcodeService        = $barcodeService;
+        $this->delegationService     = $delegationService;
     }
     /**
      * Check if user can access workflow for a document
@@ -149,6 +155,18 @@ class DocumentWorkflowController extends Controller
      */
     private function ensurePurposeAllowsAction(DocumentWorkflow $workflow, string $action): ?RedirectResponse
     {
+        // Check if terminal decision is required (approve/reject only)
+        if ($workflow->requires_terminal_decision) {
+            $terminalActions = ['approve', 'reject'];
+            if (!in_array($action, $terminalActions, true)) {
+                return redirect()->back()->with('error', 
+                    'All consultations are complete. You must approve or reject this document. Forward, return, and reroute are not allowed at this stage.'
+                );
+            }
+            // Terminal actions are allowed, continue
+            return null;
+        }
+
         $allowedActions = $this->getAllowedActionsForPurpose($workflow->purpose);
         if (in_array($action, $allowedActions, true)) {
             return null;
@@ -203,7 +221,7 @@ class DocumentWorkflowController extends Controller
         }
 
         // Check if ALL child workflows of the parent are now completed
-        $terminalStatuses = ['approved', 'rejected', 'acknowledged', 'commented', 'returned', 'forwarded'];
+        $terminalStatuses = ['approved', 'rejected', 'acknowledged', 'commented', 'returned', 'forwarded', 'delegated'];
         $pendingChildren = DocumentWorkflow::where('parent_workflow_id', $parentWorkflow->id)
             ->whereNotIn('status', $terminalStatuses)
             ->count();
@@ -213,14 +231,36 @@ class DocumentWorkflowController extends Controller
             return;
         }
 
+        // Check wait policy to determine if parent can make decision
+        $canMakeDecision = false;
+        if ($parentWorkflow->wait_policy === 'decide_anytime') {
+            // Parent can decide once any child completes
+            $canMakeDecision = true;
+        } elseif ($parentWorkflow->isAllSubWorkflowsComplete()) {
+            // All children complete
+            $canMakeDecision = true;
+        }
+
+        if (!$canMakeDecision) {
+            return; // Wait for more sub-workflows to complete
+        }
+
         // All sub-workflows completed — reactivate the parent workflow
         $parentWorkflow->status = 'received';
+        
+        // If parent retained decision authority, mark for terminal decision
+        if ($parentWorkflow->delegation_type === 'retain' && $parentWorkflow->purpose === 'appropriate_action') {
+            $parentWorkflow->requires_terminal_decision = true;
+            $parentWorkflow->terminal_decision_notified_at = now();
+        }
+        
         $parentWorkflow->save();
 
         \Log::info('Sub-workflow completed, reactivating parent workflow', [
             'completed_workflow_id' => $completedWorkflow->id,
             'parent_workflow_id' => $parentWorkflow->id,
             'parent_recipient_id' => $parentWorkflow->recipient_id,
+            'requires_terminal_decision' => $parentWorkflow->requires_terminal_decision,
         ]);
 
         // Collect results from child workflows for the notification
@@ -232,15 +272,24 @@ class DocumentWorkflowController extends Controller
 
         // Notify the original forwarder that the sub-workflow is complete
         if ($parentWorkflow->recipient_id) {
+            $notificationType = $parentWorkflow->requires_terminal_decision 
+                ? 'terminal_decision_required'
+                : 'sub_workflow_completed';
+                
+            $message = $parentWorkflow->requires_terminal_decision
+                ? 'All consultations complete. Your decision (approve/reject) is required.'
+                : 'The document you forwarded for review has been completed. You can now continue processing.';
+                
             \App\Models\Notifications::create([
                 'user_id' => $parentWorkflow->recipient_id,
-                'type' => 'sub_workflow_completed',
+                'type' => $notificationType,
                 'data' => json_encode([
                     'document_id' => $parentWorkflow->document_id,
-                    'message' => 'The document you forwarded for review has been completed. You can now continue processing.',
+                    'message' => $message,
                     'title' => $parentWorkflow->document->title ?? 'Document',
                     'results' => $childResults,
                     'workflow_id' => $parentWorkflow->id,
+                    'requires_terminal_decision' => $parentWorkflow->requires_terminal_decision,
                 ]),
             ]);
         }
@@ -699,6 +748,16 @@ class DocumentWorkflowController extends Controller
         // If this was a sub-workflow, check if parent should be reactivated
         $this->handleSubWorkflowCompletion($workflow);
 
+        // Notify delegation chain if this is a terminal decision
+        if ($workflow->purpose === 'appropriate_action' && $workflow->isSubWorkflow()) {
+            $this->delegationService->notifyDelegationChain(
+                $workflow,
+                'approved',
+                $request->remarks ?? ''
+            );
+            $this->delegationService->completeParentDelegations($workflow);
+        }
+
         return redirect()->route('documents.index')
             ->with('success', 'Document workflow approved');
     }
@@ -735,6 +794,16 @@ class DocumentWorkflowController extends Controller
 
         // If this was a sub-workflow, check if parent should be reactivated
         $this->handleSubWorkflowCompletion($workflow);
+
+        // Notify delegation chain if this is a terminal decision
+        if ($workflow->purpose === 'appropriate_action' && $workflow->isSubWorkflow()) {
+            $this->delegationService->notifyDelegationChain(
+                $workflow,
+                'rejected',
+                $request->remarks
+            );
+            $this->delegationService->completeParentDelegations($workflow);
+        }
 
         // Optional: Notify the sender
         if (class_exists('\App\Notifications\DocumentRejected')) {
@@ -1091,6 +1160,14 @@ class DocumentWorkflowController extends Controller
             'remarks' => 'nullable|string|max:1000',
         ];
 
+        // Add delegation validation for appropriate_action workflows
+        if ($workflow->purpose === 'appropriate_action') {
+            $validationRules = array_merge($validationRules, [
+                'delegation_type' => 'required|in:retain,delegate',
+                'wait_policy' => 'nullable|in:wait_all,decide_anytime',
+            ]);
+        }
+
         if ($canUseStepForward) {
             $validationRules = array_merge($validationRules, [
                 'use_step_forward' => 'nullable|boolean',
@@ -1132,9 +1209,25 @@ class DocumentWorkflowController extends Controller
             return back()->withErrors(['recipients' => 'Please choose at least one recipient to forward this document.'])->withInput();
         }
         
-        // Keep the current workflow unchanged but mark as forwarded
-        $workflow->forward();
+        // Get delegation type and calculate depth
+        $delegationType = $request->input('delegation_type', 'retain');
+        $waitPolicy = $request->input('wait_policy', 'wait_all');
+        $delegationDepth = $this->delegationService->calculateDelegationDepth($workflow) + 1;
+        
+        // Keep the current workflow unchanged but mark status based on delegation type
+        if ($workflow->purpose === 'appropriate_action' && $delegationType === 'delegate') {
+            $workflow->delegate(); // Mark as delegated (transfers authority)
+            $workflow->delegation_type = 'delegate';
+        } else {
+            $workflow->forward(); // Mark as forwarded (retains authority)
+            if ($workflow->purpose === 'appropriate_action') {
+                $workflow->delegation_type = 'retain';
+                $workflow->wait_policy = $waitPolicy;
+            }
+        }
+        
         $workflow->remarks = $request->remarks ?? '';
+        $workflow->delegation_depth = $workflow->delegation_depth ?? 0; // Set current depth
         $workflow->save();
         
         // Generate tracking number for new workflow stages
@@ -1164,7 +1257,7 @@ class DocumentWorkflowController extends Controller
                         ? $user->offices->first()->id
                         : ($senderOffice ? $senderOffice->id : null);
                     
-                    DocumentWorkflow::create([
+                    $childWorkflow = DocumentWorkflow::create([
                         'tracking_number' => $trackingNumber,
                         'document_id' => $document->id,
                         'sender_id' => auth()->id(),
@@ -1179,7 +1272,18 @@ class DocumentWorkflowController extends Controller
                         'urgency' => $workflow->urgency,
                         'due_date' => $workflow->due_date,
                         'parent_workflow_id' => $workflow->id,
+                        'delegation_depth' => $delegationDepth,
                     ]);
+
+                    // Create delegation chain record
+                    if ($workflow->purpose === 'appropriate_action') {
+                        $this->delegationService->createDelegationRecord(
+                            $childWorkflow,
+                            $workflow,
+                            $delegationType,
+                            $delegationDepth
+                        );
+                    }
 
                     // Notify pending recipients only
                     if ($status === 'pending') {
@@ -1214,7 +1318,7 @@ class DocumentWorkflowController extends Controller
                     ? $user->offices->first()->id
                     : ($senderOffice ? $senderOffice->id : null);
                 
-                DocumentWorkflow::create([
+                $childWorkflow = DocumentWorkflow::create([
                     'tracking_number' => $trackingNumber,
                     'document_id' => $document->id,
                     'sender_id' => auth()->id(),
@@ -1229,7 +1333,18 @@ class DocumentWorkflowController extends Controller
                     'urgency' => $workflow->urgency,
                     'due_date' => $workflow->due_date,
                     'parent_workflow_id' => $workflow->id,
+                    'delegation_depth' => $delegationDepth,
                 ]);
+
+                // Create delegation chain record
+                if ($workflow->purpose === 'appropriate_action') {
+                    $this->delegationService->createDelegationRecord(
+                        $childWorkflow,
+                        $workflow,
+                        $delegationType,
+                        $delegationDepth
+                    );
+                }
 
                 // Notify the forwarded user
                 \App\Models\Notifications::create([

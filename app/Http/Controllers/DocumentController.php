@@ -725,8 +725,20 @@ class DocumentController extends Controller
 
         // Get offices from these companies
         $offices = Office::whereIn('company_id', $userCompanyIds)->get();
+        
+        // Calculate delegation depth if this is from a workflow forward
+        $delegationDepth = 0;
+        $delegationWarning = null;
+        if ($request->has('workflow_id')) {
+            $workflow = \App\Models\DocumentWorkflow::find($request->workflow_id);
+            if ($workflow) {
+                $delegationService = app(\App\Services\DelegationService::class);
+                $delegationDepth = $delegationService->calculateDelegationDepth($workflow) + 1;
+                $delegationWarning = $delegationService->getDelegationWarning($delegationDepth);
+            }
+        }
 
-        return view('documents.forward', compact('document', 'offices', 'users'));
+        return view('documents.forward', compact('document', 'offices', 'users', 'delegationDepth', 'delegationWarning'));
     }
 
     public function searchByTr(Request $request)

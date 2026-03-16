@@ -21,5 +21,17 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Your session has expired. Please refresh the page and try again.',
+                    'error' => 'token_mismatch'
+                ], 419);
+            }
+            
+            return redirect()
+                ->back()
+                ->withInput($request->except('password', '_token'))
+                ->withErrors(['session' => 'Your session has expired. Please try again.']);
+        });
     })->create();

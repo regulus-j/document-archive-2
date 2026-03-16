@@ -67,7 +67,7 @@
 
     /* -- Card -------------------------------------------------------------- */
     .ds-card {
-        @apply bg-white rounded-lg border border-slate-200/80 shadow-card;
+        @apply bg-white rounded-lg border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow;
     }
     .ds-card-header {
         @apply px-6 py-4 border-b border-slate-100;
@@ -79,14 +79,14 @@
     /* -- Page header bar --------------------------------------------------- */
     .ds-page-header {
         @apply bg-white rounded-lg border border-slate-200/80
-               shadow-card p-6 mb-6;
+               shadow-sm hover:shadow-md transition-shadow p-6 mb-6;
     }
 
     /* -- Stat card (dashboard) --------------------------------------------- */
     .ds-stat-card {
         @apply rounded-lg p-5 border
                transition-shadow duration-150
-               hover:shadow-card-hover;
+               hover:shadow-sm hover:shadow-md transition-shadow-hover;
     }
 
     /* -- Alert / Flash ----------------------------------------------------- */
@@ -148,7 +148,7 @@
     .ds-quick-action {
         @apply flex flex-col items-center p-4 rounded-lg border
                bg-white transition-all duration-150 group
-               hover:shadow-card-hover hover:-translate-y-0.5;
+               hover:shadow-sm hover:shadow-md transition-shadow-hover hover:-translate-y-0.5;
     }
 
     /* -- Table ------------------------------------------------------------- */

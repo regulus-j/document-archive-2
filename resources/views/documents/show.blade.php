@@ -66,7 +66,7 @@
         </div>
 
         <!-- Progress Tracking Card -->
-        <div class="bg-white rounded-xl border border-indigo-200/80 transition-all duration-300 hover:border-indigo-300/80 hover:shadow-sm overflow-hidden">
+        <div class="bg-white rounded-xl border border-slate-200 transition-all duration-300 hover:border-slate-300 shadow-sm hover:shadow-md hover:shadow-sm overflow-hidden">
             <div class="p-6">
                 @php
                     // Sort audit logs by created_at timestamp in descending order
@@ -83,7 +83,7 @@
                         <div class="flex items-center gap-2">
                             {{-- Export CSV --}}
                             <a href="{{ route('documents.audit.export', $document->id) }}"
-                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100/50 border border-emerald-200 rounded-lg transition-colors"
                                 title="Export audit log as CSV">
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -92,7 +92,7 @@
                             </a>
                             {{-- Print --}}
                             <a href="{{ route('documents.audit.print', $document->id) }}" target="_blank"
-                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100/50 border border-indigo-200 rounded-lg transition-colors"
                                 title="Open printable audit log">
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
@@ -100,7 +100,7 @@
                                 Print
                             </a>
                             {{-- Collapse/expand toggle --}}
-                            <button @click="isOpen = !isOpen" class="flex items-center text-sm text-slate-500 hover:text-slate-700 focus:outline-none transition-colors border border-slate-200 bg-slate-50 hover:bg-slate-100 rounded-lg px-3 py-1.5">
+                            <button @click="isOpen = !isOpen" class="flex items-center text-sm text-slate-500 hover:text-slate-700 focus:outline-none transition-colors border border-slate-200 bg-slate-50 hover:bg-slate-100/50 rounded-lg px-3 py-1.5">
                                 <span x-text="isOpen ? 'Collapse' : 'Expand'" class="mr-1 text-xs font-medium"></span>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transform transition-transform" :class="{ 'rotate-180': isOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -156,16 +156,16 @@
                             $statusColors = [
                                 'created' => ['bg' => 'bg-green-500', 'text' => 'text-green-800', 'light' => 'bg-green-100'],
                                 'pending' => ['bg' => 'bg-yellow-500', 'text' => 'text-yellow-800', 'light' => 'bg-yellow-100'],
-                                'received' => ['bg' => 'bg-indigo-500', 'text' => 'text-indigo-800', 'light' => 'bg-indigo-100'],
+                                'received' => ['bg' => 'bg-indigo-500', 'text' => 'text-indigo-800', 'light' => 'bg-indigo-100/50'],
                                 'approved' => ['bg' => 'bg-green-500', 'text' => 'text-green-800', 'light' => 'bg-green-100'],
                                 'rejected' => ['bg' => 'bg-red-500', 'text' => 'text-red-800', 'light' => 'bg-red-100'],
-                                'returned' => ['bg' => 'bg-amber-500', 'text' => 'text-amber-800', 'light' => 'bg-amber-100'],
+                                'returned' => ['bg' => 'bg-amber-500', 'text' => 'text-amber-800', 'light' => 'bg-amber-100/50'],
                                 'forwarded' => ['bg' => 'bg-purple-500', 'text' => 'text-purple-800', 'light' => 'bg-purple-100'],
-                                'completed' => ['bg' => 'bg-indigo-500', 'text' => 'text-indigo-800', 'light' => 'bg-indigo-100'],
+                                'completed' => ['bg' => 'bg-indigo-500', 'text' => 'text-indigo-800', 'light' => 'bg-indigo-100/50'],
                                 'uploaded' => ['bg' => 'bg-green-500', 'text' => 'text-green-800', 'light' => 'bg-green-100'],
-                                'needs_revision' => ['bg' => 'bg-amber-500', 'text' => 'text-amber-800', 'light' => 'bg-amber-100'],
-                                'cancelled' => ['bg' => 'bg-slate-500', 'text' => 'text-slate-800', 'light' => 'bg-slate-100'],
-                                'draft' => ['bg' => 'bg-slate-500', 'text' => 'text-slate-800', 'light' => 'bg-slate-100']
+                                'needs_revision' => ['bg' => 'bg-amber-500', 'text' => 'text-amber-800', 'light' => 'bg-amber-100/50'],
+                                'cancelled' => ['bg' => 'bg-slate-500', 'text' => 'text-slate-800', 'light' => 'bg-slate-100/50'],
+                                'draft' => ['bg' => 'bg-slate-500', 'text' => 'text-slate-800', 'light' => 'bg-slate-100/50']
                             ];
 
                             // Helper function to get status color with fallback
@@ -173,12 +173,12 @@
                                 global $statusColors;
                                 if (!isset($statusColors) || !is_array($statusColors)) {
                                     // Fallback colors if $statusColors is not available
-                                    return $type === 'bg' ? 'bg-slate-500' : ($type === 'light' ? 'bg-slate-100' : 'text-slate-800');
+                                    return $type === 'bg' ? 'bg-slate-500' : ($type === 'light' ? 'bg-slate-100/50' : 'text-slate-800');
                                 }
 
                                 $defaultColors = [
                                     'bg' => 'bg-slate-500',
-                                    'light' => 'bg-slate-100',
+                                    'light' => 'bg-slate-100/50',
                                     'text' => 'text-slate-800'
                                 ];
 
@@ -314,9 +314,9 @@
         @endif
 
         <!-- Document Details Card -->
-        <div class="bg-white rounded-xl border border-indigo-200/80 transition-all duration-300 hover:border-indigo-300/80 hover:shadow-sm overflow-hidden">
+        <div class="bg-white rounded-xl border border-slate-200 transition-all duration-300 hover:border-slate-300 shadow-sm hover:shadow-md hover:shadow-sm overflow-hidden">
             <!-- Card Header -->
-            <div class="p-6 border-b border-indigo-200/60">
+            <div class="p-6 border-b border-slate-200">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                     <div class="flex items-center space-x-3">
                         <h2 class="text-xl font-semibold text-slate-800">{{ $document->title }}</h2>
@@ -348,7 +348,7 @@
                 <!-- Document Information Grid with Attachment Card -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                     <!-- Tracking Number Card -->
-                    <div class="bg-indigo-50/60 p-4 rounded-lg border border-indigo-200/60 transition-all duration-300 hover:border-indigo-300/80">
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 transition-all duration-300 hover:border-slate-300 shadow-sm hover:shadow-md">
                         <div class="flex items-center mb-1">
                             <svg class="h-4 w-4 text-indigo-500 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
@@ -360,7 +360,7 @@
                                 {{ $document->trackingNumber->tracking_number ?? 'N/A' }}
                             </p>
                             @if($document->trackingNumber)
-                            <button onclick="openBarcodeModal()" class="ml-2 p-1.5 rounded-lg bg-indigo-100 hover:bg-indigo-200 text-indigo-600 hover:text-indigo-800 transition-colors" title="View Barcode">
+                            <button onclick="openBarcodeModal()" class="ml-2 p-1.5 rounded-lg bg-indigo-100/50 hover:bg-indigo-200 text-indigo-600 hover:text-indigo-800 transition-colors" title="View Barcode">
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1z" />
                                 </svg>
@@ -369,7 +369,7 @@
                         </div>
                     </div>
                     <!-- Classification Card -->
-                    <div class="bg-indigo-50/60 p-4 rounded-lg border border-indigo-200/60 transition-all duration-300 hover:border-indigo-300/80">
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 transition-all duration-300 hover:border-slate-300 shadow-sm hover:shadow-md">
                         <div class="flex items-center mb-1">
                             <svg class="h-4 w-4 text-indigo-500 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
@@ -381,7 +381,7 @@
                         </p>
                     </div>
                     <!-- From Office Card -->
-                    <div class="bg-emerald-50/60 p-4 rounded-lg border border-emerald-200/60 transition-all duration-300 hover:border-emerald-300/80">
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 transition-all duration-300 hover:border-slate-300 shadow-sm hover:shadow-md">
                         <div class="flex items-center mb-1">
                             <svg class="h-4 w-4 text-emerald-500 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -393,7 +393,7 @@
                         </p>
                     </div>
                     <!-- To Office Card -->
-                    <div class="bg-purple-50/60 p-4 rounded-lg border border-purple-200/60 transition-all duration-300 hover:border-purple-300/80">
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 transition-all duration-300 hover:border-slate-300 shadow-sm hover:shadow-md">
                         <div class="flex items-center mb-1">
                             <svg class="h-4 w-4 text-purple-500 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -422,7 +422,7 @@
                         </p>
                     </div>
                     <!-- Status Card -->
-                    <div class="bg-amber-50/60 p-4 rounded-lg border border-amber-200/60 transition-all duration-300 hover:border-amber-300/80">
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 transition-all duration-300 hover:border-slate-300 shadow-sm hover:shadow-md">
                         <div class="flex items-center mb-1">
                             <svg class="h-4 w-4 text-amber-500 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -493,7 +493,7 @@
                 </div>
 
                 <!-- Description -->
-                <div class="bg-slate-50/60 p-4 rounded-lg border border-slate-200/60 transition-all duration-300 hover:border-slate-300/80 mb-8">
+                <div class="bg-white p-4 rounded-lg border border-slate-200 transition-all duration-300 hover:border-slate-300 shadow-sm hover:shadow-md mb-8">
                     <div class="flex items-center mb-2">
                         <svg class="h-4 w-4 text-slate-500 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
@@ -554,7 +554,7 @@
                 @endif
 
                 <!-- E-Signatures -->
-                <div class="bg-indigo-50/60 p-4 rounded-lg border border-indigo-200/60 transition-all duration-300 hover:border-indigo-300/80 mb-8">
+                <div class="bg-white p-4 rounded-lg border border-slate-200 transition-all duration-300 hover:border-slate-300 shadow-sm hover:shadow-md mb-8">
                     <div class="flex items-center justify-between mb-3">
                         <div class="flex items-center">
                             <svg class="h-4 w-4 text-indigo-500 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -563,7 +563,7 @@
                             <p class="text-sm font-medium text-indigo-900">E-Signatures</p>
                         </div>
                         @if($document->eSignatures->count())
-                            <span class="text-xs font-medium text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full">{{ $document->eSignatures->count() }} signature(s)</span>
+                            <span class="text-xs font-medium text-indigo-600 bg-indigo-100/50 px-2 py-0.5 rounded-full">{{ $document->eSignatures->count() }} signature(s)</span>
                         @endif
                     </div>
                     @if($document->eSignatures->count())
@@ -600,7 +600,7 @@
                 </div>
 
                 <!-- Document Viewers (Based on Classification) -->
-                <div x-data="{ viewersOpen: false }" class="bg-slate-50/60 p-4 rounded-lg border border-slate-200/60 transition-all duration-300 hover:border-slate-300/80 mb-8">
+                <div x-data="{ viewersOpen: false }" class="bg-white p-4 rounded-lg border border-slate-200 transition-all duration-300 hover:border-slate-300 shadow-sm hover:shadow-md mb-8">
                     <div class="flex items-center justify-between mb-3 cursor-pointer" @click="viewersOpen = !viewersOpen">
                         <div class="flex items-center">
                             <svg class="h-4 w-4 text-slate-500 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -611,7 +611,7 @@
                         </div>
                         <div class="flex items-center gap-2">
                             @if(isset($documentViewers['count']) && $documentViewers['count'] > 0)
-                                <span class="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">{{ $documentViewers['count'] }} user(s)</span>
+                                <span class="text-xs font-medium text-slate-600 bg-slate-100/50 px-2 py-0.5 rounded-full">{{ $documentViewers['count'] }} user(s)</span>
                             @endif
                             <svg class="w-4 h-4 text-slate-400 transition-transform" :class="viewersOpen && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -640,7 +640,7 @@
                             <p class="text-xs font-medium text-slate-600 mb-2">Allowed Offices:</p>
                             <div class="flex flex-wrap gap-1.5">
                                 @foreach($documentViewers['offices'] as $office)
-                                    <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                                    <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-slate-100/50 text-slate-700 border border-slate-200">
                                         <svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                         </svg>
@@ -686,7 +686,7 @@
                             </svg>
                             <h3 class="text-base font-semibold text-slate-800">Version History</h3>
                             @if($document->versions->count())
-                                <span class="text-xs font-medium text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full">{{ $document->versions->count() }} previous version(s)</span>
+                                <span class="text-xs font-medium text-indigo-600 bg-indigo-100/50 px-2 py-0.5 rounded-full">{{ $document->versions->count() }} previous version(s)</span>
                             @endif
                         </div>
                         <svg class="w-4 h-4 text-slate-400 transition-transform" :class="versionOpen && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -703,7 +703,7 @@
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2">
                                     <p class="text-sm font-semibold text-slate-800">Current Version</p>
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Active</span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100/50 text-emerald-700">Active</span>
                                 </div>
                                 <p class="text-xs text-slate-500 mt-0.5">
                                     Uploaded by {{ $document->user->first_name ?? '' }} {{ $document->user->last_name ?? '' }}
@@ -712,11 +712,11 @@
                             </div>
                             <div class="flex items-center gap-1">
                                 <button onclick="openDocViewer('{{ route('documents.previewCurrent', $document->id) }}', '{{ addslashes($document->title) }}', '{{ route('documents.download', $document->id) }}', '{{ pathinfo($document->path, PATHINFO_EXTENSION) }}')"
-                                   class="p-1.5 rounded-lg hover:bg-emerald-100 text-emerald-600 transition" title="Preview Current Version">
+                                   class="p-1.5 rounded-lg hover:bg-emerald-100/50 text-emerald-600 transition" title="Preview Current Version">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                 </button>
                                 <a href="{{ route('documents.download', $document->id) }}"
-                                   class="p-1.5 rounded-lg hover:bg-emerald-100 text-slate-400 hover:text-emerald-600 transition" title="Download Current">
+                                   class="p-1.5 rounded-lg hover:bg-emerald-100/50 text-slate-400 hover:text-emerald-600 transition" title="Download Current">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                 </a>
                             </div>
@@ -749,11 +749,11 @@
                                         </div>
                                         <div class="flex items-center gap-1">
                                             <button onclick="openDocViewer('{{ route('documents.versionPreview', [$document->id, $version->id]) }}', 'Version {{ $version->version_number }} — {{ addslashes($document->title) }}', '{{ Storage::disk('public')->url($version->file_path) }}', '{{ pathinfo($version->file_path, PATHINFO_EXTENSION) }}')"
-                                               class="p-1.5 rounded-lg hover:bg-indigo-100 text-indigo-600 transition" title="Preview v{{ $version->version_number }}">
+                                               class="p-1.5 rounded-lg hover:bg-indigo-100/50 text-indigo-600 transition" title="Preview v{{ $version->version_number }}">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                             </button>
                                             <a href="{{ Storage::disk('public')->url($version->file_path) }}" download
-                                               class="p-1.5 rounded-lg hover:bg-indigo-100 text-slate-400 hover:text-indigo-600 transition" title="Download v{{ $version->version_number }}">
+                                               class="p-1.5 rounded-lg hover:bg-indigo-100/50 text-slate-400 hover:text-indigo-600 transition" title="Download v{{ $version->version_number }}">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                             </a>
                                         </div>
@@ -824,7 +824,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                             </svg>
                             <h3 class="text-base font-semibold text-slate-800">Print Tracking</h3>
-                            <span class="text-xs font-medium text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full">{{ $totalPrintCopies ?? 0 }} total copies</span>
+                            <span class="text-xs font-medium text-indigo-600 bg-indigo-100/50 px-2 py-0.5 rounded-full">{{ $totalPrintCopies ?? 0 }} total copies</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <button type="button" onclick="event.stopPropagation(); openPrintModal()" class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm">
@@ -843,7 +843,7 @@
                                 @foreach($printHistory as $print)
                                 <div class="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:bg-slate-50 transition">
                                     <div class="flex items-center gap-3">
-                                        <div class="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                                        <div class="flex-shrink-0 w-8 h-8 bg-indigo-100/50 rounded-full flex items-center justify-center">
                                             <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                                             </svg>
@@ -861,7 +861,7 @@
                                         </div>
                                     </div>
                                     <div class="text-right">
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-100/50 text-indigo-700">
                                             {{ $print->copies }} {{ Str::plural('copy', $print->copies) }}
                                         </span>
                                         @if($print->version)
@@ -894,14 +894,14 @@
                             </svg>
                             <h3 class="text-base font-semibold text-slate-800">Barcode Overlay</h3>
                             @if($document->barcode_applied)
-                                <span class="text-xs font-medium text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">Applied</span>
+                                <span class="text-xs font-medium text-emerald-600 bg-emerald-100/50 px-2 py-0.5 rounded-full">Applied</span>
                             @else
-                                <span class="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">Not applied</span>
+                                <span class="text-xs font-medium text-amber-600 bg-amber-100/50 px-2 py-0.5 rounded-full">Not applied</span>
                             @endif
                         </div>
                         {{-- Preview & Configure button opens the document in the reapply barcode modal --}}
                         <button type="button" onclick="openReapplyBarcodePreview()"
-                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-100 rounded-lg hover:bg-indigo-200 transition-colors">
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-100/50 rounded-lg hover:bg-indigo-200 transition-colors">
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                             Preview &amp; Configure
                         </button>
@@ -1009,20 +1009,20 @@
                         @endphp
                         <div class="flex items-center gap-3">
                             <div class="flex items-center gap-1.5">
-                                <div class="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div class="w-24 h-2 bg-slate-100/50 rounded-full overflow-hidden">
                                     <div class="h-full rounded-full transition-all duration-500 {{ $pipelineProgress >= 100 ? 'bg-emerald-500' : 'bg-indigo-500' }}" style="width: {{ $pipelineProgress }}%"></div>
                                 </div>
                                 <span class="text-xs font-medium text-slate-500">{{ $completedStepsCount }}/{{ $totalStepsCount }} steps</span>
                             </div>
                             <span class="text-xs text-slate-400">{{ $completedRecipientsCount }}/{{ $totalRecipientsCount }} recipients</span>
-                            <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{{ $workflows->first()->workflow_type ?? 'parallel' }}</span>
+                            <span class="text-xs font-medium text-slate-500 bg-slate-100/50 px-2 py-0.5 rounded-full">{{ $workflows->first()->workflow_type ?? 'parallel' }}</span>
                             {{-- Expand / Collapse All --}}
                             <div class="flex items-center gap-1 border-l border-slate-200 pl-3">
-                                <button type="button" onclick="window.dispatchEvent(new CustomEvent('expand-all-workflows'))" class="px-2 py-0.5 text-[10px] font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded transition-colors" title="Expand all steps and sub-workflows">
+                                <button type="button" onclick="window.dispatchEvent(new CustomEvent('expand-all-workflows'))" class="px-2 py-0.5 text-[10px] font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100/50 rounded transition-colors" title="Expand all steps and sub-workflows">
                                     <svg class="w-3 h-3 inline -mt-0.5 mr-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
                                     Expand
                                 </button>
-                                <button type="button" onclick="window.dispatchEvent(new CustomEvent('collapse-all-workflows'))" class="px-2 py-0.5 text-[10px] font-medium text-slate-500 bg-slate-50 hover:bg-slate-100 rounded transition-colors" title="Collapse all steps and sub-workflows">
+                                <button type="button" onclick="window.dispatchEvent(new CustomEvent('collapse-all-workflows'))" class="px-2 py-0.5 text-[10px] font-medium text-slate-500 bg-slate-50 hover:bg-slate-100/50 rounded transition-colors" title="Collapse all steps and sub-workflows">
                                     <svg class="w-3 h-3 inline -mt-0.5 mr-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25"/></svg>
                                     Collapse
                                 </button>
@@ -1104,10 +1104,10 @@
                                         Step {{ $step }}
                                         @if($stepDone) — Completed @elseif($stepActive) — In Progress @else — Waiting @endif
                                     </span>
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium {{ $isSequentialWorkflow ? 'bg-indigo-100 text-indigo-700' : 'bg-cyan-100 text-cyan-700' }}">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium {{ $isSequentialWorkflow ? 'bg-indigo-100/50 text-indigo-700' : 'bg-cyan-100 text-cyan-700' }}">
                                         {{ $isSequentialWorkflow ? 'Sequential Step' : 'Parallel Step' }}
                                     </span>
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100/50 text-slate-600">
                                         {{ $stepWorkflows->count() }} recipient{{ $stepWorkflows->count() > 1 ? 's' : '' }} in this step
                                     </span>
                                     @if(($canReroute ?? false) && $stepWorkflows->count() > 1 && $reroutableCount > 0 && $singlePurposeStep)
@@ -1119,7 +1119,7 @@
                                                 applyToStep: true,
                                                 workflowIds: @json($reroutableWorkflowIds)
                                             })'
-                                            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors"
+                                            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-100/50 text-amber-700 hover:bg-amber-200 transition-colors"
                                             title="Reroute all active recipients in this step">
                                             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                                             Reroute Entire Step
@@ -1265,7 +1265,7 @@
                                                     applyToStep: false,
                                                     workflowIds: [{{ $wf->id }}]
                                                 })'
-                                                class="flex-shrink-0 ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors cursor-pointer"
+                                                class="flex-shrink-0 ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-100/50 text-amber-700 hover:bg-amber-200 transition-colors cursor-pointer"
                                                 title="Reroute this workflow step">
                                                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                                                 Reroute
@@ -1345,7 +1345,7 @@
 
                 <!-- Reroute History -->
                 @if(isset($rerouteLogs) && $rerouteLogs->count())
-                <div class="bg-amber-50/60 p-4 rounded-lg border border-amber-200/60 mb-8">
+                <div class="bg-white p-4 rounded-lg border border-slate-200 mb-8">
                     <div class="flex items-center gap-2 mb-3">
                         <svg class="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                         <p class="text-sm font-semibold text-amber-800">Reroute History</p>
@@ -1436,7 +1436,7 @@
                     <h3 id="sig-modal-name" class="text-lg font-semibold text-slate-800"></h3>
                     <p id="sig-modal-position" class="text-sm text-slate-500"></p>
                 </div>
-                <button onclick="closeSignatureModal()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition">
+                <button onclick="closeSignatureModal()" class="p-2 rounded-lg hover:bg-slate-100/50 text-slate-400 hover:text-slate-600 transition">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
@@ -1463,7 +1463,7 @@
                         <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                         <h3 class="text-lg font-semibold text-slate-800">Reroute Workflow Step</h3>
                     </div>
-                    <button onclick="closeRerouteModal()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition">
+                    <button onclick="closeRerouteModal()" class="p-2 rounded-lg hover:bg-slate-100/50 text-slate-400 hover:text-slate-600 transition">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
@@ -1669,7 +1669,7 @@ function closeRerouteModal(event) {
             <div class="flex items-center gap-2 flex-shrink-0">
                 {{-- Open in new tab --}}
                 <a id="doc-viewer-newtab" href="#" target="_blank"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-800 bg-slate-100/50 hover:bg-slate-200 rounded-lg transition-colors"
                     title="Open in new tab">
                     <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -1678,7 +1678,7 @@ function closeRerouteModal(event) {
                 </a>
                 {{-- Print — opens browser native Ctrl+P dialog --}}
                 <button id="doc-viewer-print" onclick="printFromViewer()"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100/50 border border-emerald-200 rounded-lg transition-colors"
                     title="Print document">
                     <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -1696,7 +1696,7 @@ function closeRerouteModal(event) {
                 </a>
                 {{-- Close --}}
                 <button onclick="closeDocViewer()"
-                    class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors" title="Close">
+                    class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100/50 rounded-lg transition-colors" title="Close">
                     <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -1721,7 +1721,7 @@ function closeRerouteModal(event) {
             <iframe id="doc-viewer-frame" class="w-full h-full border-0 hidden"></iframe>
 
             {{-- Image viewer --}}
-            <div id="doc-viewer-image" class="hidden w-full h-full flex items-center justify-center overflow-auto p-4 bg-slate-100">
+            <div id="doc-viewer-image" class="hidden w-full h-full flex items-center justify-center overflow-auto p-4 bg-slate-100/50">
                 <img id="doc-viewer-img" class="max-w-full max-h-full object-contain rounded shadow-lg" alt="Document preview" />
             </div>
 
@@ -1757,7 +1757,7 @@ function closeRerouteModal(event) {
     <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onclick="closeBarcodeModal()"></div>
     <div class="absolute inset-0 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
-            <button onclick="closeBarcodeModal()" class="absolute top-3 right-3 p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors">
+            <button onclick="closeBarcodeModal()" class="absolute top-3 right-3 p-1 rounded-lg hover:bg-slate-100/50 text-slate-400 hover:text-slate-600 transition-colors">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
             <h3 class="text-lg font-semibold text-slate-800 mb-1 flex items-center">
@@ -1784,7 +1784,7 @@ function closeRerouteModal(event) {
                     <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     Download PNG
                 </a>
-                <button onclick="closeBarcodeModal()" class="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors">
+                <button onclick="closeBarcodeModal()" class="px-4 py-2 bg-slate-100/50 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors">
                     Close
                 </button>
             </div>
@@ -1816,7 +1816,7 @@ function closeRerouteModal(event) {
 
             <div class="p-6">
                 <!-- Print Summary -->
-                <div class="mb-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200/60 flex items-center justify-between">
+                <div class="mb-4 p-3 bg-indigo-50 rounded-lg border border-slate-200 flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-indigo-900">Total Copies Printed</p>
                         <p class="text-xs text-indigo-600">Across {{ $printHistory->count() ?? 0 }} print event(s)</p>
@@ -1873,7 +1873,7 @@ function closeRerouteModal(event) {
                                 </p>
                             </div>
                             <div class="text-right">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100/50 text-indigo-700">
                                     {{ $print->copies }} {{ Str::plural('copy', $print->copies) }}
                                 </span>
                                 @if($print->version)
@@ -1945,7 +1945,7 @@ function closeRerouteModal(event) {
                 if (wb.SheetNames.length > 1) {
                     html += '<div class="flex gap-1 mb-3 flex-wrap">';
                     wb.SheetNames.forEach(function(name, i) {
-                        html += '<button onclick="modalSwitchSheet(this, ' + i + ')" class="px-3 py-1 text-xs rounded-md border ' + (i === 0 ? 'bg-indigo-100 border-indigo-300 text-indigo-700 font-medium' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100') + '">' + name + '</button>';
+                        html += '<button onclick="modalSwitchSheet(this, ' + i + ')" class="px-3 py-1 text-xs rounded-md border ' + (i === 0 ? 'bg-indigo-100/50 border-indigo-300 text-indigo-700 font-medium' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100/50') + '">' + name + '</button>';
                     });
                     html += '</div>';
                 }
@@ -1961,7 +1961,7 @@ function closeRerouteModal(event) {
                         cell.className = 'border border-slate-200 px-2 py-1 text-slate-700';
                     });
                     t.querySelectorAll('th').forEach(function(th) {
-                        th.className += ' bg-slate-100 font-medium text-slate-800';
+                        th.className += ' bg-slate-100/50 font-medium text-slate-800';
                     });
                 });
             })
@@ -1976,9 +1976,9 @@ function closeRerouteModal(event) {
 
     window.modalSwitchSheet = function(btn, index) {
         btn.parentElement.querySelectorAll('button').forEach(function(b) {
-            b.className = 'px-3 py-1 text-xs rounded-md border bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100';
+            b.className = 'px-3 py-1 text-xs rounded-md border bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100/50';
         });
-        btn.className = 'px-3 py-1 text-xs rounded-md border bg-indigo-100 border-indigo-300 text-indigo-700 font-medium';
+        btn.className = 'px-3 py-1 text-xs rounded-md border bg-indigo-100/50 border-indigo-300 text-indigo-700 font-medium';
         var viewer = btn.closest('#doc-viewer-xlsx') || document.getElementById('doc-viewer-xlsx');
         viewer.querySelectorAll('.modal-sheet-content').forEach(function(s) {
             s.style.display = parseInt(s.dataset.sheet) === index ? '' : 'none';
@@ -2147,11 +2147,11 @@ function closeRerouteModal(event) {
                     <svg class="w-3.5 h-3.5 inline -mt-0.5 mr-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
                     Expand All
                 </button>
-                <button type="button" onclick="zoomCollapseAll()" class="px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors">
+                <button type="button" onclick="zoomCollapseAll()" class="px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-50 hover:bg-slate-100/50 rounded-lg transition-colors">
                     <svg class="w-3.5 h-3.5 inline -mt-0.5 mr-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25"/></svg>
                     Collapse All
                 </button>
-                <button onclick="closeWorkflowZoom()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition">
+                <button onclick="closeWorkflowZoom()" class="p-2 rounded-lg hover:bg-slate-100/50 text-slate-400 hover:text-slate-600 transition">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>

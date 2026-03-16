@@ -35,7 +35,7 @@
 
         <!-- Page Heading -->
         @isset($header)
-            <header class="bg-white border-b border-slate-200/80 shadow-card">
+            <header class="bg-white border-b border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                 <div class="max-w-7xl mx-auto py-5 px-4 sm:px-6 lg:px-8">
                     {{ $header }}
                 </div>

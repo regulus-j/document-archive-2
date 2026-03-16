@@ -45,7 +45,7 @@
                                 'value' => $totalDocuments ?? 0,
                                 'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
                                 'accent' => 'border-l-indigo-400',
-                                'iconBg' => 'bg-indigo-50',
+                                'iconBg' => 'bg-indigo-100/50',
                                 'iconColor' => 'text-indigo-500'
                             ],
                             [
@@ -53,7 +53,7 @@
                                 'value' => $pendingDocuments ?? 0,
                                 'icon' => 'M13 10V3L4 14h7v7l9-11h-7z',
                                 'accent' => 'border-l-amber-400',
-                                'iconBg' => 'bg-amber-50',
+                                'iconBg' => 'bg-amber-100/50',
                                 'iconColor' => 'text-amber-500'
                             ],
                             [
@@ -61,7 +61,7 @@
                                 'value' => $countRecentDocs ?? 0,
                                 'icon' => 'M5 13l4 4L19 7',
                                 'accent' => 'border-l-emerald-400',
-                                'iconBg' => 'bg-emerald-50',
+                                'iconBg' => 'bg-emerald-100/50',
                                 'iconColor' => 'text-emerald-500'
                             ],
                             [
@@ -69,11 +69,11 @@
                                 'value' => $todayDocuments ?? 0,
                                 'icon' => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
                                 'accent' => 'border-l-slate-400',
-                                'iconBg' => 'bg-slate-100',
+                                'iconBg' => 'bg-slate-100/50',
                                 'iconColor' => 'text-slate-500'
                             ]
                         ] as $stat)
-                            <div class="bg-white rounded-lg p-4 border border-slate-200/80 border-l-[3px] {{ $stat['accent'] }} shadow-card">
+                            <div class="bg-white rounded-lg p-4 border border-slate-200 border-l-[3px] {{ $stat['accent'] }} shadow-sm hover:shadow-md transition-shadow">
                                 <div class="flex items-center">
                                     <div class="flex-shrink-0 {{ $stat['iconBg'] }} rounded-lg p-3">
                                         <svg class="h-5 w-5 {{ $stat['iconColor'] }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -90,7 +90,7 @@
                     </div>
 
                     <!-- Document Trend Chart -->
-                    <div class="bg-white rounded-lg p-6 border border-slate-200/80 shadow-card">
+                    <div class="bg-white rounded-lg p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                         <div class="flex items-center justify-between mb-4">
                             <div>
                                 <h3 class="text-lg font-semibold text-slate-900">Documents Trend</h3>
@@ -128,15 +128,15 @@
 
                     <!-- Office Lead Section (Conditional) -->
                     @if(isset($isOfficeLead) && $isOfficeLead && isset($ledOffice) && $ledOffice)
-                    <div class="bg-white rounded-lg p-6 border border-slate-200/80 shadow-card">
+                    <div class="bg-white rounded-lg p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                         <div class="flex items-center justify-between mb-6">
                             <h3 class="text-lg font-semibold text-slate-900">{{ $ledOffice->name }} Team Snapshot</h3>
                             <span class="text-xs text-slate-400">Office lead view</span>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                            <div class="bg-white rounded-lg p-4 border border-slate-200/80 border-l-[3px] border-l-indigo-400 shadow-card">
+                            <div class="bg-white rounded-lg p-4 border border-slate-200 border-l-[3px] border-l-indigo-400 shadow-sm hover:shadow-md transition-shadow">
                                 <div class="flex flex-col items-center text-center">
-                                    <div class="bg-indigo-50 rounded-lg p-3 mb-3">
+                                    <div class="bg-indigo-100/50 rounded-lg p-3 mb-3">
                                         <svg class="h-6 w-6 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                         </svg>
@@ -147,9 +147,9 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="bg-white rounded-lg p-4 border border-slate-200/80 border-l-[3px] border-l-emerald-400 shadow-card">
+                            <div class="bg-white rounded-lg p-4 border border-slate-200 border-l-[3px] border-l-emerald-400 shadow-sm hover:shadow-md transition-shadow">
                                 <div class="flex flex-col items-center text-center">
-                                    <div class="bg-emerald-50 rounded-lg p-3 mb-3">
+                                    <div class="bg-emerald-100/50 rounded-lg p-3 mb-3">
                                         <svg class="h-6 w-6 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
@@ -160,9 +160,9 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="bg-white rounded-lg p-4 border border-slate-200/80 border-l-[3px] border-l-amber-400 shadow-card">
+                            <div class="bg-white rounded-lg p-4 border border-slate-200 border-l-[3px] border-l-amber-400 shadow-sm hover:shadow-md transition-shadow">
                                 <div class="flex flex-col items-center text-center">
-                                    <div class="bg-amber-50 rounded-lg p-3 mb-3">
+                                    <div class="bg-amber-100/50 rounded-lg p-3 mb-3">
                                         <svg class="h-6 w-6 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
@@ -173,9 +173,9 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="bg-white rounded-lg p-4 border border-slate-200/80 border-l-[3px] border-l-slate-400 shadow-card">
+                            <div class="bg-white rounded-lg p-4 border border-slate-200 border-l-[3px] border-l-slate-400 shadow-sm hover:shadow-md transition-shadow">
                                 <div class="flex flex-col items-center text-center">
-                                    <div class="bg-slate-100 rounded-lg p-3 mb-3">
+                                    <div class="bg-slate-100/50 rounded-lg p-3 mb-3">
                                         <svg class="h-6 w-6 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                         </svg>
@@ -191,7 +191,7 @@
                         @if(isset($officeDocuments) && $officeDocuments->count() > 0)
                         <div>
                             <h4 class="text-base font-medium text-slate-700 mb-3">Recent Team Documents</h4>
-                            <div class="rounded-lg border border-slate-200/80 overflow-hidden">
+                            <div class="rounded-lg border border-slate-200 overflow-hidden">
                                 <table class="min-w-full divide-y divide-slate-200">
                                     <thead class="bg-slate-50/80">
                                         <tr>
@@ -218,7 +218,7 @@
                                             <td class="px-4 py-3">
                                                 <div class="flex flex-wrap gap-1">
                                                     @forelse($document->categories as $category)
-                                                        <span class="px-2 inline-flex text-xs leading-5 font-medium rounded-full bg-slate-100 text-slate-700">
+                                                        <span class="px-2 inline-flex text-xs leading-5 font-medium rounded-full bg-slate-100/50 text-slate-700">
                                                             {{ $category->category ?? 'Unnamed Category' }}
                                                         </span>
                                                     @empty
@@ -248,7 +248,7 @@
                     @endif
 
                     <!-- Recent Documents -->
-                    <div class="bg-white rounded-lg border border-slate-200/80 shadow-card overflow-hidden">
+                    <div class="bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
                         <div class="flex items-center justify-between p-6 border-b border-slate-100">
                             <div>
                                 <h3 class="text-lg font-semibold text-slate-900">Recent Documents</h3>
@@ -270,11 +270,11 @@
                                         @php
                                             $statusValue = $document->effective_status ?? optional($document->status)->status ?? 'unknown';
                                             $statusClass = match ($statusValue) {
-                                                'approved' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                                'approved' => 'bg-emerald-100/50 text-emerald-700 border-emerald-200',
                                                 'rejected' => 'bg-rose-50 text-rose-700 border-rose-200',
-                                                'pending' => 'bg-amber-50 text-amber-700 border-amber-200',
-                                                'returned' => 'bg-slate-100 text-slate-700 border-slate-200',
-                                                default => 'bg-slate-100 text-slate-700 border-slate-200',
+                                                'pending' => 'bg-amber-100/50 text-amber-700 border-amber-200',
+                                                'returned' => 'bg-slate-100/50 text-slate-700 border-slate-200',
+                                                default => 'bg-slate-100/50 text-slate-700 border-slate-200',
                                             };
                                         @endphp
                                         <tr>
@@ -307,22 +307,22 @@
                 <!-- Right Sidebar -->
                 <div class="lg:col-span-4 space-y-6">
                     <!-- Quick Actions -->
-                    <div class="bg-white rounded-lg p-6 border border-slate-200/80 shadow-card">
+                    <div class="bg-white rounded-lg p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                         <h3 class="text-sm font-semibold text-slate-700 mb-4">Quick Actions</h3>
                         <div class="grid grid-cols-2 gap-3">
-                            <a href="{{ route('documents.index') }}" class="flex flex-col items-center p-4 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 transition">
+                            <a href="{{ route('documents.index') }}" class="flex flex-col items-center p-4 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition">
                                 <svg class="w-5 h-5 text-slate-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                                 <span class="text-xs font-medium text-slate-700">Browse Docs</span>
                             </a>
-                            <a href="{{ route('documents.workflow-dashboard') }}" class="flex flex-col items-center p-4 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 transition">
+                            <a href="{{ route('documents.workflow-dashboard') }}" class="flex flex-col items-center p-4 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition">
                                 <svg class="w-5 h-5 text-slate-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                 <span class="text-xs font-medium text-slate-700">Receive Docs</span>
                             </a>
-                            <a href="{{ route('documents.workflows') }}" class="flex flex-col items-center p-4 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 transition">
+                            <a href="{{ route('documents.workflows') }}" class="flex flex-col items-center p-4 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition">
                                 <svg class="w-5 h-5 text-slate-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                                 <span class="text-xs font-medium text-slate-700">My Workflows</span>
                             </a>
-                            <a href="{{ route('documents.create') }}" class="flex flex-col items-center p-4 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 transition">
+                            <a href="{{ route('documents.create') }}" class="flex flex-col items-center p-4 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition">
                                 <svg class="w-5 h-5 text-slate-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                                 <span class="text-xs font-medium text-slate-700">New Doc</span>
                             </a>
@@ -330,7 +330,7 @@
                     </div>
 
                     <!-- Workflow Status -->
-                    <div class="bg-white rounded-lg p-6 border border-slate-200/80 shadow-card">
+                    <div class="bg-white rounded-lg p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-sm font-semibold text-slate-700">Workflow Status</h3>
                             <span class="text-xs text-slate-400">Current</span>
@@ -341,9 +341,9 @@
                                 @php
                                     $label = ucfirst(str_replace('_', ' ', $status));
                                     $barColor = match ($status) {
-                                        'approved' => 'bg-emerald-500',
+                                        'approved' => 'bg-emerald-100/500',
                                         'rejected' => 'bg-rose-500',
-                                        'pending' => 'bg-amber-500',
+                                        'pending' => 'bg-amber-100/500',
                                         default => 'bg-slate-400',
                                     };
                                 @endphp
@@ -352,7 +352,7 @@
                                         <span class="font-medium text-slate-700">{{ $label }}</span>
                                         <span>{{ $count }}</span>
                                     </div>
-                                    <div class="h-2 bg-slate-100 rounded-full mt-1">
+                                    <div class="h-2 bg-slate-100/50 rounded-full mt-1">
                                         <div class="h-2 {{ $barColor }} rounded-full" style="width: {{ ($count / $statusMax) * 100 }}%"></div>
                                     </div>
                                 </div>
@@ -363,7 +363,7 @@
                     </div>
 
                     <!-- Top Categories -->
-                    <div class="bg-white rounded-lg p-6 border border-slate-200/80 shadow-card">
+                    <div class="bg-white rounded-lg p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-sm font-semibold text-slate-700">Top Categories</h3>
                             <span class="text-xs text-slate-400">Recent</span>
@@ -388,8 +388,8 @@
                                         <span class="font-medium text-slate-700">{{ $category }}</span>
                                         <span>{{ $count }}</span>
                                     </div>
-                                    <div class="h-2 bg-slate-100 rounded-full mt-1">
-                                        <div class="h-2 bg-indigo-500 rounded-full" style="width: {{ ($count / $categoryMax) * 100 }}%"></div>
+                                    <div class="h-2 bg-slate-100/50 rounded-full mt-1">
+                                        <div class="h-2 bg-indigo-100/500 rounded-full" style="width: {{ ($count / $categoryMax) * 100 }}%"></div>
                                     </div>
                                 </div>
                             @empty
@@ -399,7 +399,7 @@
                     </div>
 
                     <!-- Find Document / Barcode Scanner -->
-                    <div class="bg-white rounded-lg p-6 border border-slate-200/80 shadow-card">
+                    <div class="bg-white rounded-lg p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                         <h3 class="text-sm font-semibold text-slate-700 mb-3">Find Document</h3>
                         <p class="text-xs text-slate-500 mb-4">Search by tracking number or scan a barcode.</p>
                         <form id="ou-quick-action-form" action="{{ route('trackingNumber-search') }}" method="POST" class="space-y-4">

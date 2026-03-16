@@ -61,7 +61,7 @@
                                                         @if($subscription->status === 'active') bg-emerald-100 text-emerald-800
                                                         @elseif($subscription->status === 'pending') bg-amber-100 text-amber-800
                                                         @elseif($subscription->status === 'canceled') bg-rose-100 text-rose-800
-                                                            @else bg-slate-100 text-slate-800
+                                                            @else bg-slate-100/50 text-slate-800
                                                         @endif">
                                                 {{ ucfirst($subscription->status) }}
                                             </span>
@@ -75,7 +75,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span
                                                 class="px-2 py-1 text-xs font-semibold leading-tight rounded-full
-                                                        {{ $subscription->auto_renew ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-100 text-slate-800' }}">
+                                                        {{ $subscription->auto_renew ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-100/50 text-slate-800' }}">
                                                 {{ $subscription->auto_renew ? 'Yes' : 'No' }}
                                             </span>
                                         </td>
@@ -83,7 +83,7 @@
                                             <div class="flex space-x-2">
                                                 @if($subscription->status !== 'active')
                                                     <button onclick="activateSubscription({{ $subscription->id }})"
-                                                        class="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-md hover:bg-emerald-100 transition-colors">
+                                                        class="px-3 py-1 bg-emerald-100/50 text-emerald-700 rounded-md hover:bg-emerald-100 transition-colors">
                                                         Activate
                                                     </button>
                                                 @endif
