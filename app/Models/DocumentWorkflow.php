@@ -28,12 +28,7 @@ class DocumentWorkflow extends Model
         'last_activity_at',
         'inactivity_notified_at',
         'is_rerouted',
-        // Delegation tracking
-        'delegation_type',
         'requires_terminal_decision',
-        'delegation_depth',
-        'wait_policy',
-        'terminal_decision_notified_at',
     ];
 
     protected $casts = [
@@ -43,7 +38,6 @@ class DocumentWorkflow extends Model
         'is_rerouted'            => 'boolean',
         'is_paused'              => 'boolean',
         'requires_terminal_decision' => 'boolean',
-        'terminal_decision_notified_at' => 'datetime',
     ];
 
     public function document()
@@ -82,13 +76,6 @@ class DocumentWorkflow extends Model
         return $this->hasMany(self::class, 'parent_workflow_id');
     }
 
-    /**
-     * Delegation chain records for this workflow.
-     */
-    public function delegationChain()
-    {
-        return $this->hasMany(WorkflowDelegationChain::class, 'workflow_id');
-    }
 
     /**
      * Check if this is a sub-workflow (forwarded from another workflow's review).
@@ -582,39 +569,7 @@ class DocumentWorkflow extends Model
     }
 
     /**
-     * Check if this workflow is delegated.
-     */
-    public function isDelegated(): bool
-    {
-        return $this->status === 'delegated';
-    }
-
-    /**
-     * Check if this workflow can make a terminal decision (approve/reject only).
-     */
-    public function canMakeTerminalDecision(): bool
-    {
-        return $this->requires_terminal_decision === true;
-    }
-
-    /**
-     * Get the delegation depth of this workflow.
-     */
-    public function getDelegationDepth(): int
-    {
-        return $this->delegation_depth ?? 0;
-    }
-
-    /**
-     * Get the wait policy for this workflow.
-     */
-    public function getWaitPolicy(): ?string
-    {
-        return $this->wait_policy;
-    }
-
-    /**
-     * Check if all required sub-workflows are complete based on wait policy.
+     * Check if all sub-workflows are complete.
      */
     public function isAllSubWorkflowsComplete(): bool
     {
@@ -622,16 +577,8 @@ class DocumentWorkflow extends Model
             return true;
         }
 
-        $terminalStatuses = ['approved', 'rejected', 'acknowledged', 'commented', 'returned', 'delegated'];
-        $children = $this->childWorkflows;
-
-        if ($this->wait_policy === 'decide_anytime') {
-            // Can decide after any sub-workflow completes
-            return $children->whereIn('status', $terminalStatuses)->isNotEmpty();
-        }
-
-        // Default: wait_all - all sub-workflows must be complete
-        return $children->every(fn($child) => in_array($child->status, $terminalStatuses, true));
+        $terminalStatuses = ['approved', 'rejected', 'acknowledged', 'commented', 'returned', 'forwarded'];
+        return $this->childWorkflows->every(fn($child) => in_array($child->status, $terminalStatuses, true));
     }
 
     /**
@@ -640,17 +587,5 @@ class DocumentWorkflow extends Model
     public function hasSubWorkflows(): bool
     {
         return $this->childWorkflows()->exists();
-    }
-
-    /**
-     * Mark workflow as delegated.
-     */
-    public function delegate()
-    {
-        $this->status = 'delegated';
-        $this->save();
-        
-        // Sync document status
-        $this->syncDocumentStatus();
     }
 }
