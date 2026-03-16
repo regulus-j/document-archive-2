@@ -29,6 +29,7 @@ class DocumentWorkflow extends Model
         'inactivity_notified_at',
         'is_rerouted',
         'requires_terminal_decision',
+        'is_final_recipient',
     ];
 
     protected $casts = [
@@ -38,6 +39,7 @@ class DocumentWorkflow extends Model
         'is_rerouted'            => 'boolean',
         'is_paused'              => 'boolean',
         'requires_terminal_decision' => 'boolean',
+        'is_final_recipient'     => 'boolean',
     ];
 
     public function document()
@@ -587,5 +589,21 @@ class DocumentWorkflow extends Model
     public function hasSubWorkflows(): bool
     {
         return $this->childWorkflows()->exists();
+    }
+
+    /**
+     * Check if this workflow recipient is the final recipient.
+     */
+    public function isFinalRecipient(): bool
+    {
+        return $this->is_final_recipient === true;
+    }
+
+    /**
+     * Scope to get only final recipient workflows.
+     */
+    public function scopeFinalRecipient($query)
+    {
+        return $query->where('is_final_recipient', true);
     }
 }

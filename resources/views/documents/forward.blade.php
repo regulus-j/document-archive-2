@@ -432,6 +432,49 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Final Recipient Designation -->
+                            <div class="bg-gradient-to-r from-amber-50 to-orange-50 p-5 rounded-xl border-2 border-amber-300 mt-4">
+                                <div class="flex items-start gap-3 mb-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                    </svg>
+                                    <div>
+                                        <h3 class="text-sm font-bold text-amber-900">Final Recipient Designation (Required)</h3>
+                                        <p class="text-xs text-amber-700 mt-1">Mark this step's recipients as the <strong>final approver</strong> for this document. Only ONE step can be designated as final recipient.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center gap-3 bg-white/60 p-3 rounded-lg border border-amber-200">
+                                    <input type="radio" 
+                                           name="final_recipient_step" 
+                                           value="0" 
+                                           id="final_recipient_step_0"
+                                           class="final-recipient-radio w-4 h-4 text-amber-600 focus:ring-amber-500">
+                                    <label for="final_recipient_step_0" class="flex-1 cursor-pointer">
+                                        <span class="text-sm font-medium text-slate-800">Designate Step <span class="step-order-label">1</span> as Final Recipient</span>
+                                        <p class="text-xs text-slate-600 mt-0.5">Recipients in this step will have final approval/rejection authority</p>
+                                    </label>
+                                    <span class="final-recipient-badge hidden inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500 text-white">
+                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                                        </svg>
+                                        FINAL
+                                    </span>
+                                </div>
+
+                                <div class="mt-3 p-2.5 bg-white/60 rounded-lg border border-amber-200">
+                                    <div class="flex items-start gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <div class="text-xs text-amber-800">
+                                            <strong>Important:</strong> Final recipient step must have purpose set to <strong>"Appropriate Action"</strong>. They cannot be "For Comment" or "Dissemination" only.
+                                            <span class="sequential-final-tip hidden block mt-1">💡 For sequential workflows, final recipient is typically placed in the last step.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -854,6 +897,36 @@
             }
         }
 
+        function updateFinalRecipientBadges() {
+            // Show/hide badges based on selection
+            const batches = document.querySelectorAll('#batches-container .batch-group');
+            batches.forEach((batch) => {
+                const batchIdx = batch.dataset.index;
+                const finalRecipientRadio = batch.querySelector(`input[name="final_recipient_step"][value="${batchIdx}"]`);
+                const badge = batch.querySelector('.final-recipient-badge');
+                
+                if (finalRecipientRadio && badge) {
+                    if (finalRecipientRadio.checked) {
+                        badge.classList.remove('hidden');
+                        badge.classList.add('inline-flex');
+                    } else {
+                        badge.classList.add('hidden');
+                        badge.classList.remove('inline-flex');
+                    }
+                }
+            });
+            
+            // Show sequential tip if in sequential mode
+            const sequentialTips = document.querySelectorAll('.sequential-final-tip');
+            sequentialTips.forEach(tip => {
+                if (isSequentialMode) {
+                    tip.classList.remove('hidden');
+                } else {
+                    tip.classList.add('hidden');
+                }
+            });
+        }
+
         function updateBatchOrders() {
             const batches = document.querySelectorAll('#batches-container .batch-group');
 
@@ -928,10 +1001,24 @@
                 if (actionInput) {
                     actionInput.name = `action_required_batch[${index}]`;
                 }
+
+                // Update final recipient radio button
+                const finalRecipientRadio = batch.querySelector('.final-recipient-radio');
+                if (finalRecipientRadio) {
+                    finalRecipientRadio.value = index;
+                    finalRecipientRadio.id = `final_recipient_step_${index}`;
+                    const label = batch.querySelector(`label[for^="final_recipient_step"]`);
+                    if (label) {
+                        label.htmlFor = `final_recipient_step_${index}`;
+                    }
+                }
             });
             
             // Update step indicators
             updateStepIndicators();
+            
+            // Update final recipient badges
+            updateFinalRecipientBadges();
             
             // Update sequential mode help if in sequential mode
             if (isSequentialMode) {
@@ -1027,6 +1114,43 @@
             // Remove any existing error messages
             document.querySelectorAll('.validation-error').forEach(el => el.remove());
 
+            // Validate final recipient selection
+            const finalRecipientRadios = document.querySelectorAll('input[name="final_recipient_step"]:checked');
+            if (finalRecipientRadios.length === 0) {
+                isValid = false;
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'validation-error bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r-lg mb-4';
+                errorMsg.innerHTML = `
+                    <div class="flex items-center">
+                        <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                        <strong>Final Recipient Required:</strong> You must designate ONE step as the final recipient who will have approval/rejection authority.
+                    </div>
+                `;
+                document.getElementById('validation-errors').appendChild(errorMsg);
+            } else {
+                // Validate that the selected final recipient step has recipients
+                const selectedFinalRecipientRadio = finalRecipientRadios[0];
+                const finalStepIndex = selectedFinalRecipientRadio.value;
+                const finalStepRecipients = document.querySelectorAll(`input[name="recipient_batch[${finalStepIndex}][]"]:checked`);
+                
+                if (finalStepRecipients.length === 0) {
+                    isValid = false;
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'validation-error bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r-lg mb-4';
+                    errorMsg.innerHTML = `
+                        <div class="flex items-center">
+                            <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            <strong>Final Recipient Has No Recipients:</strong> Step ${parseInt(finalStepIndex) + 1} is designated as final recipient but has no recipients selected. Please add recipients to this step or choose a different step.
+                        </div>
+                    `;
+                    document.getElementById('validation-errors').appendChild(errorMsg);
+                }
+            }
+
             batches.forEach(batch => {
                 const batchIdx = batch.dataset.index; // string value
                 const batchNumForDisplay = parseInt(batchIdx) + 1;
@@ -1054,6 +1178,19 @@
                         const errorMsg = document.createElement('div');
                         errorMsg.className = 'validation-error text-red-600 mt-2 mb-2';
                         errorMsg.textContent = `Please specify the required action for Step ${batchNumForDisplay}.`;
+                        batch.appendChild(errorMsg);
+                    }
+                }
+
+                // Check if this batch is marked as final recipient
+                const finalRecipientRadio = batch.querySelector(`input[name="final_recipient_step"][value="${batchIdx}"]:checked`);
+                if (finalRecipientRadio) {
+                    // Final recipient must have "appropriate_action" purpose
+                    if (!purposeSelected || purposeSelected.value !== 'appropriate_action') {
+                        isValid = false;
+                        const errorMsg = document.createElement('div');
+                        errorMsg.className = 'validation-error bg-amber-50 border-l-4 border-amber-500 text-amber-700 p-3 rounded-r-lg mt-2';
+                        errorMsg.innerHTML = `<strong>Final Recipient Error:</strong> Step ${batchNumForDisplay} is designated as final recipient but does not have "Appropriate Action" purpose. Final recipients must be able to approve or reject.`;
                         batch.appendChild(errorMsg);
                     }
                 }
@@ -1133,6 +1270,11 @@
             // Add event listeners for initial batches using helper function
             document.querySelectorAll('.batch-group').forEach(batch => {
                 addBatchEventListeners(batch);
+            });
+
+            // Add event listeners for final recipient radio buttons
+            document.querySelectorAll('input[name="final_recipient_step"]').forEach(radio => {
+                radio.addEventListener('change', updateFinalRecipientBadges);
             });
 
             // Doc Viewer helpers (full-screen preview)

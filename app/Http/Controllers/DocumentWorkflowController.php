@@ -235,8 +235,8 @@ class DocumentWorkflowController extends Controller
         // All sub-workflows completed — reactivate the parent workflow
         $parentWorkflow->status = 'received';
         
-        // If parent is appropriate_action, force terminal decision (approve/reject only)
-        if ($parentWorkflow->purpose === 'appropriate_action') {
+        // If parent is appropriate_action OR is the final recipient, force terminal decision (approve/reject only)
+        if ($parentWorkflow->purpose === 'appropriate_action' || $parentWorkflow->is_final_recipient) {
             $parentWorkflow->requires_terminal_decision = true;
         }
         
@@ -404,6 +404,7 @@ class DocumentWorkflowController extends Controller
             'workflow_mode' => 'required|string|in:parallel,sequential',
             'action_required_batch' => 'nullable|array',
             'action_required_batch.*' => 'nullable|string|max:500',
+            'final_recipient_step' => 'required|integer|min:0',
         ]);
 
         // Enforce one purpose per step and prevent duplicate step numbers.
@@ -440,6 +441,56 @@ class DocumentWorkflowController extends Controller
                         ->withErrors(['action_required_batch.' . $idx => 'Please specify the required action for step ' . ($idx + 1) . '.'])
                         ->withInput();
                 }
+            }
+        }
+
+        // Validate final recipient designation
+        $finalRecipientStepIndex = $request->final_recipient_step;
+        
+        // Ensure the final recipient step exists
+        if (!isset($request->purpose_batch[$finalRecipientStepIndex])) {
+            return back()
+                ->withErrors(['final_recipient_step' => 'Invalid final recipient step selected.'])
+                ->withInput();
+        }
+        
+        // Ensure final recipient step has recipients
+        $finalRecipientBatch = $request->recipient_batch[$finalRecipientStepIndex] ?? [];
+        if (empty($finalRecipientBatch)) {
+            return back()
+                ->withErrors([
+                    'final_recipient_step' => 'The final recipient step must have at least one recipient selected. Please add recipients to this step or choose a different step as final recipient.'
+                ])
+                ->withInput();
+        }
+        
+        // Ensure final recipient has "appropriate_action" purpose
+        $finalRecipientPurpose = $request->purpose_batch[$finalRecipientStepIndex];
+        if ($finalRecipientPurpose !== 'appropriate_action') {
+            return back()
+                ->withErrors([
+                    'final_recipient_step' => 'The final recipient step must have "Appropriate Action" purpose. Final recipients cannot be "For Comment" or "Dissemination" only. They must be able to approve or reject the document.'
+                ])
+                ->withInput();
+        }
+        
+        // Get the actual step_order value for the final recipient (to handle reordering)
+        $finalRecipientStepOrder = intval($request->step_order[$finalRecipientStepIndex]);
+        
+        // For sequential workflows, warn if final recipient is not the last step
+        $workflowMode = $request->workflow_mode ?? 'parallel';
+        if ($workflowMode === 'sequential') {
+            // Find the maximum step_order value
+            $allStepOrders = array_map('intval', $request->step_order);
+            $maxStepOrder = max($allStepOrders);
+            
+            if ($finalRecipientStepOrder !== $maxStepOrder) {
+                \Log::warning('Final recipient is not the last step in sequential workflow', [
+                    'final_recipient_step_order' => $finalRecipientStepOrder,
+                    'max_step_order' => $maxStepOrder,
+                    'document_id' => $id,
+                ]);
+                // This is a warning, not an error - we allow it but log it
             }
         }
 
@@ -529,6 +580,8 @@ class DocumentWorkflowController extends Controller
                         ? $user->offices->first()->id
                         : ($senderOffice ? $senderOffice->id : null);
                     
+                    $isFinalRecipient = $stepOrder === $finalRecipientStepOrder;
+                    
                     DocumentWorkflow::create([
                         'tracking_number' => $trackingNumber,
                         'document_id' => $document->id,
@@ -543,6 +596,8 @@ class DocumentWorkflowController extends Controller
                         'purpose' => $purpose,
                         'urgency' => $request->urgency_batch[$batchIndex] ?? null,
                         'due_date' => $request->due_date_batch[$batchIndex] ?? null,
+                        'is_final_recipient' => $isFinalRecipient,
+                        'requires_terminal_decision' => $isFinalRecipient,
                     ]);
 
                     // Notify the user recipient (only if status is pending)
@@ -575,6 +630,8 @@ class DocumentWorkflowController extends Controller
                             $allRecipientIds[] = $recipientId; // Add to tracking array
                             
                             // Create workflow entry for each user in the office
+                            $isFinalRecipient = $stepOrder === $finalRecipientStepOrder;
+                            
                             DocumentWorkflow::create([
                                 'tracking_number' => $trackingNumber,
                                 'document_id' => $document->id,
@@ -589,6 +646,8 @@ class DocumentWorkflowController extends Controller
                                 'purpose' => $purpose,
                                 'urgency' => $request->urgency_batch[$batchIndex] ?? null,
                                 'due_date' => $request->due_date_batch[$batchIndex] ?? null,
+                                'is_final_recipient' => $isFinalRecipient,
+                                'requires_terminal_decision' => $isFinalRecipient,
                             ]);
 
                             // Notify each user in the office (only if status is pending)
@@ -633,6 +692,30 @@ class DocumentWorkflowController extends Controller
                     ['created_at' => now(), 'updated_at' => now()]
                 );
             }
+        }
+        
+        // VALIDATION: Ensure only ONE step_order has is_final_recipient=true for this document
+        $finalRecipientStepOrders = DocumentWorkflow::where('document_id', $document->id)
+            ->where('is_final_recipient', true)
+            ->distinct()
+            ->pluck('step_order')
+            ->toArray();
+            
+        if (count($finalRecipientStepOrders) > 1) {
+            // This should never happen with proper frontend validation, but protect against manipulation
+            \Log::error('Multiple step_orders marked as final recipient - data integrity issue', [
+                'document_id' => $document->id,
+                'step_orders' => $finalRecipientStepOrders,
+            ]);
+            
+            // Rollback workflows created in this request
+            DocumentWorkflow::where('document_id', $document->id)
+                ->where('tracking_number', $trackingNumber)
+                ->delete();
+                
+            return back()
+                ->withErrors(['final_recipient_step' => 'Data integrity error: Multiple steps marked as final recipient. Please try again.'])
+                ->withInput();
         }
 
         $barcodeData = null;
