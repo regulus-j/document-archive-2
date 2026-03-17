@@ -77,6 +77,7 @@
                             type="text" name="first_name" :value="old('first_name')" required autofocus
                             placeholder="First name"
                             autocomplete="first_name" />
+                        <p class="field-error mt-1 text-sm text-red-600 hidden" data-field="first_name"></p>
                         <x-input-error :messages="$errors->get('first_name')" class="mt-2" />
                     </div>
 
@@ -97,6 +98,7 @@
                             type="text" name="last_name" :value="old('last_name')" required
                             placeholder="Last name"
                             autocomplete="last_name" />
+                        <p class="field-error mt-1 text-sm text-red-600 hidden" data-field="last_name"></p>
                         <x-input-error :messages="$errors->get('last_name')" class="mt-2" />
                     </div>
 
@@ -107,6 +109,7 @@
                             type="email" name="email" :value="old('email')" required
                             placeholder="e.g., john.smith@example.com"
                             autocomplete="username" />
+                        <p class="field-error mt-1 text-sm text-red-600 hidden" data-field="email"></p>
                         <x-input-error :messages="$errors->get('email')" class="mt-2" />
                     </div>
                 </div>
@@ -114,7 +117,7 @@
         </div>
 
         <!-- Step 2: Organization Information -->
-        <div class="step-content space-y-4 hidden" id="step2" x-data="{ showAddress: {{ old('include_address', '0') === '1' ? 'true' : 'false' }} }">
+        <div class="step-content space-y-4 hidden" id="step2" x-data="addressForm()">
             <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100">
                 <h2 class="text-xl font-semibold mb-6 text-slate-800 flex items-center">
                     <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,6 +133,7 @@
                             type="text" name="company_name" :value="old('company_name')" required
                             placeholder="organization's name"
                             autocomplete="company_name" />
+                        <p class="field-error mt-1 text-sm text-red-600 hidden" data-field="company_name"></p>
                         <x-input-error :messages="$errors->get('company_name')" class="mt-2" />
                     </div>
 
@@ -138,6 +142,7 @@
                         <x-text-input id="registered_name"
                             class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                             type="text" name="registered_name" :value="old('registered_name')" required placeholder="legal registered business name" />
+                        <p class="field-error mt-1 text-sm text-red-600 hidden" data-field="registered_name"></p>
                         <x-input-error :messages="$errors->get('registered_name')" class="mt-2" />
                     </div>
 
@@ -171,111 +176,177 @@
                         </div>
                     </div>
 
-                    <!-- Address Fields (Conditional) -->
-                    <template x-if="showAddress">
-                        <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
-                            <div>
-                                <x-input-label for="company_email" :value="__('Company Email')" class="text-slate-700" :required="true" />
-                                <x-text-input id="company_email"
-                                    class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-white focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
-                                    type="email" name="company_email" :value="old('company_email')" required
-                                    placeholder="company email address" />
-                                <x-input-error :messages="$errors->get('company_email')" class="mt-2" />
-                            </div>
+                    <!-- Address Fields (Conditional) - Using x-show to keep in DOM -->
+                    <div x-show="showAddress" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 transform -translate-y-2" x-transition:enter-end="opacity-100 transform translate-y-0" class="md:col-span-2 grid grid-cols-1 gap-6 mt-2 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+                        <div>
+                            <x-input-label for="company_email" :value="__('Company Email')" class="text-slate-700" :required="true" />
+                            <x-text-input id="company_email"
+                                class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-white focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
+                                type="email" name="company_email" :value="old('company_email')"
+                                placeholder="company email address"
+                                x-bind:required="showAddress" />
+                            <p class="field-error mt-1 text-sm text-red-600 hidden" data-field="company_email"></p>
+                            <x-input-error :messages="$errors->get('company_email')" class="mt-2" />
+                        </div>
 
-                            <div>
-                                <x-input-label for="company_phone" :value="__('Company Phone')" class="text-slate-700" :required="true" />
-                                <x-text-input id="company_phone"
-                                    class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-white focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
-                                    type="tel" name="company_phone" :value="old('company_phone')" required placeholder="company contact number" />
-                                <x-input-error :messages="$errors->get('company_phone')" class="mt-2" />
+                        <div>
+                            <x-input-label for="company_phone" :value="__('Company Phone')" class="text-slate-700" :required="true" />
+                            <div class="mt-2 flex">
+                                <div class="relative basis-1/5 max-w-[20%] min-w-[90px]">
+                                    <select id="phone_country_code" name="phone_country_code"
+                                        x-model="selectedPhoneCode"
+                                        class="h-full w-full p-3 pr-8 rounded-l-md border border-r-0 border-slate-200 bg-white focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150 appearance-none cursor-pointer text-sm">
+                                        <template x-for="c in countries" :key="c.id">
+                                            <option :value="c.phonecode" :selected="c.phonecode === selectedPhoneCode" x-text="c.flag + ' +' + c.phonecode"></option>
+                                        </template>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
+                                    </div>
+                                </div>
+                                <input id="company_phone" name="company_phone" type="tel"
+                                    class="basis-4/5 min-w-0 p-3 rounded-r-md border border-slate-200 bg-white focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
+                                    :value="'{{ old('company_phone') }}'"
+                                    placeholder="Phone number"
+                                    x-bind:required="showAddress" />
                             </div>
+                            <p class="field-error mt-1 text-sm text-red-600 hidden" data-field="company_phone"></p>
+                            <x-input-error :messages="$errors->get('company_phone')" class="mt-2" />
+                        </div>
 
-                            <div class="md:col-span-2">
-                                <x-input-label for="address" :value="__('Address')" class="text-slate-700" :required="true" />
-                                <x-text-input id="address"
-                                    class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-white focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
-                                    type="text" name="address" :value="old('address')" placeholder="complete street address" />
-                                <x-input-error :messages="$errors->get('address')" class="mt-2" />
+                        <div>
+                            <x-input-label for="address" :value="__('Street Address')" class="text-slate-700" :required="true" />
+                            <x-text-input id="address"
+                                class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-white focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
+                                type="text" name="address" :value="old('address')" placeholder="complete street address"
+                                x-bind:required="showAddress" />
+                            <p class="field-error mt-1 text-sm text-red-600 hidden" data-field="address"></p>
+                            <x-input-error :messages="$errors->get('address')" class="mt-2" />
+                        </div>
+
+                        <!-- Country Selector -->
+                        <div>
+                            <x-input-label for="country" :value="__('Country')" class="text-slate-700" :required="true" />
+                            <div class="relative mt-2">
+                                <select id="country" name="country"
+                                    x-model="selectedCountry"
+                                    @change="onCountryChange()"
+                                    class="block w-full p-3 rounded-md border border-slate-200 bg-white focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150 appearance-none cursor-pointer"
+                                    x-bind:required="showAddress">
+                                    <option value="">Select a country</option>
+                                    <template x-for="c in countries" :key="c.id">
+                                        <option :value="c.name" :data-code="c.id" x-text="c.flag + ' ' + c.name"></option>
+                                    </template>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
+                                </div>
                             </div>
+                            <p class="field-error mt-1 text-sm text-red-600 hidden" data-field="country"></p>
+                            <x-input-error :messages="$errors->get('country')" class="mt-2" />
+                        </div>
 
+                        <!-- State/Province Selector -->
+                        <div>
+                            <x-input-label for="state" :value="__('State/Province')" class="text-slate-700" :required="true" />
+                            <div class="relative mt-2">
+                                <select id="state" name="state"
+                                    x-model="selectedState"
+                                    @change="onStateChange()"
+                                    :disabled="!selectedCountryCode || states.length === 0"
+                                    class="block w-full p-3 rounded-md border border-slate-200 bg-white focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150 appearance-none cursor-pointer disabled:bg-slate-100 disabled:cursor-not-allowed"
+                                    x-bind:required="showAddress">
+                                    <option value="">Select a state/province</option>
+                                    <template x-for="s in states" :key="s.id">
+                                        <option :value="s.name" x-text="s.name"></option>
+                                    </template>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
+                                </div>
+                            </div>
+                            <p class="field-error mt-1 text-sm text-red-600 hidden" data-field="state"></p>
+                            <x-input-error :messages="$errors->get('state')" class="mt-2" />
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- City Selector -->
                             <div>
                                 <x-input-label for="city" :value="__('City')" class="text-slate-700" :required="true" />
-                                <x-text-input id="city"
-                                    class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-white focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
-                                    type="text" name="city" :value="old('city')" placeholder="Enter city name" />
+                                <div class="relative mt-2">
+                                    <select id="city" name="city"
+                                        x-model="selectedCity"
+                                        :disabled="!selectedStateCode || cities.length === 0"
+                                        class="block w-full p-3 rounded-md border border-slate-200 bg-white focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150 appearance-none cursor-pointer disabled:bg-slate-100 disabled:cursor-not-allowed"
+                                        x-bind:required="showAddress">
+                                        <option value="">Select a city</option>
+                                        <template x-for="c in cities" :key="c.id">
+                                            <option :value="c.name" x-text="c.name"></option>
+                                        </template>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
+                                    </div>
+                                </div>
+                                <p class="field-error mt-1 text-sm text-red-600 hidden" data-field="city"></p>
                                 <x-input-error :messages="$errors->get('city')" class="mt-2" />
                             </div>
 
                             <div>
-                                <x-input-label for="state" :value="__('State/Province')" class="text-slate-700" :required="true" />
-                                <x-text-input id="state"
-                                    class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-white focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
-                                    type="text" name="state" :value="old('state')" placeholder="state or province" />
-                                <x-input-error :messages="$errors->get('state')" class="mt-2" />
-                            </div>
-
-                            <div>
-                                <x-input-label for="zip_code" :value="__('ZIP/Postal Code')" class="text-slate-700" :required="true" />
+                                <x-input-label for="zip_code" :value="__('ZIP/Postal Code')" class="text-slate-700" />
                                 <x-text-input id="zip_code"
                                     class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-white focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
                                     type="text" name="zip_code" :value="old('zip_code')" placeholder="postal code" />
+                                <p class="field-error mt-1 text-sm text-red-600 hidden" data-field="zip_code"></p>
                                 <x-input-error :messages="$errors->get('zip_code')" class="mt-2" />
                             </div>
-
-                            <div>
-                                <x-input-label for="country" :value="__('Country')" class="text-slate-700" :required="true" />
-                                <x-text-input id="country"
-                                    class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-white focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
-                                    type="text" name="country" :value="old('country')" placeholder="country name" />
-                                <x-input-error :messages="$errors->get('country')" class="mt-2" />
-                            </div>
                         </div>
-                    </template>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Step 3: Security -->
-        <div class="step-content space-y-4 hidden" id="step3">
-            <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100">
-                <h2 class="text-xl font-semibold mb-6 text-slate-800 flex items-center">
+        <div id="step3" class="step-content hidden">
+            <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-6">
+                <h2 class="text-xl font-semibold text-slate-800 flex items-center">
                     <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                     Security Information
                 </h2>
-                <div class="space-y-6">
-                    <div>
-                        <x-input-label for="password" :value="__('Password')" class="text-slate-700" :required="true" />
-                        <x-text-input id="password"
-                            class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
-                            type="password" name="password" required
-                            placeholder="Create a strong password (min. 8 characters)"
-                            autocomplete="new-password" />
-                        <x-input-error :messages="$errors->get('password')" class="mt-2" />
-                    </div>
 
-                    <div>
-                        <x-input-label for="password_confirmation" :value="__('Confirm Password')" class="text-slate-700" :required="true" />
-                        <x-text-input id="password_confirmation"
-                            class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
-                            type="password" name="password_confirmation" required
-                            placeholder="Repeat your password to confirm"
-                            autocomplete="new-password" />
-                        <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-                    </div>
+                <div>
+                    <x-input-label for="password" :value="__('Password')" class="text-slate-700" :required="true" />
+                    <x-text-input id="password"
+                        class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
+                        type="password" name="password" required
+                        placeholder="Create a strong password (min. 8 characters)"
+                        autocomplete="new-password" />
+                    <p class="field-error mt-1 text-sm text-red-600 hidden" data-field="password"></p>
+                    <x-input-error :messages="$errors->get('password')" class="mt-2" />
+                </div>
 
-                    <div class="flex flex-col items-center">
-                        <div class="g-recaptcha mb-4" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
-                        @error('g-recaptcha-response')
-                        <p class="text-red-600 text-sm text-center mt-2">{{ $message }}</p>
-                        @enderror
-                    </div>
+                <div>
+                    <x-input-label for="password_confirmation" :value="__('Confirm Password')" class="text-slate-700" :required="true" />
+                    <x-text-input id="password_confirmation"
+                        class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150"
+                        type="password" name="password_confirmation" required
+                        placeholder="Repeat your password to confirm"
+                        autocomplete="new-password" />
+                    <p class="field-error mt-1 text-sm text-red-600 hidden" data-field="password_confirmation"></p>
+                    <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
+                </div>
 
-                    <div class="text-sm text-slate-600">
-                        <p>By registering, you agree to our <a href="#" class="text-indigo-500 hover:underline">Terms of Service</a> and <a href="#" class="text-indigo-500 hover:underline">Privacy Policy</a>.</p>
-                    </div>
+                <div class="flex flex-col items-center">
+                    <div class="g-recaptcha mb-4" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
+                    @error('g-recaptcha-response')
+                    <p class="text-red-600 text-sm text-center mt-2">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="text-sm text-slate-600">
+                    <p>By registering, you agree to our <a href="#" class="text-indigo-500 hover:underline">Terms of Service</a> and <a href="#" class="text-indigo-500 hover:underline">Privacy Policy</a>.</p>
                 </div>
             </div>
         </div>
@@ -313,6 +384,117 @@
 
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script>
+        // Alpine.js component for address form with cascading selectors
+        function addressForm() {
+            return {
+                showAddress: {{ old('include_address', '0') === '1' ? 'true' : 'false' }},
+                countries: [],
+                states: [],
+                cities: [],
+                statesData: {},
+                citiesData: {},
+                selectedCountry: '{{ old('country', '') }}',
+                selectedCountryCode: '',
+                selectedState: '{{ old('state', '') }}',
+                selectedStateCode: '',
+                selectedCity: '{{ old('city', '') }}',
+                selectedPhoneCode: '63',
+
+                async init() {
+                    await this.loadCountries();
+                    // If there's an old country value, restore the selections
+                    if (this.selectedCountry) {
+                        const country = this.countries.find(c => c.name === this.selectedCountry);
+                        if (country) {
+                            this.selectedCountryCode = country.id;
+                            this.selectedPhoneCode = country.phonecode;
+                            await this.loadStates();
+                            if (this.selectedState) {
+                                const state = this.states.find(s => s.name === this.selectedState);
+                                if (state) {
+                                    this.selectedStateCode = state.id;
+                                    await this.loadCities();
+                                }
+                            }
+                        }
+                    }
+                },
+
+                async loadCountries() {
+                    try {
+                        const response = await fetch('/data/countries.json');
+                        this.countries = await response.json();
+                        // Set Philippines as default phone code
+                        const ph = this.countries.find(c => c.id === 'PH');
+                        if (ph) this.selectedPhoneCode = ph.phonecode;
+                    } catch (error) {
+                        console.error('Error loading countries:', error);
+                    }
+                },
+
+                async loadStates() {
+                    if (!this.selectedCountryCode) {
+                        this.states = [];
+                        return;
+                    }
+                    try {
+                        if (!this.statesData[this.selectedCountryCode]) {
+                            const response = await fetch('/data/states.json');
+                            const allStates = await response.json();
+                            this.statesData = allStates;
+                        }
+                        this.states = this.statesData[this.selectedCountryCode] || [];
+                    } catch (error) {
+                        console.error('Error loading states:', error);
+                        this.states = [];
+                    }
+                },
+
+                async loadCities() {
+                    if (!this.selectedCountryCode || !this.selectedStateCode) {
+                        this.cities = [];
+                        return;
+                    }
+                    const key = `${this.selectedCountryCode}-${this.selectedStateCode}`;
+                    try {
+                        if (!this.citiesData[key]) {
+                            const response = await fetch('/data/cities.json');
+                            const allCities = await response.json();
+                            this.citiesData = allCities;
+                        }
+                        this.cities = this.citiesData[key] || [];
+                    } catch (error) {
+                        console.error('Error loading cities:', error);
+                        this.cities = [];
+                    }
+                },
+
+                async onCountryChange() {
+                    const country = this.countries.find(c => c.name === this.selectedCountry);
+                    this.selectedCountryCode = country ? country.id : '';
+                    this.selectedPhoneCode = country ? country.phonecode : '63';
+                    this.selectedState = '';
+                    this.selectedStateCode = '';
+                    this.selectedCity = '';
+                    this.states = [];
+                    this.cities = [];
+                    if (this.selectedCountryCode) {
+                        await this.loadStates();
+                    }
+                },
+
+                async onStateChange() {
+                    const state = this.states.find(s => s.name === this.selectedState);
+                    this.selectedStateCode = state ? state.id : '';
+                    this.selectedCity = '';
+                    this.cities = [];
+                    if (this.selectedStateCode) {
+                        await this.loadCities();
+                    }
+                }
+            };
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             let currentStep = 1;
             const totalSteps = 3;
@@ -333,7 +515,6 @@
                     const stepText = indicator.querySelector('span:not(.step-number)');
 
                     if (indicatorStep < step) {
-                        // Completed steps
                         circle.classList.remove('border-slate-300', 'text-slate-400');
                         circle.classList.add('border-indigo-500', 'bg-indigo-500', 'text-white');
                         stepText.classList.remove('text-slate-500');
@@ -341,7 +522,6 @@
                         if (stepNumber) stepNumber.classList.add('hidden');
                         if (checkIcon) checkIcon.classList.remove('hidden');
                     } else if (indicatorStep === step) {
-                        // Current step
                         circle.classList.remove('border-slate-300', 'text-slate-400', 'bg-indigo-500');
                         circle.classList.add('border-indigo-500', 'text-indigo-500', 'bg-white');
                         stepText.classList.remove('text-slate-500');
@@ -349,7 +529,6 @@
                         if (stepNumber) stepNumber.classList.remove('hidden');
                         if (checkIcon) checkIcon.classList.add('hidden');
                     } else {
-                        // Upcoming steps
                         circle.classList.remove('border-indigo-500', 'bg-indigo-500', 'text-white', 'text-indigo-500');
                         circle.classList.add('border-slate-300', 'text-slate-400', 'bg-white');
                         stepText.classList.remove('text-indigo-500');
@@ -383,7 +562,15 @@
 
             function showFieldError(fieldId, message) {
                 const input = document.getElementById(fieldId);
-                const errorDiv = input.parentElement.querySelector('.text-red-600');
+                if (!input) return;
+                
+                // Find the field-error element with data-field attribute
+                let errorDiv = document.querySelector(`.field-error[data-field="${fieldId}"]`);
+                // Fallback to parent's error div
+                if (!errorDiv) {
+                    errorDiv = input.closest('div').querySelector('.field-error, .text-red-600');
+                }
+                
                 if (errorDiv) {
                     errorDiv.textContent = message;
                     errorDiv.classList.remove('hidden');
@@ -393,7 +580,15 @@
 
             function clearFieldError(fieldId) {
                 const input = document.getElementById(fieldId);
-                const errorDiv = input.parentElement.querySelector('.text-red-600');
+                if (!input) return;
+                
+                // Find the field-error element with data-field attribute
+                let errorDiv = document.querySelector(`.field-error[data-field="${fieldId}"]`);
+                // Fallback to parent's error div
+                if (!errorDiv) {
+                    errorDiv = input.closest('div').querySelector('.field-error, .text-red-600');
+                }
+                
                 if (errorDiv) {
                     errorDiv.textContent = '';
                     errorDiv.classList.add('hidden');
@@ -401,34 +596,55 @@
                 input.classList.remove('border-red-500');
             }
 
+            function clearAllErrors() {
+                document.querySelectorAll('.field-error').forEach(el => {
+                    el.textContent = '';
+                    el.classList.add('hidden');
+                });
+                document.querySelectorAll('.border-red-500').forEach(el => {
+                    el.classList.remove('border-red-500');
+                });
+                // Remove any dynamically added reCAPTCHA errors
+                const recaptchaErrors = document.querySelectorAll('.g-recaptcha ~ .text-red-600');
+                recaptchaErrors.forEach(el => el.remove());
+            }
+
+            function isValidEmail(email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            }
+
+            function isValidPhone(phone) {
+                const phoneRegex = /^[0-9\s\-\+\(\)]{7,20}$/;
+                return phoneRegex.test(phone);
+            }
+
             function validateStep(step) {
                 let isValid = true;
+                clearAllErrors();
 
                 const includeAddress = document.querySelector('input[name="include_address"]');
                 const addressChecked = includeAddress && includeAddress.value === '1';
+                
                 const requiredFields = {
                     1: ['first_name', 'last_name', 'email'],
                     2: addressChecked
-                        ? ['company_name', 'registered_name', 'company_email', 'company_phone', 'address', 'city', 'state', 'zip_code', 'country']
+                        ? ['company_name', 'registered_name', 'company_email', 'company_phone', 'address', 'country', 'state', 'city']
                         : ['company_name', 'registered_name'],
                     3: ['password', 'password_confirmation']
                 };
 
-                // Clear all previous errors for current step fields
-                (requiredFields[step] || []).forEach(field => {
-                    clearFieldError(field);
-                });
-
                 // Validate required fields
                 (requiredFields[step] || []).forEach(field => {
                     const input = document.getElementById(field);
-                    if (!input.value.trim()) {
+                    if (input && !input.value.trim()) {
                         isValid = false;
-                        showFieldError(field, `${field.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} is required`);
+                        const fieldName = field.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                        showFieldError(field, `${fieldName} is required`);
                     }
                 });
 
-                // Validate email format
+                // Step-specific validations
                 if (step === 1) {
                     const email = document.getElementById('email');
                     if (email.value.trim() && !isValidEmail(email.value.trim())) {
@@ -437,10 +653,29 @@
                     }
                 }
 
-                // Validate password match
+                if (step === 2 && addressChecked) {
+                    const companyEmail = document.getElementById('company_email');
+                    if (companyEmail && companyEmail.value.trim() && !isValidEmail(companyEmail.value.trim())) {
+                        isValid = false;
+                        showFieldError('company_email', 'Please enter a valid email address');
+                    }
+                    
+                    const companyPhone = document.getElementById('company_phone');
+                    if (companyPhone && companyPhone.value.trim() && !isValidPhone(companyPhone.value.trim())) {
+                        isValid = false;
+                        showFieldError('company_phone', 'Please enter a valid phone number');
+                    }
+                }
+
                 if (step === 3) {
                     const password = document.getElementById('password');
                     const passwordConfirmation = document.getElementById('password_confirmation');
+                    
+                    if (password.value && password.value.length < 8) {
+                        isValid = false;
+                        showFieldError('password', 'Password must be at least 8 characters');
+                    }
+                    
                     if (password.value && passwordConfirmation.value && password.value !== passwordConfirmation.value) {
                         isValid = false;
                         showFieldError('password_confirmation', 'Passwords do not match');
@@ -450,97 +685,171 @@
                 return isValid;
             }
 
+            // Real-time validation on blur
+            function setupRealtimeValidation() {
+                const emailFields = ['email', 'company_email'];
+                emailFields.forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    if (field) {
+                        field.addEventListener('blur', function() {
+                            clearFieldError(fieldId);
+                            if (this.value.trim() && !isValidEmail(this.value.trim())) {
+                                showFieldError(fieldId, 'Please enter a valid email address');
+                            }
+                        });
+                        field.addEventListener('input', function() {
+                            if (this.classList.contains('border-red-500') && isValidEmail(this.value.trim())) {
+                                clearFieldError(fieldId);
+                            }
+                        });
+                    }
+                });
+
+                const phoneField = document.getElementById('company_phone');
+                if (phoneField) {
+                    phoneField.addEventListener('blur', function() {
+                        clearFieldError('company_phone');
+                        if (this.value.trim() && !isValidPhone(this.value.trim())) {
+                            showFieldError('company_phone', 'Please enter a valid phone number');
+                        }
+                    });
+                }
+
+                const passwordField = document.getElementById('password');
+                const passwordConfirmField = document.getElementById('password_confirmation');
+                if (passwordField) {
+                    passwordField.addEventListener('blur', function() {
+                        clearFieldError('password');
+                        if (this.value && this.value.length < 8) {
+                            showFieldError('password', 'Password must be at least 8 characters');
+                        }
+                    });
+                }
+                if (passwordConfirmField) {
+                    passwordConfirmField.addEventListener('blur', function() {
+                        clearFieldError('password_confirmation');
+                        if (passwordField.value && this.value && passwordField.value !== this.value) {
+                            showFieldError('password_confirmation', 'Passwords do not match');
+                        }
+                    });
+                }
+
+                // Clear error on input for required fields
+                const requiredFields = ['first_name', 'last_name', 'company_name', 'registered_name', 'address', 'country', 'state', 'city'];
+                requiredFields.forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    if (field) {
+                        field.addEventListener('input', function() {
+                            if (this.value.trim()) {
+                                clearFieldError(fieldId);
+                            }
+                        });
+                    }
+                });
+            }
+
             nextBtn.addEventListener('click', () => {
                 if (validateStep(currentStep)) {
                     currentStep++;
                     showStep(currentStep);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
             });
 
             prevBtn.addEventListener('click', () => {
                 currentStep--;
                 showStep(currentStep);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             });
-
-            // Initial setup
-            showStep(currentStep);
-            // Email validation helper
-            function isValidEmail(email) {
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                return emailRegex.test(email);
-            }
 
             // Form submission validation
             document.getElementById('registrationForm').addEventListener('submit', function(e) {
                 let isValid = true;
+                clearAllErrors();
 
-                // Clear all previous errors
-                const allFields = ['first_name', 'last_name', 'email', 'password', 'password_confirmation', 'company_name'];
-                allFields.forEach(field => clearFieldError(field));
-
-                // Determine which fields are required based on address toggle
                 const includeAddressInput = document.querySelector('input[name="include_address"]');
                 const isAddressIncluded = includeAddressInput && includeAddressInput.value === '1';
+                
                 const requiredFieldsList = [
                     'first_name', 'last_name', 'email',
                     'company_name', 'registered_name',
                     'password', 'password_confirmation'
                 ];
+                
                 if (isAddressIncluded) {
-                    requiredFieldsList.push('company_email', 'company_phone', 'address', 'city', 'state', 'zip_code', 'country');
+                    requiredFieldsList.push('company_email', 'company_phone', 'address', 'country', 'state', 'city');
                 }
+
                 requiredFieldsList.forEach(field => {
                     const input = document.getElementById(field);
                     if (input && !input.value.trim()) {
                         isValid = false;
-                        showFieldError(field, `${field.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} is required`);
+                        const fieldName = field.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                        showFieldError(field, `${fieldName} is required`);
                     }
                 });
 
-                // Validate email format
+                // Validate email formats
                 const email = document.getElementById('email');
-                if (email.value.trim() && !isValidEmail(email.value.trim())) {
+                if (email && email.value.trim() && !isValidEmail(email.value.trim())) {
                     isValid = false;
                     showFieldError('email', 'Please enter a valid email address');
                 }
 
-                // Validate password match
+                if (isAddressIncluded) {
+                    const companyEmail = document.getElementById('company_email');
+                    if (companyEmail && companyEmail.value.trim() && !isValidEmail(companyEmail.value.trim())) {
+                        isValid = false;
+                        showFieldError('company_email', 'Please enter a valid email address');
+                    }
+                }
+
+                // Validate password
                 const password = document.getElementById('password');
                 const passwordConfirmation = document.getElementById('password_confirmation');
-                if (password.value && passwordConfirmation.value && password.value !== passwordConfirmation.value) {
+                
+                if (password && password.value && password.value.length < 8) {
+                    isValid = false;
+                    showFieldError('password', 'Password must be at least 8 characters');
+                }
+                
+                if (password && passwordConfirmation && password.value !== passwordConfirmation.value) {
                     isValid = false;
                     showFieldError('password_confirmation', 'Passwords do not match');
                 }
 
                 // Validate reCAPTCHA
-                const recaptchaResponse = grecaptcha.getResponse();
-                if (!recaptchaResponse) {
-                    isValid = false;
-                    const recaptchaContainer = document.querySelector('.g-recaptcha').parentElement;
-                    const errorMsg = document.createElement('p');
-                    errorMsg.className = 'text-red-600 text-sm text-center mt-2';
-                    errorMsg.textContent = 'Please complete the reCAPTCHA verification';
-                    recaptchaContainer.appendChild(errorMsg);
-                }
-
-                // If address is not included, no need to set company email
-                if (isAddressIncluded && email.value.trim()) {
-                    const companyEmailInput = document.querySelector('input[name="company_email"]');
-                    if (companyEmailInput && !companyEmailInput.value.trim()) {
-                        companyEmailInput.value = email.value.trim();
+                if (typeof grecaptcha !== 'undefined') {
+                    const recaptchaResponse = grecaptcha.getResponse();
+                    if (!recaptchaResponse) {
+                        isValid = false;
+                        const recaptchaContainer = document.querySelector('.g-recaptcha');
+                        if (recaptchaContainer) {
+                            let errorMsg = recaptchaContainer.parentElement.querySelector('.recaptcha-error');
+                            if (!errorMsg) {
+                                errorMsg = document.createElement('p');
+                                errorMsg.className = 'recaptcha-error text-red-600 text-sm text-center mt-2';
+                                recaptchaContainer.parentElement.appendChild(errorMsg);
+                            }
+                            errorMsg.textContent = 'Please complete the reCAPTCHA verification';
+                        }
                     }
                 }
 
                 if (!isValid) {
                     e.preventDefault();
-                    // Find the first error and scroll to it
                     const firstErrorField = document.querySelector('.border-red-500');
                     if (firstErrorField) {
                         firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        firstErrorField.focus();
                     }
                     return false;
                 }
             });
+
+            // Initial setup
+            showStep(currentStep);
+            setupRealtimeValidation();
         });
     </script>
 </x-guest-layout>

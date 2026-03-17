@@ -17,6 +17,7 @@
         "vite": "^6.1.1"
     },
     "dependencies": {
+        "country-state-city": "^3.2.1",
         "lucide-react": "^0.462.0",
         "mammoth": "^1.11.0"
     },
