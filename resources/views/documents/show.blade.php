@@ -1938,7 +1938,8 @@ function closeRerouteModal(event) {
     const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'];
     const docExts = ['docx'];          // mammoth.js only supports .docx, NOT legacy binary .doc
     const sheetExts = ['xls', 'xlsx', 'csv'];
-    const previewableExts = ['pdf', ...imageExts, [...docExts, 'doc'], ...sheetExts].flat();
+    const slideExts = ['ppt', 'pptx', 'odp'];
+    const previewableExts = ['pdf', ...imageExts, [...docExts, 'doc'], ...sheetExts, ...slideExts].flat();
 
     function getExtension(filename) {
         return (filename || '').split('.').pop().toLowerCase();
@@ -2109,6 +2110,11 @@ function closeRerouteModal(event) {
             loading.classList.add('hidden');
             xlsxDiv.classList.remove('hidden');
             renderXlsxInModal(previewUrl, xlsxDiv);
+        } else if (slideExts.includes(ext)) {
+            // Presentation preview via browser iframe fallback.
+            frame.onload = () => loading.classList.add('hidden');
+            frame.src = previewUrl;
+            frame.classList.remove('hidden');
         } else {
             // Unsupported — show download fallback
             loading.classList.add('hidden');

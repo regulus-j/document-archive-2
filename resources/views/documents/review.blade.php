@@ -231,10 +231,11 @@
                         @endif
                         @php
                             $ext = strtolower(pathinfo($document->path, PATHINFO_EXTENSION));
-                            $previewable = in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'doc', 'docx', 'xls', 'xlsx', 'csv']);
+                            $previewable = in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'ppt', 'pptx', 'odp']);
                             $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg']);
                             $isOfficeDoc = in_array($ext, ['doc', 'docx']);
                             $isSpreadsheet = in_array($ext, ['xls', 'xlsx', 'csv']);
+                            $isSlide = in_array($ext, ['ppt', 'pptx', 'odp']);
                         @endphp
                     </div>
                 </div>
@@ -301,6 +302,8 @@
                                         <span class="text-sm text-slate-500">Loading spreadsheet...</span>
                                     </div>
                                 </div>
+                            @elseif($isSlide)
+                                <iframe id="doc-viewer-frame" src="{{ route('documents.preview', $document->id) }}" class="w-full border-0" style="height: 500px;"></iframe>
                             @endif
                         @else
                             <div class="text-center py-16">
@@ -377,7 +380,7 @@
                             @foreach($document->versions->sortByDesc('version_number') as $ver)
                                 @php
                                     $verExt = strtolower(pathinfo($ver->file_path, PATHINFO_EXTENSION));
-                                    $verPreviewable = in_array($verExt, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'doc', 'docx', 'xls', 'xlsx', 'csv']);
+                                    $verPreviewable = in_array($verExt, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'ppt', 'pptx', 'odp']);
                                 @endphp
                                 <div class="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:bg-slate-50 transition group">
                                     <div class="flex items-center gap-3 min-w-0">
@@ -534,7 +537,7 @@
                                 @foreach($document->attachments as $attachment)
                                     @php
                                         $attExt = strtolower(pathinfo($attachment->filename, PATHINFO_EXTENSION));
-                                        $attPreviewable = in_array($attExt, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'doc', 'docx', 'xls', 'xlsx', 'csv']);
+                                        $attPreviewable = in_array($attExt, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'ppt', 'pptx', 'odp']);
                                         $iconColors = ['pdf'=>'red','doc'=>'blue','docx'=>'blue','xls'=>'green','xlsx'=>'green','csv'=>'green','jpg'=>'amber','jpeg'=>'amber','png'=>'purple','gif'=>'pink','webp'=>'amber','bmp'=>'amber','svg'=>'indigo'];
                                         $ic = $iconColors[$attExt] ?? 'gray';
                                     @endphp
@@ -1309,6 +1312,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var sheetExts = ['xls', 'xlsx', 'csv'];
 
     window.openDocumentViewer = function(url, ext) {
+        ext = (ext || '').toLowerCase();
         var container = document.getElementById('document-viewer-container');
         if (!container) return;
         container.innerHTML = '';
@@ -1396,6 +1400,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ===== Attachment Preview Modal =====
     window.openAttachmentModal = function(url, ext, filename) {
+        ext = (ext || '').toLowerCase();
         document.getElementById('att-modal-title').textContent = filename || 'Attachment Preview';
         var body = document.getElementById('att-modal-body');
         body.innerHTML = '<div class="flex items-center justify-center py-16"><svg class="animate-spin h-8 w-8 text-indigo-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg></div>';

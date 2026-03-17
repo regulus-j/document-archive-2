@@ -443,8 +443,7 @@
         const file = fileInput.files[0];
         const ext  = (file.name.split('.').pop() || '').toLowerCase();
         const imageExts = ['jpg','jpeg','png','gif','webp','bmp','svg'];
-        // DOCX and XLSX are NOT supported for overlay — show notice for them
-        const unsupportedExts = ['doc','docx','xls','xlsx','ods','csv','ppt','pptx'];
+        const iframePreviewExts = ['doc','docx','xls','xlsx','ods','csv','ppt','pptx','odp'];
 
         function showOverlay() {
             if (overlayEl) {
@@ -489,8 +488,17 @@
             };
             
             imgEl.src = url;
+        } else if (iframePreviewExts.includes(ext)) {
+            // Office/spreadsheet/presentation preview via iframe (overlay remains disabled)
+            const url = URL.createObjectURL(file);
+            frameEl.onload = function() {
+                if (loadingEl) loadingEl.classList.add('hidden');
+                frameEl.classList.remove('hidden');
+            };
+            frameEl.src = url;
+            syncInputsToA4Diagram(modal);
         } else {
-            // Unsupported format (including DOCX/XLSX) — show notice with fallback A4 diagram
+            // Unsupported format — show notice with fallback A4 diagram
             if (loadingEl) loadingEl.classList.add('hidden');
             if (noticeEl)  noticeEl.classList.remove('hidden');
             syncInputsToA4Diagram(modal);
