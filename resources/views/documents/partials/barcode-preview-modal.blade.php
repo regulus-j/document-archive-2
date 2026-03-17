@@ -74,6 +74,17 @@
                 </div>
             </div>
 
+            {{-- Dynamic unsupported-overlay alert (shown when selected file cannot receive overlay) --}}
+            <div data-role="overlay-unsupported-info" class="hidden flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <svg class="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M10.29 3.86l-7.1 12.3A2 2 0 004.92 19h14.16a2 2 0 001.73-2.84l-7.1-12.3a2 2 0 00-3.46 0z"/>
+                </svg>
+                <div>
+                    <p class="text-xs font-semibold text-amber-800" data-role="overlay-unsupported-title">Overlay not supported for this file type.</p>
+                    <p class="text-xs text-amber-700 mt-1" data-role="overlay-unsupported-text">The file will still upload, but barcode overlay will not be applied. Supported overlay formats are PDF and images (JPG, PNG, GIF, WEBP, BMP).</p>
+                </div>
+            </div>
+
             {{-- ── Main layout: left = document preview canvas, right = controls ── --}}
             <div data-role="barcode-controls" class="flex gap-5 flex-col lg:flex-row">
 
@@ -425,6 +436,25 @@
         const imgEl      = q(modal, 'preview-img');
         const noticeEl   = q(modal, 'preview-notice');
         const overlayEl  = q(modal, 'barcode-drag-overlay');
+        const unsupportedInfoEl = q(modal, 'overlay-unsupported-info');
+        const unsupportedTitleEl = q(modal, 'overlay-unsupported-title');
+        const unsupportedTextEl = q(modal, 'overlay-unsupported-text');
+
+        function hideUnsupportedOverlayInfo() {
+            if (unsupportedInfoEl) unsupportedInfoEl.classList.add('hidden');
+        }
+
+        function showUnsupportedOverlayInfo(ext) {
+            if (!unsupportedInfoEl) return;
+            const prettyExt = (ext || '').toUpperCase() || 'UNKNOWN';
+            if (unsupportedTitleEl) {
+                unsupportedTitleEl.textContent = prettyExt + ' files are not supported for barcode overlay.';
+            }
+            if (unsupportedTextEl) {
+                unsupportedTextEl.textContent = 'This file can still be uploaded and previewed, but barcode overlay will not be applied. Supported overlay formats are PDF and images (JPG, PNG, GIF, WEBP, BMP).';
+            }
+            unsupportedInfoEl.classList.remove('hidden');
+        }
 
         // Hide everything
         if (frameEl)   frameEl.classList.add('hidden');
@@ -432,6 +462,7 @@
         if (noticeEl)  noticeEl.classList.add('hidden');
         if (overlayEl) overlayEl.classList.add('hidden');
         if (loadingEl) loadingEl.classList.remove('hidden');
+        hideUnsupportedOverlayInfo();
 
         if (!fileInput || !fileInput.files || !fileInput.files.length) {
             // No file: show notice
@@ -490,6 +521,7 @@
             imgEl.src = url;
         } else if (iframePreviewExts.includes(ext)) {
             // Office/spreadsheet/presentation preview via iframe (overlay remains disabled)
+            showUnsupportedOverlayInfo(ext);
             const url = URL.createObjectURL(file);
             frameEl.onload = function() {
                 if (loadingEl) loadingEl.classList.add('hidden');
@@ -499,6 +531,7 @@
             syncInputsToA4Diagram(modal);
         } else {
             // Unsupported format — show notice with fallback A4 diagram
+            showUnsupportedOverlayInfo(ext);
             if (loadingEl) loadingEl.classList.add('hidden');
             if (noticeEl)  noticeEl.classList.remove('hidden');
             syncInputsToA4Diagram(modal);

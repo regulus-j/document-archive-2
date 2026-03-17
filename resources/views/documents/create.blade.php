@@ -749,7 +749,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const mainDocInput = document.getElementById('main-document');
 
-        // Auto-open barcode preview modal when a supported file is selected (PDF, Images, DOCX, XLSX)
+        // Auto-open barcode preview modal when a file is selected.
         if (mainDocInput) {
             bindBarcodePreviewToFileInput('#main-document', 'createBarcodeModal', null);
         }

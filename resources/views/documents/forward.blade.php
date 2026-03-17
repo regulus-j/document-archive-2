@@ -1561,7 +1561,11 @@
                         });
                     })
                     .catch(function(err) {
-                        container.innerHTML = '<div class="text-center py-12"><p class="text-sm text-red-500">Could not load spreadsheet preview.</p><p class="text-xs text-slate-400 mt-1">' + err.message + '</p></div>';
+                        if ((err.message || '').toLowerCase().indexOf('workbook') !== -1) {
+                            container.innerHTML = '<div class="text-center py-4"><p class="text-xs text-slate-500 mb-3">This file is not a spreadsheet. Trying alternate preview...</p><iframe src="' + url + '" class="w-full border border-slate-200 rounded-lg bg-white" style="min-height:65vh;"></iframe></div>';
+                        } else {
+                            container.innerHTML = '<div class="text-center py-12"><p class="text-sm text-red-500">Could not load spreadsheet preview.</p><p class="text-xs text-slate-400 mt-1">' + err.message + '</p></div>';
+                        }
                     });
             }
 
