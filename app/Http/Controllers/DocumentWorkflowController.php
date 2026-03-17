@@ -15,6 +15,7 @@ use App\Models\ESignature;
 use App\Services\DocumentAccessService;
 use App\Services\BarcodeService;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 
@@ -236,7 +237,7 @@ class DocumentWorkflowController extends Controller
         $parentWorkflow->status = 'received';
         
         // If parent is appropriate_action OR is the final recipient, force terminal decision (approve/reject only)
-        if ($parentWorkflow->purpose === 'appropriate_action' || $parentWorkflow->is_final_recipient) {
+        if ($this->workflowHasColumn('requires_terminal_decision') && ($parentWorkflow->purpose === 'appropriate_action' || $parentWorkflow->is_final_recipient)) {
             $parentWorkflow->requires_terminal_decision = true;
         }
         
@@ -246,7 +247,7 @@ class DocumentWorkflowController extends Controller
             'completed_workflow_id' => $completedWorkflow->id,
             'parent_workflow_id' => $parentWorkflow->id,
             'parent_recipient_id' => $parentWorkflow->recipient_id,
-            'requires_terminal_decision' => $parentWorkflow->requires_terminal_decision ?? false,
+            'requires_terminal_decision' => $this->workflowHasColumn('requires_terminal_decision') ? ($parentWorkflow->requires_terminal_decision ?? false) : false,
         ]);
 
         // Collect results from child workflows for the notification
@@ -258,11 +259,15 @@ class DocumentWorkflowController extends Controller
 
         // Notify the original forwarder that the sub-workflow is complete
         if ($parentWorkflow->recipient_id) {
-            $notificationType = $parentWorkflow->requires_terminal_decision 
+            $requiresTerminalDecision = $this->workflowHasColumn('requires_terminal_decision')
+                ? (bool) ($parentWorkflow->requires_terminal_decision ?? false)
+                : false;
+
+            $notificationType = $requiresTerminalDecision
                 ? 'terminal_decision_required'
                 : 'sub_workflow_completed';
                 
-            $message = $parentWorkflow->requires_terminal_decision
+            $message = $requiresTerminalDecision
                 ? 'All consultations complete. Your decision (approve/reject) is required.'
                 : 'The document you forwarded for review has been completed. You can now continue processing.';
                 
@@ -275,7 +280,7 @@ class DocumentWorkflowController extends Controller
                     'title' => $parentWorkflow->document->title ?? 'Document',
                     'results' => $childResults,
                     'workflow_id' => $parentWorkflow->id,
-                    'requires_terminal_decision' => $parentWorkflow->requires_terminal_decision,
+                    'requires_terminal_decision' => $requiresTerminalDecision,
                 ]),
             ]);
         }
@@ -362,6 +367,50 @@ class DocumentWorkflowController extends Controller
         ]);
     }
 
+    /**
+     * Check whether a workflow column exists (cached per request).
+     */
+    private function workflowHasColumn(string $column): bool
+    {
+        static $columnCache = [];
+
+        if (!array_key_exists($column, $columnCache)) {
+            $columnCache[$column] = Schema::hasColumn('document_workflows', $column);
+        }
+
+        return $columnCache[$column];
+    }
+
+    /**
+     * Add optional workflow flags only when corresponding columns exist.
+     */
+    private function addOptionalWorkflowFlags(array $attributes, bool $isFinalRecipient, bool $requiresTerminalDecision): array
+    {
+        if ($this->workflowHasColumn('is_final_recipient')) {
+            $attributes['is_final_recipient'] = $isFinalRecipient;
+        }
+
+        if ($this->workflowHasColumn('requires_terminal_decision')) {
+            $attributes['requires_terminal_decision'] = $requiresTerminalDecision;
+        }
+
+        return $attributes;
+    }
+
+    /**
+     * Check whether an attachment column exists (cached per request).
+     */
+    private function attachmentHasColumn(string $column): bool
+    {
+        static $attachmentColumnCache = [];
+
+        if (!array_key_exists($column, $attachmentColumnCache)) {
+            $attachmentColumnCache[$column] = Schema::hasColumn('document_attachments', $column);
+        }
+
+        return $attachmentColumnCache[$column];
+    }
+
     // workflow logic
     public function createWorkflow(Request $request): RedirectResponse
     {
@@ -380,10 +429,16 @@ class DocumentWorkflowController extends Controller
                 'step_order',
             ]));
 
-            DocumentAudit::logDocumentAction($workflow->document, 'workflow', 'pending', 'Document workflow created');
+            DocumentAudit::logDocumentAction(
+                $workflow->document_id,
+                auth()->id(),
+                'workflow',
+                'pending',
+                'Document workflow created'
+            );
 
             return redirect()->back()->with('success', 'Document workflow created successfully');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return redirect()->back()->with('error', 'Error creating document workflow: ' . $e->getMessage());
         }
     }
@@ -533,7 +588,7 @@ class DocumentWorkflowController extends Controller
                         ? $user->offices->first()->id
                         : ($senderOffice ? $senderOffice->id : null);
                     
-                    DocumentWorkflow::create([
+                    $workflowAttributes = [
                         'tracking_number' => $trackingNumber,
                         'document_id' => $document->id,
                         'sender_id' => auth()->id(),
@@ -547,9 +602,11 @@ class DocumentWorkflowController extends Controller
                         'purpose' => $purpose,
                         'urgency' => $request->urgency_batch[$batchIndex] ?? null,
                         'due_date' => $request->due_date_batch[$batchIndex] ?? null,
-                        'is_final_recipient' => false,
-                        'requires_terminal_decision' => false,
-                    ]);
+                    ];
+
+                    DocumentWorkflow::create(
+                        $this->addOptionalWorkflowFlags($workflowAttributes, false, false)
+                    );
 
                     // Notify the user recipient (only if status is pending)
                     if ($status === 'pending') {
@@ -580,7 +637,7 @@ class DocumentWorkflowController extends Controller
                             $recipientId = $user->id;
                             $allRecipientIds[] = $recipientId; // Add to tracking array
                             
-                            DocumentWorkflow::create([
+                            $workflowAttributes = [
                                 'tracking_number' => $trackingNumber,
                                 'document_id' => $document->id,
                                 'sender_id' => auth()->id(),
@@ -594,9 +651,11 @@ class DocumentWorkflowController extends Controller
                                 'purpose' => $purpose,
                                 'urgency' => $request->urgency_batch[$batchIndex] ?? null,
                                 'due_date' => $request->due_date_batch[$batchIndex] ?? null,
-                                'is_final_recipient' => false,
-                                'requires_terminal_decision' => false,
-                            ]);
+                            ];
+
+                            DocumentWorkflow::create(
+                                $this->addOptionalWorkflowFlags($workflowAttributes, false, false)
+                            );
 
                             // Notify each user in the office (only if status is pending)
                             if ($status === 'pending') {
@@ -645,7 +704,7 @@ class DocumentWorkflowController extends Controller
                 // Final recipient status: 'waiting' in sequential mode, 'pending' in parallel
                 $finalRecipientStatus = $isSequential ? 'waiting' : 'pending';
                 
-                DocumentWorkflow::create([
+                $workflowAttributes = [
                     'tracking_number' => $trackingNumber,
                     'document_id' => $document->id,
                     'sender_id' => auth()->id(),
@@ -659,9 +718,11 @@ class DocumentWorkflowController extends Controller
                     'purpose' => 'appropriate_action',
                     'urgency' => null,
                     'due_date' => null,
-                    'is_final_recipient' => true,
-                    'requires_terminal_decision' => true,
-                ]);
+                ];
+
+                DocumentWorkflow::create(
+                    $this->addOptionalWorkflowFlags($workflowAttributes, true, true)
+                );
                 
                 $allRecipientIds[] = $finalRecipientUserId;
                 
@@ -813,7 +874,9 @@ class DocumentWorkflowController extends Controller
                         'document_id' => $workflow->document_id,
                         'message' => 'A document you forwarded has moved to the next step.',
                         'title' => $workflow->document->title,
-                        'to' => $nextWorkflow && $nextWorkflow->recipient_id ? $nextWorkflow->recipient->first_name . ' ' . $nextWorkflow->recipient->last_name : null,
+                        'to' => ($nextWorkflow && $nextWorkflow->recipient_id && $nextWorkflow->recipient)
+                            ? $nextWorkflow->recipient->first_name . ' ' . $nextWorkflow->recipient->last_name
+                            : null,
                     ]),
                 ]);
             }
@@ -822,14 +885,21 @@ class DocumentWorkflowController extends Controller
         // If this was a sub-workflow, check if parent should be reactivated
         $this->handleSubWorkflowCompletion($workflow);
 
-        // Notify delegation chain if this is a terminal decision
+        // Notify delegation chain if the optional delegation service is available.
         if ($workflow->purpose === 'appropriate_action' && $workflow->isSubWorkflow()) {
-            $this->delegationService->notifyDelegationChain(
-                $workflow,
-                'approved',
-                $request->remarks ?? ''
-            );
-            $this->delegationService->completeParentDelegations($workflow);
+            if (property_exists($this, 'delegationService') && $this->delegationService) {
+                $this->delegationService->notifyDelegationChain(
+                    $workflow,
+                    'approved',
+                    $request->remarks ?? ''
+                );
+                $this->delegationService->completeParentDelegations($workflow);
+            } else {
+                \Log::warning('Delegation service unavailable; skipping delegation chain notification', [
+                    'workflow_id' => $workflow->id,
+                    'document_id' => $workflow->document_id,
+                ]);
+            }
         }
 
         return redirect()->route('documents.index')
@@ -871,7 +941,10 @@ class DocumentWorkflowController extends Controller
 
         // Optional: Notify the sender
         if (class_exists('\App\Notifications\DocumentRejected')) {
-            $document->sender->notify(new \App\Notifications\DocumentRejected($document, $workflow));
+            $document = Document::find($workflow->document_id);
+            if ($document && $document->sender) {
+                $document->sender->notify(new \App\Notifications\DocumentRejected($document, $workflow));
+            }
         }
 
         return redirect()->route('documents.index')
@@ -1040,13 +1113,25 @@ class DocumentWorkflowController extends Controller
             foreach ($request->file('attachments') as $attachment) {
                 $attachmentName = time() . '_' . $attachment->getClientOriginalName();
                 $attachmentPath = $attachment->storeAs('attachments', $attachmentName, 'public');
-                DocumentAttachment::create([
+                $attachmentAttributes = [
                     'document_id' => $workflow->document->id,
                     'filename' => $attachmentName,
                     'path' => $attachmentPath,
-                    'storage_size' => $attachment->getSize(),
-                    'mime_type' => $attachment->getMimeType(),
-                ]);
+                ];
+
+                if ($this->attachmentHasColumn('storage_size')) {
+                    $attachmentAttributes['storage_size'] = $attachment->getSize();
+                }
+
+                if ($this->attachmentHasColumn('mime_type')) {
+                    $attachmentAttributes['mime_type'] = $attachment->getMimeType();
+                }
+
+                if ($this->attachmentHasColumn('uploaded_by')) {
+                    $attachmentAttributes['uploaded_by'] = auth()->id();
+                }
+
+                DocumentAttachment::create($attachmentAttributes);
             }
         }
 
@@ -1992,15 +2077,29 @@ class DocumentWorkflowController extends Controller
             $fileName = time() . '_' . $file->getClientOriginalName();
             $filePath = $file->storeAs($companyId . '/attachments', $fileName, 'public');
 
-            $attachment = DocumentAttachment::create([
+            $attachmentAttributes = [
                 'document_id' => $document->id,
                 'filename' => $file->getClientOriginalName(),
                 'path' => $filePath,
-                'route_id' => $workflow->id,
-                'storage_size' => $file->getSize(),
-                'mime_type' => $file->getMimeType(),
-                'uploaded_by' => $user->id,
-            ]);
+            ];
+
+            if ($this->attachmentHasColumn('route_id')) {
+                $attachmentAttributes['route_id'] = $workflow->id;
+            }
+
+            if ($this->attachmentHasColumn('storage_size')) {
+                $attachmentAttributes['storage_size'] = $file->getSize();
+            }
+
+            if ($this->attachmentHasColumn('mime_type')) {
+                $attachmentAttributes['mime_type'] = $file->getMimeType();
+            }
+
+            if ($this->attachmentHasColumn('uploaded_by')) {
+                $attachmentAttributes['uploaded_by'] = $user->id;
+            }
+
+            $attachment = DocumentAttachment::create($attachmentAttributes);
 
             $uploaded[] = $attachment;
         }
