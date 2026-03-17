@@ -385,6 +385,12 @@
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script>
         // Alpine.js component for address form with cascading selectors
+        const locationDataUrls = {
+            countries: @json(asset('data/countries.json')),
+            states: @json(asset('data/states.json')),
+            cities: @json(asset('data/cities.json')),
+        };
+
         function addressForm() {
             return {
                 showAddress: {{ old('include_address', '0') === '1' ? 'true' : 'false' }},
@@ -399,6 +405,30 @@
                 selectedStateCode: '',
                 selectedCity: '{{ old('city', '') }}',
                 selectedPhoneCode: '63',
+
+                async fetchJsonWithFallback(primaryUrl, fallbackUrl) {
+                    const urls = [primaryUrl, fallbackUrl].filter(Boolean);
+
+                    for (const url of urls) {
+                        try {
+                            const response = await fetch(url, {
+                                headers: {
+                                    'Accept': 'application/json'
+                                }
+                            });
+
+                            if (!response.ok) {
+                                continue;
+                            }
+
+                            return await response.json();
+                        } catch (error) {
+                            // Try the next URL candidate.
+                        }
+                    }
+
+                    throw new Error(`Failed to fetch JSON from: ${urls.join(', ')}`);
+                },
 
                 async init() {
                     await this.loadCountries();
@@ -422,8 +452,10 @@
 
                 async loadCountries() {
                     try {
-                        const response = await fetch('/data/countries.json');
-                        this.countries = await response.json();
+                        this.countries = await this.fetchJsonWithFallback(
+                            locationDataUrls.countries,
+                            'data/countries.json'
+                        );
                         // Set Philippines as default phone code
                         const ph = this.countries.find(c => c.id === 'PH');
                         if (ph) this.selectedPhoneCode = ph.phonecode;
@@ -439,8 +471,10 @@
                     }
                     try {
                         if (!this.statesData[this.selectedCountryCode]) {
-                            const response = await fetch('/data/states.json');
-                            const allStates = await response.json();
+                            const allStates = await this.fetchJsonWithFallback(
+                                locationDataUrls.states,
+                                'data/states.json'
+                            );
                             this.statesData = allStates;
                         }
                         this.states = this.statesData[this.selectedCountryCode] || [];
@@ -458,8 +492,10 @@
                     const key = `${this.selectedCountryCode}-${this.selectedStateCode}`;
                     try {
                         if (!this.citiesData[key]) {
-                            const response = await fetch('/data/cities.json');
-                            const allCities = await response.json();
+                            const allCities = await this.fetchJsonWithFallback(
+                                locationDataUrls.cities,
+                                'data/cities.json'
+                            );
                             this.citiesData = allCities;
                         }
                         this.cities = this.citiesData[key] || [];

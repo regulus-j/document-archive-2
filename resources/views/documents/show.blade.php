@@ -2669,22 +2669,53 @@ function openReapplyBarcodePreview() {
         if (overlayEl) { overlayEl.classList.remove('hidden'); }
     }
 
+    function hideLoading() {
+        if (loadingEl) loadingEl.classList.add('hidden');
+    }
+
     if (ext === 'pdf' && frameEl) {
         frameEl.onload = function() {
-            if (loadingEl) loadingEl.classList.add('hidden');
+            hideLoading();
             frameEl.classList.remove('hidden');
             showOvl();
         };
+        frameEl.onerror = function() {
+            hideLoading();
+            if (noticeEl) noticeEl.classList.remove('hidden');
+        };
         frameEl.src = previewUrl;
     } else if (imageExts.indexOf(ext) !== -1 && imgEl) {
-        imgEl.onload = function() {
-            if (loadingEl) loadingEl.classList.add('hidden');
-            imgEl.classList.remove('hidden');
-            showOvl();
+        var loadDone = false;
+        var finishImageLoad = function(success) {
+            if (loadDone) return;
+            loadDone = true;
+            hideLoading();
+            if (success) {
+                imgEl.classList.remove('hidden');
+                showOvl();
+            } else if (noticeEl) {
+                noticeEl.classList.remove('hidden');
+            }
         };
-        imgEl.src = previewUrl;
+
+        imgEl.onload = function() {
+            finishImageLoad(true);
+        };
+        imgEl.onerror = function() {
+            finishImageLoad(false);
+        };
+
+        // Force a fresh load each time this modal opens so onload always resolves.
+        imgEl.src = '';
+        var previewUrlWithBust = previewUrl + (previewUrl.indexOf('?') === -1 ? '?' : '&') + 'preview_ts=' + Date.now();
+        imgEl.src = previewUrlWithBust;
+
+        // Safety fallback: never leave the loader spinning forever.
+        setTimeout(function() {
+            finishImageLoad(imgEl.complete && imgEl.naturalWidth > 0);
+        }, 8000);
     } else if (docExts.indexOf(ext) !== -1 && docxEl) {
-        if (loadingEl) loadingEl.classList.add('hidden');
+        hideLoading();
         docxEl.classList.remove('hidden');
         docxEl.innerHTML = '<div class="flex items-center justify-center py-12"><svg class="animate-spin h-8 w-8 text-indigo-500 mr-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg><span class="text-sm text-slate-500">Loading document…</span></div>';
         showOvl();
@@ -2694,7 +2725,7 @@ function openReapplyBarcodePreview() {
             .then(function(result) { docxEl.innerHTML = '<div class="prose prose-sm max-w-none">' + result.value + '</div>'; })
             .catch(function(err) { docxEl.innerHTML = '<div class="text-center py-8"><p class="text-sm text-red-500">Failed to render document.</p></div>'; });
     } else if (sheetExts.indexOf(ext) !== -1 && xlsxEl) {
-        if (loadingEl) loadingEl.classList.add('hidden');
+        hideLoading();
         xlsxEl.classList.remove('hidden');
         xlsxEl.innerHTML = '<div class="flex items-center justify-center py-12"><svg class="animate-spin h-8 w-8 text-green-500 mr-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg><span class="text-sm text-slate-500">Loading spreadsheet…</span></div>';
         showOvl();
@@ -2721,7 +2752,7 @@ function openReapplyBarcodePreview() {
                 }
             });
     } else {
-        if (loadingEl) loadingEl.classList.add('hidden');
+        hideLoading();
         if (noticeEl) noticeEl.classList.remove('hidden');
     }
 
