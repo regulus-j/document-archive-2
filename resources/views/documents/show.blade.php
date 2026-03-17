@@ -4,6 +4,14 @@
 <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- PDF.js for enhanced PDF viewing -->
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script>
+    // Configure PDF.js worker
+    if (typeof pdfjsLib !== 'undefined') {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+    }
+</script>
 <script>
     function openSignatureModal(imgUrl, name, position, action, date) {
         document.getElementById('sig-modal-img').src = imgUrl;
@@ -1729,6 +1737,31 @@ function closeRerouteModal(event) {
             {{-- iframe for PDF/documents --}}
             <iframe id="doc-viewer-frame" class="w-full h-full border-0 hidden"></iframe>
 
+            {{-- PDF.js Canvas Container --}}
+            <div id="doc-viewer-pdfjs" class="hidden w-full h-full overflow-auto bg-slate-900">
+                <div class="flex flex-col items-center py-4">
+                    <canvas id="doc-viewer-pdf-canvas"></canvas>
+                </div>
+                {{-- PDF Controls --}}
+                <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg px-4 py-2 flex items-center gap-3 z-10">
+                    <button id="pdf-prev-page" class="p-1 text-slate-600 hover:text-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    <span id="pdf-page-info" class="text-sm text-slate-700">Page 1 of 1</span>
+                    <button id="pdf-next-page" class="p-1 text-slate-600 hover:text-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                    <div class="w-px h-6 bg-slate-300 mx-2"></div>
+                    <button id="pdf-zoom-out" class="p-1 text-slate-600 hover:text-indigo-600">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"/></svg>
+                    </button>
+                    <span id="pdf-zoom-level" class="text-sm text-slate-700">100%</span>
+                    <button id="pdf-zoom-in" class="p-1 text-slate-600 hover:text-indigo-600">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
+                    </button>
+                </div>
+            </div>
+
             {{-- Image viewer --}}
             <div id="doc-viewer-image" class="hidden w-full h-full flex items-center justify-center overflow-auto p-4 bg-slate-100/50">
                 <img id="doc-viewer-img" class="max-w-full max-h-full object-contain rounded shadow-lg" alt="Document preview" />
@@ -1994,12 +2027,18 @@ function closeRerouteModal(event) {
         });
     };
 
+    // PDF.js state variables
+    let pdfDoc = null;
+    let currentPage = 1;
+    let currentZoom = 1.0;
+
     function openDocViewer(previewUrl, title, downloadUrl, fileExt) {
         const modal = document.getElementById('doc-viewer-modal');
         const titleEl = document.getElementById('doc-viewer-title');
         const frame = document.getElementById('doc-viewer-frame');
         const imageDiv = document.getElementById('doc-viewer-image');
         const imgEl = document.getElementById('doc-viewer-img');
+        const pdfDiv = document.getElementById('doc-viewer-pdfjs');
         const docxDiv = document.getElementById('doc-viewer-docx');
         const xlsxDiv = document.getElementById('doc-viewer-xlsx');
         const unsupported = document.getElementById('doc-viewer-unsupported');
@@ -2024,6 +2063,7 @@ function closeRerouteModal(event) {
         // Reset visibility
         frame.classList.add('hidden');
         imageDiv.classList.add('hidden');
+        pdfDiv.classList.add('hidden');
         docxDiv.classList.add('hidden');
         xlsxDiv.classList.add('hidden');
         unsupported.classList.add('hidden');
@@ -2044,20 +2084,51 @@ function closeRerouteModal(event) {
             imgEl.src = previewUrl;
             imageDiv.classList.remove('hidden');
         } else if (ext === 'pdf') {
-            // PDF preview via iframe (no sandbox for better compatibility)
-            frame.onload = () => loading.classList.add('hidden');
-            frame.src = previewUrl;
-            frame.classList.remove('hidden');
+            // Use PDF.js for PDF rendering
+            if (typeof pdfjsLib !== 'undefined') {
+                renderPdfWithPdfJs(previewUrl, pdfDiv, loading);
+            } else {
+                // Fallback to iframe if PDF.js not loaded
+                frame.onload = () => loading.classList.add('hidden');
+                frame.src = previewUrl;
+                frame.classList.remove('hidden');
+            }
         } else if (docExts.includes(ext)) {
-            // DOCX preview via mammoth.js
-            loading.classList.add('hidden');
-            docxDiv.classList.remove('hidden');
-            renderDocxInModal(previewUrl, docxDiv);
+            // Use Google Docs Viewer for office documents (DOCX, DOC, ODT)
+            const fullUrl = window.location.origin + previewUrl;
+            const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fullUrl)}&embedded=true`;
+            frame.src = viewerUrl;
+            frame.onload = () => loading.classList.add('hidden');
+            frame.onerror = () => {
+                loading.classList.add('hidden');
+                unsupported.classList.remove('hidden');
+            };
+            frame.classList.remove('hidden');
+            // Timeout fallback
+            setTimeout(() => {
+                if (!loading.classList.contains('hidden')) {
+                    loading.classList.add('hidden');
+                    frame.classList.remove('hidden');
+                }
+            }, 3000);
         } else if (sheetExts.includes(ext)) {
-            // Excel/CSV preview via SheetJS
-            loading.classList.add('hidden');
-            xlsxDiv.classList.remove('hidden');
-            renderXlsxInModal(previewUrl, xlsxDiv);
+            // Use Google Docs Viewer for spreadsheets (XLSX, XLS, ODS)
+            const fullUrl = window.location.origin + previewUrl;
+            const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fullUrl)}&embedded=true`;
+            frame.src = viewerUrl;
+            frame.onload = () => loading.classList.add('hidden');
+            frame.onerror = () => {
+                loading.classList.add('hidden');
+                unsupported.classList.remove('hidden');
+            };
+            frame.classList.remove('hidden');
+            // Timeout fallback
+            setTimeout(() => {
+                if (!loading.classList.contains('hidden')) {
+                    loading.classList.add('hidden');
+                    frame.classList.remove('hidden');
+                }
+            }, 3000);
         } else {
             // Unsupported — show download fallback
             loading.classList.add('hidden');
@@ -2066,6 +2137,100 @@ function closeRerouteModal(event) {
 
         // Close on Escape key
         document.addEventListener('keydown', docViewerEscHandler);
+    }
+
+    function renderPdfWithPdfJs(url, container, loadingEl) {
+        currentPage = 1;
+        currentZoom = 1.0;
+        
+        pdfjsLib.getDocument(url).promise.then(function(pdf) {
+            pdfDoc = pdf;
+            loadingEl.classList.add('hidden');
+            container.classList.remove('hidden');
+            
+            document.getElementById('pdf-page-info').textContent = `Page 1 of ${pdf.numPages}`;
+            setupPdfControls();
+            renderPage(1);
+        }).catch(function(error) {
+            console.error('PDF.js error:', error);
+            loadingEl.classList.add('hidden');
+            document.getElementById('doc-viewer-unsupported').classList.remove('hidden');
+        });
+    }
+    
+    function renderPage(pageNum) {
+        if (!pdfDoc) return;
+        
+        pdfDoc.getPage(pageNum).then(function(page) {
+            const canvas = document.getElementById('doc-viewer-pdf-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            const viewport = page.getViewport({ scale: currentZoom * 1.5 });
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            
+            const renderContext = {
+                canvasContext: ctx,
+                viewport: viewport
+            };
+            
+            page.render(renderContext);
+        });
+    }
+    
+    function setupPdfControls() {
+        const prevBtn = document.getElementById('pdf-prev-page');
+        const nextBtn = document.getElementById('pdf-next-page');
+        const zoomInBtn = document.getElementById('pdf-zoom-in');
+        const zoomOutBtn = document.getElementById('pdf-zoom-out');
+        
+        prevBtn.onclick = () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderPage(currentPage);
+                updatePdfControls();
+            }
+        };
+        
+        nextBtn.onclick = () => {
+            if (pdfDoc && currentPage < pdfDoc.numPages) {
+                currentPage++;
+                renderPage(currentPage);
+                updatePdfControls();
+            }
+        };
+        
+        zoomInBtn.onclick = () => {
+            if (currentZoom < 3.0) {
+                currentZoom += 0.25;
+                renderPage(currentPage);
+                updatePdfControls();
+            }
+        };
+        
+        zoomOutBtn.onclick = () => {
+            if (currentZoom > 0.5) {
+                currentZoom -= 0.25;
+                renderPage(currentPage);
+                updatePdfControls();
+            }
+        };
+        
+        updatePdfControls();
+    }
+    
+    function updatePdfControls() {
+        if (!pdfDoc) return;
+        
+        const prevBtn = document.getElementById('pdf-prev-page');
+        const nextBtn = document.getElementById('pdf-next-page');
+        const pageInfo = document.getElementById('pdf-page-info');
+        const zoomLevel = document.getElementById('pdf-zoom-level');
+        
+        prevBtn.disabled = currentPage <= 1;
+        nextBtn.disabled = currentPage >= pdfDoc.numPages;
+        pageInfo.textContent = `Page ${currentPage} of ${pdfDoc.numPages}`;
+        zoomLevel.textContent = `${Math.round(currentZoom * 100)}%`;
     }
 
     function closeDocViewer() {
@@ -2083,6 +2248,11 @@ function closeRerouteModal(event) {
         imgEl.src = '';
         docxDiv.innerHTML = '';
         xlsxDiv.innerHTML = '';
+
+        // Reset PDF.js state
+        pdfDoc = null;
+        currentPage = 1;
+        currentZoom = 1.0;
 
         window._docViewerPreviewUrl = null;
         window._docViewerExt = null;

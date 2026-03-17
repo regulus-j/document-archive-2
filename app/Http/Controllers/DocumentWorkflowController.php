@@ -485,12 +485,14 @@ class DocumentWorkflowController extends Controller
             $maxStepOrder = max($allStepOrders);
             
             if ($finalRecipientStepOrder !== $maxStepOrder) {
-                \Log::warning('Final recipient is not the last step in sequential workflow', [
+                \Log::warning('Sequential workflow best practice: Final recipient should be the last step', [
                     'final_recipient_step_order' => $finalRecipientStepOrder,
                     'max_step_order' => $maxStepOrder,
                     'document_id' => $id,
+                    'recommendation' => 'For sequential workflows, placing the final recipient in the last step ensures all previous steps are completed before final approval/rejection.',
+                    'current_state' => "Final recipient is in step {$finalRecipientStepOrder}, but last step is {$maxStepOrder}",
                 ]);
-                // This is a warning, not an error - we allow it but log it
+                // This is a warning, not an error - we allow it but log it for review
             }
         }
 
