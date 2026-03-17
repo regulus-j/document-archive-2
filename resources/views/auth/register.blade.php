@@ -491,8 +491,9 @@
                     }
 
                     try {
-                        const endpoint = `${locationDataUrls.citiesByState}?country=${encodeURIComponent(this.selectedCountryCode)}&state=${encodeURIComponent(this.selectedStateCode)}`;
+                        const endpoint = `${locationDataUrls.citiesByState}?country=${encodeURIComponent(this.selectedCountryCode)}&state=${encodeURIComponent(this.selectedStateCode)}&_=${Date.now()}`;
                         const response = await fetch(endpoint, {
+                            cache: 'no-store',
                             headers: {
                                 'Accept': 'application/json'
                             }
@@ -500,6 +501,10 @@
 
                         if (!response.ok) {
                             throw new Error(`City request failed with ${response.status}`);
+                        }
+
+                        if (response.status === 304) {
+                            throw new Error('City request returned 304 without response body');
                         }
 
                         const payload = await response.json();
