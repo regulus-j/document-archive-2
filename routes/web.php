@@ -24,6 +24,7 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DocumentAuditController;
 use App\Http\Controllers\AuditReportController;
+use App\Http\Controllers\LocationDataController;
 use App\Models\Plan;
 
 
@@ -57,6 +58,9 @@ Route::get('/admin/audit/export-excel', [AdminDashboardController::class, 'audit
     ->name('admin.audit.export-excel');
 
 Route::get('/trial', [TrialController::class, 'start'])->name('trial.start');
+
+// Public location lookup endpoint to avoid downloading the full cities dataset on the client.
+Route::get('/location/cities', [LocationDataController::class, 'cities'])->name('location.cities');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

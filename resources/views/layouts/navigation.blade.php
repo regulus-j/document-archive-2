@@ -29,7 +29,7 @@
                     {{-- Dashboard --}}
                     <x-nav-link
                         :href="route('dashboard')"
-                        :active="request()->routeIs('dashboard') || request()->routeIs('admin.dashboard')"
+                        :active="request()->routeIs('dashboard') || request()->routeIs('admin.dashboard') || request()->routeIs('reports.company-dashboard') || request()->routeIs('reports.office-dashboard') || request()->routeIs('reports.office-user-dashboard')"
                         class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium
                                text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/60
                                transition-colors duration-150">
@@ -66,7 +66,7 @@
                                            hover:text-indigo-600 rounded-lg px-3 py-2
                                            hover:bg-indigo-50/60 transition-colors duration-150
                                            focus:outline-none focus:ring-2 focus:ring-indigo-500/30
-                                           {{ request()->routeIs('reports.*') ? 'text-indigo-600 bg-indigo-50/60' : '' }}">
+                                           {{ (request()->routeIs('reports.*') && !request()->routeIs('reports.company-dashboard') && !request()->routeIs('reports.office-dashboard') && !request()->routeIs('reports.office-user-dashboard')) ? 'text-indigo-600 bg-indigo-50/60' : '' }}">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                           d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
@@ -398,7 +398,7 @@
     <!-- ─── Mobile Navigation ─── -->
     <div :class="{'block': open, 'hidden': !open}" class="hidden lg:hidden border-t border-slate-200/80">
         <div class="py-3 px-2 bg-white space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard') || request()->routeIs('reports.company-dashboard') || request()->routeIs('reports.office-dashboard') || request()->routeIs('reports.office-user-dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
 
@@ -460,7 +460,7 @@
     <div class="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-slate-200 bg-white/98 backdrop-blur supports-[backdrop-filter]:bg-white/90">
         <div class="grid grid-cols-4 gap-0 divide-x divide-slate-200">
             <a href="{{ route('dashboard') }}"
-               class="flex flex-col items-center justify-center gap-0.5 py-3 px-1 text-xs font-medium {{ request()->routeIs('dashboard') || request()->routeIs('admin.dashboard') ? 'text-indigo-600' : 'text-slate-500' }} hover:bg-slate-50/50 transition-colors"
+                    class="flex flex-col items-center justify-center gap-0.5 py-3 px-1 text-xs font-medium {{ request()->routeIs('dashboard') || request()->routeIs('admin.dashboard') || request()->routeIs('reports.company-dashboard') || request()->routeIs('reports.office-dashboard') || request()->routeIs('reports.office-user-dashboard') ? 'text-indigo-600' : 'text-slate-500' }} hover:bg-slate-50/50 transition-colors"
                title="Home">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>

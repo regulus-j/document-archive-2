@@ -388,7 +388,7 @@
         const locationDataUrls = {
             countries: @json(asset('data/countries.json')),
             states: @json(asset('data/states.json')),
-            cities: @json(asset('data/cities.json')),
+            citiesByState: @json(route('location.cities')),
         };
 
         function addressForm() {
@@ -489,16 +489,21 @@
                         this.cities = [];
                         return;
                     }
-                    const key = `${this.selectedCountryCode}-${this.selectedStateCode}`;
+
                     try {
-                        if (!this.citiesData[key]) {
-                            const allCities = await this.fetchJsonWithFallback(
-                                locationDataUrls.cities,
-                                'data/cities.json'
-                            );
-                            this.citiesData = allCities;
+                        const endpoint = `${locationDataUrls.citiesByState}?country=${encodeURIComponent(this.selectedCountryCode)}&state=${encodeURIComponent(this.selectedStateCode)}`;
+                        const response = await fetch(endpoint, {
+                            headers: {
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`City request failed with ${response.status}`);
                         }
-                        this.cities = this.citiesData[key] || [];
+
+                        const payload = await response.json();
+                        this.cities = Array.isArray(payload.cities) ? payload.cities : [];
                     } catch (error) {
                         console.error('Error loading cities:', error);
                         this.cities = [];

@@ -412,7 +412,7 @@
             <div class="ds-card overflow-visible">
 
                     <!-- Tab Bar: My Documents / All Documents / Archived -->
-                    <div class="flex border-b border-slate-200 bg-white rounded-t-lg overflow-hidden">
+                    <div class="flex border-b border-slate-200 bg-white rounded-t-lg overflow-visible">
                         <!-- My Documents Tab -->
                         <a href="{{ route('documents.index', array_merge(request()->except('tab', 'page'), ['tab' => 'my'])) }}"
                            class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm transition-colors
@@ -698,7 +698,7 @@
                     </div>
 
                     <!-- Unified Document List -->
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto overflow-y-visible">
                         <table class="min-w-full divide-y divide-slate-200">
                             <thead>
                                 <tr>
@@ -807,7 +807,7 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-3.5 text-center">
+                                        <td class="px-6 py-3.5 text-center overflow-visible">
                                             <div class="flex justify-center space-x-2">
                                                 @include('documents.partials.document-actions', ['document' => $document])
                                             </div>
