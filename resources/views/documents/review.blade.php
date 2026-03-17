@@ -1197,7 +1197,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.renderDocx = function(url, targetEl) {
         var viewer = targetEl || document.getElementById('docx-viewer');
         if (!viewer) return;
-        fetch(url)
+        fetch(url, { credentials: 'same-origin' })
             .then(function(res) { return res.arrayBuffer(); })
             .then(function(buf) {
                 return mammoth.convertToHtml({ arrayBuffer: buf });
@@ -1214,7 +1214,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.renderXlsx = function(url, targetEl) {
         var viewer = targetEl || document.getElementById('xlsx-viewer');
         if (!viewer) return;
-        fetch(url)
+        fetch(url, { credentials: 'same-origin' })
             .then(function(res) { return res.arrayBuffer(); })
             .then(function(buf) {
                 var wb = XLSX.read(buf, { type: 'array' });

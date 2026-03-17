@@ -2083,6 +2083,12 @@ function closeRerouteModal(event) {
             };
             imgEl.src = previewUrl;
             imageDiv.classList.remove('hidden');
+            // Timeout fallback in case neither onload nor onerror fires
+            setTimeout(() => {
+                if (!loading.classList.contains('hidden')) {
+                    loading.classList.add('hidden');
+                }
+            }, 8000);
         } else if (ext === 'pdf') {
             // Use PDF.js for PDF rendering
             if (typeof pdfjsLib !== 'undefined') {
@@ -2094,41 +2100,15 @@ function closeRerouteModal(event) {
                 frame.classList.remove('hidden');
             }
         } else if (docExts.includes(ext)) {
-            // Use Google Docs Viewer for office documents (DOCX, DOC, ODT)
-            const fullUrl = window.location.origin + previewUrl;
-            const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fullUrl)}&embedded=true`;
-            frame.src = viewerUrl;
-            frame.onload = () => loading.classList.add('hidden');
-            frame.onerror = () => {
-                loading.classList.add('hidden');
-                unsupported.classList.remove('hidden');
-            };
-            frame.classList.remove('hidden');
-            // Timeout fallback
-            setTimeout(() => {
-                if (!loading.classList.contains('hidden')) {
-                    loading.classList.add('hidden');
-                    frame.classList.remove('hidden');
-                }
-            }, 3000);
+            // Use mammoth.js for DOCX rendering (client-side, no external service needed)
+            loading.classList.add('hidden');
+            docxDiv.classList.remove('hidden');
+            renderDocxInModal(previewUrl, docxDiv);
         } else if (sheetExts.includes(ext)) {
-            // Use Google Docs Viewer for spreadsheets (XLSX, XLS, ODS)
-            const fullUrl = window.location.origin + previewUrl;
-            const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fullUrl)}&embedded=true`;
-            frame.src = viewerUrl;
-            frame.onload = () => loading.classList.add('hidden');
-            frame.onerror = () => {
-                loading.classList.add('hidden');
-                unsupported.classList.remove('hidden');
-            };
-            frame.classList.remove('hidden');
-            // Timeout fallback
-            setTimeout(() => {
-                if (!loading.classList.contains('hidden')) {
-                    loading.classList.add('hidden');
-                    frame.classList.remove('hidden');
-                }
-            }, 3000);
+            // Use SheetJS for spreadsheet rendering (client-side, no external service needed)
+            loading.classList.add('hidden');
+            xlsxDiv.classList.remove('hidden');
+            renderXlsxInModal(previewUrl, xlsxDiv);
         } else {
             // Unsupported — show download fallback
             loading.classList.add('hidden');

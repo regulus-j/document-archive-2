@@ -77,9 +77,16 @@
 
         {{-- actions --}}
         <div class="px-6 pb-5 space-y-2">
+            <iframe name="printRecordSink" class="hidden"></iframe>
+            <form id="printRecordForm" action="{{ route('documents.recordPrint', $pp['id']) }}" method="POST" target="printRecordSink" class="hidden">
+                @csrf
+                <input type="hidden" name="copies" value="1">
+                <input type="hidden" name="print_reason" value="Printed via post-forward print prompt">
+            </form>
+
             {{-- Print document file --}}
             <a href="{{ route('documents.download', $pp['id']) }}" target="_blank"
-               onclick="closePrintPromptModal()"
+               onclick="return printAndDownloadFromPrompt(this.href)"
                class="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -98,6 +105,22 @@
 </div>
 
 <script>
+function printAndDownloadFromPrompt(downloadUrl) {
+    var form = document.getElementById('printRecordForm');
+    if (form) {
+        try {
+            form.submit();
+        } catch (e) {
+            // Do not block printing if audit logging fails on client side.
+            console.error('Failed to submit print record form:', e);
+        }
+    }
+
+    window.open(downloadUrl, '_blank');
+    closePrintPromptModal();
+    return false;
+}
+
 function closePrintPromptModal() {
     var m = document.getElementById('printPromptModal');
     if (m) {

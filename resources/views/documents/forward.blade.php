@@ -6,6 +6,8 @@
     
     <!-- Add PDF.js for PDF viewing -->
     <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         // Configure PDF.js worker
         if (typeof pdfjsLib !== 'undefined') {
@@ -1336,8 +1338,15 @@
                 modal.classList.remove('hidden');
 
                 const isPdf = ext === 'pdf';
-                const isImage = ['jpg','jpeg','png','gif','webp','bmp'].includes(ext);
-                const isOffice = ['doc','docx','xls','xlsx','ppt','pptx','odt','ods','odp'].includes(ext);
+                const isImage = ['jpg','jpeg','png','gif','webp','bmp','svg'].includes(ext);
+                const isDocx = ext === 'docx';
+                const isSheet = ['xls','xlsx','csv'].includes(ext);
+                const docxDiv = document.getElementById('doc-viewer-docx');
+                const xlsxDiv = document.getElementById('doc-viewer-xlsx');
+
+                // Reset extra containers
+                if (docxDiv) { docxDiv.classList.add('hidden'); docxDiv.innerHTML = ''; }
+                if (xlsxDiv) { xlsxDiv.classList.add('hidden'); xlsxDiv.innerHTML = ''; }
 
                 if (isPdf && typeof pdfjsLib !== 'undefined') {
                     // Use PDF.js to render PDF
@@ -1359,25 +1368,22 @@
                     };
                     imgEl.src = previewUrl;
                     imageDiv.classList.remove('hidden');
-                } else if (isOffice) {
-                    // Use Google Docs Viewer for office documents
-                    const fullUrl = window.location.origin + previewUrl;
-                    const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fullUrl)}&embedded=true`;
-                    frame.src = viewerUrl;
-                    frame.onload = () => loading.classList.add('hidden');
-                    frame.onerror = () => {
-                        loading.classList.add('hidden');
-                        unsupported.classList.remove('hidden');
-                    };
-                    frame.classList.remove('hidden');
-                    
-                    // Add timeout fallback
+                    // Timeout fallback in case neither onload nor onerror fires
                     setTimeout(() => {
                         if (!loading.classList.contains('hidden')) {
                             loading.classList.add('hidden');
-                            frame.classList.remove('hidden');
                         }
-                    }, 3000);
+                    }, 8000);
+                } else if (isDocx && docxDiv) {
+                    // Use mammoth.js for DOCX rendering (client-side)
+                    loading.classList.add('hidden');
+                    docxDiv.classList.remove('hidden');
+                    renderDocxInModal(previewUrl, docxDiv);
+                } else if (isSheet && xlsxDiv) {
+                    // Use SheetJS for spreadsheet rendering (client-side)
+                    loading.classList.add('hidden');
+                    xlsxDiv.classList.remove('hidden');
+                    renderXlsxInModal(previewUrl, xlsxDiv);
                 } else {
                     loading.classList.add('hidden');
                     unsupported.classList.remove('hidden');
@@ -1483,13 +1489,85 @@
                 zoomLevel.textContent = `${Math.round(currentZoom * 100)}%`;
             };
 
+            function renderDocxInModal(url, container) {
+                container.innerHTML = '<div class="flex items-center justify-center py-12"><svg class="animate-spin h-8 w-8 text-indigo-500 mr-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg><span class="text-sm text-slate-500">Loading document...</span></div>';
+                if (typeof mammoth === 'undefined') {
+                    container.innerHTML = '<div class="text-center py-12"><p class="text-sm text-red-500">DOCX preview library is not loaded yet.</p><p class="text-xs text-slate-400 mt-1">Please try again in a moment or use the Download button above.</p></div>';
+                    return;
+                }
+                fetch(url, { credentials: 'same-origin' })
+                    .then(function(res) {
+                        if (!res.ok) throw new Error('Server error ' + res.status);
+                        return res.arrayBuffer();
+                    })
+                    .then(function(buf) { return mammoth.convertToHtml({ arrayBuffer: buf }); })
+                    .then(function(result) {
+                        container.innerHTML = '<div class="prose prose-sm max-w-none">' + result.value + '</div>';
+                    })
+                    .catch(function(err) {
+                        container.innerHTML = '<div class="text-center py-12"><p class="text-sm text-red-500">Could not load document preview.</p><p class="text-xs text-slate-400 mt-1">' + err.message + '</p></div>';
+                    });
+            }
+
+            function renderXlsxInModal(url, container) {
+                container.innerHTML = '<div class="flex items-center justify-center py-12"><svg class="animate-spin h-8 w-8 text-green-500 mr-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg><span class="text-sm text-slate-500">Loading spreadsheet...</span></div>';
+                if (typeof XLSX === 'undefined') {
+                    container.innerHTML = '<div class="text-center py-12"><p class="text-sm text-red-500">Spreadsheet preview library is not loaded yet.</p><p class="text-xs text-slate-400 mt-1">Please try again in a moment or use the Download button above.</p></div>';
+                    return;
+                }
+                fetch(url, { credentials: 'same-origin' })
+                    .then(function(res) {
+                        if (!res.ok) throw new Error('Server error ' + res.status);
+                        return res.arrayBuffer();
+                    })
+                    .then(function(buf) {
+                        var wb = XLSX.read(buf, { type: 'array' });
+                        var html = '';
+                        if (wb.SheetNames.length > 1) {
+                            html += '<div class="flex gap-1 mb-3 flex-wrap">';
+                            wb.SheetNames.forEach(function(name, i) {
+                                html += '<button onclick="switchModalSheet(this,' + i + ')" class="px-3 py-1 text-xs rounded-md border ' + (i === 0 ? 'bg-indigo-100/50 border-indigo-300 text-indigo-700 font-medium' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100/50') + '">' + name + '</button>';
+                            });
+                            html += '</div>';
+                        }
+                        wb.SheetNames.forEach(function(name, i) {
+                            var sheet = wb.Sheets[name];
+                            var tableHtml = XLSX.utils.sheet_to_html(sheet, { editable: false });
+                            html += '<div class="sheet-content" data-sheet="' + i + '" style="' + (i > 0 ? 'display:none;' : '') + '">' + tableHtml + '</div>';
+                        });
+                        container.innerHTML = html;
+                        container.querySelectorAll('table').forEach(function(t) {
+                            t.className = 'w-full text-xs border-collapse';
+                            t.querySelectorAll('td,th').forEach(function(c) { c.className = 'border border-slate-200 px-2 py-1'; });
+                        });
+                    })
+                    .catch(function(err) {
+                        container.innerHTML = '<div class="text-center py-12"><p class="text-sm text-red-500">Could not load spreadsheet preview.</p><p class="text-xs text-slate-400 mt-1">' + err.message + '</p></div>';
+                    });
+            }
+
+            window.switchModalSheet = function(btn, index) {
+                var container = btn.closest('#doc-viewer-xlsx') || document.getElementById('doc-viewer-xlsx');
+                btn.parentElement.querySelectorAll('button').forEach(function(b) {
+                    b.className = 'px-3 py-1 text-xs rounded-md border bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100/50';
+                });
+                btn.className = 'px-3 py-1 text-xs rounded-md border bg-indigo-100/50 border-indigo-300 text-indigo-700 font-medium';
+                container.querySelectorAll('.sheet-content').forEach(function(s) {
+                    s.style.display = parseInt(s.dataset.sheet) === index ? '' : 'none';
+                });
+            };
+
             window.closeDocViewer = function() {
                 const modal = document.getElementById('doc-viewer-modal');
                 if (!modal) return;
                 const frame = document.getElementById('doc-viewer-frame');
                 const imgEl = document.getElementById('doc-viewer-img');
+                const docxDiv = document.getElementById('doc-viewer-docx');
+                const xlsxDiv = document.getElementById('doc-viewer-xlsx');
                 frame.src = '';
                 imgEl.src = '';
+                if (docxDiv) docxDiv.innerHTML = '';
+                if (xlsxDiv) xlsxDiv.innerHTML = '';
                 pdfDoc = null;
                 currentPage = 1;
                 currentZoom = 1.0;
@@ -1561,6 +1639,12 @@
             <div id="doc-viewer-image" class="hidden w-full h-full flex items-center justify-center bg-white">
                 <img id="doc-viewer-img" alt="Document image preview" class="max-h-full max-w-full object-contain" />
             </div>
+
+            <!-- DOCX viewer (mammoth.js) -->
+            <div id="doc-viewer-docx" class="hidden w-full h-full overflow-auto p-6 bg-white"></div>
+
+            <!-- XLSX/CSV viewer (SheetJS) -->
+            <div id="doc-viewer-xlsx" class="hidden w-full h-full overflow-auto p-4 bg-white"></div>
 
             <div id="doc-viewer-unsupported" class="hidden absolute inset-0 flex flex-col items-center justify-center text-center px-6">
                 <svg class="w-12 h-12 text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
