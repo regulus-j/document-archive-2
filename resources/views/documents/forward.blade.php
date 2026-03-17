@@ -496,7 +496,17 @@
 </div>
     <!-- Urgency Selection -->
     <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1.5">Urgency Level</label>
+        <label class="block text-xs font-medium text-slate-600 mb-1.5 flex items-center gap-1.5">
+            <span>Urgency Level</span>
+            <span class="relative group inline-flex">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-500 cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="pointer-events-none absolute left-1/2 top-full z-20 mt-2 hidden w-80 -translate-x-1/2 rounded-lg bg-slate-900 px-3 py-2 text-[11px] font-normal leading-relaxed text-white shadow-lg group-hover:block">
+                    Urgency level works with due date, document details, and metadata to determine in-app notification frequency and when email threshold alerts are triggered.
+                </span>
+            </span>
+        </label>
         <select name="urgency_batch[0]"
             class="w-full rounded-lg border-slate-200 text-sm text-slate-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
             <option value="">Select Urgency (Optional)</option>
@@ -512,8 +522,17 @@
 
                                     <!-- Due Date Selection -->
                                     <div class="md:col-span-2">
-                                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Due Date
-                                            (Optional)</label>
+                                        <label class="block text-xs font-medium text-slate-600 mb-1.5 flex items-center gap-1.5">
+                                            <span>Due Date (Optional)</span>
+                                            <span class="relative group inline-flex">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-500 cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <span class="pointer-events-none absolute left-1/2 top-full z-20 mt-2 hidden w-80 -translate-x-1/2 rounded-lg bg-slate-900 px-3 py-2 text-[11px] font-normal leading-relaxed text-white shadow-lg group-hover:block">
+                                                    Due date works with urgency, document details, and metadata to control reminder intervals and email threshold escalation timing.
+                                                </span>
+                                            </span>
+                                        </label>
                                         <input type="date" name="due_date_batch[0]"
                                             class="w-full rounded-lg border-slate-200 text-sm text-slate-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                                             min="{{ date('Y-m-d') }}">
