@@ -182,7 +182,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/pending', [DocumentController::class, 'showPending'])->name('documents.pending');
         Route::get('/complete', [DocumentController::class, 'showComplete'])->name('documents.complete');
         Route::delete('/attachments/{id}', [DocumentController::class, 'deleteAttachment'])->name('attachments.delete');
-        Route::get('/forward/{document}', [DocumentController::class, 'forwardDocument'])->name('documents.forward');
         // B-04 FIX: Changed GET → POST to prevent CSRF via link prefetch / <img> tag.
         // Views must use a mini-form with @csrf instead of a plain href.
         Route::post('/restore/{id}', [DocumentController::class, 'restore'])->name('documents.restore');
@@ -254,6 +253,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('/attachments/{id}/download', [DocumentWorkflowController::class, 'downloadAttachment'])
             ->name('attachments.download');
+
+        Route::get('/{document}/forward', [DocumentController::class, 'forwardDocument'])
+            ->name('documents.forward');
 
         Route::post('/{document}/forward', [DocumentWorkflowController::class, 'forwardDocumentSubmit'])
             ->name('documents.forward.submit');

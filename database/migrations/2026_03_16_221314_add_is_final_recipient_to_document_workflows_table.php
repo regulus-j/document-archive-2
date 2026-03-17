@@ -12,8 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('document_workflows', function (Blueprint $table) {
-            $table->boolean('is_final_recipient')->default(false)->after('requires_terminal_decision');
-            $table->index('is_final_recipient');
+            if (!Schema::hasColumn('document_workflows', 'requires_terminal_decision')) {
+                $table->boolean('requires_terminal_decision')->default(false);
+            }
+            if (!Schema::hasColumn('document_workflows', 'is_final_recipient')) {
+                $table->boolean('is_final_recipient')->default(false);
+                $table->index('is_final_recipient');
+            }
         });
     }
 

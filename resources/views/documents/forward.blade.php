@@ -76,6 +76,26 @@
                 </div>
             @endif
 
+            @if ($errors->any())
+                <div class="mb-6 bg-white border-l-4 border-red-500 text-red-700 p-4 rounded-r-lg shadow-md" role="alert">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10A8 8 0 112 10a8 8 0 0116 0zm-9 4a1 1 0 102 0 1 1 0 00-2 0zm0-8a1 1 0 000 2v3a1 1 0 102 0V8a1 1 0 00-2 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-semibold text-red-800">Unable to forward document. Please fix the following:</p>
+                            <ul class="mt-1 text-sm list-disc pl-5 space-y-0.5">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <!-- Floating Document Details Widget Button -->
             <div class="fixed bottom-4 right-24 sm:bottom-6 sm:right-24 z-50 flex flex-col items-end" x-data="{ showTooltip: true }">
                 <!-- Chat-box shaped tooltip -->
@@ -214,6 +234,64 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Final Recipient Selection (single user only) -->
+                    <div class="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 p-6 rounded-xl border-2 border-amber-300">
+                        <div class="flex items-start gap-3 mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                            <div>
+                                <h3 class="text-sm font-bold text-amber-900">Final Recipient</h3>
+                                <p class="text-xs text-amber-700 mt-1">Choose exactly one final recipient. This recipient is submitted as a separate last step (<strong>n+1</strong>) and marked as final.</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white/70 p-4 rounded-lg border border-amber-200">
+                            <label class="block text-xs font-semibold text-slate-700 mb-2">Select One User</label>
+                            <input type="hidden" name="final_recipient_step" id="final-recipient-step-hidden" value="2">
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                <div>
+                                    <label for="final-recipient-office-filter" class="block text-xs font-medium text-slate-600 mb-1.5">Filter by Office</label>
+                                    <select id="final-recipient-office-filter" class="w-full rounded-lg border-slate-200 text-sm text-slate-600 focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
+                                        <option value="all">All Offices</option>
+                                        @foreach ($offices as $office)
+                                            <option value="{{ $office->id }}">{{ $office->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="final-recipient-search" class="block text-xs font-medium text-slate-600 mb-1.5">Search Recipient</label>
+                                    <input
+                                        id="final-recipient-search"
+                                        type="text"
+                                        class="w-full rounded-lg border-slate-200 text-sm text-slate-700 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                                        placeholder="Type a name..."
+                                    >
+                                </div>
+                            </div>
+
+                            <div class="max-h-56 overflow-y-auto pr-2 space-y-2" id="final-recipient-radio-list">
+                                @foreach ($users as $user)
+                                    <label class="final-recipient-item flex items-center gap-3 text-sm text-slate-700 p-2 rounded hover:bg-slate-50"
+                                           data-user-name="{{ strtolower(trim($user->first_name . ' ' . $user->last_name)) }}"
+                                           data-office-ids='@json($user->offices->pluck("id")->values())'>
+                                        <input
+                                            type="radio"
+                                            name="final_recipient_user_id"
+                                            value="{{ $user->id }}"
+                                            class="final-recipient-user-radio text-amber-600 focus:ring-amber-500"
+                                            @if($loop->first) required @endif
+                                        >
+                                        <span>{{ $user->first_name . ' ' . $user->last_name }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            <p class="text-xs text-slate-600 mt-2">Only one final recipient can be selected.</p>
+                            <p class="text-xs text-amber-700 mt-1">Final recipient will be Step <span id="final-recipient-step-number" class="font-semibold">2</span>.</p>
                         </div>
                     </div>
 
@@ -442,55 +520,11 @@
                                 </div>
                             </div>
 
-                            <!-- Final Recipient Designation (only visible on last step) -->
-                            <div class="final-recipient-section hidden bg-gradient-to-r from-amber-50 to-orange-50 p-5 rounded-xl border-2 border-amber-300 mt-4">
-                                <div class="flex items-start gap-3 mb-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                                    </svg>
-                                    <div>
-                                        <h3 class="text-sm font-bold text-amber-900">Final Recipient Designation</h3>
-                                        <p class="text-xs text-amber-700 mt-1">This is the last step. Check the box to designate these recipients as the <strong>final approver</strong> for this document.</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="flex items-center gap-3 bg-white/60 p-3 rounded-lg border border-amber-200">
-                                    <input type="checkbox" 
-                                           name="is_final_recipient" 
-                                           id="final_recipient_checkbox"
-                                           value="1"
-                                           class="final-recipient-checkbox w-5 h-5 text-amber-600 focus:ring-amber-500 rounded">
-                                    <label for="final_recipient_checkbox" class="flex-1 cursor-pointer">
-                                        <span class="text-sm font-medium text-slate-800">Designate this step as Final Recipient</span>
-                                        <p class="text-xs text-slate-600 mt-0.5">Recipients in this step will have final approval/rejection authority</p>
-                                    </label>
-                                    <span class="final-recipient-badge hidden inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500 text-white">
-                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
-                                        </svg>
-                                        FINAL
-                                    </span>
-                                </div>
-
-                                <div class="mt-3 p-2.5 bg-white/60 rounded-lg border border-amber-200">
-                                    <div class="flex items-start gap-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        <div class="text-xs text-amber-800">
-                                            <strong>Important:</strong> Final recipient step must have purpose set to <strong>"Appropriate Action"</strong>. They cannot be "For Comment" or "Dissemination" only.
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
                     <!-- Validation Errors Container -->
                     <div id="validation-errors" class="mt-4"></div>
-
-                    <!-- Hidden input to store final recipient step index for backend -->
-                    <input type="hidden" name="final_recipient_step" id="final_recipient_step_value" value="">
 
                     <div class="flex flex-wrap items-center gap-3 mt-6">
                         <button type="button"
@@ -908,134 +942,46 @@
             }
         }
 
-        function updateFinalRecipientVisibility() {
-            // Show final recipient section ONLY on the last batch
+        function updateFinalRecipientStepPreview() {
             const batches = document.querySelectorAll('#batches-container .batch-group');
-            const lastBatchIndex = batches.length - 1;
-            
-            batches.forEach((batch, index) => {
-                const finalRecipientSection = batch.querySelector('.final-recipient-section');
-                const badge = batch.querySelector('.final-recipient-badge');
-                const checkbox = batch.querySelector('.final-recipient-checkbox');
-                
-                if (finalRecipientSection) {
-                    if (index === lastBatchIndex) {
-                        // Show on last batch
-                        finalRecipientSection.classList.remove('hidden');
-                        
-                        // Update badge visibility based on checkbox state
-                        if (checkbox && badge) {
-                            if (checkbox.checked) {
-                                badge.classList.remove('hidden');
-                                badge.classList.add('inline-flex');
-                            } else {
-                                badge.classList.add('hidden');
-                                badge.classList.remove('inline-flex');
-                            }
-                        }
-                    } else {
-                        // Hide on all other batches
-                        finalRecipientSection.classList.add('hidden');
-                        if (badge) {
-                            badge.classList.add('hidden');
-                            badge.classList.remove('inline-flex');
-                        }
-                    }
+            const stepPreview = document.getElementById('final-recipient-step-number');
+            const hiddenStep = document.getElementById('final-recipient-step-hidden');
+            const finalStep = String(batches.length + 1);
+            if (stepPreview) {
+                stepPreview.textContent = finalStep;
+            }
+            if (hiddenStep) {
+                hiddenStep.value = finalStep;
+            }
+        }
+
+        function filterFinalRecipientList() {
+            const officeFilter = document.getElementById('final-recipient-office-filter');
+            const searchInput = document.getElementById('final-recipient-search');
+            const items = document.querySelectorAll('.final-recipient-item');
+
+            if (!officeFilter || !searchInput || !items.length) {
+                return;
+            }
+
+            const selectedOffice = officeFilter.value;
+            const searchTerm = searchInput.value.trim().toLowerCase();
+
+            items.forEach((item) => {
+                const radio = item.querySelector('.final-recipient-user-radio');
+                const userName = item.dataset.userName || '';
+                const officeIds = JSON.parse(item.dataset.officeIds || '[]');
+
+                const matchesOffice = selectedOffice === 'all' || officeIds.includes(parseInt(selectedOffice, 10));
+                const matchesSearch = searchTerm === '' || userName.includes(searchTerm);
+                const shouldShow = matchesOffice && matchesSearch;
+
+                item.style.display = shouldShow ? 'flex' : 'none';
+
+                if (!shouldShow && radio && radio.checked) {
+                    radio.checked = false;
                 }
             });
-            
-            // Update hidden input value based on checkbox state on last batch
-            const lastBatch = batches[lastBatchIndex];
-            if (lastBatch) {
-                const checkbox = lastBatch.querySelector('.final-recipient-checkbox');
-                const hiddenInput = document.getElementById('final_recipient_step_value');
-                
-                if (checkbox && hiddenInput) {
-                    if (checkbox.checked) {
-                        hiddenInput.value = lastBatch.dataset.index;
-                    } else {
-                        hiddenInput.value = '';
-                    }
-                }
-            }
-        }
-        
-        function handleFinalRecipientCheckboxChange() {
-            updateFinalRecipientVisibility();
-            enforceFinalRecipientPurpose();
-        }
-        
-        function enforceFinalRecipientPurpose() {
-            // Find the last batch (which has the final recipient checkbox)
-            const batches = document.querySelectorAll('#batches-container .batch-group');
-            const lastBatch = batches[batches.length - 1];
-            
-            if (!lastBatch) return;
-            
-            const checkbox = lastBatch.querySelector('.final-recipient-checkbox');
-            const purposeLabels = lastBatch.querySelectorAll('.purpose-label');
-            const purposeRadios = lastBatch.querySelectorAll('.purpose-radio');
-            
-            if (!checkbox) return;
-            
-            if (checkbox.checked) {
-                // Final recipient is checked - enforce "Appropriate Action"
-                purposeRadios.forEach((radio) => {
-                    const label = radio.closest('.purpose-label');
-                    const purpose = label ? label.dataset.purpose : null;
-                    
-                    if (purpose === 'appropriate_action') {
-                        // Auto-select appropriate action
-                        radio.checked = true;
-                        radio.disabled = false;
-                        if (label) {
-                            label.classList.remove('opacity-50', 'cursor-not-allowed');
-                            label.classList.add('cursor-pointer', 'border-indigo-500', 'bg-slate-50');
-                        }
-                    } else {
-                        // Disable other options
-                        radio.checked = false;
-                        radio.disabled = true;
-                        if (label) {
-                            label.classList.add('opacity-50', 'cursor-not-allowed');
-                            label.classList.remove('cursor-pointer', 'border-indigo-500', 'bg-slate-50');
-                            label.classList.add('border-slate-200');
-                            
-                            // Add lock icon if not already present
-                            const existingLock = label.querySelector('.lock-icon');
-                            if (!existingLock) {
-                                const lockIcon = document.createElement('div');
-                                lockIcon.className = 'lock-icon absolute top-2 right-2 bg-slate-200 text-slate-600 px-2 py-1 rounded text-xs font-bold';
-                                lockIcon.innerHTML = '🔒 Locked';
-                                label.style.position = 'relative';
-                                label.appendChild(lockIcon);
-                            }
-                        }
-                    }
-                });
-                
-                // Trigger the action required field to show
-                const appropriateActionRadio = lastBatch.querySelector('input[value="appropriate_action"]');
-                if (appropriateActionRadio) {
-                    appropriateActionRadio.dispatchEvent(new Event('change'));
-                }
-            } else {
-                // Final recipient is unchecked - enable all options
-                purposeRadios.forEach((radio) => {
-                    radio.disabled = false;
-                    const label = radio.closest('.purpose-label');
-                    if (label) {
-                        label.classList.remove('opacity-50', 'cursor-not-allowed');
-                        label.classList.add('cursor-pointer');
-                        
-                        // Remove lock icons
-                        const lockIcon = label.querySelector('.lock-icon');
-                        if (lockIcon) {
-                            lockIcon.remove();
-                        }
-                    }
-                });
-            }
         }
 
         function updateBatchOrders() {
@@ -1116,9 +1062,8 @@
             
             // Update step indicators
             updateStepIndicators();
-            
-            // Update final recipient visibility (show only on last step)
-            updateFinalRecipientVisibility();
+
+            updateFinalRecipientStepPreview();
             
             // Update sequential mode help if in sequential mode
             if (isSequentialMode) {
@@ -1183,12 +1128,6 @@
                 userItem.style.display = 'flex'; // Ensure user items are visible
             });
 
-            // Reset final recipient checkbox
-            const finalRecipientCheckbox = newBatch.querySelector('.final-recipient-checkbox');
-            if (finalRecipientCheckbox) {
-                finalRecipientCheckbox.checked = false;
-            }
-
             // Remove any validation errors from the cloned template
             newBatch.querySelectorAll('.validation-error').forEach(el => el.remove());
 
@@ -1205,12 +1144,7 @@
             
             // Add event listeners for radio buttons in the new batch
             addBatchEventListeners(newBatch);
-            
-            // Add event listener for final recipient checkbox
-            if (finalRecipientCheckbox) {
-                finalRecipientCheckbox.addEventListener('change', handleFinalRecipientCheckboxChange);
-            }
-            
+
             // Re-enable drag and drop for sequential mode to include the new batch
             if (isSequentialMode) {
                 enableDragAndDrop();
@@ -1225,11 +1159,8 @@
             // Remove any existing error messages
             document.querySelectorAll('.validation-error').forEach(el => el.remove());
 
-            // Validate final recipient checkbox (on last step)
-            const lastBatch = batches[batches.length - 1];
-            const finalRecipientCheckbox = lastBatch ? lastBatch.querySelector('.final-recipient-checkbox') : null;
-            
-            if (!finalRecipientCheckbox || !finalRecipientCheckbox.checked) {
+            const finalRecipientRadio = document.querySelector('input[name="final_recipient_user_id"]:checked');
+            if (!finalRecipientRadio) {
                 isValid = false;
                 const errorMsg = document.createElement('div');
                 errorMsg.className = 'validation-error bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r-lg mb-4';
@@ -1238,29 +1169,10 @@
                         <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                         </svg>
-                        <strong>Final Recipient Required:</strong> You must check the "Designate this step as Final Recipient" checkbox on the last step.
+                        <strong>Final Recipient Required:</strong> Select one final recipient user at the top of the form.
                     </div>
                 `;
                 document.getElementById('validation-errors').appendChild(errorMsg);
-            } else {
-                // Validate that the last step (final recipient) has recipients
-                const lastBatchIndex = lastBatch.dataset.index;
-                const lastStepRecipients = document.querySelectorAll(`input[name="recipient_batch[${lastBatchIndex}][]"]:checked`);
-                
-                if (lastStepRecipients.length === 0) {
-                    isValid = false;
-                    const errorMsg = document.createElement('div');
-                    errorMsg.className = 'validation-error bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r-lg mb-4';
-                    errorMsg.innerHTML = `
-                        <div class="flex items-center">
-                            <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                            </svg>
-                            <strong>Final Recipient Has No Recipients:</strong> The last step is designated as final recipient but has no recipients selected. Please add recipients to this step.
-                        </div>
-                    `;
-                    document.getElementById('validation-errors').appendChild(errorMsg);
-                }
             }
 
             batches.forEach(batch => {
@@ -1294,18 +1206,6 @@
                     }
                 }
 
-                // Check if this batch is marked as final recipient
-                const finalRecipientRadio = batch.querySelector(`input[name="final_recipient_step"][value="${batchIdx}"]:checked`);
-                if (finalRecipientRadio) {
-                    // Final recipient must have "appropriate_action" purpose
-                    if (!purposeSelected || purposeSelected.value !== 'appropriate_action') {
-                        isValid = false;
-                        const errorMsg = document.createElement('div');
-                        errorMsg.className = 'validation-error bg-amber-50 border-l-4 border-amber-500 text-amber-700 p-3 rounded-r-lg mt-2';
-                        errorMsg.innerHTML = `<strong>Final Recipient Error:</strong> Step ${batchNumForDisplay} is designated as final recipient but does not have "Appropriate Action" purpose. Final recipients must be able to approve or reject.`;
-                        batch.appendChild(errorMsg);
-                    }
-                }
             });
 
             return isValid;
@@ -1384,13 +1284,19 @@
                 addBatchEventListeners(batch);
             });
 
-            // Add event listener for final recipient checkbox
-            document.querySelectorAll('.final-recipient-checkbox').forEach(checkbox => {
-                checkbox.addEventListener('change', handleFinalRecipientCheckboxChange);
-            });
-            
-            // Initialize final recipient visibility (show on last step)
-            updateFinalRecipientVisibility();
+            const finalRecipientOfficeFilter = document.getElementById('final-recipient-office-filter');
+            if (finalRecipientOfficeFilter) {
+                finalRecipientOfficeFilter.addEventListener('change', filterFinalRecipientList);
+            }
+
+            const finalRecipientSearch = document.getElementById('final-recipient-search');
+            if (finalRecipientSearch) {
+                finalRecipientSearch.addEventListener('input', filterFinalRecipientList);
+            }
+
+            filterFinalRecipientList();
+
+            updateFinalRecipientStepPreview();
 
             // Doc Viewer helpers (full-screen preview)
             let pdfDoc = null;
