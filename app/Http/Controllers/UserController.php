@@ -204,7 +204,8 @@ class UserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $userCompany = auth()->user()->companies()->first();
+        $authUser = auth()->user();
+        $userCompany = $authUser->companies()->first();
 
         if (!$userCompany->canAddUser()) {
             return redirect()->route('users.index')
@@ -237,7 +238,22 @@ class UserController extends Controller
 
         // Assign roles by ID to ensure company-specific roles are used
         $roleIds = $request->input('roles');
-        $roleModels = Role::whereIn('id', $roleIds)->get();
+
+        if ($authUser->hasRole('super-admin')) {
+            $roleModels = Role::whereIn('id', $roleIds)->get();
+        } else {
+            $companyId = $userCompany ? $userCompany->id : null;
+            $roleModels = $companyId
+                ? Role::companyOnly($companyId)->whereIn('id', $roleIds)->get()
+                : collect();
+        }
+
+        if ($roleModels->isEmpty()) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['roles' => 'Please select valid roles from your company.']);
+        }
+
         $user->syncRoles($roleModels);
 
         $roleNames = $user->roles->pluck('name')->implode(', ');
@@ -260,11 +276,11 @@ class UserController extends Controller
         $temp_pass = null;
 
         // Fix company association by properly handling array or single value
-        $companyId = auth()->user()->companies()->first()->id;
+        $companyId = $authUser->companies()->first()->id;
 
         // If user is not a super admin, use their company
-        if (!auth()->user()->hasRole('super-admin')) {
-            $userCompany = auth()->user()->companies()->first();
+        if (!$authUser->hasRole('super-admin')) {
+            $userCompany = $authUser->companies()->first();
             if ($userCompany) {
                 $companyId = $userCompany->id;
             }
@@ -350,7 +366,11 @@ class UserController extends Controller
                 : [];
         }
 
-        $userRoles = $user->roles->pluck('name', 'id')->all();
+        // Show only the roles that are allowed in the current editor context.
+        $allowedRoleIds = array_keys($roles);
+        $userRoles = empty($allowedRoleIds)
+            ? []
+            : $user->roles()->whereIn('roles.id', $allowedRoleIds)->pluck('name', 'roles.id')->all();
 
         // Get offices from user's company only
         $company = $authUser->companies()->first();
@@ -368,6 +388,7 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
+        $authUser = User::findOrFail(Auth::id());
 
         // Prepare validation rules
         $rules = [
@@ -404,7 +425,23 @@ class UserController extends Controller
 
         // Sync roles by ID to ensure company-specific roles are used
         $roleIds = $request->input('roles');
-        $roleModels = Role::whereIn('id', $roleIds)->get();
+
+        if ($authUser->hasRole('super-admin')) {
+            $roleModels = Role::whereIn('id', $roleIds)->get();
+        } else {
+            $company = $authUser->companies()->first();
+            $companyId = $company ? $company->id : null;
+            $roleModels = $companyId
+                ? Role::companyOnly($companyId)->whereIn('id', $roleIds)->get()
+                : collect();
+        }
+
+        if ($roleModels->isEmpty()) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['roles' => 'Please select valid roles from your company.']);
+        }
+
         $user->syncRoles($roleModels);
 
         // Ensure company association is maintained

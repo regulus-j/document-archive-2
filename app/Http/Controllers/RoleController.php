@@ -27,16 +27,22 @@ class RoleController extends Controller
     {
         $user = Auth::user();
 
-        // Super-admin sees all roles; others see only their company's roles (excluding super-admin)
+        // Super-admin sees all roles; others see only their own company's roles.
         if ($user->hasRole('super-admin')) {
             $query = Role::withCount('permissions')->orderBy('id', 'DESC');
         } else {
             $company = $user->companies()->first();
             $companyId = $company ? $company->id : null;
-            $query = Role::withCount('permissions')
-                ->forCompany($companyId)
-                ->where('name', '!=', 'super-admin')
-                ->orderBy('id', 'DESC');
+
+            if ($companyId) {
+                $query = Role::withCount('permissions')
+                    ->companyOnly($companyId)
+                    ->where('name', '!=', 'super-admin')
+                    ->orderBy('id', 'DESC');
+            } else {
+                $query = Role::withCount('permissions')
+                    ->whereRaw('1 = 0');
+            }
         }
 
         if ($request->filled('role_search')) {
@@ -122,7 +128,7 @@ class RoleController extends Controller
         $user = Auth::user();
         if (!$user->hasRole('super-admin')) {
             $company = $user->companies()->first();
-            if ($role->company_id && (!$company || $role->company_id !== $company->id)) {
+            if (!$company || $role->company_id !== $company->id) {
                 abort(403, 'You cannot view roles from another company.');
             }
         }
@@ -142,7 +148,7 @@ class RoleController extends Controller
         $user = Auth::user();
         if (!$user->hasRole('super-admin')) {
             $company = $user->companies()->first();
-            if ($role->company_id && (!$company || $role->company_id !== $company->id)) {
+            if (!$company || $role->company_id !== $company->id) {
                 abort(403, 'You cannot edit roles from another company.');
             }
             // Cannot edit global roles unless super-admin
@@ -172,7 +178,7 @@ class RoleController extends Controller
         $user = Auth::user();
         if (!$user->hasRole('super-admin')) {
             $company = $user->companies()->first();
-            if ($role->company_id && (!$company || $role->company_id !== $company->id)) {
+            if (!$company || $role->company_id !== $company->id) {
                 abort(403, 'You cannot update roles from another company.');
             }
             if ($role->isGlobal()) {
@@ -213,7 +219,7 @@ class RoleController extends Controller
         $user = Auth::user();
         if (!$user->hasRole('super-admin')) {
             $company = $user->companies()->first();
-            if ($role->company_id && (!$company || $role->company_id !== $company->id)) {
+            if (!$company || $role->company_id !== $company->id) {
                 abort(403, 'You cannot delete roles from another company.');
             }
             if ($role->isGlobal()) {
