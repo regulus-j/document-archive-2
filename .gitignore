@@ -22,3 +22,5 @@ ngrok.yaml
 /.idea
 /.vscode
 /.zed
+claude.md
+**/claude.md

@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Plan;
+use App\Models\Feature;
 use Illuminate\Http\Request;
 
 class PlanController extends Controller
 {
     public function index()
     {
-        $plans = Plan::where('is_active', 1)->get();
+        $plans = Plan::where('is_active', 1)->paginate(15);
 
         if (auth()->check() && auth()->user()->isAdmin()) {
             return view('admin.plans-index', compact('plans'));
@@ -30,36 +31,50 @@ class PlanController extends Controller
 
     public function create()
     {
-        return view('plans.create');
+        $features = Feature::all();
+        return view('plans.create', compact('features'));
     }
 
     public function store(Request $request)
     {
-        // Dump the request data to see what's being received
-        \Log::info('Plan creation request:', $request->all());
-    
         $validated = $request->validate([
             'plan_name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'billing_cycle' => 'required|in:monthly,yearly,custom',
-            'is_active' => 'nullable|boolean',  // Changed from 'boolean'
-            'feature_1' => 'nullable|boolean',  // Changed from 'boolean'
-            'feature_2' => 'nullable|boolean',  // Changed from 'boolean'
-            'feature_3' => 'nullable|boolean',  // Changed from 'boolean'
+            'is_active' => 'nullable|boolean',
+            'features' => 'nullable|array',
+            'features.*' => 'exists:features,id',
         ]);
     
-        // Make sure boolean fields have default values when not present
+        // Create the plan without features first
         $plan = Plan::create([
             'plan_name' => $validated['plan_name'],
             'description' => $validated['description'] ?? null,
             'price' => $validated['price'],
             'billing_cycle' => $validated['billing_cycle'],
             'is_active' => isset($validated['is_active']),
-            'feature_1' => isset($validated['feature_1']),
-            'feature_2' => isset($validated['feature_2']),
-            'feature_3' => isset($validated['feature_3']),
         ]);
+    
+        // Attach features with their enabled status
+        if (isset($validated['features']) && is_array($validated['features'])) {
+            foreach ($validated['features'] as $featureId) {
+                $plan->features()->attach($featureId, [
+                    'enabled' => true,
+                ]);
+            }
+        }
+    
+        // Also ensure all features that weren't selected are still attached but disabled
+        $allFeatureIds = Feature::pluck('id')->toArray();
+        $selectedFeatureIds = $validated['features'] ?? [];
+        $disabledFeatureIds = array_diff($allFeatureIds, $selectedFeatureIds);
+        
+        foreach ($disabledFeatureIds as $featureId) {
+            $plan->features()->attach($featureId, [
+                'enabled' => false,
+            ]);
+        }
     
         return redirect()->route('plans.index')
             ->with('success', 'Plan created successfully');
@@ -67,12 +82,16 @@ class PlanController extends Controller
 
     public function show(Plan $plan)
     {
+        $plan->load('features');
         return view('plans.show', compact('plan'));
     }
 
     public function edit(Plan $plan)
     {
-        return view('plans.edit', compact('plan'));
+        $features = Feature::all();
+        $planFeatures = $plan->features->where('pivot.enabled', true)->pluck('id')->toArray();
+        
+        return view('plans.edit', compact('plan', 'features', 'planFeatures'));
     }
 
     public function update(Request $request, Plan $plan)
@@ -83,9 +102,8 @@ class PlanController extends Controller
             'price' => 'required|numeric|min:0',
             'billing_cycle' => 'required|in:monthly,yearly,custom',
             'is_active' => 'nullable|boolean',
-            'feature_1' => 'nullable|boolean',
-            'feature_2' => 'nullable|boolean',
-            'feature_3' => 'nullable|boolean',
+            'features' => 'nullable|array',
+            'features.*' => 'exists:features,id',
         ]);
 
         $plan->update([
@@ -94,10 +112,22 @@ class PlanController extends Controller
             'price' => $validated['price'],
             'billing_cycle' => $validated['billing_cycle'],
             'is_active' => isset($validated['is_active']),
-            'feature_1' => isset($validated['feature_1']),
-            'feature_2' => isset($validated['feature_2']),
-            'feature_3' => isset($validated['feature_3']),
         ]);
+
+        // Get all features
+        $allFeatures = Feature::all();
+        $enabledFeatures = isset($validated['features']) ? $validated['features'] : [];
+
+        // Build sync array
+        $syncData = [];
+        foreach ($allFeatures as $feature) {
+            $syncData[$feature->id] = [
+                'enabled' => in_array($feature->id, $enabledFeatures)
+            ];
+        }
+
+        // Sync features
+        $plan->features()->sync($syncData);
 
         return redirect()->route('plans.show', $plan)
             ->with('success', 'Plan updated successfully');

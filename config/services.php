@@ -40,4 +40,22 @@ return [
         'public_key' => env('PAYMONGO_PUBLIC_KEY', ''), // Optional if you need it later
     ],
 
+    'mailgun' => [ 
+        'domain' => env('MAILGUN_DOMAIN'), 
+        'secret' => env('MAILGUN_SECRET'), 
+        'endpoint' => env('MAILGUN_ENDPOINT', 'api.mailgun.net'), 
+        'scheme' => 'https', 
+    ], 
+
+    'recaptcha' => [
+        'site_key' => env('RECAPTCHA_SITE_KEY'),
+        'secret_key' => env('RECAPTCHA_SECRET_KEY'),
+    ],
+
+    'ollama' => [
+        'base_url' => env('OLLAMA_BASE_URL', 'http://localhost:11434'),
+        'model'    => env('OLLAMA_MODEL', 'qwen2.5:0.5b'),
+        'timeout'  => (int) env('OLLAMA_TIMEOUT', 120),
+    ],
+
 ];

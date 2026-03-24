@@ -1,3 +1,573 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* =============================================================
+   DocTrack — Design System
+   =============================================================
+   Color palette  (Tailwind built-ins, standardised app-wide):
+     Primary   : indigo-600 (#4f46e5) — brand, CTAs, links
+     Secondary : slate-600  (#475569) — secondary text, labels
+     Neutral   : slate-50…900         — backgrounds, borders, text
+     Success   : emerald-600 (#059669)
+     Warning   : amber-500  (#f59e0b)
+     Error     : red-600    (#dc2626)
+
+   Spacing unit  : 4 px  (Tailwind default: p-1 = 4px, p-2 = 8px …)
+   Border radius : 8 px  (rounded-lg)
+   Font          : Figtree (loaded via Bunny Fonts)
+   ============================================================= */
+
+/* ---- Base layer ---- */
+@layer base {
+    /* Smooth focus ring for keyboard navigation – WCAG 2.1 AA */
+    :focus-visible {
+        @apply outline-2 outline-offset-2 outline-indigo-500 rounded;
+    }
+
+    /* Subtle scroll-behaviour for in-page anchors */
+    html { scroll-behavior: smooth; }
+
+    body {
+        line-height: 1.6;
+        overflow-x: hidden;
+    }
+
+    h1 {
+        @apply text-2xl font-semibold text-slate-900 tracking-tight;
+    }
+
+    h2 {
+        @apply text-xl font-semibold text-slate-900 tracking-tight;
+    }
+
+    h3 {
+        @apply text-lg font-semibold text-slate-900;
+    }
+
+    p {
+        @apply text-base text-slate-600;
+    }
+
+    a {
+        @apply text-indigo-600 hover:text-indigo-700 transition-colors duration-150;
+    }
+
+    img,
+    video,
+    canvas,
+    svg {
+        max-width: 100%;
+        height: auto;
+    }
+}
+
+/* ---- Reusable component classes ---- */
+@layer components {
+
+    /* -- Card -------------------------------------------------------------- */
+    .ds-card {
+        @apply bg-white rounded-lg border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow;
+    }
+    .ds-card-header {
+        @apply px-6 py-4 border-b border-slate-100;
+    }
+    .ds-card-body {
+        @apply p-6;
+    }
+
+    /* -- Page header bar --------------------------------------------------- */
+    .ds-page-header {
+        @apply bg-white rounded-lg border border-slate-200/80
+               shadow-sm hover:shadow-md transition-shadow p-6 mb-6;
+    }
+
+    /* -- Stat card (dashboard) --------------------------------------------- */
+    .ds-stat-card {
+        @apply rounded-lg p-5 border
+               transition-shadow duration-150
+               hover:shadow-sm hover:shadow-md transition-shadow-hover;
+    }
+
+    /* -- Alert / Flash ----------------------------------------------------- */
+    .ds-alert {
+        @apply flex items-start gap-3 p-4 rounded-lg border text-sm;
+    }
+    .ds-alert-success { @apply ds-alert bg-emerald-50 border-emerald-200 text-emerald-800; }
+    .ds-alert-error   { @apply ds-alert bg-red-50     border-red-200     text-red-800;     }
+    .ds-alert-warning { @apply ds-alert bg-amber-50   border-amber-200   text-amber-800;   }
+    .ds-alert-info    { @apply ds-alert bg-indigo-50    border-indigo-200    text-indigo-800;     }
+
+    /* -- Buttons ----------------------------------------------------------- */
+    .ds-btn {
+        @apply inline-flex items-center justify-center
+               px-4 py-2 text-sm font-semibold rounded-lg
+               transition-all duration-150 ease-in-out
+               focus:outline-none focus:ring-2 focus:ring-offset-2
+               disabled:opacity-50 disabled:cursor-not-allowed;
+    }
+    .ds-btn-primary {
+        @apply ds-btn bg-indigo-600 text-white border border-transparent
+               shadow-sm hover:bg-indigo-700 active:bg-indigo-800
+               focus:ring-indigo-500;
+    }
+    .ds-btn-secondary {
+        @apply ds-btn bg-white text-slate-700 border border-slate-300
+               shadow-sm hover:bg-slate-50 active:bg-slate-100
+               focus:ring-indigo-500;
+    }
+    .ds-btn-danger {
+        @apply ds-btn bg-red-600 text-white border border-transparent
+               shadow-sm hover:bg-red-700 active:bg-red-800
+               focus:ring-red-500;
+    }
+    .ds-btn-ghost {
+        @apply ds-btn bg-transparent text-slate-600 border border-transparent
+               hover:bg-slate-100 active:bg-slate-200
+               focus:ring-indigo-500;
+    }
+
+    /* -- Form controls ----------------------------------------------------- */
+    .ds-input {
+        @apply w-full rounded-lg border-slate-300 bg-white
+               text-sm text-slate-900 placeholder:text-slate-400
+               focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20
+               transition-colors duration-150;
+    }
+    .ds-label {
+        @apply block text-sm font-medium text-slate-700 mb-1.5;
+    }
+
+    /* -- Badge ------------------------------------------------------------- */
+    .ds-badge {
+        @apply inline-flex items-center px-2.5 py-0.5
+               rounded-full text-xs font-medium;
+    }
+
+    /* -- Quick-action tile (dashboard) ------------------------------------- */
+    .ds-quick-action {
+        @apply flex flex-col items-center p-4 rounded-lg border
+               bg-white transition-all duration-150 group
+               hover:shadow-sm hover:shadow-md transition-shadow-hover hover:-translate-y-0.5;
+    }
+
+    /* -- Table ------------------------------------------------------------- */
+    .ds-table {
+        @apply min-w-full divide-y divide-slate-200;
+    }
+    .ds-table thead {
+        @apply bg-slate-50/80;
+    }
+    .ds-table th {
+        @apply px-4 py-3 text-left text-xs font-semibold
+               text-slate-500 uppercase tracking-wider;
+    }
+    .ds-table td {
+        @apply px-4 py-3 text-sm text-slate-700;
+    }
+    .ds-table tbody tr {
+        @apply border-b border-slate-100 last:border-0
+               hover:bg-slate-50/60 transition-colors duration-100;
+    }
+
+    /* -- Mobile helpers ---------------------------------------------------- */
+    .mobile-scroll-indicator {
+        @apply hidden text-xs text-slate-500 px-4 pt-2;
+    }
+
+    .mobile-table-scroll {
+        @apply overflow-x-auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .mobile-table-scroll table {
+        min-width: 42rem;
+    }
+
+    /* -- Z-index management for proper stacking ---- */
+    /* Ensures no unwanted overlaps */
+    [x-cloak] {
+        display: none !important;
+    }
+}
+
+/* ---- Global mobile-first behavior ---- */
+@media (max-width: 1023px) {
+    h1 {
+        font-size: 1.5rem;
+        line-height: 1.25;
+        word-break: break-word;
+    }
+
+    h2 {
+        font-size: 1.25rem;
+        line-height: 1.3;
+        word-break: break-word;
+    }
+
+    h3,
+    h4,
+    h5,
+    h6 {
+        word-break: break-word;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        font-size: 16px;
+        /* Ensure bottom nav doesn't overlap content */
+        margin-bottom: 0;
+    }
+
+    main {
+        /* Ensure content doesn't hide behind bottom navbar - adjusted for compact cards */
+        padding-bottom: 6rem;
+    }
+
+    button,
+    a.ds-btn,
+    .ds-btn,
+    [role='button'],
+    input[type='submit'],
+    input[type='button'] {
+        min-height: 44px;
+    }
+
+    nav a,
+    nav button {
+        min-height: 44px;
+    }
+
+    input,
+    select,
+    textarea {
+        font-size: 16px;
+        min-height: 44px;
+    }
+
+    .mobile-safe-pad {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .mobile-hide-secondary {
+        display: none !important;
+    }
+
+    .mobile-scroll-indicator {
+        display: block;
+    }
+
+    /* Turn standard data tables into stacked cards on mobile.
+       Add class "mobile-card-table" to wrapper around table. */
+    .mobile-card-table {
+        overflow-x: visible;
+    }
+
+    .mobile-card-table table,
+    .mobile-card-table thead,
+    .mobile-card-table tbody,
+    .mobile-card-table th,
+    .mobile-card-table td,
+    .mobile-card-table tr {
+        display: block;
+        width: 100%;
+    }
+
+    .mobile-card-table thead {
+        display: none;
+    }
+
+    /* ===== COMPACT CARD LAYOUT ===== 
+       Grid layout: 2 columns
+       Title + Action button on first row stretching both columns
+       Info rows below taking full width */
+    
+    .mobile-card-table tbody tr {
+        margin: 0 0 0.75rem;
+        border: 1px solid rgb(226 232 240);
+        border-radius: 0.375rem;
+        background: #fff;
+        box-shadow: 0 1px 2px rgb(15 23 42 / 0.06);
+        padding: 0;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0;
+        overflow: visible;
+    }
+
+    /* Hide counter column (#) */
+    .mobile-card-table tbody tr > td:nth-child(1) {
+        display: none;
+    }
+
+    /* Title cell - left side of header row */
+    .mobile-card-table tbody tr > td:nth-child(2) {
+        grid-column: 1;
+        grid-row: 1;
+        border: 0;
+        padding: 0.6rem 0.75rem;
+        border-bottom: 1px solid rgb(226 232 240);
+        border-right: 1px solid rgb(226 232 240);
+        display: block;
+        overflow: visible;
+        min-height: auto;
+    }
+
+    .mobile-card-table tbody tr > td:nth-child(2)::before {
+        display: none !important;
+    }
+
+    .mobile-card-table tbody tr > td:nth-child(2) div {
+        display: block;
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: rgb(30 41 59);
+        white-space: normal;
+        word-break: break-word;
+        max-width: none;
+        overflow: visible;
+    }
+
+    /* Action button cell - right side of header row */
+    .mobile-card-table tbody tr > td:last-child {
+        grid-column: 2;
+        grid-row: 1;
+        border: 0;
+        border-bottom: 1px solid rgb(226 232 240);
+        padding: 0.4rem 0.5rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .mobile-card-table tbody tr > td:last-child::before {
+        display: none !important;
+    }
+
+    /* Info rows (uploader, status, tracking) - full width below header */
+    .mobile-card-table tbody tr > td:nth-child(3),
+    .mobile-card-table tbody tr > td:nth-child(4),
+    .mobile-card-table tbody tr > td:nth-child(5) {
+        grid-column: 1 / -1;
+        border: 0;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8125rem;
+        text-align: left;
+        white-space: normal;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.5rem;
+        border-bottom: 1px solid rgb(243 244 246);
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+
+    .mobile-card-table tbody tr > td:nth-child(3)::before,
+    .mobile-card-table tbody tr > td:nth-child(4)::before,
+    .mobile-card-table tbody tr > td:nth-child(5)::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 0.625rem;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        color: rgb(100 116 139);
+        font-weight: 700;
+        min-width: 52px;
+        flex-shrink: 0;
+        line-height: 1.2;
+    }
+
+    /* Remove last info row border */
+    .mobile-card-table tbody tr > td:nth-child(5) {
+        border-bottom: 0;
+    }
+
+    /* Action button dropdown positioning for mobile */
+    .document-actions-dropdown {
+        /* Prevent overflow off-screen on mobile */
+        max-width: calc(100vw - 1.5rem);
+        transform-origin: top right;
+        right: 0 !important;
+        left: auto !important;
+    }
+
+    /* Prevent z-index stacking issues with overlapping dropdowns */
+    nav {
+        z-index: 40;
+    }
+
+    nav .bg-white\.\/95,
+    nav .bg-white\/95 {
+        z-index: 41;
+    }
+
+    /* Notification dropdown safe positioning */
+    [style*="width: min(420px"] {
+        overflow: visible !important;
+        right: 0.75rem;
+    }
+
+    /* ===== RECENT TEAM DOCUMENTS TABLE - Mobile Card Layout ===== */
+    /* This handles the 4-column table: Title, Uploader, Date, Categories */
+    .recent-documents-table {
+        overflow-x: visible !important;
+    }
+
+    .recent-documents-table table,
+    .recent-documents-table thead,
+    .recent-documents-table tbody,
+    .recent-documents-table th,
+    .recent-documents-table td,
+    .recent-documents-table tr {
+        display: block;
+        width: 100%;
+    }
+
+    .recent-documents-table thead {
+        display: none;
+    }
+
+    /* Transform rows into card layout */
+    .recent-documents-table tbody tr {
+        margin-bottom: 1rem;
+        border: 1px solid rgb(226 232 240);
+        border-radius: 0.5rem;
+        background: #fff;
+        box-shadow: 0 1px 2px rgb(15 23 42 / 0.06);
+        padding: 0;
+        display: block;
+        overflow: visible;
+    }
+
+    /* Title cell - prominent at top of card */
+    .recent-documents-table tbody tr > td:nth-child(1) {
+        display: block;
+        border: 0;
+        padding: 0.75rem;
+        border-bottom: 1px solid rgb(226 232 240);
+        font-weight: 600;
+        font-size: 0.9375rem;
+        color: rgb(30 41 59);
+        overflow: visible;
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    .recent-documents-table tbody tr > td:nth-child(1) a {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Uploader cell with label */
+    .recent-documents-table tbody tr > td:nth-child(2) {
+        display: block;
+        border: 0;
+        padding: 0.5rem 0.75rem;
+        border-bottom: 1px solid rgb(243 244 246);
+        font-size: 0.8125rem;
+        text-align: left;
+        color: rgb(51 65 85);
+    }
+
+    .recent-documents-table tbody tr > td:nth-child(2)::before {
+        content: 'Uploader';
+        display: block;
+        font-size: 0.625rem;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        color: rgb(100 116 139);
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    /* Date cell with label */
+    .recent-documents-table tbody tr > td:nth-child(3) {
+        display: block;
+        border: 0;
+        padding: 0.5rem 0.75rem;
+        border-bottom: 1px solid rgb(243 244 246);
+        font-size: 0.8125rem;
+        text-align: left;
+        color: rgb(51 65 85);
+    }
+
+    .recent-documents-table tbody tr > td:nth-child(3)::before {
+        content: 'Date';
+        display: block;
+        font-size: 0.625rem;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        color: rgb(100 116 139);
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    /* Categories cell with label */
+    .recent-documents-table tbody tr > td:nth-child(4) {
+        display: block;
+        border: 0;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8125rem;
+        text-align: left;
+    }
+
+    .recent-documents-table tbody tr > td:nth-child(4)::before {
+        content: 'Categories';
+        display: block;
+        font-size: 0.625rem;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        color: rgb(100 116 139);
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    /* Categories badges responsive wrapper */
+    .recent-documents-table tbody tr > td:nth-child(4) .flex {
+        flex-wrap: wrap;
+    }
+
+    .recent-documents-table tbody tr > td:nth-child(4) span {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    /* ===== SEARCH BAR - Mobile Optimization ===== */
+    /* Ensure proper alignment and touch targets on mobile */
+    
+    @media (max-width: 768px) {
+        /* Stack search and barcode button vertically on mobile */
+        .flex.flex-col.md\\:flex-row {
+            flex-direction: column;
+        }
+
+        /* Search bar container */
+        .flex-1 {
+            width: 100% !important;
+        }
+
+        /* Search input - ensure proper height for touch */
+        #quick-search {
+            min-height: 44px;
+            height: 2.75rem;
+        }
+
+        /* Barcode button - full width on mobile */
+        #image-search-toggle-btn {
+            width: 100%;
+            min-height: 44px;
+        }
+
+        /* Hide barcode text on small screens - show icon only */
+        @media (max-width: 640px) {
+            #image-search-toggle-btn span.hidden {
+                display: none !important;
+            }
+        }
+    }
+}
+

@@ -4,23 +4,25 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use App\Models\CompanyAccount;
 use App\Models\CompanyAddress;
+use App\Models\CompanyUser;
 
 
 class CompanyController extends Controller
 {
     public function index()
     {
-        // Get all companies.
-        $companies = CompanyAccount::all();
+        // Only super-admins can view the list of all companies
+        $this->authorize('viewAny', CompanyAccount::class);
 
-        if (auth()->user()->isAdmin()) {
+        if (auth()->user()->isSuperAdmin()) {
             $companies = CompanyAccount::with(['subscriptions.plan', 'user'])
-                ->get()
-                ->map(function ($company) {
+                ->paginate(15)
+                ->through(function ($company) {
                     $subscription = $company->subscriptions->first();
-                    return [
+                    return (object) [
                         'id' => $company->id,
                         'name' => $company->company_name,
                         'owner' => $company->user->first_name . ' ' . $company->user->last_name,
@@ -31,24 +33,43 @@ class CompanyController extends Controller
             return view('admin.companies-index', compact('companies'));
         }
 
-        return view('companies.index', compact('companies'));
+        // Regular users should only see their own company
+        $company = auth()->user()->companies()->first();
+        
+        if (!$company) {
+            return redirect()->route('companies.create')
+                ->with('info', 'You need to create a company first.');
+        }
+        
+        return redirect()->route('companies.show', $company->id);
     }
 
     public function create()
     {
+        // Check if the current user already owns a company (unless they're a super admin)
+        if (!auth()->user()->isSuperAdmin()) {
+            $existingCompany = CompanyAccount::where('user_id', auth()->id())->first();
+            if ($existingCompany) {
+                return redirect()->route('dashboard')
+                    ->with('error', 'You already own a company. Each user can only own one company.');
+            }
+        }
+
         // Show the form for creating a new company.
         return view('companies.create');
     }
 
     public function store(Request $request)
     {
-        // Validate and store a newly created company.
-        $validated = $request->validate([
-            'user_id'         => 'required|exists:users,id',
-            'company_name'    => 'required|string|max:255',
-            'registered_name' => 'required|string|max:255',
-            'company_email'   => 'required|email|max:255',
-            'company_phone'   => 'required|string|max:20',
+        // Use custom validation rules from the model to enforce one company per user
+        $request->validate(CompanyAccount::rules());
+
+        $validated = $request->only([
+            'user_id',
+            'company_name',
+            'registered_name',
+            'company_email',
+
         ]);
 
         if($request->part == '2') {
@@ -59,52 +80,107 @@ class CompanyController extends Controller
             'zip_code' => 'required|string|max:20',
             'country'  => 'required|string|max:255',
             ]);
-            
+
             // Update the company with address details
             CompanyAccount::create($validated);
             $company = CompanyAccount::latest()->first();
             $company->addresses()->create($addressValidated);
-            return redirect()->route('companies.index')->with('success', 'Company created successfully.');
+            
+            // Assign the company-specific company-admin role to the company owner
+            $companyOwner = \App\Models\User::find($validated['user_id'] ?? auth()->id());
+            $companyAdminRole = \App\Models\Role::where('name', 'company-admin')
+                ->where('company_id', $company->id)
+                ->first();
+            if ($companyAdminRole && $companyOwner) {
+                $companyOwner->assignRole($companyAdminRole);
+            }
+
+            // Create the company-user relationship in the pivot table
+            CompanyUser::create([
+                'company_id' => $company->id,
+                'user_id' => auth()->id(),
+            ]);
+            
+            return redirect()->route('companies.show', $company->id)
+                ->with('success', 'Company created successfully!');
         }
         return redirect()->route('companies.create')->with('success', 'Company created successfully.')->withInput();
     }
 
     public function show(CompanyAccount $company)
-    {
-        // Display the specified company with its address
-        $address = $company->addresses()->first();
-        return view('companies.show', compact('company', 'address'));
-    }
+{
+    $this->authorize('view', $company);
+
+    // Load users if not already eager-loaded
+    $company->load('users');
+
+    return view('companies.show', compact('company'));
+}
+
 
     public function edit(CompanyAccount $company)
     {
-        if(auth()->user()->isAdmin())
-        {
-           $users = User::paginate(10);
+        // Authorization check - only super-admin or company owner can edit
+        $this->authorize('update', $company);
+
+        // Get the authenticated user
+        $authUser = auth()->guard('web')->user();
+
+        // Initialize $users based on role
+        // Super-admin can see all users, company-admin only sees their company's employees
+        if($authUser && $authUser->isSuperAdmin()) {
+            $users = User::paginate(10);
+        } else {
+            $users = $company->employees()->paginate(10);
         }
 
-        $users = $company->employees()->paginate(10);
         // Show the form for editing the specified company.
         return view('companies.edit', compact('company', 'users'));
     }
 
     public function update(Request $request, CompanyAccount $company)
     {
-        // Validate and update the specified company.
-        $validated = $request->validate([
-            'user_id'         => 'required|exists:users,id',
-            'company_name'    => 'required|string|max:255',
-            'registered_name' => 'required|string|max:255',
-            'company_email'   => 'required|email|max:255',
-            'company_phone'   => 'required|string|max:20',
+        // Use custom validation rules from the model to enforce one company per user
+        // Passing the company ID to exclude the current company from validation
+        $rules = CompanyAccount::rules($company->id);
+        $rules['logo'] = 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048';
+        $rules['color_theme'] = 'nullable|string|in:' . implode(',', array_keys(CompanyAccount::colorPalette()));
+        $request->validate($rules);
+
+        $validated = $request->only([
+            'user_id',
+            'company_name',
+            'registered_name',
+            'company_email',
+            'company_phone',
+            'color_theme',
         ]);
 
+        // Handle logo upload
+        if ($request->hasFile('logo')) {
+            // Delete old logo if present
+            if ($company->logo) {
+                Storage::disk('public')->delete($company->logo);
+            }
+            $validated['logo'] = $request->file('logo')->store('company_logos', 'public');
+        }
+
         $company->update($validated);
-        return redirect()->route('companies.index')->with('success', 'Company updated successfully.');
+
+        // Check if the current user is an admin or the company owner
+        if (auth()->user()->isSuperAdmin()) {
+            return redirect()->route('companies.index')->with('success', 'Company updated successfully.');
+        } else {
+            // For company owners, redirect to dashboard or company show page
+            return redirect()->route('dashboard')->with('success', 'Company information updated successfully.');
+        }
     }
 
     public function destroy(CompanyAccount $company)
     {
+        // Only super-admin can delete companies
+        $this->authorize('delete', $company);
+
         // Remove the specified company from storage.
         $company->delete();
         return redirect()->route('companies.index')->with('success', 'Company deleted successfully.');

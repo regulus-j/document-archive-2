@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="bg-gray-100 min-h-screen py-12">
+<div class="bg-slate-100 min-h-screen py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Page Header -->
         <div class="bg-white shadow-lg rounded-lg overflow-hidden mb-8">
             <div class="p-6 sm:flex sm:items-center sm:justify-between">
-                <h2 class="text-3xl font-extrabold text-gray-900 flex items-center">
-                    <svg class="h-8 w-8 text-blue-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <h2 class="text-3xl font-extrabold text-slate-900 flex items-center">
+                    <svg class="h-8 w-8 text-indigo-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
@@ -15,7 +15,7 @@
                 </h2>
                 <div class="flex space-x-3 mt-4 sm:mt-0">
                     <a href="{{ route('reports.index') }}"
-                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -41,18 +41,18 @@
                     @csrf
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div>
-                            <label for="start_date" class="block text-sm font-medium text-gray-700">{{ __('Start Date') }}</label>
-                            <input type="date" name="start_date" id="start_date" value="{{ $startDate }}" required class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            <label for="start_date" class="block text-sm font-medium text-slate-700">{{ __('Start Date') }}</label>
+                            <input type="date" name="start_date" id="start_date" value="{{ $startDate }}" required class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
                         </div>
 
                         <div>
-                            <label for="end_date" class="block text-sm font-medium text-gray-700">{{ __('End Date') }}</label>
-                            <input type="date" name="end_date" id="end_date" value="{{ $endDate }}" required class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            <label for="end_date" class="block text-sm font-medium text-slate-700">{{ __('End Date') }}</label>
+                            <input type="date" name="end_date" id="end_date" value="{{ $endDate }}" required class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
                         </div>
 
                         <div>
-                            <label for="user_id" class="block text-sm font-medium text-gray-700">{{ __('User') }}</label>
-                            <select name="user_id" id="user_id" class="mt-1 select2 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            <label for="user_id" class="block text-sm font-medium text-slate-700">{{ __('User') }}</label>
+                            <select name="user_id" id="user_id" class="mt-1 select2 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
                                 <option value="">{{ __('All Users') }}</option>
                                 @foreach($users as $user)
                                     <option value="{{ $user->id }}" {{ $userId == $user->id ? 'selected' : '' }}>
@@ -63,8 +63,8 @@
                         </div>
 
                         <div>
-                            <label for="office_id" class="block text-sm font-medium text-gray-700">{{ __('Office') }}</label>
-                            <select name="office_id" id="office_id" class="mt-1 select2 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            <label for="office_id" class="block text-sm font-medium text-slate-700">{{ __('Office') }}</label>
+                            <select name="office_id" id="office_id" class="mt-1 select2 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
                                 <option value="">{{ __('All Offices') }}</option>
                                 @foreach($offices as $office)
                                     <option value="{{ $office->id }}" {{ $officeId == $office->id ? 'selected' : '' }}>
@@ -75,25 +75,25 @@
                         </div>
                         
                         <div>
-                            <label for="display_type" class="block text-sm font-medium text-gray-700">{{ __('Display Type') }}</label>
+                            <label for="display_type" class="block text-sm font-medium text-slate-700">{{ __('Display Type') }}</label>
                             <div class="mt-2 flex flex-wrap gap-3">
                                 <label class="inline-flex items-center">
-                                    <input type="radio" name="display_type" value="table" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300" {{ $displayType == 'table' ? 'checked' : '' }}>
-                                    <span class="ml-2 text-sm text-gray-700">{{ __('Table') }}</span>
+                                    <input type="radio" name="display_type" value="table" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300" {{ $displayType == 'table' ? 'checked' : '' }}>
+                                    <span class="ml-2 text-sm text-slate-700">{{ __('Table') }}</span>
                                 </label>
                                 <label class="inline-flex items-center">
-                                    <input type="radio" name="display_type" value="graph" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300" {{ $displayType == 'graph' ? 'checked' : '' }}>
-                                    <span class="ml-2 text-sm text-gray-700">{{ __('Graph') }}</span>
+                                    <input type="radio" name="display_type" value="graph" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300" {{ $displayType == 'graph' ? 'checked' : '' }}>
+                                    <span class="ml-2 text-sm text-slate-700">{{ __('Graph') }}</span>
                                 </label>
                                 <label class="inline-flex items-center">
-                                    <input type="radio" name="display_type" value="both" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300" {{ $displayType == 'both' ? 'checked' : '' }}>
-                                    <span class="ml-2 text-sm text-gray-700">{{ __('Both') }}</span>
+                                    <input type="radio" name="display_type" value="both" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300" {{ $displayType == 'both' ? 'checked' : '' }}>
+                                    <span class="ml-2 text-sm text-slate-700">{{ __('Both') }}</span>
                                 </label>
                             </div>
                         </div>
 
                         <div class="flex items-end">
-                            <button type="submit" id="filter-button" class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <button type="submit" id="filter-button" class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 {{ __('Filter') }}
                             </button>
                         </div>
@@ -114,19 +114,19 @@
 
         <div class="bg-white shadow-lg rounded-lg overflow-hidden mb-8">
             <div class="p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ __('Analytics Summary') }}</h3>
+                <h3 class="text-lg font-semibold text-slate-900 mb-4">{{ __('Analytics Summary') }}</h3>
                 
                 @if($displayType == 'table' || $displayType == 'both')
                 <!-- Table View -->
                 <div class="mb-8">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-slate-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Metric') }}</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Value') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{{ __('Metric') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{{ __('Value') }}</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
+                        <tbody class="bg-white divide-y divide-slate-200">
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap font-medium">{{ __('Avg Time to Receive') }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ $averageTimeToReceive }}</td>
@@ -151,7 +151,7 @@
                 @if($displayType == 'graph' || $displayType == 'both')
                 <!-- Chart View -->
                 <div class="mt-8">
-                    <h4 class="text-md font-semibold text-gray-700 mb-3">{{ __('Monthly Trends') }}</h4>
+                    <h4 class="text-md font-semibold text-slate-700 mb-3">{{ __('Monthly Trends') }}</h4>
                     <div class="bg-white rounded-lg shadow p-4">
                         <canvas id="monthlyTrendsChart" width="400" height="200"></canvas>
                     </div>
@@ -159,11 +159,11 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
                     <div class="bg-white rounded-lg shadow p-4">
-                        <h4 class="text-md font-semibold text-gray-700 mb-3">{{ __('Processing Times') }}</h4>
+                        <h4 class="text-md font-semibold text-slate-700 mb-3">{{ __('Processing Times') }}</h4>
                         <canvas id="processingTimesChart" width="400" height="200"></canvas>
                     </div>
                     <div class="bg-white rounded-lg shadow p-4">
-                        <h4 class="text-md font-semibold text-gray-700 mb-3">{{ __('Document Statistics') }}</h4>
+                        <h4 class="text-md font-semibold text-slate-700 mb-3">{{ __('Document Statistics') }}</h4>
                         <canvas id="documentStatsChart" width="400" height="200"></canvas>
                     </div>
                 </div>

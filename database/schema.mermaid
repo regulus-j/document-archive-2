@@ -1,0 +1,152 @@
+---
+title: Document Archive Database ER Diagram
+---
+
+erDiagram
+    USERS {
+        id INT PK
+        first_name VARCHAR
+        middle_name VARCHAR
+        last_name VARCHAR
+        email VARCHAR
+        password VARCHAR
+    }
+    OFFICES {
+        id INT PK
+        name VARCHAR
+        parent_office_id INT FK
+    }
+    OFFICE_USER {
+        id INT PK
+        office_id INT FK
+        user_id INT FK
+    }
+    DOCUMENTS {
+        id INT PK
+        uploader INT FK
+        title VARCHAR
+        description TEXT
+    }
+    DOCUMENT_VERSIONS {
+        id INT PK
+        doc_id INT FK
+        prevdoc_id INT FK
+        nextdoc_id INT FK
+    }
+    DOCUMENT_STATUS {
+        id INT PK
+        doc_id INT FK
+        status VARCHAR
+    }
+    DOCUMENT_TRACKINGNUMBERS {
+        id INT PK
+        doc_id INT FK
+        tracking_number VARCHAR
+    }
+    DOCUMENT_ATTACHMENTS {
+        id INT PK
+        document_id INT FK
+        filename VARCHAR
+        path VARCHAR
+        route_id INT FK
+        uploaded_by INT FK
+    }
+    DOCUMENT_AUDIT_LOGS {
+        id INT PK
+        document_id INT FK
+        user_id INT FK
+        action VARCHAR
+    }
+    DOCUMENT_TRANSACTION {
+        id INT PK
+        doc_id INT FK
+        from_office INT FK
+        to_office INT FK
+        to_user_id INT FK
+    }
+    DOCUMENT_WORKFLOWS {
+        id INT PK
+        tracking_number VARCHAR
+        document_id INT FK
+        sender_id INT FK
+        recipient_id INT FK
+        recipient_office INT FK
+    }
+    E_SIGNATURES {
+        id INT PK
+        document_id INT FK
+        workflow_id INT FK
+        user_id INT FK
+        action VARCHAR
+    }
+    COMPANY_ACCOUNTS {
+        id INT PK
+        user_id INT FK
+        company_name VARCHAR
+    }
+    COMPANY_ADDRESSES {
+        id INT PK
+        company_id INT FK
+        address VARCHAR
+    }
+    COMPANY_SUBSCRIPTIONS {
+        id INT PK
+        company_id INT FK
+        plan_id INT FK
+    }
+    PLANS {
+        id INT PK
+        plan_name VARCHAR
+        price DECIMAL
+    }
+    NOTIFICATIONS {
+        id INT PK
+        user_id INT FK
+        type VARCHAR
+    }
+    REPORTS {
+        id INT PK
+        name VARCHAR
+        user_id INT FK
+    }
+    LOGS {
+        id INT PK
+        action VARCHAR
+        user_id INT FK
+    }
+    DOCUMENT_CATEGORIES {
+        id INT PK
+        category VARCHAR
+    }
+    DOCUMENT_CATEGORY {
+        id INT PK
+        doc_id INT FK
+        category_id INT FK
+    }
+
+    USERS ||--o{ DOCUMENTS : "uploads"
+    USERS ||--o{ DOCUMENT_AUDIT_LOGS : "audits"
+    USERS ||--o{ OFFICE_USER : "member"
+    USERS ||--o{ NOTIFICATIONS : "receives"
+    USERS ||--o{ REPORTS : "creates"
+    USERS ||--o{ DOCUMENT_WORKFLOWS : "sends/receives"
+    USERS ||--o{ E_SIGNATURES : "signs"
+    OFFICES ||--o{ OFFICE_USER : "has"
+    OFFICES ||--o{ DOCUMENT_TRANSACTION : "from/to"
+    OFFICES ||--o{ DOCUMENT_WORKFLOWS : "recipient"
+    DOCUMENTS ||--o{ DOCUMENT_VERSIONS : "version"
+    DOCUMENTS ||--o{ DOCUMENT_STATUS : "status"
+    DOCUMENTS ||--o{ DOCUMENT_TRACKINGNUMBERS : "tracking"
+    DOCUMENTS ||--o{ DOCUMENT_ATTACHMENTS : "attachments"
+    DOCUMENTS ||--o{ DOCUMENT_AUDIT_LOGS : "audits"
+    DOCUMENTS ||--o{ DOCUMENT_TRANSACTION : "transactions"
+    DOCUMENTS ||--o{ DOCUMENT_WORKFLOWS : "workflows"
+    DOCUMENTS ||--o{ E_SIGNATURES : "signatures"
+    DOCUMENTS ||--o{ DOCUMENT_CATEGORY : "categories"
+    DOCUMENT_CATEGORIES ||--o{ DOCUMENT_CATEGORY : "has"
+    COMPANY_ACCOUNTS ||--o{ COMPANY_ADDRESSES : "addresses"
+    COMPANY_ACCOUNTS ||--o{ COMPANY_SUBSCRIPTIONS : "subscriptions"
+    COMPANY_SUBSCRIPTIONS ||--o{ PLANS : "plan"
+    DOCUMENT_WORKFLOWS ||--o{ E_SIGNATURES : "signatures"
+    DOCUMENT_WORKFLOWS ||--o{ DOCUMENT_ATTACHMENTS : "attachments"
+    REPORTS ||--o{ LOGS : "logs"

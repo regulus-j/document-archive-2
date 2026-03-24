@@ -1,12 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="min-h-screen bg-gradient-to-b from-blue-50 to-white p-4 md:p-8">
+    <div class="min-h-screen py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <!-- Header Box -->
-        <div class="bg-white rounded-xl shadow-xl mb-6 border border-blue-100 overflow-hidden">
-            <div class="bg-white p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="ds-page-header">
+            <div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div class="flex items-center space-x-3">
-                    <div class="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md">
+                    <div class="p-3 bg-indigo-600 rounded-lg">
                         <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -14,14 +15,14 @@
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-800">Document Management</h1>
-                        <p class="text-sm text-gray-500">Search, view and manage all documents</p>
+                        <h1>Document Management</h1>
+                        <p class="text-sm text-slate-500">Search, view and manage all documents</p>
                     </div>
                 </div>
                 <div>
                     @can('document-create')
                         <a href="{{ route('documents.create') }}"
-                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-md text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                            class="ds-btn ds-btn-primary">
                             <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -35,8 +36,8 @@
         </div>
 
         <!-- Success/Error Messages -->
-        @if(session('success'))
-            <div class="mb-6 bg-white border-l-4 border-emerald-500 text-emerald-700 p-4 rounded-r-lg shadow-md" role="alert">
+        @if (session('success'))
+            <div class="mb-6 ds-alert-success" role="alert">
                 <div class="flex">
                     <div class="flex-shrink-0">
                         <svg class="h-5 w-5 text-emerald-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
@@ -53,15 +54,15 @@
             </div>
         @endif
 
-        @if(session('error'))
-            <div class="mb-6 bg-white border-l-4 border-red-500 text-red-700 p-4 rounded-r-lg shadow-md" role="alert">
+        @if (session('error'))
+            <div class="mb-6 ds-alert-error" role="alert">
                 <div class="flex">
                     <div class="flex-shrink-0">
                         <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
                             fill="currentColor">
                             <path fill-rule="evenodd"
                                 d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                clip-rule="evenodd" />
+                                clip-rule="evenodd">
                         </svg>
                     </div>
                     <div class="ml-3">
@@ -71,36 +72,36 @@
             </div>
         @endif
 
-        <!-- QR Code Modal -->
-        @if(session('data'))
+        <!-- Barcode Modal -->
+        @if (session('data'))
             <div class="fixed inset-0 flex items-center justify-center z-50">
-                <div class="bg-gray-900 bg-opacity-70 absolute inset-0"></div>
+                <div class="bg-slate-900 bg-opacity-70 absolute inset-0"></div>
                 <div class="bg-white p-8 rounded-xl shadow-2xl z-10 max-w-md w-full">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 mr-2" fill="none"
+                    <h2 class="text-xl font-semibold text-slate-800 mb-6 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600 mr-2" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                         </svg>
-                        QR Code Generated
+                        Barcode Generated
                     </h2>
                     <div class="flex justify-center mb-6">
-                        <div class="bg-white p-4 rounded-lg shadow-md border border-blue-100">
-                            <img src="{{ session('data') }}" alt="QR Code" class="w-48 h-48">
+                        <div class="bg-white p-4 rounded-lg shadow-md border border-indigo-100">
+                            <img src="{{ session('data') }}" alt="Barcode" class="w-64 h-24 object-contain">
                         </div>
                     </div>
                     <div class="flex justify-center space-x-4">
-                        <a href="{{ session('data') }}" download="qr-code.png"
+                        <a href="{{ session('data') }}" download="barcode.png"
                             class="px-4 py-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg hover:from-emerald-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-md transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
-                            Save QR Code
+                            Save Barcode
                         </a>
                         <button onclick="document.querySelector('.fixed.inset-0').remove()"
-                            class="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transition-colors">
+                            class="px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-lg hover:from-indigo-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md transition-colors">
                             Close
                         </button>
                     </div>
@@ -109,120 +110,128 @@
         @endif
 
         <!-- Main Content -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="space-y-6">
             <!-- Search Panel -->
-            <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl shadow-xl overflow-hidden h-full border border-blue-100">
-                    <div class="bg-white p-6 border-b border-blue-200">
-                        <div class="flex items-center mb-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <div class="rounded-lg">
+                <div class="ds-card p-6">
+                    {{-- <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
-                            <h2 class="text-lg font-semibold text-gray-800">Search Documents</h2>
+                            <h2 class="text-lg font-semibold text-slate-800">Search and Filter</h2>
                         </div>
-                        <p class="mt-1 text-sm text-gray-600">Search by text or upload an image</p>
-                    </div>
+                    </div> --}}
 
                     <div class="p-6">
                         <form id="search-form" action="{{ route('documents.search') }}" method="POST"
-                            enctype="multipart/form-data" class="space-y-5">
+                            enctype="multipart/form-data">
                             @csrf
-                            <!-- Quick Search -->
-                            <div>
-                                <label for="filter-field" class="block text-sm font-medium text-gray-700 mb-1">Search
-                                    by</label>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <select id="filter-field"
-                                        class="rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                                        <option value="title">Title</option>
-                                        <option value="uploader">Uploader</option>
-                                        <option value="status">Status</option>
-                                        <option value="originating">Originating</option>
-                                        <option value="recipient">Recipient</option>
-                                        <option value="description">Description</option>
-                                    </select>
-                                    <input type="text" id="quick-search"
-                                        class="rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                                        placeholder="Quick search...">
-                                </div>
-                            </div>
-
-                            <!-- Text Search -->
-                            <div>
-                                <label for="text-search" class="block text-sm font-medium text-gray-700 mb-1">Text
-                                    search</label>
-                                <div class="relative">
-                                    <input type="text" id="text-search" name="text"
-                                        class="w-full pl-10 pr-4 py-2.5 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                                        placeholder="Search by text...">
+                            <div class="flex flex-col md:flex-row gap-3 md:items-center">
+                                <!-- Combined Search Bar with Filter -->
+                                <div class="flex-1 relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                            <path fill-rule="evenodd"
-                                                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                                                clip-rule="evenodd" />
+                                        <svg class="h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                         </svg>
                                     </div>
+                                    <input type="text" id="quick-search" name="text"
+                                        class="ds-input pl-10 pr-36 bg-slate-50/60 focus:bg-white"
+                                        placeholder="Search documents...">
+                                    <div class="absolute inset-y-0 right-0 flex items-center">
+                                        <div class="h-6 w-px bg-slate-200 mx-2"></div>
+                                        <select id="filter-field"
+                                            class="h-full py-0 pl-2 pr-7 border-transparent bg-transparent text-slate-500 sm:text-sm focus:ring-0">
+                                            <option value="general">All Fields</option>
+                                            <option value="title">Title</option>
+                                            <option value="uploader">Uploader</option>
+                                            <option value="status">Status</option>
+                                            <option value="originating">Origin</option>
+                                            <option value="recipient">Recipient</option>
+                                            <option value="description">Description</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Actions -->
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <button type="submit" id="submit-button"
+                                        class="ds-btn ds-btn-primary">
+                                        <span id="spinner" class="hidden mr-2">
+                                            <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg"
+                                                fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                    stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                </path>
+                                            </svg>
+                                        </span>
+                                        <span id="button-text">Search</span>
+                                    </button>
+                                    <button type="button"
+                                        id="image-search-toggle-btn"
+                                        onclick="toggleImageSearch()"
+                                        class="ds-btn ds-btn-secondary">
+                                        <div class="relative w-5 h-5">
+                                            <!-- Barcode icon -->
+                                            <svg class="image-icon h-5 w-5 text-slate-400 transition-all duration-200"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="currentColor" viewBox="0 0 24 24">
+                                                <rect x="2" y="4" width="2" height="16"/>
+                                                <rect x="6" y="4" width="1" height="16"/>
+                                                <rect x="9" y="4" width="2" height="16"/>
+                                                <rect x="13" y="4" width="1" height="16"/>
+                                                <rect x="16" y="4" width="2" height="16"/>
+                                                <rect x="20" y="4" width="2" height="16"/>
+                                            </svg>
+                                            <!-- Close icon (hidden by default) -->
+                                            <svg class="close-icon absolute inset-0 h-5 w-5 text-slate-400 opacity-0 transition-all duration-200"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </div>
+                                        <span class="hidden sm:inline transition-all duration-200">Scan Barcode</span>
+                                    </button>
                                 </div>
                             </div>
 
-                            <!-- Image Upload/Camera -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Image search</label>
-                                <div class="flex flex-wrap gap-3">
-                                    <button type="button" onclick="document.getElementById('image-input').click()"
-                                        class="inline-flex items-center px-4 py-2 border border-blue-200 shadow-sm text-sm font-medium rounded-lg text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                                        <svg class="h-5 w-5 mr-2 text-blue-500" xmlns="http://www.w3.org/2000/svg"
-                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                                        </svg>
-                                        Upload Image
-                                    </button>
-                                    <button type="button" id="camera-toggle"
-                                        class="inline-flex items-center px-4 py-2 border border-indigo-200 shadow-sm text-sm font-medium rounded-lg text-indigo-700 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
-                                        <svg class="h-5 w-5 mr-2 text-indigo-500" xmlns="http://www.w3.org/2000/svg"
-                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                        Open Camera
-                                    </button>
-                                </div>
-
-                                <input type="file" id="image-input" name="image" accept="image/*" class="hidden">
+                            <!-- Barcode Scan Section (Hidden by default) -->
+                            <div id="image-search-section" class="hidden mt-4">
+                                <div class="p-4 bg-slate-50/80 rounded-lg border border-slate-200">
+                                    <input type="file" id="image-input" name="image" accept="image/*" class="hidden">
 
                                 <!-- Camera Container -->
-                                <div id="camera-container" class="hidden mt-3">
-                                    <div
-                                        class="relative w-full aspect-video rounded-xl overflow-hidden bg-black shadow-lg border border-blue-200">
-                                        <video id="camera-stream" autoplay playsinline
-                                            class="w-full h-full object-contain"></video>
+                                <div id="camera-container">
+                                    <div class="relative w-full rounded-xl overflow-hidden bg-black shadow-lg border border-indigo-200" style="aspect-ratio:16/9;">
+                                        <video id="camera-stream" autoplay playsinline muted
+                                            style="width:100%;height:100%;object-fit:cover;display:block;"></video>
                                         <button type="button" id="capture-button"
-                                            class="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transition-colors">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
+                                            class="absolute bottom-4 left-1/2 transform -translate-x-1/2 ds-btn ds-btn-primary">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                                             </svg>
-                                            Capture
+                                            Capture Barcode
                                         </button>
                                     </div>
                                 </div>
 
                                 <!-- Image Preview -->
                                 <div id="preview-container" class="hidden relative w-full mt-3">
-                                    <div class="bg-white p-2 rounded-xl shadow-md border border-blue-200">
+                                    <div class="bg-white p-2 rounded-xl shadow-md border border-indigo-200">
                                         <img id="preview-image" src="#" alt="Preview" class="w-full rounded-lg">
                                         <button type="button" onclick="clearImage()"
-                                            class="absolute top-4 right-4 p-1.5 bg-white rounded-full shadow-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 border border-gray-200">
-                                            <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg"
+                                            class="absolute top-4 right-4 p-1.5 bg-white rounded-full shadow-md hover:bg-slate-100/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 border border-slate-200">
+                                            <svg class="h-5 w-5 text-slate-500" xmlns="http://www.w3.org/2000/svg"
                                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M6 18L18 6M6 6l12 12" />
@@ -231,190 +240,600 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Search Button -->
-                            <div>
-                                <button type="submit" id="submit-button"
-                                    class="w-full inline-flex justify-center items-center px-4 py-2.5 border border-transparent text-sm font-medium rounded-lg shadow-md text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                                    <span id="spinner" class="hidden mr-2">
-                                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg"
-                                            fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                                stroke-width="4"></circle>
-                                            <path class="opacity-75" fill="currentColor"
-                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                            </path>
-                                        </svg>
-                                    </span>
-                                    <span id="button-text">Search Documents</span>
-                                </button>
                             </div>
+
                         </form>
+
+                        <div class="border-t border-slate-100 pt-6 mt-6">
+                            <button type="button" class="w-full px-5 py-4 border border-indigo-100 rounded-lg flex items-center justify-between select-none bg-indigo-100/50/40 hover:bg-indigo-100/50/60 transition-colors shadow-sm" id="filterToggleHeader" onclick="toggleFilterPanel()">
+                                <div class="flex items-center space-x-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                                    </svg>
+                                    <div class="text-left">
+                                        <div class="text-sm font-semibold text-slate-800">Advanced Filters</div>
+                                        <div class="text-xs text-slate-500">Refine by date, uploader, team, or category</div>
+                                    </div>
+                                    @if(request('date_from') || request('date_to') || request('user_id') || request('category_id') || request('team_id'))
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">Active</span>
+                                    @endif
+                                </div>
+                                <div class="flex items-center gap-2 text-xs text-slate-500">
+                                    <span class="hidden sm:inline">Hide filters</span>
+                                    <svg id="filterChevron" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400 transition-transform duration-200 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </button>
+                            <div id="filterPanel">
+                                <form method="GET" action="{{ route('documents.index') }}" class="pt-4 space-y-4">
+                        {{-- Preserve existing non-filter params --}}
+                        @if(request('office_id'))
+                            <input type="hidden" name="office_id" value="{{ request('office_id') }}">
+                        @endif
+                        @if(request('status'))
+                            <input type="hidden" name="status" value="{{ request('status') }}">
+                        @endif
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                            {{-- Date From --}}
+                            <div>
+                                <label for="date_from" class="block text-xs font-medium text-slate-600 mb-1">Date From</label>
+                                <input type="date" id="date_from" name="date_from" value="{{ request('date_from') }}"
+                                    class="ds-input text-sm">
+                            </div>
+
+                            {{-- Date To --}}
+                            <div>
+                                <label for="date_to" class="block text-xs font-medium text-slate-600 mb-1">Date To</label>
+                                <input type="date" id="date_to" name="date_to" value="{{ request('date_to') }}"
+                                    class="ds-input text-sm">
+                            </div>
+
+                            {{-- User (searchable) --}}
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Uploaded By</label>
+                                <input type="hidden" id="user_id" name="user_id" value="{{ request('user_id') }}">
+                                <div class="searchable-select relative" data-target="user_id">
+                                    <button type="button" class="ss-toggle w-full flex items-center justify-between rounded-lg border border-slate-300 shadow-sm text-sm px-3 py-2 bg-white text-left focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition-all">
+                                        <span class="ss-label truncate text-slate-700">
+                                            @if(request('user_id'))
+                                                {{ $filterUsers->firstWhere('id', request('user_id'))?->first_name }} {{ $filterUsers->firstWhere('id', request('user_id'))?->last_name }}
+                                            @else
+                                                All Users
+                                            @endif
+                                        </span>
+                                        <svg class="h-4 w-4 text-slate-400 flex-shrink-0 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    <div class="ss-dropdown hidden absolute z-50 mt-1 w-full bg-white rounded-lg shadow-lg border border-slate-200 overflow-hidden">
+                                        <div class="p-2 border-b border-slate-100">
+                                            <input type="text" class="ss-search w-full rounded-md border-slate-300 text-sm px-3 py-1.5 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Search users...">
+                                        </div>
+                                        <ul class="ss-options max-h-48 overflow-y-auto py-1">
+                                            <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-100/50 transition-colors" data-value="">All Users</li>
+                                            @foreach($filterUsers as $u)
+                                                <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-100/50 transition-colors" data-value="{{ $u->id }}">{{ $u->first_name }} {{ $u->last_name }}</li>
+                                            @endforeach
+                                        </ul>
+                                        <div class="ss-empty hidden px-3 py-4 text-sm text-slate-400 text-center">No results found</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Team (searchable) --}}
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Team</label>
+                                <input type="hidden" id="team_id" name="team_id" value="{{ request('team_id') }}">
+                                <div class="searchable-select relative" data-target="team_id">
+                                    <button type="button" class="ss-toggle w-full flex items-center justify-between rounded-lg border border-slate-300 shadow-sm text-sm px-3 py-2 bg-white text-left focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition-all">
+                                        <span class="ss-label truncate text-slate-700">
+                                            @if(request('team_id'))
+                                                {{ $filterTeams->firstWhere('id', request('team_id'))?->name ?? 'All Teams' }}
+                                            @else
+                                                All Teams
+                                            @endif
+                                        </span>
+                                        <svg class="h-4 w-4 text-slate-400 flex-shrink-0 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    <div class="ss-dropdown hidden absolute z-50 mt-1 w-full bg-white rounded-lg shadow-lg border border-slate-200 overflow-hidden">
+                                        <div class="p-2 border-b border-slate-100">
+                                            <input type="text" class="ss-search w-full rounded-md border-slate-300 text-sm px-3 py-1.5 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Search teams...">
+                                        </div>
+                                        <ul class="ss-options max-h-48 overflow-y-auto py-1">
+                                            <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-100/50 transition-colors" data-value="">All Teams</li>
+                                            @foreach($filterTeams as $team)
+                                                <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-100/50 transition-colors" data-value="{{ $team->id }}">{{ $team->name }}</li>
+                                            @endforeach
+                                        </ul>
+                                        <div class="ss-empty hidden px-3 py-4 text-sm text-slate-400 text-center">No results found</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Category (searchable) --}}
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Category</label>
+                                <input type="hidden" id="category_id" name="category_id" value="{{ request('category_id') }}">
+                                <div class="searchable-select relative" data-target="category_id">
+                                    <button type="button" class="ss-toggle w-full flex items-center justify-between rounded-lg border border-slate-300 shadow-sm text-sm px-3 py-2 bg-white text-left focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition-all">
+                                        <span class="ss-label truncate text-slate-700">
+                                            @if(request('category_id'))
+                                                {{ $filterCategories->firstWhere('id', request('category_id'))?->category ?? 'All Categories' }}
+                                            @else
+                                                All Categories
+                                            @endif
+                                        </span>
+                                        <svg class="h-4 w-4 text-slate-400 flex-shrink-0 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    <div class="ss-dropdown hidden absolute z-50 mt-1 w-full bg-white rounded-lg shadow-lg border border-slate-200 overflow-hidden">
+                                        <div class="p-2 border-b border-slate-100">
+                                            <input type="text" class="ss-search w-full rounded-md border-slate-300 text-sm px-3 py-1.5 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Search categories...">
+                                        </div>
+                                        <ul class="ss-options max-h-48 overflow-y-auto py-1">
+                                            <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-100/50 transition-colors" data-value="">All Categories</li>
+                                            @foreach($filterCategories as $cat)
+                                                <li class="ss-option px-3 py-2 text-sm cursor-pointer hover:bg-indigo-100/50 transition-colors" data-value="{{ $cat->id }}">{{ $cat->category }}</li>
+                                            @endforeach
+                                        </ul>
+                                        <div class="ss-empty hidden px-3 py-4 text-sm text-slate-400 text-center">No results found</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 pt-2">
+                            <button type="submit" class="ds-btn ds-btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                                </svg>
+                                Apply Filters
+                            </button>
+                            <a href="{{ route('documents.index') }}" class="ds-btn ds-btn-secondary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Clear Filters
+                            </a>
+                        </div>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Document List -->
-            <div class="lg:col-span-2">
-                <div class="bg-white rounded-xl shadow-xl overflow-hidden h-full border border-blue-100">
-                    <div class="bg-white p-6 border-b border-blue-200 flex justify-between items-center">
-                        <div class="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            <h2 class="text-lg font-semibold text-gray-800">Document List</h2>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <span class="text-sm text-gray-500">{{ $documents->total() }} documents</span>
-                            <div class="relative">
-                                <button type="button"
-                                    class="inline-flex items-center px-3 py-1.5 border border-blue-200 text-sm font-medium rounded-lg text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
+            <div class="ds-card overflow-visible">
+
+                    <!-- Tab Bar: My Documents / All Documents / Archived -->
+                    <div class="flex border-b border-slate-200 bg-white rounded-t-lg overflow-visible">
+                        <!-- My Documents Tab -->
+                        <a href="{{ route('documents.index', array_merge(request()->except('tab', 'page'), ['tab' => 'my'])) }}"
+                           class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm transition-colors
+                                  {{ ($tab ?? 'all') === 'my'
+                                     ? 'border-indigo-500 text-indigo-600 bg-indigo-100/50/50'
+                                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">
+                            <div class="flex items-center justify-center gap-2">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                My Documents
+                                <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full
+                                             {{ ($tab ?? 'all') === 'my' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100/50 text-slate-600' }}">
+                                    {{ $myDocCount }}
+                                </span>
+                            </div>
+                        </a>
+
+                        <!-- All Documents Tab with Tooltip -->
+                        <a href="{{ route('documents.index', array_merge(request()->except('tab', 'page'), ['tab' => 'all'])) }}"
+                           class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm transition-colors relative group
+                                  {{ ($tab ?? 'all') === 'all'
+                                     ? 'border-indigo-500 text-indigo-600 bg-indigo-100/50/50'
+                                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">
+                            <div class="flex items-center justify-center gap-2">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                All Documents
+                                <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full
+                                             {{ ($tab ?? 'all') === 'all' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100/50 text-slate-600' }}">
+                                    {{ $allDocCount }}
+                                </span>
+                                <!-- Info Icon -->
+                                <svg class="h-4 w-4 text-slate-400 hover:text-slate-600 transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <!-- Tooltip -->
+                            <div class="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 w-64 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none">
+                                <div class="text-left">
+                                    <strong class="block mb-1">All Documents includes:</strong>
+                                    <ul class="list-disc list-inside space-y-0.5">
+                                        <li>Your uploaded documents</li>
+                                        <li>Documents uploaded by others that are visible to you</li>
+                                        <li>Documents forwarded to you</li>
+                                    </ul>
+                                </div>
+                                <!-- Arrow -->
+                                <div class="absolute left-1/2 transform -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900"></div>
+                            </div>
+                        </a>
+
+                        <!-- Archived Documents Tab with Tooltip -->
+                        <a href="{{ route('documents.index', array_merge(request()->except('tab', 'page', 'status'), ['tab' => 'archived'])) }}"
+                           class="flex-1 text-center py-4 px-4 border-b-2 font-medium text-sm transition-colors relative group
+                                  {{ ($tab ?? 'all') === 'archived'
+                                     ? 'border-slate-500 text-slate-700 bg-slate-50/50'
+                                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">
+                            <div class="flex items-center justify-center gap-2">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                </svg>
+                                Archived
+                                <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full
+                                             {{ ($tab ?? 'all') === 'archived' ? 'bg-slate-200 text-slate-700' : 'bg-slate-100/50 text-slate-600' }}">
+                                    {{ $archivedCount }}
+                                </span>
+                                <!-- Info Icon -->
+                                <svg class="h-4 w-4 text-slate-400 hover:text-slate-600 transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <!-- Tooltip -->
+                            <div class="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 w-64 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none">
+                                <div class="text-left">
+                                    <strong class="block mb-1">Archived Documents:</strong>
+                                    <p>Your documents that have been archived for long-term storage.</p>
+                                </div>
+                                <!-- Arrow -->
+                                <div class="absolute left-1/2 transform -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900"></div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Tabbed Navigation -->
+                    <div class="bg-white border-b border-slate-200">
+                        <div class="p-6 pb-0">
+                            @if($tab === 'archived')
+                            {{-- Simplified header for Archived tab --}}
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                    </svg>
+                                    <h2 class="text-lg font-semibold text-slate-700">Archived Documents</h2>
+                                </div>
+                                <span class="text-sm text-slate-500">{{ $documents->total() }} archived {{ Str::plural('document', $documents->total()) }}</span>
+                            </div>
+                            @elseif($tab === 'my')
+                            {{-- Header for My Documents tab --}}
+                            <div class="flex items-center justify-between mb-8">
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                    <h2 class="text-lg font-semibold text-slate-800">My Documents</h2>
+                                </div>
+                                {{-- <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-slate-500">{{ $documents->total() }} {{ Str::plural('document', $documents->total()) }}</span>
+                                </div> --}}
+                            </div>
+                            @else
+                            {{-- Header for All Documents tab --}}
+                            <div class="flex items-center justify-between mb-8">
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 mr-2" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
-                                    Filter
-                                </button>
+                                    <h2 class="text-lg font-semibold text-slate-800">All Documents</h2>
+                                </div>
+                                {{-- <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-slate-500">{{ $documents->total() }} total documents</span>
+
+                                </div> --}}
                             </div>
+                            @endif
+                            </div>
+
+                            @if($tab !== 'archived')
+                                    <!-- Unified Document Counter -->
+                            <div class="flex flex-wrap items-center gap-2 px-6 py-4">
+                                <!-- Total Documents -->
+                                @php
+                                    // Get total count using DocumentAccessService
+                                    $documentAccessService = app(\App\Services\DocumentAccessService::class);
+                                    $totalCount = $documentAccessService->getAccessibleDocuments()->count();
+                                @endphp
+                                @php
+                    $statusIcons = [
+                        'all' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+                        'pending' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
+                        'forwarded' => 'M13 7l5 5m0 0l-5 5m5-5H6',
+                        'received' => 'M5 13l4 4L19 7',
+                        'approved' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+                        'acknowledged' => 'M5 13l4 4L19 7M9 5h7a2 2 0 012 2v10a2 2 0 01-2 2H9a2 2 0 01-2-2V7a2 2 0 012-2z',
+                        'commented' => 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z',
+                        'returned' => 'M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6',
+                        'rejected' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+                        'recalled' => 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15',
+                        'archived' => 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4'
+                    ];
+
+                    $statusColors = [
+                        'all' => ['bg' => 'bg-indigo-100/50', 'text' => 'text-indigo-600'],
+                        'pending' => ['bg' => 'bg-yellow-50', 'text' => 'text-yellow-600'],
+                        'forwarded' => ['bg' => 'bg-indigo-100/50', 'text' => 'text-indigo-600'],
+                        'received' => ['bg' => 'bg-green-50', 'text' => 'text-green-600'],
+                        'approved' => ['bg' => 'bg-emerald-100/50', 'text' => 'text-emerald-600'],
+                        'acknowledged' => ['bg' => 'bg-indigo-100/50', 'text' => 'text-indigo-600'],
+                        'commented' => ['bg' => 'bg-cyan-50', 'text' => 'text-cyan-600'],
+                        'returned' => ['bg' => 'bg-orange-50', 'text' => 'text-orange-600'],
+                        'rejected' => ['bg' => 'bg-red-50', 'text' => 'text-red-600'],
+                        'recalled' => ['bg' => 'bg-purple-50', 'text' => 'text-purple-600'],
+                        'archived' => ['bg' => 'bg-slate-50', 'text' => 'text-slate-600']
+                    ];                                    // Get document counts for each status using DocumentAccessService
+                                    $documentAccessService = app(\App\Services\DocumentAccessService::class);
+                                    $baseQuery = $documentAccessService->getAccessibleDocuments();
+
+                                    $documentCounts = [
+                                        'all' => $totalCount,
+                                        'pending' => (clone $baseQuery)->whereHas('status', fn($q) => $q->where('status', 'pending'))->count(),
+                                        'forwarded' => (clone $baseQuery)->whereHas('status', fn($q) => $q->where('status', 'forwarded'))->count(),
+                                        'received' => (clone $baseQuery)->whereHas('status', fn($q) => $q->where('status', 'received'))->count(),
+                                        'approved' => (clone $baseQuery)->whereHas('status', fn($q) => $q->where('status', 'complete'))->count(),
+                                        'acknowledged' => (clone $baseQuery)->whereHas('status', fn($q) => $q->whereIn('status', ['acknowledged', 'acknowledge']))->count(),
+                                        'commented' => (clone $baseQuery)->whereHas('status', fn($q) => $q->where('status', 'commented'))->count(),
+                                        'returned' => (clone $baseQuery)->whereHas('status', fn($q) => $q->where('status', 'returned'))->count(),
+                                        'rejected' => (clone $baseQuery)->whereHas('status', fn($q) => $q->where('status', 'rejected'))->count(),
+                                        'recalled' => (clone $baseQuery)->whereHas('status', fn($q) => $q->where('status', 'recalled'))->count(),
+                                        'archived' => (clone $baseQuery)->whereHas('status', fn($q) => $q->where('status', 'archived'))->count()
+                                    ];
+                                @endphp
+
+                                <!-- Filter Container -->
+                                <div class="flex flex-wrap items-center gap-6 ml-auto">
+                                    <!-- Status Filter Dropdown -->
+                                    <div x-data="{ open: false }" class="relative inline-flex items-center filter-group">
+                                        <div>
+                                            <button @click="open = !open" type="button" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:border-slate-300 hover:text-slate-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-slate-200">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                                                </svg>
+                                                <span>Status</span>
+                                                <svg class="w-4 h-4 ml-1.5 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        </div>
+
+                                        <div x-show="open"
+                                            @click.away="open = false"
+                                            x-transition:enter="transition ease-out duration-100"
+                                            x-transition:enter-start="transform opacity-0 scale-95"
+                                            x-transition:enter-end="transform opacity-100 scale-100"
+                                            x-transition:leave="transition ease-in duration-75"
+                                            x-transition:leave-start="transform opacity-100 scale-100"
+                                            x-transition:leave-end="transform opacity-0 scale-95"
+                                            class="absolute right-0 top-full mt-1 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-slate-100 focus:outline-none z-50"
+                                        >
+                                            <div class="py-1">
+                                                @foreach($documentCounts as $status => $count)
+                                                    <button
+                                                        onclick="filterDocumentsByStatus('{{ $status }}')"
+                                                        class="group flex items-center w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                                                        data-status="{{ $status }}"
+                                                    >
+                                                        <svg class="h-4 w-4 {{ $statusColors[$status]['text'] }} mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="{{ $statusIcons[$status] }}" />
+                                                        </svg>
+                                                        <span class="flex-1 text-left">{{ ucfirst($status) }}</span>
+                                                        <span class="inline-flex items-center justify-center px-2 py-0.5 ml-2 text-xs font-medium rounded-full bg-{{ explode('-', $statusColors[$status]['bg'])[1] }}-100 {{ $statusColors[$status]['text'] }}">
+                                                            {{ $count }}
+                                                        </span>
+                                                    </button>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @role('company-admin')
+                                    <!-- Office/Team Filter Dropdown -->
+                                    <div x-data="{ open: false }" class="relative inline-flex items-center filter-group">
+                                        <div>
+                                            <button @click="open = !open" type="button" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:border-slate-300 hover:text-slate-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-slate-200">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                </svg>
+                                                <span class="truncate max-w-[120px]">{{ $selectedOfficeId === 'all' ? 'All Offices' : ($offices->where('id', $selectedOfficeId)->first()?->name ?? 'All Offices') }}</span>
+                                                <svg class="w-4 h-4 ml-1.5 text-slate-400 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        </div>
+
+                                        <div x-show="open"
+                                            @click.away="open = false"
+                                            x-transition:enter="transition ease-out duration-100"
+                                            x-transition:enter-start="transform opacity-0 scale-95"
+                                            x-transition:enter-end="transform opacity-100 scale-100"
+                                            x-transition:leave="transition ease-in duration-75"
+                                            x-transition:leave-start="transform opacity-100 scale-100"
+                                            x-transition:leave-end="transform opacity-0 scale-95"
+                                            class="absolute right-0 top-full mt-1 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-slate-100 focus:outline-none z-50"
+                                        >
+                                            <div class="py-1">
+                                                <a href="{{ route('documents.index', array_merge(request()->except('office_id', 'page'), ['office_id' => 'all'])) }}"
+                                                   class="group flex items-center w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900">
+                                                    <svg class="h-4 w-4 text-slate-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                    </svg>
+                                                    All Offices
+                                                </a>
+                                                @foreach($offices as $office)
+                                                    <a href="{{ route('documents.index', array_merge(request()->except('office_id', 'page'), ['office_id' => $office->id])) }}"
+                                                       class="group flex items-center w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900">
+                                                        <svg class="h-4 w-4 text-slate-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                        </svg>
+                                                        {{ $office->name }}
+                                                    </a>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endrole
+                                </div>
+                            </div>
+                        @endif {{-- end non-archived status filters --}}
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
+                    <!-- Unified Document List -->
+                    <div class="overflow-x-auto overflow-y-visible">
+                        <table class="min-w-full divide-y divide-slate-200">
                             <thead>
                                 <tr>
-                                    <th
-                                        class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
-                                        No</th>
-                                    <th
-                                        class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
-                                        Details</th>
-                                    <th
-                                        class="bg-white px-6 py-3 text-right text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
-                                        Action</th>
+                                    <th class="bg-slate-50 px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100 w-12">#</th>
+                                    <th class="bg-slate-50 px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">Title</th>
+                                    <th class="bg-slate-50 px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">Uploader</th>
+                                    <th class="bg-slate-50 px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">{{ $tab === 'archived' ? 'Archived' : 'Status & Workflow' }}</th>
+                                    <th class="bg-slate-50 px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">Tracking</th>
+                                    <th class="bg-slate-50 px-6 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100 w-24">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
+                            <tbody class="bg-white divide-y divide-slate-100">
+                                @php
+                                    $counter = ($documents->currentPage() - 1) * $documents->perPage() + 1;
+                                @endphp
                                 @forelse ($documents as $document)
-                                    <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $loop->iteration }}</td>
-                                        <td class="px-6 py-4">
-                                            <div class="flex flex-col space-y-2">
-                                                <div class="text-sm font-medium text-gray-900">{{ $document->title }}</div>
-                                                
+                                    @php
+                                        $status = $document->status?->status ? strtolower($document->status->status) : '';
+                                        $isRejected = in_array($status, ['rejected']);
+                                        $statusColor = 'gray';
+
+                                        if ($status == 'approved' || $status == 'complete') {
+                                            $statusColor = 'emerald';
+                                            $status = 'approved';
+                                        } elseif ($status == 'pending') {
+                                            $statusColor = 'amber';
+                                        } elseif ($status == 'forwarded') {
+                                            $statusColor = 'blue';
+                                        } elseif ($status == 'recalled') {
+                                            $statusColor = 'purple';
+                                        } elseif ($status == 'uploaded') {
+                                            $statusColor = 'indigo';
+                                        } elseif ($status == 'rejected') {
+                                            $statusColor = 'red';
+                                        }
+
+                                        $latestWorkflow = $isRejected ? $document->documentWorkflow()
+                                            ->where('status', 'rejected')
+                                            ->latest()
+                                            ->first() : null;
+                                    @endphp
+                                    <tr class="hover:bg-slate-50/60 transition-colors">
+                                        <td class="px-6 py-3.5 whitespace-nowrap text-sm text-slate-400 font-medium">{{ $counter++ }}</td>
+                                        <td class="px-6 py-3.5">
+                                            <div class="text-sm font-medium text-slate-900 truncate max-w-[220px]">{{ $document->title }}</div>
+                                        </td>
+                                        <td class="px-6 py-3.5">
+                                            <div class="flex flex-col space-y-1.5">
                                                 <div class="flex items-center">
-                                                    <div class="flex-shrink-0 h-8 w-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold shadow-sm">
-                                                        {{ substr($document->user->first_name, 0, 1) }}
+                                                    <div class="flex-shrink-0 h-6 w-6 bg-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                                        {{ $document->user?->first_name ? substr($document->user->first_name, 0, 1) : 'N' }}
                                                     </div>
-                                                    <div class="ml-3 text-sm text-gray-700">
-                                                        {{ $document->user->first_name . ' ' . $document->user->last_name }}
+                                                    <div class="ml-2 text-sm text-slate-700 font-medium truncate">
+                                                        {{ ($document->user?->first_name ?? 'Unknown') . ' ' . ($document->user?->last_name ?? 'User') }}
                                                     </div>
                                                 </div>
-                                                
-                                                <div class="flex flex-wrap gap-2 items-center">
-                                                    @php
-                                                        $statusColor = 'gray';
-                                                        if ($document->status?->status == 'Approved') {
-                                                            $statusColor = 'emerald';
-                                                        } elseif ($document->status?->status == 'Pending') {
-                                                            $statusColor = 'amber';
-                                                        }
-                                                    @endphp
-                                                    <span class="px-2.5 py-1 text-xs leading-5 font-semibold rounded-full bg-{{ $statusColor }}-100 text-{{ $statusColor }}-800">
+                                                @if($document->transaction?->fromOffice)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-{{ $isRejected ? 'red' : 'blue' }}-100 text-{{ $isRejected ? 'red' : 'blue' }}-800 self-start">
+                                                        {{ $document->transaction?->fromOffice?->name }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-3.5">
+                                            <div class="flex flex-col space-y-1.5">
+                                                <!-- Status Badge -->
+                                                <div class="flex items-center">
+                                                    <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-{{ $statusColor }}-50 text-{{ $statusColor }}-700 ring-1 ring-inset ring-{{ $statusColor }}-600/20">
                                                         {{ $document->status?->status ?? 'N/A' }}
                                                     </span>
-                                                    
-                                                    <span class="text-xs text-gray-500">
-                                                        <span class="font-medium">From:</span> {{ $document->transaction?->fromOffice?->name ?? 'N/A' }}
-                                                    </span>
-                                                    
-                                                    <span class="text-xs text-gray-500">
-                                                        <span class="font-medium">To:</span> {{ $document->originatingOffice?->name ?? 'N/A' }}
-                                                    </span>
-                                                    
-                                                    <span class="text-xs text-gray-500">
-                                                        <span class="font-medium">Uploaded:</span> {{ $document->created_at->format('M d, Y H:i') }}
-                                                    </span>
-                                                    
-                                                    <span class="text-xs text-gray-500">
-                                                        <span class="font-medium">Last Updated:</span> {{ $document->updated_at->format('M d, Y H:i') }}
-                                                    </span>
+                                                </div>
+
+                                                <!-- Recipients -->
+                                                <div class="flex items-center text-xs text-slate-500">
+                                                    <span class="font-medium mr-1">Recipients:</span>
+                                                    @if (isset($documentRecipients[$document->id]) && count($documentRecipients[$document->id]) > 0)
+                                                        <span class="truncate max-w-xs">
+                                                            @foreach ($documentRecipients[$document->id] as $recipient)
+                                                                {{ $recipient['name'] }}@if (!$loop->last), @endif
+                                                            @endforeach
+                                                        </span>
+                                                    @else
+                                                        <span class="italic">No recipients</span>
+                                                    @endif
+                                                </div>
+
+                                                <!-- Rejection Information -->
+                                                @if($isRejected && $latestWorkflow && $latestWorkflow->remarks)
+                                                    <div class="mt-1">
+                                                        <span class="text-xs text-red-600"><b>Remarks:</b> {{ $latestWorkflow->remarks }}</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-3.5">
+                                            <div class="flex flex-col space-y-1">
+                                                <div class="text-xs text-slate-500 space-y-0.5">
+                                                    <div>
+                                                        <span class="font-medium text-slate-600">Created:</span>
+                                                        {{ $document->created_at->format('M d, Y H:i') }}
+                                                    </div>
+                                                    <div>
+                                                        <span class="font-medium text-slate-600">Updated:</span>
+                                                        {{ $document->updated_at->format('M d, Y H:i') }}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div class="flex items-center justify-end space-x-2">
-                                                <a href="{{ route('documents.show', $document->id) }}"
-                                                    class="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
-                                                    title="View">
-                                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                        viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                    </svg>
-                                                </a>
-                                                @can('document-edit')
-                                                    <a href="{{ route('documents.edit', $document->id) }}"
-                                                        class="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors"
-                                                        title="Edit">
-                                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                            viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                        </svg>
-                                                    </a>
-                                                @endcan
-                                                @can('document-delete')
-                                                    <form action="{{ route('documents.destroy', $document->id) }}" method="POST"
-                                                        onsubmit="return confirm('Are you sure you want to delete this document?');"
-                                                        class="inline-block">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit"
-                                                            class="p-1.5 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100 transition-colors"
-                                                            title="Delete">
-                                                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    stroke-width="2"
-                                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                            </svg>
-                                                        </button>
-                                                    </form>
-                                                @endcan
-                                                <form action="{{ route('documents.download', $document->id) }}" method="GET"
-                                                    class="inline-block">
-                                                    @csrf
-                                                    <button type="submit"
-                                                        class="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors"
-                                                        title="Download">
-                                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                            viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                                        </svg>
-                                                    </button>
-                                                </form>
+                                        <td class="px-6 py-3.5 text-center overflow-visible">
+                                            <div class="flex justify-center space-x-2">
+                                                @include('documents.partials.document-actions', ['document' => $document])
                                             </div>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="9" class="px-6 py-4 text-center text-sm text-gray-500">
-                                            <div class="flex flex-col items-center justify-center py-6">
-                                                <svg class="h-12 w-12 text-gray-400 mb-3" xmlns="http://www.w3.org/2000/svg"
+                                        <td colspan="6" class="px-6 py-4">
+                                            <div class="flex flex-col items-center justify-center py-12 border-2 border-dashed border-slate-200 rounded-lg bg-slate-50/50 mx-4 my-4">
+                                                <svg class="h-12 w-12 text-slate-400 mb-4" xmlns="http://www.w3.org/2000/svg"
                                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    @if($tab === 'archived')
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                                    @else
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    @endif
                                                 </svg>
-                                                <p class="text-gray-500 text-base">No documents found</p>
-                                                <p class="text-gray-400 text-sm mt-1">Try adjusting your search criteria</p>
+                                                @if($tab === 'archived')
+                                                <p class="text-slate-900 font-medium text-lg mb-2">No archived documents</p>
+                                                <p class="text-slate-500 text-base">Documents that have been archived will appear here.</p>
+                                                @else
+                                                <p class="text-slate-900 font-medium text-lg mb-2">No documents found</p>
+                                                <p class="text-slate-500 text-base">Try adjusting your search criteria or create a new document.</p>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>
@@ -423,126 +842,146 @@
                         </table>
                     </div>
 
-                    <div class="p-6 border-t border-gray-200">
-                        {{ $documents->links() }}
-                    </div>
+
+
+                <!-- Pagination for both tabs -->
+                <div class="p-6 border-t border-slate-100">
+                    {{ $documents->appends(request()->query())->links() }}
                 </div>
-            </div>
-        </div>
-
-        <!-- Audit Logs -->
-        <div class="mt-6 bg-white rounded-xl shadow-xl overflow-hidden border border-blue-100 mb-8">
-            <div class="bg-white p-6 border-b border-blue-200 flex justify-between items-center">
-                <div class="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                    <h2 class="text-lg font-semibold text-gray-800">Document Audit Logs</h2>
-                </div>
-                <span class="text-sm text-gray-500">{{ $auditLogs->total() }} entries</span>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead>
-                        <tr>
-                            <th
-                                class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
-                                Date/Time</th>
-                            <th
-                                class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
-                                Document</th>
-                            <th
-                                class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
-                                User</th>
-                            <th
-                                class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
-                                Action</th>
-                            <th
-                                class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
-                                Status</th>
-                            <th
-                                class="bg-white px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider border-b border-blue-200">
-                                Details</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($auditLogs as $log)
-                                            <tr class="hover:bg-gray-50 transition-colors">
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {{ $log->created_at->format('M d, Y H:i') }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
-                                                    {{ $log->document?->title ?? 'Deleted Document' }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                    <div class="flex items-center">
-                                                        <div
-                                                            class="flex-shrink-0 h-7 w-7 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold shadow-sm text-xs">
-                                                            {{ substr($log->user->first_name, 0, 1) }}
-                                                        </div>
-                                                        <div class="ml-3 text-sm text-gray-700">
-                                                            {{ $log->user->first_name }} {{ $log->user->last_name }}
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                    <span
-                                                        class="px-2.5 py-1 text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                        {{ $log->action }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                    @php
-                                                        $statusColor = 'gray';
-                                                        if ($log->status == 'Approved') {
-                                                            $statusColor = 'emerald';
-                                                        } elseif ($log->status == 'Pending') {
-                                                            $statusColor = 'amber';
-                                                        } elseif ($log->status == 'Rejected') {
-                                                            $statusColor = 'rose';
-                                                        }
-                                                    @endphp
-                                                    <span
-                                                        class="px-2.5 py-1 text-xs leading-5 font-semibold rounded-full bg-{{ $statusColor }}-100 text-{{ $statusColor }}-800">
-                                                        {{ $log->status }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-6 py-4 text-sm text-gray-500">{{ $log->details }}</td>
-                                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
-                                    <div class="flex flex-col items-center justify-center py-6">
-                                        <svg class="h-12 w-12 text-gray-400 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                        </svg>
-                                        <p class="text-gray-500 text-base">No audit logs found</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="p-6 border-t border-gray-200">
-                {{ $auditLogs->links() }}
             </div>
         </div>
     </div>
 
+        </div>
+    </div>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+
+        // Toggle the advanced filters panel
+        function toggleFilterPanel() {
+            const panel = document.getElementById('filterPanel');
+            const chevron = document.getElementById('filterChevron');
+            panel.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+
+        // -- Searchable Select Dropdowns --
+        document.querySelectorAll('.searchable-select').forEach(wrapper => {
+            const targetId  = wrapper.dataset.target;
+            const hidden    = document.getElementById(targetId);
+            const toggle    = wrapper.querySelector('.ss-toggle');
+            const label     = wrapper.querySelector('.ss-label');
+            const dropdown  = wrapper.querySelector('.ss-dropdown');
+            const searchInp = wrapper.querySelector('.ss-search');
+            const options   = wrapper.querySelectorAll('.ss-option');
+            const emptyMsg  = wrapper.querySelector('.ss-empty');
+
+            // Open / close
+            toggle.addEventListener('click', e => {
+                e.preventDefault();
+                // Close all other dropdowns first
+                document.querySelectorAll('.searchable-select .ss-dropdown').forEach(d => {
+                    if (d !== dropdown) d.classList.add('hidden');
+                });
+                dropdown.classList.toggle('hidden');
+                if (!dropdown.classList.contains('hidden')) {
+                    searchInp.value = '';
+                    filterOptions('');
+                    setTimeout(() => searchInp.focus(), 50);
+                }
+            });
+
+            // Select an option
+            options.forEach(opt => {
+                opt.addEventListener('click', () => {
+                    hidden.value = opt.dataset.value;
+                    label.textContent = opt.textContent.trim();
+                    dropdown.classList.add('hidden');
+                    // Highlight selected
+                    options.forEach(o => o.classList.remove('bg-indigo-100/50', 'font-semibold'));
+                    opt.classList.add('bg-indigo-100/50', 'font-semibold');
+                });
+            });
+
+            // Search / filter
+            searchInp.addEventListener('input', () => filterOptions(searchInp.value));
+
+            function filterOptions(term) {
+                const q = term.toLowerCase();
+                let visible = 0;
+                options.forEach(opt => {
+                    const match = opt.textContent.toLowerCase().includes(q);
+                    opt.classList.toggle('hidden', !match);
+                    if (match) visible++;
+                });
+                emptyMsg.classList.toggle('hidden', visible > 0);
+            }
+
+            // Pre-highlight already-selected value
+            if (hidden.value) {
+                options.forEach(opt => {
+                    if (opt.dataset.value === hidden.value) {
+                        opt.classList.add('bg-indigo-100/50', 'font-semibold');
+                    }
+                });
+            }
+        });
+
+        // Close all searchable dropdowns when clicking outside
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.searchable-select')) {
+                document.querySelectorAll('.searchable-select .ss-dropdown').forEach(d => d.classList.add('hidden'));
+            }
+        });
+
+        // Show contact modal for rejected documents
+        function showContactModal(reviewerName, reviewerEmail) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-slate-900">Contact Reviewer</h3>
+                        <button onclick="this.closest('.fixed').remove()" class="text-slate-400 hover:text-slate-600">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Reviewer</label>
+                            <p class="text-sm text-slate-900 bg-slate-50 rounded-lg p-2">${reviewerName}</p>
+                        </div>
+                        ${reviewerEmail ? `
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                            <p class="text-sm text-slate-900 bg-slate-50 rounded-lg p-2">${reviewerEmail}</p>
+                        </div>
+                        ` : ''}
+                        <div class="flex space-x-3 pt-4">
+                            ${reviewerEmail ? `
+                            <a href="mailto:${reviewerEmail}"
+                               class="flex-1 bg-indigo-600 text-white text-center py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">
+                                Send Email
+                            </a>
+                            ` : ''}
+                            <button onclick="this.closest('.fixed').remove()"
+                                    class="flex-1 bg-slate-200 text-slate-800 py-2 px-4 rounded-lg hover:bg-slate-300 transition-colors">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('search-form');
             const imageInput = document.getElementById('image-input');
             const previewContainer = document.getElementById('preview-container');
             const previewImage = document.getElementById('preview-image');
-            const cameraToggle = document.getElementById('camera-toggle');
             const cameraContainer = document.getElementById('camera-container');
             const cameraStream = document.getElementById('camera-stream');
             const captureButton = document.getElementById('capture-button');
@@ -554,7 +993,7 @@
 
             let stream = null;
 
-            imageInput.addEventListener('change', function (e) {
+            imageInput.addEventListener('change', function(e) {
                 const file = this.files[0];
                 if (file) {
                     if (file.size > 5 * 1024 * 1024) {
@@ -564,7 +1003,7 @@
                     }
 
                     const reader = new FileReader();
-                    reader.onloadend = function () {
+                    reader.onloadend = function() {
                         previewImage.src = reader.result;
                         previewContainer.classList.remove('hidden');
                         if (!cameraContainer.classList.contains('hidden')) {
@@ -575,35 +1014,29 @@
                 }
             });
 
-            cameraToggle.addEventListener('click', async function () {
-                if (cameraContainer.classList.contains('hidden')) {
-                    try {
-                        stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                        cameraStream.srcObject = stream;
-                        cameraContainer.classList.remove('hidden');
-                        this.innerHTML = `
-                                                    <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                                    </svg>
-                                                    Close Camera
-                                                `;
-                    } catch (err) {
-                        alert('Unable to access camera');
-                        console.error('Error accessing camera:', err);
-                    }
-                } else {
-                    stopCamera();
+            async function startCamera() {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+                    });
+                    cameraStream.srcObject = stream;
+                    await cameraStream.play();
+                } catch (err) {
+                    console.error('Error accessing camera:', err);
+                    alert('Unable to access camera. Please allow camera permission and try again.');
                 }
-            });
+            }
 
-            captureButton.addEventListener('click', function () {
+            captureButton.addEventListener('click', function() {
                 const canvas = document.createElement('canvas');
                 canvas.width = cameraStream.videoWidth;
                 canvas.height = cameraStream.videoHeight;
                 canvas.getContext('2d').drawImage(cameraStream, 0, 0);
 
-                canvas.toBlob(function (blob) {
-                    const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
+                canvas.toBlob(function(blob) {
+                    const file = new File([blob], 'camera-capture.jpg', {
+                        type: 'image/jpeg'
+                    });
                     const dataTransfer = new DataTransfer();
                     dataTransfer.items.add(file);
                     imageInput.files = dataTransfer.files;
@@ -613,27 +1046,53 @@
                 }, 'image/jpeg');
             });
 
-            form.addEventListener('submit', function () {
+            form.addEventListener('submit', function() {
                 submitButton.disabled = true;
                 spinner.classList.remove('hidden');
                 buttonText.textContent = 'Searching...';
             });
 
-            quickSearch.addEventListener('keyup', function () {
+            quickSearch.addEventListener('keyup', function() {
                 const searchField = filterField.value;
                 const searchText = this.value.toLowerCase();
                 const tableRows = document.querySelectorAll('tbody tr');
 
                 tableRows.forEach(row => {
+                    let found = false;
+                    if (searchField === 'general') {
+                        // Search all cells except actions
+                        for (let i = 0; i < row.cells.length - 1; i++) {
+                            if (row.cells[i].textContent.toLowerCase().includes(searchText)) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        row.style.display = found ? '' : 'none';
+                        return;
+                    }
+
                     let cellIndex;
                     switch (searchField) {
-                        case 'title': cellIndex = 1; break;
-                        case 'uploader': cellIndex = 2; break;
-                        case 'status': cellIndex = 3; break;
-                        case 'originating': cellIndex = 4; break;
-                        case 'recipient': cellIndex = 5; break;
-                        case 'description': cellIndex = 7; break;
-                        default: cellIndex = 1;
+                        case 'title':
+                            cellIndex = 1;
+                            break;
+                        case 'uploader':
+                            cellIndex = 2;
+                            break;
+                        case 'status':
+                            cellIndex = 3;
+                            break;
+                        case 'originating':
+                            cellIndex = 4;
+                            break;
+                        case 'recipient':
+                            cellIndex = 5;
+                            break;
+                        case 'description':
+                            cellIndex = 7;
+                            break;
+                        default:
+                            cellIndex = 1;
                     }
 
                     const cell = row.cells[cellIndex];
@@ -648,7 +1107,7 @@
                 });
             });
 
-            window.clearImage = function () {
+            window.clearImage = function() {
                 imageInput.value = '';
                 previewImage.src = '#';
                 previewContainer.classList.add('hidden');
@@ -659,17 +1118,765 @@
                     stream.getTracks().forEach(track => track.stop());
                     stream = null;
                 }
-                cameraContainer.classList.add('hidden');
-                cameraToggle.innerHTML = `
-                                            <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            </svg>
-                                            Open Camera
-                                        `;
+                cameraStream.srcObject = null;
             }
 
             window.addEventListener('beforeunload', stopCamera);
         });
     </script>
+
+    <!-- Popup Notification Styles -->
+    <style>
+        .popup-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            max-width: 500px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1),
+                        0 0 1px rgba(0, 0, 0, 0.1);
+            transform: translateX(100%);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .popup-notification.show {
+            transform: translateX(0);
+        }
+
+        .popup-notification.success {
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+            border-left: 4px solid #047857;
+        }
+
+        .popup-notification.error {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+            color: white;
+            border-left: 4px solid #b91c1c;
+        }
+
+        .popup-notification.warning {
+            background: linear-gradient(45deg, #f59e0b, #d97706);
+            color: white;
+            border-left: 4px solid #b45309;
+        }
+
+        .popup-notification .popup-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .popup-notification .popup-icon {
+            margin-right: 12px;
+            width: 24px;
+            height: 24px;
+        }
+
+        .popup-notification .popup-message {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .popup-notification .popup-close {
+            margin-left: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .popup-notification .popup-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .confirmation-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirmation-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .confirmation-content {
+            position: relative;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            max-width: 450px;
+            width: 90%;
+            animation: confirmationSlideIn 0.3s ease-out;
+        }
+
+        @keyframes confirmationSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .confirmation-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .confirmation-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+        }
+
+        .confirmation-icon.delete {
+            color: #dc2626;
+        }
+
+        .confirmation-icon.archive {
+            color: #f59e0b;
+        }
+
+        .confirmation-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 0;
+        }
+
+        .confirmation-message {
+            color: #4b5563;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .confirmation-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .confirmation-cancel, .confirmation-confirm {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+        }
+
+        .confirmation-cancel {
+            background: #f9fafb;
+            border-color: #d1d5db;
+            color: #374151;
+        }
+
+        .confirmation-cancel:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+
+        .confirmation-confirm.delete {
+            background: #dc2626;
+            border-color: #dc2626;
+            color: white;
+        }
+
+        .confirmation-confirm.delete:hover {
+            background: #b91c1c;
+            border-color: #b91c1c;
+        }
+
+        .confirmation-confirm.archive {
+            background: #f59e0b;
+            border-color: #f59e0b;
+            color: white;
+        }
+
+        .confirmation-confirm.archive:hover {
+            background: #d97706;
+            border-color: #d97706;
+        }
+
+        .confirmation-icon.recall {
+            width: 24px;
+            height: 24px;
+            color: #7c3aed;
+            margin-right: 12px;
+        }
+
+        .confirmation-confirm.recall {
+            background: #7c3aed;
+            border-color: #7c3aed;
+            color: white;
+        }
+
+        .confirmation-confirm.recall:hover {
+            background: #6d28d9;
+            border-color: #6d28d9;
+        }
+
+        .confirmation-icon.resume {
+            width: 24px;
+            height: 24px;
+            color: #059669;
+            margin-right: 12px;
+        }
+
+        .confirmation-confirm.resume {
+            background: #059669;
+            border-color: #059669;
+            color: white;
+        }
+
+        .confirmation-confirm.resume:hover {
+            background: #047857;
+            border-color: #047857;
+        }
+
+        /* Tab Styles */
+        .tab-button {
+            color: #6b7280;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+        }
+
+        .tab-button:hover {
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .tab-button.active-tab {
+            color: #3b82f6;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content {
+            display: block;
+        }
+
+        .tab-content.hidden {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Enhanced Rejected Documents Styling */
+        .rejected-document-row {
+            background: linear-gradient(135deg, #ffffff 0%, #fef7f7 100%);
+        }
+
+        .rejected-document-row:hover {
+            background: linear-gradient(135deg, #fef7f7 0%, #fef2f2 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
+        }
+
+        .rejection-card {
+            background: linear-gradient(135deg, #fef2f2 0%, #fef7f7 100%);
+            border: 1px solid #fecaca;
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.05);
+        }
+
+        .rejection-card:hover {
+            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.1);
+        }
+
+        /* Action button hover effects */
+        .action-button {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transition: width 0.3s, height 0.3s, top 0.3s, left 0.3s;
+        }
+
+        .action-button:hover::before {
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            border-radius: 0;
+        }
+
+        /* Tooltip improvements */
+        .tooltip {
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        /* Enhanced status badges */
+        .status-badge {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .status-badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .status-badge:hover::before {
+            left: 100%;
+        }
+
+        /* Filter Group Styles */
+        .filter-group {
+            position: relative;
+        }
+
+        .filter-group button {
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .filter-group button:hover {
+            background-color: #FFFFFF;
+        }
+
+        .filter-group button span {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .filter-group .dropdown-menu {
+            margin-top: 0.25rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(209, 213, 219, 0.7);
+            background-color: white;
+        }
+
+        /* Animation for row transitions */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+    </style>
+
+    <script>
+        // Toggle Image Search Section
+        function toggleImageSearch() {
+            const section = document.getElementById('image-search-section');
+            const button = document.getElementById('image-search-toggle-btn');
+            const imageIcon = button.querySelector('.image-icon');
+            const closeIcon = button.querySelector('.close-icon');
+            const buttonText = button.querySelector('span');
+            const isHidden = section.classList.contains('hidden');
+
+            if (isHidden) {
+                // Show section and start camera
+                section.classList.remove('hidden');
+                section.style.opacity = '0';
+                section.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    section.style.transition = 'all 0.3s ease-out';
+                    section.style.opacity = '1';
+                    section.style.transform = 'translateY(0)';
+                }, 10);
+
+                // Start camera
+                if (typeof startCamera === 'function') startCamera();
+
+                // Update button style
+                button.classList.add('bg-indigo-100/50', 'border-indigo-500', 'text-indigo-600');
+                imageIcon.classList.add('opacity-0');
+                closeIcon.classList.remove('opacity-0');
+                if (buttonText) buttonText.textContent = 'Close Scanner';
+            } else {
+                // Stop camera and hide section
+                if (typeof stopCamera === 'function') stopCamera();
+
+                section.style.opacity = '0';
+                section.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    section.classList.add('hidden');
+                    section.style.transition = '';
+                    section.style.opacity = '';
+                    section.style.transform = '';
+                }, 300);
+
+                // Reset button style
+                button.classList.remove('bg-indigo-100/50', 'border-indigo-500', 'text-indigo-600');
+                imageIcon.classList.remove('opacity-0');
+                closeIcon.classList.add('opacity-0');
+                if (buttonText) buttonText.textContent = 'Scan Barcode';
+            }
+        }
+
+        // Function to filter documents by status
+        function filterDocumentsByStatus(status) {
+            // Get current URL
+            const url = new URL(window.location);
+
+            // Update status parameter
+            if (status === 'all') {
+                url.searchParams.delete('status');
+            } else {
+                url.searchParams.set('status', status);
+            }
+
+            // Keep current page parameters like tab if they exist
+            url.searchParams.forEach((value, key) => {
+                if (key !== 'status' && key !== 'page') {
+                    url.searchParams.set(key, value);
+                }
+            });
+
+            // Reset to page 1 when filtering
+            url.searchParams.delete('page');
+
+            // Update badges visual state
+            const badges = document.querySelectorAll('[data-status]');
+            badges.forEach(badge => {
+                const badgeStatus = badge.getAttribute('data-status');
+                if (badgeStatus === status || (status === 'all' && badgeStatus === null)) {
+                    badge.classList.add('bg-slate-50', 'ring-2', 'ring-offset-2');
+                    if (badgeStatus === 'approved') badge.classList.add('ring-emerald-500');
+                    else if (badgeStatus === 'pending') badge.classList.add('ring-yellow-500');
+                    else if (badgeStatus === 'rejected') badge.classList.add('ring-red-500');
+                    else badge.classList.add('ring-indigo-500');
+                } else {
+                    badge.classList.remove('bg-slate-50', 'ring-2', 'ring-offset-2', 'ring-emerald-500', 'ring-yellow-500', 'ring-red-500', 'ring-indigo-500');
+                }
+            });
+
+            // Navigate to filtered URL
+            window.location.href = url.toString();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show popup notifications for session messages
+            @if(session('success'))
+                showPopup('{{ session('success') }}', 'success');
+            @endif
+
+            @if(session('error'))
+                showPopup('{{ session('error') }}', 'error');
+            @endif
+
+            // Initialize all status badges with interactive styles
+            const statusBadges = document.querySelectorAll('[data-status]');
+            statusBadges.forEach(badge => {
+                badge.classList.add('cursor-pointer', 'hover:bg-slate-50', 'transition-colors');
+            });
+        });
+
+        // Function to show popup notifications
+        function showPopup(message, type = 'success') {
+            // Remove any existing popups
+            const existingPopups = document.querySelectorAll('.popup-notification');
+            existingPopups.forEach(popup => popup.remove());
+
+            // Create popup element
+            const popup = document.createElement('div');
+            popup.className = `popup-notification ${type}`;
+
+            let iconSvg = '';
+            switch(type) {
+                case 'success':
+                    iconSvg = '<svg class="popup-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+                    break;
+                case 'error':
+                    iconSvg = '<svg class="popup-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+                    break;
+                case 'warning':
+                    iconSvg = '<svg class="popup-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.732 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>';
+                    break;
+            }
+
+            popup.innerHTML = `
+                <div class="popup-content">
+                    ${iconSvg}
+                    <span class="popup-message">${message}</span>
+                    <button class="popup-close" onclick="closePopup(this)">&times;</button>
+                </div>
+            `;
+
+            // Add to body
+            document.body.appendChild(popup);
+
+            // Show popup
+            setTimeout(() => popup.classList.add('show'), 100);
+
+            // Auto close after 5 seconds
+            setTimeout(() => closePopup(popup.querySelector('.popup-close')), 5000);
+        }
+
+        // Function to close popup
+        function closePopup(closeBtn) {
+            const popup = closeBtn.closest('.popup-notification');
+            popup.classList.remove('show');
+            setTimeout(() => popup.remove(), 300);
+        }
+
+        // Custom confirmation popup function
+        function showConfirmationPopup(message, onConfirm, type = 'delete') {
+            // Remove any existing popups
+            const existingPopups = document.querySelectorAll('.popup-notification, .confirmation-popup');
+            existingPopups.forEach(popup => popup.remove());
+
+            // Create confirmation popup
+            const popup = document.createElement('div');
+            popup.className = 'confirmation-popup';
+
+            let iconSvg = '';
+            let title = '';
+            let confirmText = '';
+
+            switch(type) {
+                case 'delete':
+                    iconSvg = '<svg class="confirmation-icon delete" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>';
+                    title = 'Delete Document';
+                    confirmText = 'Delete';
+                    break;
+                case 'archive':
+                    iconSvg = '<svg class="confirmation-icon archive" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>';
+                    title = 'Archive Document';
+                    confirmText = 'Archive';
+                    break;
+                case 'recall':
+                    iconSvg = '<svg class="confirmation-icon recall" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z" /></svg>';
+                    title = 'Recall Document';
+                    confirmText = 'Recall';
+                    break;
+                case 'resume':
+                    iconSvg = '<svg class="confirmation-icon resume" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h8m-9-4h1m-1 0V8a2 2 0 012-2h8a2 2 0 012 2v2M9 10v4m4-4v4" /></svg>';
+                    title = 'Resume Document';
+                    confirmText = 'Resume';
+                    break;
+                case 'new_workflow':
+                    iconSvg = '<svg class="confirmation-icon new_workflow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>';
+                    title = 'Create New Workflow';
+                    confirmText = 'Create New Workflow';
+                    break;
+                default:
+                    iconSvg = '<svg class="confirmation-icon delete" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>';
+                    title = 'Confirm Action';
+                    confirmText = 'Confirm';
+            }
+
+            popup.innerHTML = `
+                <div class="confirmation-overlay"></div>
+                <div class="confirmation-content">
+                    <div class="confirmation-header">
+                        ${iconSvg}
+                        <h3>${title}</h3>
+                    </div>
+                    <div class="confirmation-message">${message}</div>
+                    <div class="confirmation-buttons">
+                        <button class="confirmation-cancel">Cancel</button>
+                        <button class="confirmation-confirm ${type}">${confirmText}</button>
+                    </div>
+                </div>
+            `;
+
+            // Add to body
+            document.body.appendChild(popup);
+
+            // Add event listeners
+            popup.querySelector('.confirmation-cancel').addEventListener('click', function() {
+                popup.remove();
+            });
+
+            popup.querySelector('.confirmation-confirm').addEventListener('click', function() {
+                popup.remove();
+                onConfirm();
+            });
+
+            popup.querySelector('.confirmation-overlay').addEventListener('click', function() {
+                popup.remove();
+            });
+
+            // Close on escape key
+            document.addEventListener('keydown', function escapeHandler(e) {
+                if (e.key === 'Escape') {
+                    popup.remove();
+                    document.removeEventListener('keydown', escapeHandler);
+                }
+            });
+        }
+
+        // Enhanced delete function
+        function handleDeleteDocument(form) {
+            showConfirmationPopup(
+                'Are you sure you want to delete this document? This action cannot be undone and will permanently remove the document from the system.',
+                function() {
+                    // Show loading state
+                    const button = form.querySelector('button[type="submit"]');
+                    if (button) {
+                        button.disabled = true;
+                        button.innerHTML = `
+                            <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        `;
+                    }
+                    form.submit();
+                },
+                'delete'
+            );
+            return false;
+        }
+
+        // Enhanced archive function
+        function handleArchiveDocument(form) {
+            showConfirmationPopup(
+                'Are you sure you want to archive this document? It will be moved to the archive section and will no longer appear in the active documents list.',
+                function() {
+                    // Show loading state
+                    const button = form.querySelector('button[type="submit"]');
+                    if (button) {
+                        button.disabled = true;
+                        button.innerHTML = `
+                            <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        `;
+                    }
+                    form.submit();
+                },
+                'archive'
+            );
+            return false;
+        }
+
+        // Handle recall document action
+        function handleRecallDocument(form) {
+            showConfirmationPopup(
+                'Are you sure you want to recall this document? This will pause the workflow and notify all recipients.',
+                function() {
+                    // Show loading state
+                    const button = form.querySelector('button[type="submit"]');
+                    if (button) {
+                        button.disabled = true;
+                        button.innerHTML = `
+                            <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        `;
+                    }
+                    form.submit();
+                },
+                'recall'
+            );
+            return false;
+        }
+
+        // Handle resume document action
+        function handleResumeDocument(form) {
+            showConfirmationPopup(
+                'Are you sure you want to resume this document workflow? This will reactivate the workflow and notify all recipients.',
+                function() {
+                    // Show loading state
+                    const button = form.querySelector('button[type="submit"]');
+                    if (button) {
+                        button.disabled = true;
+                        button.innerHTML = `
+                            <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        `;
+                    }
+                    form.submit();
+                },
+                'resume'
+            );
+            return false;
+        }
+
+        // Handle create new workflow action
+        function handleCreateNewWorkflow(form) {
+            showConfirmationPopup(
+                'Are you sure you want to create a new workflow? This will clear all previous workflows for this document and allow you to set up new recipients.',
+                function() {
+                    // Show loading state
+                    const button = form.querySelector('button[type="submit"]');
+                    if (button) {
+                        button.disabled = true;
+                        button.innerHTML = `
+                            <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        `;
+                    }
+                    form.submit();
+                },
+                'new_workflow'
+            );
+            return false;
+        }
+    </script>
+
+{{-- ------- Print Prompt Modal ------- --}}
+@include('documents.partials.print-prompt-modal')
+
 @endsection

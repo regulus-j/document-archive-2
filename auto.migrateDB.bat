@@ -8,6 +8,8 @@
         php artisan db:seed --class=DocumentCategories
         php artisan db:seed --class=CreateAdminUserSeeder
         php artisan db:seed --class=OfficeCompanyUser
+        php artisan db:seed --class=PlanSeeder
+        php artisan db:seed --class=DocumentCategories
 
 :: End of the batch script
 exit

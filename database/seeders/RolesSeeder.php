@@ -14,10 +14,11 @@ class RolesSeeder extends Seeder
      */
     public function run(): void
     {
-        //
-        $roles = ['super-admin', 'company-admin', 'user'];
+        // Only create the global super-admin role here.
+        // Company-specific roles (company-admin, user) are auto-created
+        // when a company is created via CompanyAccount::booted().
 
-        $allowedPermissions = $supeAdmPermissions = $adminPermissions = [
+        $allPermissions = [
             'role-list',
             'role-create',
             'role-edit',
@@ -39,24 +40,10 @@ class RolesSeeder extends Seeder
             'user-delete'
         ];
 
-        foreach ($roles as $role) {
-            Role::firstOrCreate(['name' => $role]);
-        }
-
-        $superAdminRole = Role::findByName('super-admin');
-        $adminRole = Role::findByName('company-admin');
-        $userRole = Role::findByName('user');       
-        
-        $superAdminRole->syncPermissions($allowedPermissions);
-        $adminRole->syncPermissions($allowedPermissions);
-
-        $userRole->syncPermissions([
-            'document-list',
-            'document-create',
-            'document-edit',
-            'document-delete',
-            'document-release',
-            'document-receive'
+        $superAdminRole = Role::firstOrCreate([
+            'name' => 'super-admin',
+            'guard_name' => 'web',
         ]);
+        $superAdminRole->syncPermissions($allPermissions);
     }
 }

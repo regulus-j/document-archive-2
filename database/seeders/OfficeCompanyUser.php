@@ -19,14 +19,23 @@ class OfficeCompanyUser extends Seeder
             User::factory()->count(5)->create();
         }
         
+        // Find admin and regular user by email
+        $adminUser = User::where('email', 'admin@example.com')->first();
+        $regularUser = User::where('email', 'user@example.com')->first();
+        
         // Get existing users to use for companies
         $users = User::all();
         
         // Check if company with ID 1 exists
         $companyOne = CompanyAccount::find(1);
         
-        // Create company ID 1 if it doesn't exist
-        if (!$companyOne) {
+        // Create company ID 1 if it doesn't exist, and assign admin as owner if possible
+        if (!$companyOne && $adminUser) {
+            $companyOne = CompanyAccount::factory()->create([
+                'id' => 1,
+                'user_id' => $adminUser->id
+            ]);
+        } elseif (!$companyOne) {
             $companyOne = CompanyAccount::factory()->create([
                 'id' => 1,
                 'user_id' => $users->first()->id
@@ -86,52 +95,57 @@ class OfficeCompanyUser extends Seeder
             ]);
         });
         
-        // Find admin and regular user by email
-        $adminUser = User::where('email', 'admin@example.com')->first();
-        $regularUser = User::where('email', 'user@example.com')->first();
+        // Make sure we have company 1 offices
+        $companyOneOffices = array_filter($offices, function($office) {
+            return $office['company_id'] == 1;
+        });
         
-        // If the users exist, assign them to random offices
-        if ($adminUser && !empty($offices)) {
-            // Get random office IDs
-            $officeIds = array_column($offices, 'id');
-            shuffle($officeIds);
-            $selectedOfficeId = $officeIds[0]; // Select one random office
-            
-            // Assign admin to the office
-            $adminUser->offices()->attach($selectedOfficeId);
-            
-            // Get the company for this office
-            $officeIndex = array_search($selectedOfficeId, array_column($offices, 'id'));
-            $companyId = $offices[$officeIndex]['company_id'];
-            
-            // Make sure user is connected to the company (if not already)
-            if (!\App\Models\CompanyUser::where('user_id', $adminUser->id)->where('company_id', $companyId)->exists()) {
+        if (empty($companyOneOffices) && isset($companies[0]) && $companies[0]->id == 1) {
+            $companyOneOffices = Office::factory()
+                ->count(3)
+                ->create(['company_id' => 1])
+                ->toArray();
+            $offices = array_merge($offices, $companyOneOffices);
+        }
+        
+        // Filter only company 1 offices for admin and regular user
+        $companyOneOfficeIds = array_column($companyOneOffices, 'id');
+        
+        // If admin and regular user exist, ensure they're assigned to the same company (company ID 1)
+        // and the regular user has an office
+        if ($adminUser) {
+            // Ensure admin is attached to company 1
+            if (!\App\Models\CompanyUser::where('user_id', $adminUser->id)->where('company_id', 1)->exists()) {
                 \App\Models\CompanyUser::create([
                     'user_id' => $adminUser->id,
-                    'company_id' => $companyId
+                    'company_id' => 1
                 ]);
+            }
+            
+            // Assign admin to an office if not already assigned
+            if ($adminUser->offices()->count() == 0 && !empty($companyOneOfficeIds)) {
+                $adminUser->offices()->attach($companyOneOfficeIds[0]);
             }
         }
         
-        if ($regularUser && !empty($offices)) {
-            // Get random office IDs (different from admin's)
-            $officeIds = array_column($offices, 'id');
-            shuffle($officeIds);
-            $selectedOfficeId = $officeIds[0]; // Select one random office
-            
-            // Assign regular user to the office
-            $regularUser->offices()->attach($selectedOfficeId);
-            
-            // Get the company for this office
-            $officeIndex = array_search($selectedOfficeId, array_column($offices, 'id'));
-            $companyId = $offices[$officeIndex]['company_id'];
-            
-            // Make sure user is connected to the company (if not already)
-            if (!\App\Models\CompanyUser::where('user_id', $regularUser->id)->where('company_id', $companyId)->exists()) {
+        if ($regularUser) {
+            // Ensure regular user is attached to company 1
+            if (!\App\Models\CompanyUser::where('user_id', $regularUser->id)->where('company_id', 1)->exists()) {
                 \App\Models\CompanyUser::create([
                     'user_id' => $regularUser->id,
-                    'company_id' => $companyId
+                    'company_id' => 1
                 ]);
+            }
+            
+            // Always assign regular user to an office (even if already assigned before)
+            if (!empty($companyOneOfficeIds)) {
+                // Pick a random office from company 1
+                shuffle($companyOneOfficeIds);
+                $selectedOfficeId = $companyOneOfficeIds[0];
+                
+                // Clear any existing office assignments and add the new one
+                $regularUser->offices()->detach();
+                $regularUser->offices()->attach($selectedOfficeId);
             }
         }
     }

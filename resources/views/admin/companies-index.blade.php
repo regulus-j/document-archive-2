@@ -1,19 +1,19 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="bg-gradient-to-b from-blue-50 to-white min-h-screen py-8">
+    <div class="bg-gradient-to-b from-indigo-50 to-white min-h-screen py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 class="text-3xl font-bold text-gray-900 mb-6">Company Management</h1>
+            <h1 class="text-3xl font-bold text-slate-900 mb-6">Company Management</h1>
 
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold text-gray-800">Company List</h2>
+                <h2 class="text-xl font-semibold text-slate-800">Company List</h2>
                 <!-- Add search input and button -->
                 <div class="flex">
                     <input type="text" 
                         id="searchInput" 
                         placeholder="Search companies..." 
-                        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                    <button id="searchButton" class="ml-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        class="px-4 py-2 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    <button id="searchButton" class="ml-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
                         Search
                     </button>
                 </div>
@@ -32,12 +32,12 @@
                             </thead>
                             <tbody id="companiesTableBody">
                                 @forelse ($companies as $company)
-                                    <tr class="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-colors">
-                                        <td class="px-4 py-2">{{ $company['id'] }}</td>
-                                        <td class="px-4 py-2">{{ $company['name'] }}</td>
-                                        <td class="px-4 py-2">{{ $company['owner'] }}</td>
-                                        <td class="px-4 py-2">{{ $company['status'] }}</td>
-                                        <td class="px-4 py-2">{{ $company['plan'] }}</td>
+                                    <tr class="hover:bg-gradient-to-r hover:from-indigo-50 hover:to-indigo-50 transition-colors">
+                                        <td class="px-4 py-2">{{ $company->id }}</td>
+                                        <td class="px-4 py-2">{{ $company->name }}</td>
+                                        <td class="px-4 py-2">{{ $company->owner }}</td>
+                                        <td class="px-4 py-2">{{ $company->status }}</td>
+                                        <td class="px-4 py-2">{{ $company->plan }}</td>
                                     </tr>
                                 @empty
                                     <tr>
@@ -48,6 +48,12 @@
                         </table>
                     </div>
                 </div>
+
+                @if($companies->hasPages())
+                <div class="mt-4 px-6 pb-4">
+                    {{ $companies->links() }}
+                </div>
+                @endif
             </div>
         </div>
     </div>

@@ -24,23 +24,27 @@ class CreateAdminUserSeeder extends Seeder
                 'email' => 'superadmin@example.com',
                 'first_name' => 'SuperAdmin',
                 'last_name' => 'User',
-                'password' => Hash::make('password')
+                'password' => Hash::make('password'),
+                'email_verified_at' => now()
             ],
             [
                 'email' => 'admin@example.com',
                 'first_name' => 'Admin',
                 'last_name' => 'User',
-                'password' => Hash::make('password')
+                'password' => Hash::make('password'),
+                'email_verified_at' => now()
             ],
             [
                 'email' => 'user@example.com',
                 'first_name' => 'Regular',
                 'last_name' => 'User',
-                'password' => Hash::make('password')
+                'password' => Hash::make('password'),
+                'email_verified_at' => now()
             ],
         ];
 
         $adminUserId = null;
+        $regularUserId = null;
 
         foreach ($users as $userData) {
             $user = User::firstOrCreate(
@@ -50,28 +54,23 @@ class CreateAdminUserSeeder extends Seeder
 
             // Assign roles based on email
             if ($userData['email'] === 'superadmin@example.com') {
-                $role = Role::firstOrCreate(['name' => 'super-admin']);
-                $user->assignRole('super-admin');
-                // Super admin is NOT assigned to any company
+                // Super-admin is a global role (no company_id)
+                $role = Role::firstOrCreate(['name' => 'super-admin', 'guard_name' => 'web']);
+                $user->assignRole($role);
             } elseif ($userData['email'] === 'admin@example.com') {
-                $role = Role::firstOrCreate(['name' => 'company-admin']);
-                $user->assignRole('company-admin');
-                
-                // Save admin user ID to create company later
                 $adminUserId = $user->id;
-            } else {
-                $role = Role::firstOrCreate(['name' => 'user']);
-                $user->assignRole('user');
+            } else if ($userData['email'] === 'user@example.com') {
+                $regularUserId = $user->id;
             }
         }
         
         // Now create the company with the actual admin user ID
         if ($adminUserId) {
-            // Create company AFTER we have the admin user
+            // Create company — this triggers auto-creation of company-specific roles
             $company = CompanyAccount::firstOrCreate(
                 ['id' => 1],
                 [
-                    'user_id' => $adminUserId, // Use the actual admin ID
+                    'user_id' => $adminUserId,
                     'company_name' => 'Demo Company',
                     'registered_name' => 'Demo Company Ltd',
                     'company_email' => 'info@democompany.com',
@@ -81,13 +80,29 @@ class CreateAdminUserSeeder extends Seeder
                 ]
             );
             
+            // Assign company-specific company-admin role
+            $companyAdminRole = Role::where('name', 'company-admin')
+                ->where('company_id', $company->id)
+                ->first();
+            if ($companyAdminRole) {
+                $adminUser = User::find($adminUserId);
+                $adminUser->assignRole($companyAdminRole);
+            }
+
             // Attach admin to company
             $this->attachUserToCompany($adminUserId, $company->id);
             
-            // Attach regular user to company if it exists
-            $regularUser = User::where('email', 'user@example.com')->first();
-            if ($regularUser) {
-                $this->attachUserToCompany($regularUser->id, $company->id);
+            // Attach regular user to company and assign company-specific user role
+            if ($regularUserId) {
+                $this->attachUserToCompany($regularUserId, $company->id);
+                
+                $userRoleModel = Role::where('name', 'user')
+                    ->where('company_id', $company->id)
+                    ->first();
+                if ($userRoleModel) {
+                    $regularUser = User::find($regularUserId);
+                    $regularUser->assignRole($userRoleModel);
+                }
             }
         }
     }

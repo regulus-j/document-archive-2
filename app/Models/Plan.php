@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Plan extends Model
 {
@@ -13,22 +14,63 @@ class Plan extends Model
         'price',
         'billing_cycle',
         'is_active',
-        'feature_1',
-        'feature_2',
-        'feature_3',
     ];
 
     protected $casts = [
-        'price' => 'decimal:2',
+        'price' => 'integer',
         'is_active' => 'boolean',
-        'feature_1' => 'boolean',
-        'feature_2' => 'boolean',
-        'feature_3' => 'boolean',
     ];
 
     public function subscriptions(): HasMany
     {
         return $this->hasMany(CompanySubscription::class);
+    }
+
+    /**
+     * Get the features for the plan
+     */
+    public function features(): BelongsToMany
+    {
+        return $this->belongsToMany(Feature::class, 'plan_features')
+                    ->withPivot('enabled')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Check if the plan has a specific feature enabled
+     */
+    public function hasFeature(string $key): bool
+    {
+        return $this->features()
+                    ->where('key', $key)
+                    ->wherePivot('enabled', true)
+                    ->exists();
+    }
+
+    /**
+     * Get all features that are enabled for this plan
+     */
+    public function getEnabledFeatures()
+    {
+        return $this->features()->wherePivot('enabled', true)->get();
+    }
+
+    /**
+     * Legacy getters for backwards compatibility
+     */
+    public function getFeature1Attribute()
+    {
+        return $this->hasFeature('document-storage');
+    }
+
+    public function getFeature2Attribute()
+    {
+        return $this->hasFeature('advanced-sharing');
+    }
+
+    public function getFeature3Attribute()
+    {
+        return $this->hasFeature('analytics');
     }
 }
 

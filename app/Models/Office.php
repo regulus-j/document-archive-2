@@ -14,6 +14,13 @@ class Office extends Model
         'company_id',
         'name',
         'parent_office_id',
+        'office_lead',
+        'archive_schedule_days',
+        'archive_last_run_at',
+    ];
+
+    protected $casts = [
+        'archive_last_run_at' => 'datetime',
     ];
 
     public function childOffices()
@@ -44,5 +51,10 @@ class Office extends Model
     public function company()
     {
         return $this->belongsTo(CompanyAccount::class);
+    }
+
+    public function lead()
+    {
+        return $this->belongsTo(User::class, 'office_lead');
     }
 }

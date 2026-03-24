@@ -6,6 +6,7 @@ use App\Models\CompanySubscription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
+use App\Models\Plan;
 
 class SubscriptionController extends Controller
 {
@@ -17,7 +18,7 @@ class SubscriptionController extends Controller
 
     public function indexAdmin()
     {
-        $subscriptions = CompanySubscription::with(['company', 'plan'])->get();
+        $subscriptions = CompanySubscription::with(['company', 'plan'])->paginate(15);
         return view('admin.subscriptions-index', compact('subscriptions'));
     }
 
@@ -68,7 +69,7 @@ class SubscriptionController extends Controller
 
         return response()->json(['message' => 'Subscription activated successfully']);
     }
-    
+
     /**
      * Show form to assign subscription to a company admin
      */
@@ -78,13 +79,13 @@ class SubscriptionController extends Controller
         if (!auth()->user()->hasRole('super-admin')) {
             return redirect()->back()->with('error', 'Unauthorized access.');
         }
-        
+
         $companies = \App\Models\CompanyAccount::all();
         $plans = \App\Models\Plan::all();
-        
+
         return view('admin.subscriptions.assign', compact('companies', 'plans'));
     }
-    
+
     /**
      * Assign subscription to a company admin
      */
@@ -94,7 +95,7 @@ class SubscriptionController extends Controller
         if (!auth()->user()->hasRole('super-admin')) {
             return redirect()->back()->with('error', 'Unauthorized access.');
         }
-        
+
         $validated = $request->validate([
             'company_id' => 'required|exists:company_accounts,id',
             'plan_id' => 'required|exists:plans,id',
@@ -103,13 +104,13 @@ class SubscriptionController extends Controller
             'auto_renew' => 'boolean',
             'status' => 'required|in:active,pending,canceled'
         ]);
-        
+
         DB::transaction(function () use ($validated) {
             // Check if company already has an active subscription
             $existingSubscription = CompanySubscription::where('company_id', $validated['company_id'])
                 ->where('status', 'active')
                 ->first();
-                
+
             if ($existingSubscription) {
                 // Update existing subscription end date if requested
                 if ($validated['status'] == 'active') {
@@ -124,15 +125,15 @@ class SubscriptionController extends Controller
                     $existingSubscription->update(['status' => 'canceled']);
                 }
             }
-            
+
             // Create new subscription
             CompanySubscription::create($validated);
         });
-        
+
         return redirect()->route('admin.subscriptions.index')
             ->with('success', 'Subscription assigned successfully.');
     }
-    
+
     /**
      * Renew an existing subscription
      */
@@ -142,23 +143,23 @@ class SubscriptionController extends Controller
         if (!auth()->user()->hasRole('super-admin')) {
             return redirect()->back()->with('error', 'Unauthorized access.');
         }
-        
+
         $validated = $request->validate([
             'end_date' => 'required|date|after:today',
             'auto_renew' => 'boolean',
         ]);
-        
+
         // Extend the subscription
         $subscription->update([
             'end_date' => $validated['end_date'],
             'auto_renew' => $validated['auto_renew'] ?? $subscription->auto_renew,
             'status' => 'active'
         ]);
-        
+
         return redirect()->route('admin.subscriptions.index')
             ->with('success', 'Subscription renewed successfully until ' . $validated['end_date']);
     }
-    
+
     /**
      * Handle automated subscription renewals
      * This should be called via a scheduled command
@@ -171,21 +172,157 @@ class SubscriptionController extends Controller
             ->where('end_date', '<=', now()->addDays(7))
             ->where('end_date', '>=', now())
             ->get();
-            
+
         foreach ($subscriptions as $subscription) {
             // Extend by the original duration
             $originalDuration = $subscription->original_duration ?? 365; // Default to 1 year
-            
+
             $subscription->update([
                 'end_date' => Carbon::parse($subscription->end_date)->addDays($originalDuration),
                 'renewal_count' => ($subscription->renewal_count ?? 0) + 1,
                 // You could add payment processing logic here
             ]);
-            
+
             // Notify company admin about renewal
             // Add notification logic here
         }
-        
+
         return response()->json(['message' => count($subscriptions) . ' subscriptions renewed successfully']);
+    }
+
+    /**
+     * Display subscription status for a company admin
+     */
+    public function showStatus()
+    {
+        // Check if user is a company admin
+        if (!auth()->user()->hasRole('company-admin')) {
+            return redirect()->back()->with('error', 'Unauthorized access.');
+        }
+
+        // Get the company for the authenticated user (first try owned company)
+        $company = auth()->user()->company()->first();
+
+        // If not found, check if user belongs to a company
+        if (!$company) {
+            $company = auth()->user()->companies()->first();
+        }
+
+        // Check if company exists
+        if (!$company) {
+            return redirect()->route('companies.create')->with('error', 'You need to create a company profile first.');
+        }
+
+        // Get current active subscription using the active scope
+        $subscription = CompanySubscription::active()
+            ->where('company_id', $company->id)
+            ->with('plan')
+            ->latest()  // Order by start_date (newest first)
+            ->first();
+
+        // // If no active subscription, redirect to plan selection with parameter to prevent redirect loop
+        // if (!$subscription) {
+        //     return redirect()->route('plans.select', ['from_subscription_status' => 1])
+        //         ->with('info', 'Your company doesn\'t have an active subscription. Please select a plan.');
+        // }
+
+        $currentPlan = $subscription->plan;
+
+        // Get available plans for potential upgrades
+        // get all plans that are more expensive than current plan, plan->price
+
+        $availablePlans = Plan::where('is_active', true)
+            ->where('price', '>', $currentPlan->price)
+            ->get();
+
+        return view('subscriptions.status', compact('subscription', 'availablePlans'));
+    }
+
+    /**
+     * Request cancellation of subscription
+     */
+    public function requestCancellation(Request $request)
+    {
+        // Check if user is a company admin
+        if (!auth()->user()->hasRole('company-admin')) {
+            return redirect()->back()->with('error', 'Unauthorized access.');
+        }
+
+        // Get the company for the authenticated user (first try owned company)
+        $company = auth()->user()->company()->first();
+
+        // If not found, check if user belongs to a company
+        if (!$company) {
+            $company = auth()->user()->companies()->first();
+        }
+
+        // Check if company exists
+        if (!$company) {
+            return redirect()->route('companies.create')->with('error', 'You need to create a company profile first.');
+        }
+
+        // Get current active subscription
+        $subscription = CompanySubscription::where('company_id', $company->id)
+            ->where('status', 'active')
+            ->latest()
+            ->first();
+
+        if (!$subscription) {
+            return redirect()->back()->with('error', 'No active subscription found.');
+        }
+
+        // Update subscription auto_renew to false
+        $subscription->update([
+            'auto_renew' => false
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'Auto-renewal has been disabled. Your subscription will expire on ' . $subscription->end_date);
+    }
+
+    /**
+     * Request plan upgrade
+     */
+    public function requestUpgrade(Request $request)
+    {
+        // Validate request
+        $validated = $request->validate([
+            'plan_id' => 'required|exists:plans,id',
+        ]);
+
+        // Check if user is a company admin
+        if (!auth()->user()->hasRole('company-admin')) {
+            return redirect()->back()->with('error', 'Unauthorized access.');
+        }
+
+        // Get the company for the authenticated user (first try owned company)
+        $company = auth()->user()->company()->first();
+
+        // If not found, check if user belongs to a company
+        if (!$company) {
+            $company = auth()->user()->companies()->first();
+        }
+
+        // Check if company exists
+        if (!$company) {
+            return redirect()->route('companies.create')->with('error', 'You need to create a company profile first.');
+        }
+
+        // Get current active subscription
+        $subscription = CompanySubscription::where('company_id', $company->id)
+            ->where('status', 'active')
+            ->first();
+
+        if (!$subscription) {
+            return redirect()->back()->with('error', 'No active subscription found.');
+        }
+
+        $newPlan = \App\Models\Plan::find($validated['plan_id']);
+
+        // Send upgrade request notification to administrators
+        // This is a placeholder for actual notification logic
+
+        return redirect()->back()
+            ->with('success', 'Your plan upgrade request has been submitted. An administrator will contact you shortly.');
     }
 }
