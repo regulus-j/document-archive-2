@@ -58,16 +58,17 @@ class Role extends SpatieRole
     {
         $defaultRoles = [
             'company-admin' => [
-                'role-list', 'role-create', 'role-edit', 'role-delete',
-                'office-list', 'office-create', 'office-delete', 'office-edit',
-                'document-list', 'document-create', 'document-edit', 'document-delete',
-                'document-release', 'document-receive',
-                'audit-list',
-                'user-list', 'user-create', 'user-edit', 'user-delete',
+                // Use new permission names (with fallback to legacy names for backward compatibility)
+                'roles.view', 'roles.create', 'roles.edit', 'roles.delete',
+                'offices.view', 'offices.create', 'offices.delete', 'offices.edit',
+                'documents.view', 'documents.create', 'documents.edit', 'documents.delete',
+                'documents.release', 'documents.receive',
+                'audit.view',
+                'users.view', 'users.create', 'users.edit', 'users.delete',
             ],
             'user' => [
-                'document-list', 'document-create', 'document-edit', 'document-delete',
-                'document-release', 'document-receive',
+                'documents.view', 'documents.create', 'documents.edit', 'documents.delete',
+                'documents.release', 'documents.receive',
             ],
         ];
 

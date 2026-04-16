@@ -14,7 +14,31 @@ class PermissionTableSeeder extends Seeder
      */
     public function run(): void
     {
-        $permissions = [
+        // New dotted notation permissions
+        $newPermissions = [
+           'roles.view',
+           'roles.create',
+           'roles.edit',
+           'roles.delete',
+           'documents.view',
+           'documents.create',
+           'documents.edit',
+           'documents.delete',
+           'documents.release',
+           'documents.receive',
+           'audit.view',
+           'users.view',
+           'users.create',
+           'users.delete',
+           'users.edit',
+           'offices.view',
+           'offices.create',
+           'offices.delete',
+           'offices.edit',
+        ];
+        
+        // Legacy permissions (kept for backward compatibility during transition)
+        $legacyPermissions = [
            'role-list',
            'role-create',
            'role-edit',
@@ -36,8 +60,20 @@ class PermissionTableSeeder extends Seeder
            'office-edit',
         ];
         
-        foreach ($permissions as $permission) {
-             Permission::firstOrCreate(['name' => $permission]);
+        // Create new permissions
+        foreach ($newPermissions as $permission) {
+             Permission::firstOrCreate([
+                'name' => $permission,
+                'guard_name' => 'web',
+             ]);
+        }
+        
+        // Create legacy permissions for backward compatibility
+        foreach ($legacyPermissions as $permission) {
+             Permission::firstOrCreate([
+                'name' => $permission,
+                'guard_name' => 'web',
+             ]);
         }
     }
 }

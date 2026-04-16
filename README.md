@@ -48,12 +48,34 @@ DocTrack is a comprehensive document archiving and workflow management system de
 - **Cooldown periods** to prevent alert fatigue (6-24 hours based on priority)
 
 ### 🔐 Role-Based Access Control (RBAC)
-| Role | Capabilities |
-|------|-------------|
-| `super-admin` | Platform dashboard, manage companies, subscriptions |
-| `company-admin` | Manage all documents and users in company |
-| `office-lead` | Lead office workflows, manage office documents |
-| `user` | Upload, forward, view documents per classification |
+
+The system uses a **two-layer authorization approach**:
+
+**Layer 1: Action Permissions** - Controls what users can **DO**
+- Permissions: `documents.create`, `users.edit`, `roles.delete`, etc.
+- Organized into modules: Roles, Users, Offices, Documents, Audit
+- Managed via Spatie Laravel Permission package
+
+**Layer 2: Document Classification** - Controls what documents users can **SEE**
+- Classifications: Public, Office Only, Custom Offices, Private
+- Independent of action permissions
+- Managed via `DocumentAccessService`
+
+**Default Roles:**
+
+| Role | Action Permissions | Document Visibility |
+|------|-------------------|---------------------|
+| `super-admin` | All permissions across all modules | All documents in all companies |
+| `company-admin` | Full access within their company | All documents in their company |
+| `user` | Document operations only (create, edit, view) | Based on classification rules |
+
+**Permission Format:**
+- **New** (recommended): `{module}.{action}` → `documents.create`, `users.edit`
+- **Legacy** (deprecated): `{noun}-{verb}` → `document-create`, `user-edit`
+
+Both formats currently work for backward compatibility.
+
+**For detailed documentation**, see [docs/AUTHORIZATION.md](docs/AUTHORIZATION.md)
 
 ## Quick Start
 

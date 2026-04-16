@@ -86,36 +86,116 @@
 
                     <!-- Permissions Section -->
                     <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <label class="block text-sm font-medium text-slate-700">Permissions</label>
+                        <div class="flex justify-between items-center mb-3">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700">Permissions</label>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    <span id="selectedCount">0</span> permissions selected
+                                </p>
+                            </div>
                             <div class="flex space-x-2">
                                 <button type="button" id="selectAll"
-                                    class="text-xs text-indigo-600 hover:text-indigo-800 transition-colors">Select All</button>
+                                    class="text-xs text-indigo-600 hover:text-indigo-800 transition-colors font-medium">Select All</button>
                                 <span class="text-slate-300">|</span>
                                 <button type="button" id="deselectAll"
-                                    class="text-xs text-indigo-600 hover:text-indigo-800 transition-colors">Deselect
-                                    All</button>
+                                    class="text-xs text-indigo-600 hover:text-indigo-800 transition-colors font-medium">Deselect All</button>
                             </div>
                         </div>
 
-                        <div class="bg-white border border-indigo-200 rounded-lg overflow-hidden">
-                            <div class="max-h-96 overflow-y-auto p-1">
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-3">
-                                    @foreach($permission as $value)
-                                        <div
-                                            class="bg-white p-3 rounded-lg border border-indigo-100 hover:border-indigo-300 hover:shadow-md transition-all duration-200 transform hover:-translate-y-1">
-                                            <label class="flex items-start cursor-pointer">
-                                                <input type="checkbox" name="permission[{{$value->id}}]" value="{{$value->id}}"
-                                                    {{ in_array($value->id, $rolePermissions) ? 'checked' : ''}}
-                                                    class="h-4 w-4 mt-1 text-indigo-600 focus:ring-indigo-500 border-slate-300 rounded">
-                                                <span class="ml-3 text-sm text-slate-700">{{ $value->name }}</span>
-                                            </label>
+                        @php
+                            use App\Models\PermissionMetadata;
+                            $groupedPermissions = PermissionMetadata::getGroupedPermissions();
+                            
+                            // Create a map of permission names to IDs for easy lookup
+                            $permissionMap = [];
+                            foreach($permission as $perm) {
+                                $permissionMap[$perm->name] = $perm->id;
+                            }
+                        @endphp
+
+                        <div class="space-y-3">
+                            @foreach($groupedPermissions as $groupKey => $group)
+                                <div class="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                                    <div class="permission-group-header bg-gradient-to-r from-slate-50 to-white border-b border-slate-200 p-4 cursor-pointer hover:bg-slate-100 transition-colors"
+                                         onclick="toggleGroup('{{ $groupKey }}')">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="flex-shrink-0">
+                                                    <svg class="w-5 h-5 text-{{ $group['color'] }}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        @if($group['icon'] === 'shield-check')
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                                        @elseif($group['icon'] === 'users')
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                                        @elseif($group['icon'] === 'building')
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                        @elseif($group['icon'] === 'file-text')
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                        @elseif($group['icon'] === 'clipboard-list')
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                                        @endif
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <h3 class="text-sm font-semibold text-slate-800">{{ $group['label'] }}</h3>
+                                                    <p class="text-xs text-slate-500">{{ $group['description'] }}</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center space-x-3">
+                                                <span class="text-xs text-slate-500 group-count-{{ $groupKey }}">0/{{ count($group['permissions']) }}</span>
+                                                <button type="button" 
+                                                        class="text-xs text-indigo-600 hover:text-indigo-800 font-medium select-group"
+                                                        data-group="{{ $groupKey }}"
+                                                        onclick="event.stopPropagation(); selectGroupPermissions('{{ $groupKey }}', true)">
+                                                    Select All
+                                                </button>
+                                                <svg class="w-5 h-5 text-slate-400 transform transition-transform group-chevron-{{ $groupKey }}"
+                                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
                                         </div>
-                                    @endforeach
+                                    </div>
+
+                                    <div id="group-{{ $groupKey }}" class="permission-group-content p-4 space-y-2">
+                                        @if(isset($group['note']))
+                                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                                                <div class="flex">
+                                                    <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    <p class="ml-3 text-xs text-blue-800">{{ $group['note'] }}</p>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        @foreach($group['permissions'] as $permName => $permMeta)
+                                            @php
+                                                // Try new name first, fallback to legacy
+                                                $permId = $permissionMap[$permName] ?? $permissionMap[$permMeta['legacy']] ?? null;
+                                            @endphp
+                                            @if($permId)
+                                                <label class="flex items-start p-3 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors group-permission">
+                                                    <input type="checkbox" 
+                                                           name="permission[{{ $permId }}]" 
+                                                           value="{{ $permId }}"
+                                                           data-group="{{ $groupKey }}"
+                                                           {{ in_array($permId, $rolePermissions) ? 'checked' : ''}}
+                                                           class="permission-checkbox h-4 w-4 mt-0.5 text-indigo-600 focus:ring-indigo-500 border-slate-300 rounded"
+                                                           onchange="updateCounts()">
+                                                    <div class="ml-3 flex-1">
+                                                        <div class="text-sm font-medium text-slate-700">{{ $permMeta['label'] }}</div>
+                                                        <div class="text-xs text-slate-500">{{ $permMeta['description'] }}</div>
+                                                    </div>
+                                                </label>
+                                            @endif
+                                        @endforeach
+                                    </div>
                                 </div>
-                            </div>
+                            @endforeach
                         </div>
-                        <p class="mt-1 text-xs text-slate-500">Select the permissions that should be assigned to this role.
+
+                        <p class="mt-3 text-xs text-slate-500">
+                            Click on a module to expand and select specific permissions.
                         </p>
                     </div>
                 </div>
@@ -138,22 +218,83 @@
     </div>
 
     <script>
+        // Toggle group visibility
+        function toggleGroup(groupKey) {
+            const content = document.getElementById('group-' + groupKey);
+            const chevron = document.querySelector('.group-chevron-' + groupKey);
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                chevron.style.transform = 'rotate(0deg)';
+            } else {
+                content.style.display = 'none';
+                chevron.style.transform = 'rotate(-90deg)';
+            }
+        }
+
+        // Select all permissions in a group
+        function selectGroupPermissions(groupKey, checked) {
+            const checkboxes = document.querySelectorAll(`input[data-group="${groupKey}"]`);
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = checked;
+            });
+            updateCounts();
+        }
+
+        // Update permission counts
+        function updateCounts() {
+            // Update total count
+            const totalChecked = document.querySelectorAll('.permission-checkbox:checked').length;
+            document.getElementById('selectedCount').textContent = totalChecked;
+
+            // Update group counts
+            const groups = @json(array_keys($groupedPermissions));
+            groups.forEach(groupKey => {
+                const groupCheckboxes = document.querySelectorAll(`input[data-group="${groupKey}"]`);
+                const checkedInGroup = document.querySelectorAll(`input[data-group="${groupKey}"]:checked`).length;
+                const totalInGroup = groupCheckboxes.length;
+                
+                const countElement = document.querySelector('.group-count-' + groupKey);
+                if (countElement) {
+                    countElement.textContent = `${checkedInGroup}/${totalInGroup}`;
+                }
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
-            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const checkboxes = document.querySelectorAll('.permission-checkbox');
             const selectAllBtn = document.getElementById('selectAll');
             const deselectAllBtn = document.getElementById('deselectAll');
+
+            // Collapse all groups by default
+            const groups = @json(array_keys($groupedPermissions));
+            groups.forEach(groupKey => {
+                const content = document.getElementById('group-' + groupKey);
+                const chevron = document.querySelector('.group-chevron-' + groupKey);
+                if (content) {
+                    content.style.display = 'none';
+                    if (chevron) {
+                        chevron.style.transform = 'rotate(-90deg)';
+                    }
+                }
+            });
 
             selectAllBtn.addEventListener('click', function () {
                 checkboxes.forEach(checkbox => {
                     checkbox.checked = true;
                 });
+                updateCounts();
             });
 
             deselectAllBtn.addEventListener('click', function () {
                 checkboxes.forEach(checkbox => {
                     checkbox.checked = false;
                 });
+                updateCounts();
             });
+
+            // Initial count update
+            updateCounts();
         });
     </script>
 @endsection
