@@ -16,25 +16,32 @@ class PermissionTableSeeder extends Seeder
     {
         // New dotted notation permissions
         $newPermissions = [
+           // Roles
            'roles.view',
            'roles.create',
            'roles.edit',
            'roles.delete',
-           'documents.view',
-           'documents.create',
-           'documents.edit',
-           'documents.delete',
-           'documents.release',
-           'documents.receive',
-           'audit.view',
+           
+           // Users
            'users.view',
            'users.create',
-           'users.delete',
            'users.edit',
+           'users.delete',
+           
+           // Offices
            'offices.view',
            'offices.create',
-           'offices.delete',
            'offices.edit',
+           'offices.delete',
+           
+           // Documents (new workflow lifecycle permissions)
+           'documents.manage',
+           'documents.workflow.initiate',
+           'documents.workflow.participate',
+           'documents.workflow.admin',
+           
+           // Audit
+           'audit.view',
         ];
         
         // Legacy permissions (kept for backward compatibility during transition)

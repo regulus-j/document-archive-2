@@ -94,7 +94,7 @@ Permissions use dotted notation: `{module}.{action}`
 - `create` - Create new resources
 - `edit` - Modify existing resources
 - `delete` - Remove resources
-- Special document actions: `release`, `receive`
+- Special document actions: `release`, `receive`, `manage`, `workflow.initiate`, `workflow.participate`, `workflow.admin`
 
 **Examples**:
 - `roles.create` - Can create new roles
@@ -102,6 +102,10 @@ Permissions use dotted notation: `{module}.{action}`
 - `documents.view` - Can access documents module
 - `documents.delete` - Can delete documents
 - `audit.view` - Can view audit logs
+- `documents.manage` - Create, edit, and delete your own documents
+- `documents.workflow.initiate` - Forward documents to start workflows
+- `documents.workflow.participate` - Receive and respond to workflow assignments
+- `documents.workflow.admin` - Full oversight and management of all workflows
 
 ### Legacy Format (Deprecated)
 Old permissions use kebab-case: `{noun}-{verb}`

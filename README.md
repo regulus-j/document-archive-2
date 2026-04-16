@@ -52,14 +52,23 @@ DocTrack is a comprehensive document archiving and workflow management system de
 The system uses a **two-layer authorization approach**:
 
 **Layer 1: Action Permissions** - Controls what users can **DO**
-- Permissions: `documents.create`, `users.edit`, `roles.delete`, etc.
-- Organized into modules: Roles, Users, Offices, Documents, Audit
+- Organized into modules: Roles, Users, Offices, Documents (Lifecycle), Audit
+- Document lifecycle stages:
+  - `documents.manage` - Create/edit/delete own documents
+  - `documents.workflow.initiate` - Start workflows
+  - `documents.workflow.participate` - Respond to assignments
+  - `documents.workflow.admin` - Full workflow oversight
 - Managed via Spatie Laravel Permission package
 
 **Layer 2: Document Classification** - Controls what documents users can **SEE**
 - Classifications: Public, Office Only, Custom Offices, Private
 - Independent of action permissions
 - Managed via `DocumentAccessService`
+
+**Layer 3: Workflow Purpose** - Controls which **ACTIONS** are available
+- Purposes: Appropriate Action, For Comment, Dissemination
+- Automatically restricts available responses in workflow
+- Works within Layer 1 permissions
 
 **Default Roles:**
 

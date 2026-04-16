@@ -97,41 +97,31 @@ class PermissionMetadata
                 ]
             ],
             'documents' => [
-                'label' => 'Document Actions',
-                'description' => 'Perform actions on documents (visibility is controlled separately by classification)',
+                'label' => 'Document Lifecycle',
+                'description' => 'Manage documents throughout their lifecycle (visibility controlled separately by classification)',
                 'icon' => 'file-text',
                 'color' => 'indigo',
-                'note' => 'Document visibility is controlled by classification (Public/Office Only/Custom Offices) separately from these action permissions.',
+                'note' => 'Document visibility is controlled by classification (Public/Office Only/Custom Offices) separately from these permissions. Workflow actions are restricted by purpose (appropriate_action, for_comment, dissemination).',
                 'permissions' => [
-                    'documents.view' => [
-                        'label' => 'View Documents',
-                        'description' => 'Access the documents module and view documents',
-                        'legacy' => 'document-list',
+                    'documents.manage' => [
+                        'label' => 'Manage Documents',
+                        'description' => 'Create, edit, and delete your own documents',
+                        'legacy' => null,
                     ],
-                    'documents.create' => [
-                        'label' => 'Create Documents',
-                        'description' => 'Upload and create new documents',
-                        'legacy' => 'document-create',
-                    ],
-                    'documents.edit' => [
-                        'label' => 'Edit Documents',
-                        'description' => 'Modify document information (subject to ownership rules)',
-                        'legacy' => 'document-edit',
-                    ],
-                    'documents.delete' => [
-                        'label' => 'Delete Documents',
-                        'description' => 'Delete documents from the system',
-                        'legacy' => 'document-delete',
-                    ],
-                    'documents.release' => [
-                        'label' => 'Release Documents',
-                        'description' => 'Mark documents as released in workflow',
+                    'documents.workflow.initiate' => [
+                        'label' => 'Initiate Workflows',
+                        'description' => 'Forward documents to start workflows and assign recipients',
                         'legacy' => 'document-release',
                     ],
-                    'documents.receive' => [
-                        'label' => 'Receive Documents',
-                        'description' => 'Mark documents as received in workflow',
+                    'documents.workflow.participate' => [
+                        'label' => 'Participate in Workflows',
+                        'description' => 'Receive and respond to workflow assignments (actions limited by workflow purpose)',
                         'legacy' => 'document-receive',
+                    ],
+                    'documents.workflow.admin' => [
+                        'label' => 'Administer Workflows',
+                        'description' => 'Full oversight and management of all workflows (admin only)',
+                        'legacy' => null,
                     ],
                 ]
             ],

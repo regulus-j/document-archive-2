@@ -58,17 +58,27 @@ class Role extends SpatieRole
     {
         $defaultRoles = [
             'company-admin' => [
-                // Use new permission names (with fallback to legacy names for backward compatibility)
+                // Access Management
                 'roles.view', 'roles.create', 'roles.edit', 'roles.delete',
-                'offices.view', 'offices.create', 'offices.delete', 'offices.edit',
-                'documents.view', 'documents.create', 'documents.edit', 'documents.delete',
-                'documents.release', 'documents.receive',
-                'audit.view',
                 'users.view', 'users.create', 'users.edit', 'users.delete',
+                
+                // Organization Management
+                'offices.view', 'offices.create', 'offices.edit', 'offices.delete',
+                
+                // Document Lifecycle (new workflow-aligned permissions)
+                'documents.manage',
+                'documents.workflow.initiate',
+                'documents.workflow.participate',
+                'documents.workflow.admin',
+                
+                // Audit
+                'audit.view',
             ],
             'user' => [
-                'documents.view', 'documents.create', 'documents.edit', 'documents.delete',
-                'documents.release', 'documents.receive',
+                // Document Lifecycle (basic user)
+                'documents.manage',
+                'documents.workflow.initiate',
+                'documents.workflow.participate',
             ],
         ];
 

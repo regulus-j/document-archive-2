@@ -108,13 +108,11 @@ if (!$authService->canAccessDocument($document, 'edit')) {
 - `offices.edit` - Edit office info
 - `offices.delete` - Delete offices
 
-**Documents Module:**
-- `documents.view` - Access documents module
-- `documents.create` - Upload documents
-- `documents.edit` - Edit documents
-- `documents.delete` - Delete documents
-- `documents.release` - Release in workflow
-- `documents.receive` - Receive in workflow
+**Documents Module (Workflow Lifecycle):**
+- `documents.manage` - Create, edit, and delete your own documents
+- `documents.workflow.initiate` - Forward documents to start workflows
+- `documents.workflow.participate` - Receive and respond to workflow assignments
+- `documents.workflow.admin` - Full oversight and management of all workflows
 
 **Audit Module:**
 - `audit.view` - View audit logs
