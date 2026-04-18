@@ -9,6 +9,7 @@ use App\Http\Controllers\OfficeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserPreferencesController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PlanController;
 use App\Http\Controllers\CompanyController;
@@ -67,6 +68,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'set'])->name('profile.set');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/preferences', [UserPreferencesController::class, 'index'])->name('preferences.index');
+    Route::post('/preferences/barcode/update', [UserPreferencesController::class, 'updateBarcodeDefaults'])->name('preferences.barcode.update');
+    Route::post('/preferences/barcode/update-ajax', [UserPreferencesController::class, 'updateBarcodeDefaultsAjax'])->name('preferences.barcode.update-ajax');
+    Route::post('/preferences/barcode/clear', [UserPreferencesController::class, 'clearBarcodeDefaults'])->name('preferences.barcode.clear');
+    Route::get('/preferences/barcode/defaults', [UserPreferencesController::class, 'getBarcodeDefaults'])->name('preferences.barcode.defaults');
+    Route::post('/preferences/barcode/apply-preset', [UserPreferencesController::class, 'applyPreset'])->name('preferences.barcode.apply-preset');
+    Route::post('/preferences/barcode/apply-preset-ajax', [UserPreferencesController::class, 'applyPresetAjax'])->name('preferences.barcode.apply-preset-ajax');
 });
 
 
@@ -191,6 +200,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/restore/{id}', [DocumentController::class, 'restore'])->name('documents.restore');
 
         Route::delete('/{document}/delete-attachments', [DocumentController::class, 'deleteMultipleAttachments'])->name('documents.attachments.delete-multiple');
+        Route::post('/{document}/replace-attachment', [DocumentController::class, 'replaceAttachment'])->name('documents.attachments.replace');
 
         Route::prefix('workflows')->group(function () {
             Route::get('/', [DocumentWorkflowController::class, 'workflowManagement'])
@@ -240,6 +250,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
             Route::delete('/{workflow}/versions/{version}', [DocumentWorkflowController::class, 'deleteReviewVersion'])
                 ->name('documents.reviewVersionDelete');
+
+            // Workflow deletion (restricted to uploader/sender)
+            Route::delete('/{workflow}/delete', [DocumentWorkflowController::class, 'deleteWorkflow'])
+                ->name('documents.workflows.delete');
+
+            // Attachment replacement
+            Route::post('/{workflow}/replace-attachment', [DocumentWorkflowController::class, 'replaceAttachment'])
+                ->name('documents.workflows.replaceAttachment');
 
             // Urgency Matrix: Workflow rerouting
             Route::post('/{workflow}/reroute', [\App\Http\Controllers\WorkflowRerouteController::class, 'reroute'])

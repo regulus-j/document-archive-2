@@ -32,7 +32,13 @@ class RegisteredUserController extends Controller
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', function ($attribute, $value, $fail) {
+                // Check if email exists (for registration, we want global uniqueness since we're creating a new company)
+                $existingUser = User::where('email', $value)->whereNull('deleted_at')->first();
+                if ($existingUser) {
+                    $fail('This email address is already registered. Please log in or use a different email.');
+                }
+            }],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'company_name' => ['required', 'string', 'max:255'],
             'g-recaptcha-response' => ['required', function ($attribute, $value, $fail) {

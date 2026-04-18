@@ -1715,6 +1715,63 @@ class DocumentController extends Controller
         return redirect()->back()->with('success', count($attachments) . ' attachments deleted successfully.');
     }
 
+    public function replaceAttachment(Request $request, Document $document): RedirectResponse
+    {
+        $request->validate([
+            'attachment_id' => 'required|integer|exists:document_attachments,id',
+            'attachment' => 'required|file|max:10240',
+        ]);
+
+        $attachment = DocumentAttachment::findOrFail($request->attachment_id);
+        
+        // Ensure the attachment belongs to this document
+        if ((int)$attachment->document_id !== (int)$document->id) {
+            return redirect()->back()
+                ->with('error', 'Invalid attachment for this document.');
+        }
+        
+        // Only the uploader can replace their attachment
+        if ((int)$attachment->uploaded_by !== (int)auth()->id()) {
+            return redirect()->back()
+                ->with('error', 'You can only replace attachments that you uploaded.');
+        }
+        
+        $file = $request->file('attachment');
+        $companyId = $document->company_id ?? 'general';
+        
+        // Store the new file
+        $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs($companyId . '/attachments', $filename, 'public');
+        
+        // Delete the old file from storage
+        if ($attachment->path) {
+            Storage::disk('public')->delete($attachment->path);
+        }
+        
+        $oldFilename = $attachment->filename;
+        
+        // Update the attachment record
+        $attachment->update([
+            'filename' => $file->getClientOriginalName(),
+            'path' => $path,
+            'storage_size' => $file->getSize(),
+            'mime_type' => $file->getMimeType(),
+        ]);
+        
+        // Log the replacement
+        DocumentAudit::logDocumentAction(
+            $document->id,
+            auth()->id(),
+            'attachment_replaced',
+            $document->status?->status ?? 'unknown',
+            "Attachment '{$oldFilename}' replaced with '{$file->getClientOriginalName()}' by " . 
+            auth()->user()->first_name . ' ' . auth()->user()->last_name
+        );
+        
+        return redirect()->back()
+            ->with('success', 'Attachment replaced successfully.');
+    }
+
     public function uploadImage(Request $request)
     {
         // A-06 FIX: validate presence and size before any processing.

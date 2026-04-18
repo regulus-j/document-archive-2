@@ -26,7 +26,15 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        try {
+            $request->authenticate();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Check if this is a redirect to company selection
+            if ($e->errors()['email'][0] ?? '' === 'redirect_to_company_selection') {
+                return redirect()->route('login.select-company');
+            }
+            throw $e;
+        }
     
         $request->session()->regenerate();
 

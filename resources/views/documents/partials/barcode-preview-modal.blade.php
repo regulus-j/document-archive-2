@@ -195,6 +195,43 @@
                         </div>
                     </div>
 
+                    {{-- Quick Presets --}}
+                    <div>
+                        <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2">Quick Presets</p>
+                        <div class="grid grid-cols-2 gap-2" data-role="preset-buttons">
+                            @foreach(config('barcode.presets', []) as $key => $preset)
+                                <button type="button" 
+                                        onclick="applyBarcodePreset('{{ $modalId }}', '{{ $key }}')"
+                                        class="text-xs px-2 py-1.5 bg-white border border-slate-300 rounded hover:bg-indigo-50 hover:border-indigo-400 transition-colors text-left"
+                                        title="{{ $preset['description'] ?? '' }}">
+                                    <span class="font-medium text-slate-700">{{ $preset['name'] ?? ucfirst($key) }}</span>
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    {{-- User Defaults Actions --}}
+                    <div class="flex gap-2">
+                        <button type="button" 
+                                onclick="loadUserBarcodeDefault('{{ $modalId }}')"
+                                class="flex-1 text-xs px-2 py-1.5 bg-white border border-slate-300 rounded hover:bg-blue-50 hover:border-blue-400 transition-colors"
+                                title="Load your saved default position">
+                            <svg class="w-3 h-3 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                            </svg>
+                            Load My Default
+                        </button>
+                        <button type="button" 
+                                onclick="saveUserBarcodeDefault('{{ $modalId }}')"
+                                class="flex-1 text-xs px-2 py-1.5 bg-white border border-slate-300 rounded hover:bg-green-50 hover:border-green-400 transition-colors"
+                                title="Save current position as your default">
+                            <svg class="w-3 h-3 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                            </svg>
+                            Save as Default
+                        </button>
+                    </div>
+
                     {{-- Coordinate inputs (synced with drag) --}}
                     <div>
                         <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2">Position <span class="font-normal normal-case text-slate-400">(% of document)</span></p>
@@ -680,6 +717,9 @@
         const tn = trackingNumber || 'SAMPLE-TRACKING-' + new Date().getFullYear();
         loadBarcodePreview(modal, tn);
 
+        // Load user's default barcode position (silent load)
+        loadUserBarcodeDefault(modalId, true);
+
         // Show document preview
         showPreviewForFile(modal, fileInput || modal._boundFileInput, tn);
         syncInputsToOverlay(modal);
@@ -755,14 +795,122 @@
     window.bpmResetPosition = function(modalId) {
         const modal = document.getElementById(modalId);
         if (!modal) return;
-        const defaults = { 'barcode-x': 5, 'barcode-y': 3, 'barcode-w': 25, 'barcode-h': 5 };
-        Object.entries(defaults).forEach(([role, val]) => {
-            const inp = q(modal, role);
-            if (inp) inp.value = val;
-        });
+        
+        // Try to load user defaults first
+        loadUserBarcodeDefault(modalId, true);
+    };
+
+    /* ── apply a preset position ── */
+    window.applyBarcodePreset = function(modalId, presetKey) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+
+        const presets = @json(config('barcode.presets', []));
+        const preset = presets[presetKey];
+        if (!preset) return;
+
+        q(modal, 'barcode-x').value = preset.x_percent;
+        q(modal, 'barcode-y').value = preset.y_percent;
+        q(modal, 'barcode-w').value = preset.width_percent;
+        q(modal, 'barcode-h').value = preset.height_percent;
+
         syncInputsToOverlay(modal);
         syncInputsToA4Diagram(modal);
     };
+
+    /* ── load user's saved default barcode position ── */
+    window.loadUserBarcodeDefault = function(modalId, silent = false) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+
+        fetch("{{ route('preferences.barcode.defaults') }}", {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const defaults = data.defaults || {};
+            q(modal, 'barcode-x').value = defaults.x_percent || 5;
+            q(modal, 'barcode-y').value = defaults.y_percent || 3;
+            q(modal, 'barcode-w').value = defaults.width_percent || 25;
+            q(modal, 'barcode-h').value = defaults.height_percent || 5;
+
+            syncInputsToOverlay(modal);
+            syncInputsToA4Diagram(modal);
+
+            if (!silent && data.has_custom) {
+                showToast('Your default barcode position loaded', 'success');
+            } else if (!silent) {
+                showToast('System default barcode position loaded', 'info');
+            }
+        })
+        .catch(err => {
+            console.error('Failed to load barcode defaults:', err);
+            if (!silent) {
+                // Fallback to system defaults
+                const defaults = { 'barcode-x': 5, 'barcode-y': 3, 'barcode-w': 25, 'barcode-h': 5 };
+                Object.entries(defaults).forEach(([role, val]) => {
+                    const inp = q(modal, role);
+                    if (inp) inp.value = val;
+                });
+                syncInputsToOverlay(modal);
+                syncInputsToA4Diagram(modal);
+            }
+        });
+    };
+
+    /* ── save current position as user's default ── */
+    window.saveUserBarcodeDefault = function(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+
+        const settings = {
+            x_percent: parseFloat(q(modal, 'barcode-x').value),
+            y_percent: parseFloat(q(modal, 'barcode-y').value),
+            width_percent: parseFloat(q(modal, 'barcode-w').value),
+            height_percent: parseFloat(q(modal, 'barcode-h').value),
+            show_text: q(modal, 'barcode-showtext')?.value === '1',
+            page: parseInt(q(modal, 'barcode-page')?.value || '1')
+        };
+
+        fetch("{{ route('preferences.barcode.update-ajax') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(settings)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Default barcode position saved successfully!', 'success');
+            } else {
+                showToast('Failed to save default position', 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Failed to save barcode defaults:', err);
+            showToast('Error saving default position', 'error');
+        });
+    };
+
+    /* ── simple toast notification ── */
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+        toast.className = `fixed bottom-4 right-4 ${bgColor} text-white px-4 py-3 rounded-lg shadow-lg z-[100] transition-opacity`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
 
     /* ── utility: trigger modal on file input change ── */
     window.bindBarcodePreviewToFileInput = function(fileInputSelector, modalId, trackingNumber) {

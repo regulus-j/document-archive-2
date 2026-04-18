@@ -6,6 +6,8 @@ use App\Mail\userInvite;
 use App\Models\Office;
 use App\Models\User;
 use App\Models\CompanyAccount;
+use App\Models\DocumentTransaction;
+use App\Models\Role;
 use App\Models\CompanySubscription;
 use App\Models\Plan;
 use App\Models\CompanyUser;
@@ -17,8 +19,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use App\Rules\UniqueEmailInCompany;
 use Illuminate\View\View;
-use App\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
 class UserController extends Controller
@@ -211,29 +213,73 @@ class UserController extends Controller
                 ->with('error', 'Max users reached, upgrade your plan to add more.');
         }
 
-        $temp_pass = Str::random(12);
+        // Determine company ID first
+        $companyId = auth()->user()->companies()->first()->id;
+        if (!auth()->user()->hasRole('super-admin')) {
+            $userCompany = auth()->user()->companies()->first();
+            if ($userCompany) {
+                $companyId = $userCompany->id;
+            }
+        }
 
         $request->validate([
             'first_name' => 'required|string|max:255',
-            'middle_name' => 'nullable|string|max:255', // Changed from string to nullable|string
+            'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,NULL,id,deleted_at,NULL',
+            'email' => ['required', 'email', new UniqueEmailInCompany($companyId)],
             'offices' => 'required|array',
             'offices.*' => 'exists:offices,id',
             'roles' => 'required',
             'companies' => 'required|exists:company_accounts,id'
         ]);
 
-        $user = User::create([
-            'first_name' => $request->first_name,
-            'middle_name' => $request->middle_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'password' => Hash::make($temp_pass), // B-10 FIX: use Hash facade for consistency.
-        ]);
+        // Check if user with this email already exists
+        $existingUser = User::where('email', $request->email)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if ($existingUser) {
+            // Reuse existing user account
+            $user = $existingUser;
+            $isNewUser = false;
+            
+            // Check if already in this company
+            $alreadyInCompany = CompanyUser::where('user_id', $user->id)
+                ->where('company_id', $companyId)
+                ->exists();
+            
+            if ($alreadyInCompany) {
+                return redirect()->route('users.index')
+                    ->with('error', 'This user is already part of your company.');
+            }
+            
+            \Log::info('Reusing existing user account for company invitation', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'company_id' => $companyId
+            ]);
+        } else {
+            // Create new user
+            $temp_pass = Str::random(12);
+            $isNewUser = true;
+            
+            $user = User::create([
+                'first_name' => $request->first_name,
+                'middle_name' => $request->middle_name,
+                'last_name' => $request->last_name,
+                'email' => $request->email,
+                'password' => Hash::make($temp_pass),
+            ]);
+            
+            \Log::info('Created new user for company invitation', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'company_id' => $companyId
+            ]);
+        }
 
         // Attach multiple offices
-        $user->offices()->attach($request->offices);
+        $user->offices()->syncWithoutDetaching($request->offices);
 
         // Assign roles by ID to ensure company-specific roles are used
         $roleIds = $request->input('roles');
@@ -242,34 +288,35 @@ class UserController extends Controller
 
         $roleNames = $user->roles->pluck('name')->implode(', ');
 
-        // Queue the email instead of sending it synchronously
-        try {
-            Mail::to($user->email)
-                ->send(new UserInvite(
-                    $user->first_name,
-                    $user->email,
-                    $temp_pass,
-                    $roleNames,
-                    route('login')
-                ));
-        } catch (\Exception $e) {
-            \Log::error('Failed to queue invitation email: ' . $e->getMessage());
-            // Continue execution even if email queueing fails
-        }
-
-        $temp_pass = null;
-
-        // Fix company association by properly handling array or single value
-        $companyId = auth()->user()->companies()->first()->id;
-
-        // If user is not a super admin, use their company
-        if (!auth()->user()->hasRole('super-admin')) {
-            $userCompany = auth()->user()->companies()->first();
-            if ($userCompany) {
-                $companyId = $userCompany->id;
+        // Send email only for new users or when adding existing user to new company
+        if ($isNewUser) {
+            try {
+                Mail::to($user->email)
+                    ->send(new UserInvite(
+                        $user->first_name,
+                        $user->email,
+                        $temp_pass,
+                        $roleNames,
+                        route('login')
+                    ));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send invitation email: ' . $e->getMessage());
+            }
+            $temp_pass = null;
+        } else {
+            // Notify existing user they were added to a new company
+            try {
+                // You may want to create a different email template for this case
+                \Log::info('Existing user added to new company - notification email should be sent', [
+                    'user_id' => $user->id,
+                    'company_id' => $companyId
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Failed to notify user about new company: ' . $e->getMessage());
             }
         }
 
+        // Add user to company
         CompanyUser::create([
             'company_id' => $companyId,
             'user_id'     => $user->id,
@@ -369,12 +416,15 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
 
+        // Get company ID for validation
+        $companyId = auth()->user()->getCurrentCompanyId();
+
         // Prepare validation rules
         $rules = [
             'first_name' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => "required|email|unique:users,email,{$id},id,deleted_at,NULL",
+            'email' => ['required', 'email', new UniqueEmailInCompany($companyId, $id)],
             'roles' => 'required|array',
             // B-06 FIX: require a minimum length and confirmation when a new password is supplied.
             'password' => 'nullable|string|min:8|confirmed',

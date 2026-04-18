@@ -31,6 +31,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'verification_code',
         'verification_code_expires_at',
+        'preferences',
     ];
 
     /**
@@ -54,6 +55,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'verification_code_expires_at' => 'datetime',
             'password' => 'hashed',
+            'preferences' => 'array',
         ];
     }
 
@@ -167,4 +169,121 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     return $this->hasOne(CompanyAccount::class, 'user_id');
 }
+
+    /**
+     * Get user's default barcode settings, falling back to system defaults.
+     *
+     * @return array
+     */
+    public function getBarcodeDefaults(): array
+    {
+        $userDefaults = $this->preferences['barcode'] ?? null;
+        $systemDefaults = config('barcode.defaults');
+
+        if ($userDefaults && is_array($userDefaults)) {
+            return array_merge($systemDefaults, $userDefaults);
+        }
+
+        return $systemDefaults;
+    }
+
+    /**
+     * Set user's default barcode settings.
+     *
+     * @param array $settings
+     * @return void
+     */
+    public function setBarcodeDefaults(array $settings): void
+    {
+        $preferences = $this->preferences ?? [];
+        $preferences['barcode'] = $settings;
+        $this->preferences = $preferences;
+        $this->save();
+    }
+
+    /**
+     * Check if user has custom barcode defaults.
+     *
+     * @return bool
+     */
+    public function hasCustomBarcodeDefaults(): bool
+    {
+        return isset($this->preferences['barcode']) && is_array($this->preferences['barcode']);
+    }
+
+    /**
+     * Clear user's barcode defaults, reverting to system defaults.
+     *
+     * @return void
+     */
+    public function clearBarcodeDefaults(): void
+    {
+        if ($this->preferences) {
+            $preferences = $this->preferences;
+            unset($preferences['barcode']);
+            $this->preferences = $preferences;
+            $this->save();
+        }
+    }
+
+    /**
+     * Get the current company context from session.
+     *
+     * @return \App\Models\CompanyAccount|null
+     */
+    public function getCurrentCompany(): ?\App\Models\CompanyAccount
+    {
+        $companyId = session('current_company_id');
+        
+        if (!$companyId) {
+            // Fallback to first company if no session
+            return $this->companies()->first();
+        }
+        
+        return $this->companies()->where('company_accounts.id', $companyId)->first();
+    }
+
+    /**
+     * Get the current company ID from session.
+     *
+     * @return int|null
+     */
+    public function getCurrentCompanyId(): ?int
+    {
+        $companyId = session('current_company_id');
+        
+        if (!$companyId) {
+            // Fallback to first company if no session
+            $company = $this->companies()->first();
+            return $company ? $company->id : null;
+        }
+        
+        return $companyId;
+    }
+
+    /**
+     * Check if user belongs to multiple companies.
+     *
+     * @return bool
+     */
+    public function hasMultipleCompanies(): bool
+    {
+        return $this->companies()->count() > 1;
+    }
+
+    /**
+     * Switch the current company context.
+     *
+     * @param int $companyId
+     * @return bool
+     */
+    public function switchCompany(int $companyId): bool
+    {
+        if ($this->companies()->where('company_accounts.id', $companyId)->exists()) {
+            session(['current_company_id' => $companyId]);
+            return true;
+        }
+        
+        return false;
+    }
 }

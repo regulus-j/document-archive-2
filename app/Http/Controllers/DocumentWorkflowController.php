@@ -2260,5 +2260,112 @@ class DocumentWorkflowController extends Controller
                 ->with('error', 'An error occurred while uploading the new version. Please try again.');
         }
     }
+
+    /**
+     * Delete a workflow - restricted to the uploader (sender) only
+     */
+    public function deleteWorkflow($workflowId): RedirectResponse
+    {
+        $workflow = DocumentWorkflow::findOrFail($workflowId);
+        
+        // Only the sender (uploader) can delete the workflow
+        if ($workflow->sender_id !== auth()->id()) {
+            return redirect()->back()
+                ->with('error', 'You can only delete workflows that you created.');
+        }
+        
+        // Prevent deletion if workflow has been processed (received, approved, etc.)
+        if (!in_array($workflow->status, ['pending', 'waiting'])) {
+            return redirect()->back()
+                ->with('error', 'Cannot delete a workflow that has already been processed.');
+        }
+        
+        $documentId = $workflow->document_id;
+        $documentTitle = $workflow->document->title ?? 'Document';
+        
+        // Delete any child workflows (sub-workflows) first
+        if ($workflow->hasSubWorkflows()) {
+            $workflow->childWorkflows()->delete();
+        }
+        
+        // Log the deletion
+        DocumentAudit::logDocumentAction(
+            $documentId,
+            auth()->id(),
+            'workflow_deleted',
+            $workflow->document->status?->status ?? 'unknown',
+            'Workflow deleted by ' . auth()->user()->first_name . ' ' . auth()->user()->last_name
+        );
+        
+        // Delete the workflow
+        $workflow->delete();
+        
+        return redirect()->route('documents.show', $documentId)
+            ->with('success', 'Workflow deleted successfully.');
+    }
+
+    /**
+     * Replace an attachment with a new file
+     */
+    public function replaceAttachment(Request $request, $workflowId): RedirectResponse
+    {
+        $accessCheck = $this->ensureWorkflowAccess($workflowId);
+        if ($accessCheck) return $accessCheck;
+
+        $request->validate([
+            'attachment_id' => 'required|integer|exists:document_attachments,id',
+            'attachment' => 'required|file|max:10240',
+        ]);
+
+        $workflow = DocumentWorkflow::findOrFail($workflowId);
+        $attachment = DocumentAttachment::findOrFail($request->attachment_id);
+        
+        // Ensure the attachment belongs to this workflow's document
+        if ((int)$attachment->document_id !== (int)$workflow->document_id) {
+            return redirect()->back()
+                ->with('error', 'Invalid attachment for this document.');
+        }
+        
+        // Only the uploader can replace their attachment
+        if ((int)$attachment->uploaded_by !== (int)auth()->id()) {
+            return redirect()->back()
+                ->with('error', 'You can only replace attachments that you uploaded.');
+        }
+        
+        $file = $request->file('attachment');
+        $companyId = $workflow->document->company_id ?? 'general';
+        
+        // Store the new file
+        $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs($companyId . '/attachments', $filename, 'public');
+        
+        // Delete the old file from storage
+        if ($attachment->path) {
+            Storage::disk('public')->delete($attachment->path);
+        }
+        
+        $oldFilename = $attachment->filename;
+        
+        // Update the attachment record
+        $attachment->update([
+            'filename' => $file->getClientOriginalName(),
+            'path' => $path,
+            'storage_size' => $file->getSize(),
+            'mime_type' => $file->getMimeType(),
+        ]);
+        
+        // Log the replacement
+        DocumentAudit::logDocumentAction(
+            $workflow->document_id,
+            auth()->id(),
+            'attachment_replaced',
+            $workflow->document->status?->status ?? 'unknown',
+            "Attachment '{$oldFilename}' replaced with '{$file->getClientOriginalName()}' by " . 
+            auth()->user()->first_name . ' ' . auth()->user()->last_name
+        );
+        
+        return redirect()->back()
+            ->with('success', 'Attachment replaced successfully.');
+    }
 }
 
