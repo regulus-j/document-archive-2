@@ -58,12 +58,15 @@ class Role extends SpatieRole
     {
         $defaultRoles = [
             'company-admin' => [
-                // Access Management
+                // Access Management (new + legacy)
                 'roles.view', 'roles.create', 'roles.edit', 'roles.delete',
+                'role-list', 'role-create', 'role-edit', 'role-delete',
                 'users.view', 'users.create', 'users.edit', 'users.delete',
+                'user-list', 'user-create', 'user-edit', 'user-delete',
                 
-                // Organization Management
+                // Organization Management (new + legacy)
                 'offices.view', 'offices.create', 'offices.edit', 'offices.delete',
+                'office-list', 'office-create', 'office-edit', 'office-delete',
                 
                 // Document Lifecycle (new workflow-aligned permissions)
                 'documents.manage',
@@ -71,14 +74,23 @@ class Role extends SpatieRole
                 'documents.workflow.participate',
                 'documents.workflow.admin',
                 
-                // Audit
+                // Document Lifecycle (legacy permissions for backward compatibility)
+                'document-list', 'document-create', 'document-edit', 'document-delete',
+                'document-release', 'document-receive',
+                
+                // Audit (new + legacy)
                 'audit.view',
+                'audit-list',
             ],
             'user' => [
-                // Document Lifecycle (basic user)
+                // Document Lifecycle (new workflow-aligned permissions)
                 'documents.manage',
                 'documents.workflow.initiate',
                 'documents.workflow.participate',
+                
+                // Document Lifecycle (legacy permissions for backward compatibility)
+                'document-list', 'document-create', 'document-edit', 'document-delete',
+                'document-release', 'document-receive',
             ],
         ];
 
