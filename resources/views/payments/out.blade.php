@@ -77,7 +77,7 @@
                             </div>
                             
                             <div class="mt-6">
-                                <a href="{{ $paymentData['attributes']['checkout_url'] ?? '#' }}" target="_blank" 
+                                <a href="{{ $paymentLink ?? ($paymentData['attributes']['redirect']['checkout_url'] ?? ($paymentData['attributes']['checkout_url'] ?? '#')) }}" target="_blank" 
                                    class="w-full inline-flex justify-center items-center px-4 py-3 border border-transparent text-sm font-medium rounded-lg shadow-md text-white bg-gradient-to-r from-indigo-600 to-indigo-600 hover:from-indigo-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -171,10 +171,12 @@
         function pollPaymentStatus() {
             // Parse data properly
             const decoded = JSON.parse(@json($responseData));
-            const referenceNumber = decoded.data.attributes.reference_number;
-            
-            if (!referenceNumber) {
-                console.error('No reference number available');
+            const paymentData = decoded.data || {};
+            const referenceNumber = paymentData.attributes?.reference_number;
+            const linkIdentifier = @json($linkId) || paymentData.id || referenceNumber;
+             
+            if (!linkIdentifier || !referenceNumber) {
+                console.error('Missing PayMongo payment identifiers');
                 return;
             }
 
@@ -183,8 +185,8 @@
 
             const checkStatus = async () => {
                 try {
-                    console.log('Checking payment status for:', referenceNumber);
-                    const response = await fetch(`{{ url('/payment/check-status') }}/${referenceNumber}`, {
+                    console.log('Checking payment status for:', linkIdentifier);
+                    const response = await fetch(`{{ url('/payment/check-status') }}/${encodeURIComponent(linkIdentifier)}`, {
                         method: 'GET',
                         headers: {
                             'Accept': 'application/json',

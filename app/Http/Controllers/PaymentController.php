@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Plan;
-use App\Models\CompanySubscription;
 use App\Models\CompanyAccount;
+use App\Models\CompanySubscription;
+use App\Models\Plan;
 use App\Models\SubscriptionPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 class PaymentController extends Controller
 {
@@ -36,128 +35,74 @@ class PaymentController extends Controller
     public function show(SubscriptionPayment $payment)
     {
         $payment->load('subscription.company');
+
         return view('payments.show', compact('payment'));
     }
 
-    public function linkCreate($plan)
+    public function linkCreate(Plan $plan, string $billing = 'monthly')
     {
-        $plan = Plan::findOrFail($plan);
-        session(['selected_plan' => $plan]);
+        $billing = $this->normalizeBillingCycle($billing);
+        $referenceNumber = $this->generateTransactionReference();
 
-        $price = $plan->price * 100;
-        $body = [
-            'data' => [
-                'attributes' => [
-                    'amount' => $price * 100,
-                    'description' => "Payment for {$plan->name} plan",
-                    'remarks' => "Subscription payment"
-                ]
-            ]
-        ];
+        session([
+            'selected_plan_id' => $plan->id,
+            'selected_billing' => $billing,
+            'selected_reference' => $referenceNumber,
+        ]);
 
         try {
-            $client = new \GuzzleHttp\Client([
-                'timeout'         => 15,
-                'connect_timeout' => 10,
-            ]);
+            $checkoutSession = $this->createPayMongoCheckoutSession($plan, $billing, $referenceNumber);
 
-            $response = $client->request('POST', 'https://api.paymongo.com/v1/links', [
-                'json' => $body,
-                'headers' => [
-                    'accept' => 'application/json',
-                    'authorization' => 'Basic ' . base64_encode(config('services.paymongo.secret_key') . ':'),
-                    'content-type' => 'application/json',
-                ],
-            ]);
+            session(['checkout_session_id' => $checkoutSession['checkoutSessionId']]);
 
-            $responseData = $response->getBody()->getContents();
-
-            return view('payments.out', ['responseData' => $responseData]);
+            return redirect()->away($checkoutSession['checkoutUrl']);
         } catch (\Throwable $e) {
-            \Log::error('PayMongo link creation failed: ' . $e->getMessage());
+            \Log::error('PayMongo checkout session creation failed: ' . $e->getMessage(), [
+                'plan_id' => $plan->id,
+                'billing' => $billing,
+                'reference' => $referenceNumber,
+            ]);
+
             return redirect()->back()
-                ->with('error', 'Unable to generate payment link. Please try again later or contact support.');
+                ->with('error', 'Unable to start checkout. Please try again later or contact support.');
         }
     }
-    
-    public function checkPaymentStatus($referenceNumber)
+
+    public function checkPaymentStatus($identifier)
     {
-        $client = new \GuzzleHttp\Client([
-            'timeout'         => 15,
-            'connect_timeout' => 10,
-        ]);
-        $baseUrl = 'https://api.paymongo.com/v1/links';
-
         try {
-            $response = $client->request('GET', $baseUrl . '?reference_number=' . $referenceNumber, [
-                'headers' => [
-                    'accept' => 'application/json',
-                    'authorization' => 'Basic ' . base64_encode(config('services.paymongo.secret_key') . ':'),
-                ],
-                'http_errors' => false,
-            ]);
+            if (str_starts_with($identifier, 'cs_')) {
+                $checkoutSession = $this->fetchCheckoutSessionData($identifier);
 
-            // Handle non-200 API responses gracefully
-            if ($response->getStatusCode() !== 200) {
-                \Log::warning('PayMongo API returned HTTP ' . $response->getStatusCode() . ' for reference: ' . $referenceNumber);
+                if (!$checkoutSession) {
+                    return response('pending', 200)->header('Content-Type', 'text/plain');
+                }
+
+                $status = $this->checkoutSessionHasSuccessfulPayment($checkoutSession) ? 'successful' : 'pending';
+
+                return response($status, 200)->header('Content-Type', 'text/plain');
+            }
+
+            $result = $this->fetchPayMongoLinkData($identifier);
+
+            if (!$result) {
                 return response('pending', 200)->header('Content-Type', 'text/plain');
             }
 
-            $result = json_decode($response->getBody(), true);
-            \Log::info('PayMongo Response:', ['data' => $result]);
-
-            if (!empty($result['data'][0])) {
-                $paymentStatus = $result['data'][0]['attributes']['status'] ?? 'pending';
-
-                if ($paymentStatus === 'paid') {
-                    // Check if payment was already recorded (avoid duplicate inserts on re-poll)
-                    $existingPayment = SubscriptionPayment::where('transaction_reference', $referenceNumber)->first();
-                    if ($existingPayment) {
-                        return response('successful', 200)->header('Content-Type', 'text/plain');
-                    }
-
-                    DB::beginTransaction();
-                    try {
-                        $user = auth()->user();
-                        if (!$user) {
-                            \Log::error('No authenticated user found.');
-                            return response('error', 200)->header('Content-Type', 'text/plain');
-                        }
-
-                        $company = $user->companies()->first();
-                        if (!$company) {
-                            \Log::error('No company associated with user: ' . $user->id);
-                            return response('error', 200)->header('Content-Type', 'text/plain');
-                        }
-
-                        $subscription = $this->createOrUpdateSubscription($company);
-                        $paymentData = [
-                            'attributes' => [
-                                'amount' => $result['data'][0]['attributes']['amount'] ?? 0,
-                                'reference_number' => $referenceNumber,
-                                'remarks' => $result['data'][0]['attributes']['remarks'] ?? 'Payment completed'
-                            ]
-                        ];
-                        $this->createPaymentRecord($subscription, $paymentData);
-
-                        DB::commit();
-                        return response('successful', 200)->header('Content-Type', 'text/plain');
-                    } catch (\Exception $e) {
-                        DB::rollBack();
-                        \Log::error('Payment processing error: ' . $e->getMessage());
-                        \Log::error('Stack trace: ' . $e->getTraceAsString());
-                        return response('error', 200)->header('Content-Type', 'text/plain');
-                    }
-                }
-
-                return response($paymentStatus, 200)->header('Content-Type', 'text/plain');
+            $paymentLink = $result['data'] ?? null;
+            if (isset($paymentLink[0])) {
+                $paymentLink = $paymentLink[0];
             }
 
-            \Log::warning('Empty PayMongo response for reference: ' . $referenceNumber);
-            return response('pending', 200)->header('Content-Type', 'text/plain');
+            $paymentStatus = $paymentLink['attributes']['status'] ?? 'pending';
+            $status = $paymentStatus === 'paid' ? 'successful' : $paymentStatus;
+
+            return response($status, 200)->header('Content-Type', 'text/plain');
         } catch (\Throwable $e) {
-            \Log::error('PayMongo Error: ' . $e->getMessage());
-            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            \Log::error('PayMongo status check failed: ' . $e->getMessage(), [
+                'identifier' => $identifier,
+            ]);
+
             return response('error', 200)->header('Content-Type', 'text/plain');
         }
     }
@@ -165,24 +110,27 @@ class PaymentController extends Controller
     private function createOrUpdateSubscription($company)
     {
         $subscription = $company->subscriptions()->where('status', 'pending')->first();
-        
+
         if (!$subscription) {
-            if (!session('selected_plan')) {
-                throw new \Exception('Selected plan not found in session');
+            $selectedPlanId = session('selected_plan_id') ?? session('selected_plan')?->id;
+            if (!$selectedPlanId) {
+                throw new \RuntimeException('Selected plan not found in session.');
             }
-            
+
+            $billing = $this->normalizeBillingCycle(session('selected_billing', 'monthly'));
+
             $subscription = CompanySubscription::create([
                 'company_id' => $company->id,
-                'plan_id' => session('selected_plan')->id,
+                'plan_id' => $selectedPlanId,
                 'start_date' => now(),
-                'end_date' => now()->addMonth(),
+                'end_date' => $billing === 'yearly' ? now()->addYear() : now()->addMonth(),
                 'status' => 'active',
                 'auto_renew' => true,
             ]);
         } else {
             $subscription->update(['status' => 'active']);
         }
-        
+
         return $subscription;
     }
 
@@ -205,74 +153,51 @@ class PaymentController extends Controller
         $payment = SubscriptionPayment::with(['subscription.plan'])
             ->where('transaction_reference', $referenceNumber)
             ->firstOrFail();
-    
+
         return view('payments.success', [
             'message' => 'Payment completed successfully!',
             'payment' => $payment,
             'subscription' => $payment->subscription,
-            'plan' => $payment->subscription->plan
+            'plan' => $payment->subscription->plan,
         ]);
     }
 
     public function create(Request $request, Plan $plan)
     {
-        $billing = $request->query('billing', 'monthly');
-        // Calculate price (price is expected in dollars/amount unit)
-        $price = $this->calculatePrice($plan->price, $billing);
-        // Convert price to the smallest currency unit (e.g. cents)
-        $amount = $price * 100;
+        $billing = $this->normalizeBillingCycle($request->query('billing', 'monthly'));
+        $referenceNumber = $this->generateTransactionReference();
 
-        // Prepare the request body for PayMongo
-        $body = [
-            'data' => [
-                'attributes' => [
-                    'amount' => $amount,
-                    'description' => 'Payment for subscription plan: ' . $plan->name,
-                    'remarks' => ucfirst($billing) . ' subscription'
-                ]
-            ]
-        ];
+        session([
+            'selected_plan_id' => $plan->id,
+            'selected_billing' => $billing,
+            'selected_reference' => $referenceNumber,
+        ]);
 
         try {
-            $client = new \GuzzleHttp\Client([
-                'timeout'         => 15,
-                'connect_timeout' => 10,
-            ]);
-            $response = $client->request('POST', 'https://api.paymongo.com/v1/links', [
-                'json' => $body,
-                'headers' => [
-                    'accept' => 'application/json',
-                    'authorization' => 'Basic ' . base64_encode(config('services.paymongo.secret_key') . ':'),
-                    'content-type' => 'application/json',
-                ],
+            $checkoutSession = $this->createPayMongoCheckoutSession($plan, $billing, $referenceNumber);
+            session(['checkout_session_id' => $checkoutSession['checkoutSessionId']]);
+        } catch (\Throwable $e) {
+            \Log::error('PayMongo checkout session creation failed: ' . $e->getMessage(), [
+                'plan_id' => $plan->id,
+                'billing' => $billing,
+                'reference' => $referenceNumber,
             ]);
 
-            $responseData = json_decode($response->getBody()->getContents(), true);
-            // Extract the checkout URL from the response
-            $paymentLink = $responseData['data']['attributes']['redirect']['checkout_url'] ?? null;
-
-            if (!$paymentLink) {
-                \Log::error('PayMongo Response did not include a checkout_url:', $responseData);
-                return view('payments.create', [
-                    'plan'       => $plan,
-                    'billing'    => $billing,
-                    'price'      => $price,
-                    'paymentLink'=> null,
-                    'error'      => 'Unable to generate payment link. Please try again later or contact support.'
-                ]);
-            }
-        } catch (\Exception $e) {
-            \Log::error("PayMongo Error: " . $e->getMessage());
             return view('payments.create', [
-                'plan'       => $plan,
-                'billing'    => $billing,
-                'price'      => $price,
-                'paymentLink'=> null,
-                'error'      => 'Unable to generate payment link. Please try again later or contact support.'
+                'plan' => $plan,
+                'billing' => $billing,
+                'price' => $this->calculateDisplayedPrice($plan->price, $billing),
+                'paymentLink' => null,
+                'error' => 'Unable to start checkout. Please try again later or contact support.',
             ]);
         }
 
-        return view('payments.create', compact('plan', 'billing', 'price', 'paymentLink'));
+        return view('payments.create', [
+            'plan' => $plan,
+            'billing' => $billing,
+            'price' => $checkoutSession['displayPrice'],
+            'paymentLink' => $checkoutSession['checkoutUrl'],
+        ]);
     }
 
     public function store(Request $request, Plan $plan)
@@ -290,7 +215,6 @@ class PaymentController extends Controller
 
             $company = CompanyAccount::where('user_id', $user->id)->firstOrFail();
 
-            // Create subscription
             $subscription = CompanySubscription::create([
                 'company_id' => $company->id,
                 'plan_id' => $plan->id,
@@ -300,7 +224,6 @@ class PaymentController extends Controller
                 'auto_renew' => true,
             ]);
 
-            // Create payment record
             $payment = SubscriptionPayment::create([
                 'company_subscription_id' => $subscription->id,
                 'payment_date' => now(),
@@ -310,38 +233,74 @@ class PaymentController extends Controller
                 'transaction_reference' => $this->generateTransactionReference(),
             ]);
 
-            // Here you would integrate with your payment gateway
-            // For this example, we'll simulate a successful payment
             $payment->update(['status' => 'successful']);
             $subscription->update(['status' => 'active']);
 
             DB::commit();
 
             return redirect()->route('dashboard')->with('success', 'Payment successful! Your subscription is now active.');
-
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
+
             return back()->with('error', 'Payment processing failed. Please try again.');
         }
     }
 
     public function handleCallback(Request $request)
     {
-        $referenceNumber = $request->query('reference');
+        $referenceNumber = $request->query('reference') ?: session('selected_reference');
+        $checkoutSessionId = $request->query('checkout_session_id') ?: session('checkout_session_id');
 
-        if (!$referenceNumber) {
+        if (!$referenceNumber || !$checkoutSessionId) {
             return redirect()->route('dashboard')->with('error', 'Invalid payment callback.');
         }
 
-        // Check if payment record already exists
-        $payment = SubscriptionPayment::where('transaction_reference', $referenceNumber)->first();
-
-        if ($payment && $payment->status === 'successful') {
+        $existingPayment = SubscriptionPayment::where('transaction_reference', $referenceNumber)->first();
+        if ($existingPayment && $existingPayment->status === 'successful') {
             return redirect()->route('payment.success', ['reference' => $referenceNumber]);
         }
 
-        // Payment not yet processed — redirect back to the polling page
-        return redirect()->route('dashboard')->with('info', 'Payment is still being processed. You will be notified once confirmed.');
+        try {
+            $checkoutSession = $this->fetchCheckoutSessionData($checkoutSessionId);
+            if (!$checkoutSession || !$this->checkoutSessionHasSuccessfulPayment($checkoutSession)) {
+                return redirect()->route('dashboard')->with('info', 'Payment is still being processed. You will be notified once confirmed.');
+            }
+
+            $user = auth()->user();
+            if (!$user) {
+                return redirect()->route('dashboard')->with('error', 'Your payment was received, but your account session expired. Please sign in again.');
+            }
+
+            $company = $user->companies()->first();
+            if (!$company) {
+                return redirect()->route('dashboard')->with('error', 'Your payment was received, but no company is linked to your account. Please contact support.');
+            }
+
+            DB::beginTransaction();
+
+            $subscription = $this->createOrUpdateSubscription($company);
+            $paymentData = $this->buildPaymentDataFromCheckoutSession($checkoutSession, $referenceNumber);
+            $this->createPaymentRecord($subscription, $paymentData);
+
+            DB::commit();
+
+            session()->forget([
+                'checkout_session_id',
+                'selected_reference',
+                'selected_plan_id',
+                'selected_billing',
+            ]);
+
+            return redirect()->route('payment.success', ['reference' => $referenceNumber]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            \Log::error('PayMongo checkout callback failed: ' . $e->getMessage(), [
+                'checkout_session_id' => $checkoutSessionId,
+                'reference' => $referenceNumber,
+            ]);
+
+            return redirect()->route('dashboard')->with('error', 'Payment verification failed. Please contact support if you were charged.');
+        }
     }
 
     private function calculatePrice($basePrice, $billing)
@@ -349,9 +308,188 @@ class PaymentController extends Controller
         return $billing === 'yearly' ? $basePrice * 12 : $basePrice;
     }
 
+    private function calculateDisplayedPrice($basePrice, $billing)
+    {
+        // Preserve the pricing currently shown on the public plan pages.
+        return $billing === 'yearly' ? $basePrice * 1000 : $basePrice * 100;
+    }
+
+    private function normalizeBillingCycle(?string $billing): string
+    {
+        return $billing === 'yearly' ? 'yearly' : 'monthly';
+    }
+
+    private function resolvePlanName(Plan $plan): string
+    {
+        return $plan->plan_name ?? $plan->name ?? 'Subscription';
+    }
+
+    private function createPayMongoCheckoutSession(Plan $plan, string $billing, string $referenceNumber): array
+    {
+        $billing = $this->normalizeBillingCycle($billing);
+        $displayPrice = $this->calculateDisplayedPrice($plan->price, $billing);
+        $amount = (int) round($displayPrice * 100);
+
+        $body = [
+            'data' => [
+                'attributes' => [
+                    'cancel_url' => route('dashboard'),
+                    'description' => 'Payment for subscription plan: ' . $this->resolvePlanName($plan),
+                    'line_items' => [[
+                        'amount' => $amount,
+                        'currency' => 'PHP',
+                        'description' => ucfirst($billing) . ' subscription',
+                        'name' => $this->resolvePlanName($plan),
+                        'quantity' => 1,
+                    ]],
+                    'payment_method_types' => ['card', 'gcash'],
+                    'reference_number' => $referenceNumber,
+                    'send_email_receipt' => false,
+                    'show_description' => true,
+                    'show_line_items' => true,
+                    'success_url' => route('payment.callback', ['reference' => $referenceNumber]),
+                ],
+            ],
+        ];
+
+        $client = new \GuzzleHttp\Client([
+            'timeout' => 15,
+            'connect_timeout' => 10,
+        ]);
+
+        $response = $client->request('POST', 'https://api.paymongo.com/v2/checkout_sessions', [
+            'json' => $body,
+            'headers' => [
+                'accept' => 'application/json',
+                'authorization' => 'Basic ' . base64_encode(config('services.paymongo.secret_key') . ':'),
+                'content-type' => 'application/json',
+            ],
+        ]);
+
+        $responseData = json_decode($response->getBody()->getContents(), true);
+        $checkoutUrl = $this->extractCheckoutUrl($responseData);
+
+        if (!$checkoutUrl) {
+            \Log::error('PayMongo checkout session response did not include a usable checkout URL.', [
+                'response' => $responseData,
+            ]);
+
+            throw new \RuntimeException('Unable to extract a checkout URL from the PayMongo response.');
+        }
+
+        return [
+            'checkoutSessionId' => $responseData['data']['id'] ?? null,
+            'checkoutUrl' => $checkoutUrl,
+            'displayPrice' => $displayPrice,
+            'responseData' => $responseData,
+        ];
+    }
+
+    private function extractCheckoutUrl(array $responseData): ?string
+    {
+        $attributes = $responseData['data']['attributes'] ?? [];
+        $candidates = [
+            $attributes['checkout_url'] ?? null,
+            $attributes['redirect']['checkout_url'] ?? null,
+            $attributes['url'] ?? null,
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (is_string($candidate) && filter_var($candidate, FILTER_VALIDATE_URL)) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    private function fetchCheckoutSessionData(string $checkoutSessionId): ?array
+    {
+        $client = new \GuzzleHttp\Client([
+            'timeout' => 15,
+            'connect_timeout' => 10,
+        ]);
+
+        $response = $client->request('GET', 'https://api.paymongo.com/v1/checkout_sessions/' . urlencode($checkoutSessionId), [
+            'headers' => [
+                'accept' => 'application/json',
+                'authorization' => 'Basic ' . base64_encode(config('services.paymongo.secret_key') . ':'),
+            ],
+            'http_errors' => false,
+        ]);
+
+        if ($response->getStatusCode() !== 200) {
+            return null;
+        }
+
+        return json_decode($response->getBody()->getContents(), true);
+    }
+
+    private function checkoutSessionHasSuccessfulPayment(array $checkoutSession): bool
+    {
+        $attributes = $checkoutSession['data']['attributes'] ?? [];
+        $payments = $attributes['payments'] ?? [];
+        $paymentIntentStatus = $attributes['payment_intent']['attributes']['status'] ?? null;
+
+        return !empty($payments) || $paymentIntentStatus === 'succeeded';
+    }
+
+    private function buildPaymentDataFromCheckoutSession(array $checkoutSession, string $referenceNumber): array
+    {
+        $attributes = $checkoutSession['data']['attributes'] ?? [];
+        $payments = $attributes['payments'] ?? [];
+        $paymentAmount = $payments[0]['attributes']['amount'] ?? null;
+
+        if ($paymentAmount === null) {
+            $paymentAmount = 0;
+
+            foreach ($attributes['line_items'] ?? [] as $item) {
+                $paymentAmount += ((int) ($item['amount'] ?? 0)) * ((int) ($item['quantity'] ?? 1));
+            }
+        }
+
+        return [
+            'attributes' => [
+                'amount' => $paymentAmount,
+                'reference_number' => $referenceNumber,
+                'remarks' => $attributes['description'] ?? 'Checkout payment completed',
+            ],
+        ];
+    }
+
+    private function fetchPayMongoLinkData(string $identifier): ?array
+    {
+        $client = new \GuzzleHttp\Client([
+            'timeout' => 15,
+            'connect_timeout' => 10,
+        ]);
+
+        $headers = [
+            'accept' => 'application/json',
+            'authorization' => 'Basic ' . base64_encode(config('services.paymongo.secret_key') . ':'),
+        ];
+
+        $endpoints = [
+            'https://api.paymongo.com/v1/links/' . urlencode($identifier),
+            'https://api.paymongo.com/v1/links?reference_number=' . urlencode($identifier),
+        ];
+
+        foreach ($endpoints as $endpoint) {
+            $response = $client->request('GET', $endpoint, [
+                'headers' => $headers,
+                'http_errors' => false,
+            ]);
+
+            if ($response->getStatusCode() === 200) {
+                return json_decode($response->getBody()->getContents(), true);
+            }
+        }
+
+        return null;
+    }
+
     private function generateTransactionReference()
     {
         return 'TXN-' . strtoupper(uniqid()) . '-' . date('Ymd');
     }
 }
-
