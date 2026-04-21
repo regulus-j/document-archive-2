@@ -41,7 +41,7 @@
                     </x-nav-link>
 
                     {{-- Documents (hide for super-admin) --}}
-                    @can('document-list')
+                    @can('document-list|documents.manage')
                     @if(!auth()->user()->isSuperAdmin())
                     <x-nav-link
                         :href="route('documents.index')"
@@ -95,7 +95,7 @@
                     @endif
 
                     {{-- Document Actions Dropdown (hide for super-admin) --}}
-                    @can('document-list')
+                    @can('document-list|documents.manage')
                     @if(!auth()->user()->isSuperAdmin())
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
@@ -402,7 +402,7 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
 
-            @can('document-list')
+            @can('document-list|documents.manage')
                 <div class="px-3 pt-3 pb-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Documents</div>
                 <x-responsive-nav-link :href="route('documents.index')" :active="request()->routeIs('documents.index')">{{ __('View Documents') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('documents.create')" :active="request()->routeIs('documents.create')">{{ __('Upload Document') }}</x-responsive-nav-link>

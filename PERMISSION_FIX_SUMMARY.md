@@ -126,6 +126,52 @@ During the transition period, different parts of the codebase may check for diff
 5. ✅ Test with a new registration
 6. ✅ Verify existing users can still access their features
 
+## Permission Check Updates (April 22, 2026)
+
+### OR Logic Implementation
+
+**All permission checks now use OR logic for maximum compatibility:**
+
+```blade
+// Old approach (legacy only):
+@can('document-list')
+
+// New approach (backward compatible):
+@can('document-list|documents.manage')
+```
+
+**Files Updated:**
+- ✅ `resources/views/layouts/navigation.blade.php` - Navigation menu
+- ✅ `resources/views/roles/index.blade.php` - Roles management
+- ✅ `resources/views/documents/index.blade.php` - Document creation
+- ✅ `app/Http/Controllers/RoleController.php` - Middleware checks
+- ✅ `app/Http/Controllers/UserController.php` - Middleware checks
+
+**How it works:**
+- Users with EITHER legacy OR new-style permissions can access features
+- No breaking changes to existing roles
+- Future-proof for gradual migration
+
+### Role Templates Feature
+
+**New: Quick Start Templates** added to role creation/editing:
+
+Five predefined templates help users quickly set up common roles:
+1. **Document Manager** - Full document and workflow control
+2. **Viewer Only** - Read-only access
+3. **HR Manager** - User management + document access
+4. **Office Manager** - Office/team management + documents
+5. **Auditor** - Audit logs and reports access
+
+**How to use:**
+1. Go to Roles → Create New Role (or edit existing)
+2. Click on a template card
+3. Permissions are auto-selected
+4. Customize as needed
+5. Save the role
+
+See `ROLE_TEMPLATES_GUIDE.md` for detailed information.
+
 ## Future Considerations
 
 **Long-term plan:**
@@ -136,6 +182,8 @@ During the transition period, different parts of the codebase may check for diff
 
 ---
 
-**Fix Applied:** April 22, 2026
-**Migration Status:** ✅ Completed
+**Initial Fix Applied:** April 22, 2026  
+**OR Logic Update:** April 22, 2026  
+**Role Templates Added:** April 22, 2026  
+**Migration Status:** ✅ Completed  
 **Impact:** All newly registered and existing users

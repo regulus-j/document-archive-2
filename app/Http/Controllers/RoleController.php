@@ -16,11 +16,11 @@ class RoleController extends Controller
 {
     function __construct()
     {
-        // Check if user has any of these permissions
-        $this->middleware('permission:role-list|role-create|role-edit|role-delete', ['only' => ['index','store']]);
-        $this->middleware('permission:role-create', ['only' => ['create','store']]);
-        $this->middleware('permission:role-edit', ['only' => ['edit','update']]);
-        $this->middleware('permission:role-delete', ['only' => ['destroy']]);
+        // Check if user has any of these permissions (legacy OR new-style)
+        $this->middleware('permission:role-list|roles.view|role-create|roles.create|role-edit|roles.edit|role-delete|roles.delete', ['only' => ['index','store']]);
+        $this->middleware('permission:role-create|roles.create', ['only' => ['create','store']]);
+        $this->middleware('permission:role-edit|roles.edit', ['only' => ['edit','update']]);
+        $this->middleware('permission:role-delete|roles.delete', ['only' => ['destroy']]);
     }
 
         public function index(Request $request): View

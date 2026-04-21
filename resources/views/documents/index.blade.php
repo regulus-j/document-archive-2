@@ -20,7 +20,7 @@
                     </div>
                 </div>
                 <div>
-                    @can('document-create')
+                    @can('document-create|documents.manage')
                         <a href="{{ route('documents.create') }}"
                             class="ds-btn ds-btn-primary">
                             <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"

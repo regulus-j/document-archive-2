@@ -30,10 +30,11 @@ class UserController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('permission:user-list|user-create|user-edit|user-delete', ['only' => ['index', 'show']]);
-        $this->middleware('permission:user-create', ['only' => ['create', 'store']]);
-        $this->middleware('permission:user-edit', ['only' => ['edit', 'update']]);
-        $this->middleware('permission:user-delete', ['only' => ['destroy']]);
+        // Check if user has any of these permissions (legacy OR new-style)
+        $this->middleware('permission:user-list|users.view|user-create|users.create|user-edit|users.edit|user-delete|users.delete', ['only' => ['index', 'show']]);
+        $this->middleware('permission:user-create|users.create', ['only' => ['create', 'store']]);
+        $this->middleware('permission:user-edit|users.edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:user-delete|users.delete', ['only' => ['destroy']]);
     }
 
     /**

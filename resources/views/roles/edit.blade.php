@@ -57,6 +57,46 @@
             </div>
         @endif
 
+        <!-- Role Templates Section -->
+        @php
+            use App\Models\RoleTemplate;
+            $roleTemplates = RoleTemplate::getTemplates();
+        @endphp
+        
+        <div class="mb-6 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-6 border border-indigo-200">
+            <div class="flex items-center mb-4">
+                <svg class="w-5 h-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 class="text-lg font-semibold text-slate-800">Quick Start Templates</h3>
+            </div>
+            <p class="text-sm text-slate-600 mb-4">Choose a template to quickly reconfigure this role</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                @foreach($roleTemplates as $key => $template)
+                    <button type="button" 
+                            onclick="applyTemplate('{{ $key }}')"
+                            class="text-left p-4 bg-white rounded-lg border-2 border-slate-200 hover:border-{{ $template['color'] }}-400 hover:shadow-md transition-all group">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <div class="w-10 h-10 bg-{{ $template['color'] }}-100 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-{{ $template['color'] }}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ RoleTemplate::getIconPath($template['icon']) }}" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-3 flex-1">
+                                <h4 class="text-sm font-semibold text-slate-800 group-hover:text-{{ $template['color'] }}-600">
+                                    {{ $template['name'] }}
+                                </h4>
+                                <p class="text-xs text-slate-500 mt-1">{{ $template['description'] }}</p>
+                            </div>
+                        </div>
+                    </button>
+                @endforeach
+            </div>
+        </div>
+
         <!-- Form Card -->
         <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-indigo-100">
             <div class="bg-white px-6 py-4 border-b border-indigo-200">
@@ -218,6 +258,39 @@
     </div>
 
     <script>
+        // Template permission mappings
+        const templatePermissions = @json(array_map(function($template) use ($permissionMap) {
+            $ids = [];
+            foreach($template['permissions'] as $permName) {
+                if (isset($permissionMap[$permName])) {
+                    $ids[] = $permissionMap[$permName];
+                }
+            }
+            return $ids;
+        }, $roleTemplates));
+
+        // Apply role template
+        function applyTemplate(templateKey) {
+            // Deselect all first
+            document.querySelectorAll('.permission-checkbox').forEach(cb => cb.checked = false);
+            
+            // Select template permissions
+            const permIds = templatePermissions[templateKey];
+            if (permIds) {
+                permIds.forEach(id => {
+                    const checkbox = document.querySelector(`input[value="${id}"]`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
+                });
+            }
+            
+            updateCounts();
+            
+            // Scroll to permissions section
+            document.querySelector('.permission-checkbox')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
         // Toggle group visibility
         function toggleGroup(groupKey) {
             const content = document.getElementById('group-' + groupKey);
