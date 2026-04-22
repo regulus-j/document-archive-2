@@ -8,6 +8,17 @@
     • Mobile-first — collapsible hamburger menu with grouped sections
 --}}
 <nav x-data="{ open: false }" class="bg-white border-b border-slate-200/80 shadow-nav sticky top-0 z-50">
+    @php
+        $canAccessDocumentManagement = auth()->user()->hasAnyRole(['company-admin', 'company-user', 'office-lead', 'user'])
+            || auth()->user()->canAny([
+                'document-list',
+                'documents.manage',
+                'documents.workflow.initiate',
+                'documents.workflow.participate',
+                'documents.workflow.admin',
+            ]);
+    @endphp
+
     <!-- ─── Desktop Navigation Header ─── -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
@@ -41,7 +52,7 @@
                     </x-nav-link>
 
                     {{-- Documents (hide for super-admin) --}}
-                    @can('document-list|documents.manage')
+                    @if($canAccessDocumentManagement)
                     @if(!auth()->user()->isSuperAdmin())
                     <x-nav-link
                         :href="route('documents.index')"
@@ -56,7 +67,7 @@
                         {{ __('Documents') }}
                     </x-nav-link>
                     @endif
-                    @endcan
+                    @endif
 
                     {{-- Reports Dropdown (hide for super-admin, they have their own dashboard) --}}
                     @if(!auth()->user()->isSuperAdmin())
@@ -95,7 +106,7 @@
                     @endif
 
                     {{-- Document Actions Dropdown (hide for super-admin) --}}
-                    @can('document-list|documents.manage')
+                    @if($canAccessDocumentManagement)
                     @if(!auth()->user()->isSuperAdmin())
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
@@ -141,7 +152,7 @@
                         </x-slot>
                     </x-dropdown>
                     @endif
-                    @endcan
+                    @endif
 
                     {{-- Super Admin: Site Audit Link --}}
                     @if(auth()->user()->isSuperAdmin())
@@ -402,14 +413,14 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
 
-            @can('document-list|documents.manage')
+            @if($canAccessDocumentManagement)
                 <div class="px-3 pt-3 pb-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Documents</div>
                 <x-responsive-nav-link :href="route('documents.index')" :active="request()->routeIs('documents.index')">{{ __('View Documents') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('documents.create')" :active="request()->routeIs('documents.create')">{{ __('Upload Document') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('documents.workflow-dashboard')" :active="request()->routeIs('documents.workflow-dashboard')">{{ __('Workflow Dashboard') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('documents.archive')" :active="request()->routeIs('documents.archive')">{{ __('Archives') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('documents.workflows')" :active="request()->routeIs('documents.workflows')">{{ __('Workflows') }}</x-responsive-nav-link>
-            @endcan
+            @endif
 
             <div class="px-3 pt-3 pb-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Reports</div>
             <x-responsive-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.index')">{{ __('Analytics & Reports') }}</x-responsive-nav-link>

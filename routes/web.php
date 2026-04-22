@@ -316,8 +316,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Route::put('/{document}/{status}', [DocumentController::class, 'changeStatus'])->name('documents.updateStatus');
 
-        Route::post('/search/tr', [DocumentController::class, 'searchByTr'])->name('trackingNumber-search');
-        Route::post('/search', [DocumentController::class, 'search'])->name('documents.search');
+        Route::match(['get', 'post'], '/search/tr', [DocumentController::class, 'searchByTr'])->name('trackingNumber-search');
+        Route::match(['get', 'post'], '/search', [DocumentController::class, 'search'])->name('documents.search');
         Route::get('/{id}/download', [DocumentController::class, 'downloadFile'])->name('documents.download');
     });
 
