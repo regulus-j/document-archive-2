@@ -18,7 +18,7 @@ class Feature extends Model
     public function plans(): BelongsToMany
     {
         return $this->belongsToMany(Plan::class, 'plan_features')
-                    ->withPivot('enabled')
+                    ->withPivot('enabled', 'value')
                     ->withTimestamps();
     }
 }

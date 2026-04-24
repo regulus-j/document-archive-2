@@ -65,35 +65,35 @@ class PlanSeeder extends Seeder
 
         // Assign features to Basic plan (10 users, 3 teams, 2GB)
         if ($users10) {
-            $basicPlan->features()->syncWithoutDetaching([$users10->id => ['enabled' => true]]);
+            $basicPlan->features()->syncWithoutDetaching([$users10->id => ['enabled' => true, 'value' => '10 users']]);
         }
         if ($teams3) {
-            $basicPlan->features()->syncWithoutDetaching([$teams3->id => ['enabled' => true]]);
+            $basicPlan->features()->syncWithoutDetaching([$teams3->id => ['enabled' => true, 'value' => '3 teams']]);
         }
         if ($storage2gb) {
-            $basicPlan->features()->syncWithoutDetaching([$storage2gb->id => ['enabled' => true]]);
+            $basicPlan->features()->syncWithoutDetaching([$storage2gb->id => ['enabled' => true, 'value' => '2 GB']]);
         }
 
         // Assign features to Standard plan (30 users, 10 teams, 10GB)
         if ($users30) {
-            $standardPlan->features()->syncWithoutDetaching([$users30->id => ['enabled' => true]]);
+            $standardPlan->features()->syncWithoutDetaching([$users30->id => ['enabled' => true, 'value' => '30 users']]);
         }
         if ($teams10) {
-            $standardPlan->features()->syncWithoutDetaching([$teams10->id => ['enabled' => true]]);
+            $standardPlan->features()->syncWithoutDetaching([$teams10->id => ['enabled' => true, 'value' => '10 teams']]);
         }
         if ($storage10gb) {
-            $standardPlan->features()->syncWithoutDetaching([$storage10gb->id => ['enabled' => true]]);
+            $standardPlan->features()->syncWithoutDetaching([$storage10gb->id => ['enabled' => true, 'value' => '10 GB']]);
         }
 
         // Assign features to Premium plan (100 users, 20 teams, 50GB)
         if ($users100) {
-            $premiumPlan->features()->syncWithoutDetaching([$users100->id => ['enabled' => true]]);
+            $premiumPlan->features()->syncWithoutDetaching([$users100->id => ['enabled' => true, 'value' => '100 users']]);
         }
         if ($teams20) {
-            $premiumPlan->features()->syncWithoutDetaching([$teams20->id => ['enabled' => true]]);
+            $premiumPlan->features()->syncWithoutDetaching([$teams20->id => ['enabled' => true, 'value' => '20 teams']]);
         }
         if ($storage50gb) {
-            $premiumPlan->features()->syncWithoutDetaching([$storage50gb->id => ['enabled' => true]]);
+            $premiumPlan->features()->syncWithoutDetaching([$storage50gb->id => ['enabled' => true, 'value' => '50 GB']]);
         }
 
         // Get additional features

@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use App\Rules\UniqueEmailInCompany;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -165,31 +166,39 @@ class UserController extends Controller
     /**
      * Show the form for creating a new user.
      */
-    public function create()
+    public function create(Request $request)
     {
-        $userCompany = auth()->user()->companies()->first();
+        $authUser = auth()->user();
+        $isSuperAdmin = $authUser->hasRole('super-admin');
+
+        $companies = collect();
+        $selectedCompanyId = null;
+
+        if ($isSuperAdmin) {
+            $companies = CompanyAccount::orderBy('company_name')->get(['id', 'company_name']);
+            $selectedCompanyId = (int) ($request->input('company_id') ?: optional($companies->first())->id);
+            $userCompany = $companies->firstWhere('id', $selectedCompanyId);
+        } else {
+            $userCompany = $authUser->companies()->first();
+            $selectedCompanyId = $userCompany?->id;
+        }
+
+        if (!$userCompany) {
+            return redirect()->route('users.index')
+                ->with('error', 'No company found. Please select a valid company first.');
+        }
 
         if (!$userCompany->canAddUser()) {
             return redirect()->route('users.index')
-                ->with('error', 'Max users reached, upgrade your plan to add more.');
+                ->with('error', 'Max users reached for this company. Upgrade the plan to add more users.');
         }
 
-        // Filter roles based on user permissions
-        if (auth()->user()->hasRole('super-admin')) {
-            // Super admins can see all roles
-            $roles = Role::pluck('name', 'id')->all();
-        } else {
-            // Others see only their company's roles
-            $company = auth()->user()->companies()->first();
-            $roles = $company
-                ? Role::companyOnly($company->id)->pluck('name', 'id')->all()
-                : [];
-        }
+        $roles = Role::companyOnly($userCompany->id)
+            ->pluck('name', 'id')
+            ->all();
 
-        $company = auth()->user()->companies()->first();
         // Get offices and format them as id => name pairs
-        $offices = Office::where('company_id', $company->id)
-            ->get()
+        $offices = Office::where('company_id', $userCompany->id)
             ->pluck('name', 'id')
             ->all();
 
@@ -198,7 +207,15 @@ class UserController extends Controller
             $query->whereIn('offices.id', array_keys($offices));
         })->get();
 
-        return view('users.create', compact('roles', 'offices', 'userCompany', 'users'));
+        return view('users.create', compact(
+            'roles',
+            'offices',
+            'userCompany',
+            'users',
+            'isSuperAdmin',
+            'companies',
+            'selectedCompanyId'
+        ));
     }
 
 
@@ -207,20 +224,32 @@ class UserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $userCompany = auth()->user()->companies()->first();
+        $authUser = auth()->user();
+        $isSuperAdmin = $authUser->hasRole('super-admin');
 
-        if (!$userCompany->canAddUser()) {
+        $companyId = $isSuperAdmin
+            ? (int) $request->input('companies')
+            : (int) optional($authUser->companies()->first())->id;
+
+        if (!$companyId) {
             return redirect()->route('users.index')
-                ->with('error', 'Max users reached, upgrade your plan to add more.');
+                ->with('error', 'Select a company before creating a user.');
         }
 
-        // Determine company ID first
-        $companyId = auth()->user()->companies()->first()->id;
-        if (!auth()->user()->hasRole('super-admin')) {
-            $userCompany = auth()->user()->companies()->first();
-            if ($userCompany) {
-                $companyId = $userCompany->id;
-            }
+        $targetCompany = CompanyAccount::find($companyId);
+        if (!$targetCompany) {
+            return redirect()->route('users.index')
+                ->with('error', 'Selected company was not found.');
+        }
+
+        if (!$targetCompany->canAddUser()) {
+            return redirect()->route('users.index')
+                ->with('error', 'Max users reached for this company. Upgrade the plan to add more users.');
+        }
+
+        $companyValidationRule = ['required', 'exists:company_accounts,id'];
+        if (!$isSuperAdmin) {
+            $companyValidationRule[] = Rule::in([$companyId]);
         }
 
         $request->validate([
@@ -229,9 +258,20 @@ class UserController extends Controller
             'last_name' => 'required|string|max:255',
             'email' => ['required', 'email', new UniqueEmailInCompany($companyId)],
             'offices' => 'required|array',
-            'offices.*' => 'exists:offices,id',
-            'roles' => 'required',
-            'companies' => 'required|exists:company_accounts,id'
+            'offices.*' => [
+                'integer',
+                Rule::exists('offices', 'id')->where(function ($query) use ($companyId) {
+                    $query->where('company_id', $companyId);
+                }),
+            ],
+            'roles' => 'required|array|min:1',
+            'roles.*' => [
+                'integer',
+                Rule::exists('roles', 'id')->where(function ($query) use ($companyId) {
+                    $query->where('company_id', $companyId);
+                }),
+            ],
+            'companies' => $companyValidationRule,
         ]);
 
         // Check if user with this email already exists
@@ -251,7 +291,7 @@ class UserController extends Controller
             
             if ($alreadyInCompany) {
                 return redirect()->route('users.index')
-                    ->with('error', 'This user is already part of your company.');
+                    ->with('error', 'This user is already part of the selected company.');
             }
             
             \Log::info('Reusing existing user account for company invitation', [
@@ -283,8 +323,8 @@ class UserController extends Controller
         $user->offices()->syncWithoutDetaching($request->offices);
 
         // Assign roles by ID to ensure company-specific roles are used
-        $roleIds = $request->input('roles');
-        $roleModels = Role::whereIn('id', $roleIds)->get();
+        $roleIds = $request->input('roles', []);
+        $roleModels = Role::companyOnly($companyId)->whereIn('id', $roleIds)->get();
         $user->syncRoles($roleModels);
 
         $roleNames = $user->roles->pluck('name')->implode(', ');

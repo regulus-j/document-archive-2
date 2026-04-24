@@ -5,6 +5,18 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 class="text-3xl font-bold text-slate-900 mb-6">Subscription Management</h1>
 
+            @if (session('success'))
+                <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if (session('error'))
+                <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             <div class="bg-white shadow-xl rounded-lg overflow-hidden border border-indigo-100">
                 <div class="p-6">
                     <div class="overflow-x-auto">
@@ -41,11 +53,11 @@
                                             <div class="flex items-center">
                                                 <div
                                                     class="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
-                                                    {{ substr($subscription->company->name ?? 'N/A', 0, 1) }}
+                                                    {{ substr($subscription->company->company_name ?? 'N/A', 0, 1) }}
                                                 </div>
                                                 <div class="ml-4">
                                                     <div class="text-sm font-medium text-slate-900">
-                                                        {{ $subscription->company->name ?? 'N/A' }}
+                                                        {{ $subscription->company->company_name ?? 'N/A' }}
                                                     </div>
                                                 </div>
                                             </div>
@@ -53,7 +65,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span
                                                 class="px-2 py-1 text-xs font-semibold leading-tight text-indigo-700 bg-indigo-100 rounded-full">
-                                                {{ $subscription->plan->name ?? 'N/A' }}
+                                                {{ $subscription->plan->plan_name ?? 'N/A' }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
@@ -67,10 +79,10 @@
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
-                                            {{ $subscription->start_date->format('Y-m-d') }}
+                                            {{ \Illuminate\Support\Carbon::parse($subscription->start_date)->format('Y-m-d') }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
-                                            {{ $subscription->end_date ? $subscription->end_date->format('Y-m-d') : 'N/A' }}
+                                            {{ $subscription->end_date ? \Illuminate\Support\Carbon::parse($subscription->end_date)->format('Y-m-d') : 'N/A' }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span
@@ -80,20 +92,17 @@
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div class="flex space-x-2">
-                                                @if($subscription->status !== 'active')
-                                                    <button onclick="activateSubscription({{ $subscription->id }})"
-                                                        class="px-3 py-1 bg-emerald-100/50 text-emerald-700 rounded-md hover:bg-emerald-100 transition-colors">
-                                                        Activate
-                                                    </button>
-                                                @endif
-                                                @if($subscription->status !== 'canceled')
-                                                    <button onclick="cancelSubscription({{ $subscription->id }})"
-                                                        class="px-3 py-1 bg-rose-50 text-rose-700 rounded-md hover:bg-rose-100 transition-colors">
-                                                        Cancel
-                                                    </button>
-                                                @endif
-                                            </div>
+                                            <form method="POST" action="{{ route('admin.subscriptions.status.update', $subscription->id) }}" class="flex items-center gap-2">
+                                                @csrf
+                                                <select name="status" class="rounded-md border-slate-300 text-xs focus:border-indigo-500 focus:ring-indigo-500">
+                                                    @foreach(['active', 'pending', 'canceled', 'expired'] as $statusOption)
+                                                        <option value="{{ $statusOption }}" {{ $subscription->status === $statusOption ? 'selected' : '' }}>{{ ucfirst($statusOption) }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <button type="submit" class="inline-flex items-center rounded-md bg-indigo-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-indigo-700">
+                                                    Save
+                                                </button>
+                                            </form>
                                         </td>
                                     </tr>
                                 @empty
@@ -116,38 +125,4 @@
             </div>
         </div>
     </div>
-
-    <script>
-        function activateSubscription(id) {
-            if (confirm('Are you sure you want to activate this subscription?')) {
-                fetch(`/subscriptions/${id}/activate`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json'
-                    }
-                }).then(response => {
-                    if (response.ok) {
-                        window.location.reload();
-                    }
-                });
-            }
-        }
-
-        function cancelSubscription(id) {
-            if (confirm('Are you sure you want to cancel this subscription?')) {
-                fetch(`/subscriptions/${id}/cancel`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json'
-                    }
-                }).then(response => {
-                    if (response.ok) {
-                        window.location.reload();
-                    }
-                });
-            }
-        }
-    </script>
 @endsection

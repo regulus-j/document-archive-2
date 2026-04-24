@@ -63,6 +63,13 @@ Route::get('/trial', [TrialController::class, 'start'])->name('trial.start');
 // Public location lookup endpoint to avoid downloading the full cities dataset on the client.
 Route::get('/location/cities', [LocationDataController::class, 'cities'])->name('location.cities');
 
+Route::get('/admin/companies', [CompanyController::class, 'index'])
+    ->middleware(['auth', 'verified', 'role:super-admin'])
+    ->name('companies.index');
+
+Route::redirect('/companies', '/admin/companies')
+    ->middleware(['auth', 'verified', 'role:super-admin']);
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -122,6 +129,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin'])->prefix('admin')->na
     Route::get('/subscriptions/assign', [SubscriptionController::class, 'assignForm'])->name('subscriptions.assign.form');
     Route::post('/subscriptions/assign', [SubscriptionController::class, 'assign'])->name('subscriptions.assign');
     Route::post('/subscriptions/{subscription}/renew', [SubscriptionController::class, 'renew'])->name('subscriptions.renew');
+    Route::post('/subscriptions/{subscription}/status', [SubscriptionController::class, 'updateStatus'])->name('subscriptions.status.update');
 
     // User Management
     Route::get('/users/registered', [UserController::class, 'showRegistered'])->name('users.registered');
@@ -154,7 +162,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     Route::prefix('companies')->group(function () {
-        Route::get('/', [CompanyController::class, 'index'])->middleware('role:super-admin')->name('companies.index');
         Route::get('/create', [CompanyController::class, 'create'])->name('companies.create');
         Route::post('/', [CompanyController::class, 'store'])->name('companies.store');
 

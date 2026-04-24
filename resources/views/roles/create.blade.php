@@ -259,9 +259,12 @@
         // Template permission mappings
         const templatePermissions = @json(array_map(function($template) use ($permissionMap) {
             $ids = [];
+            $legacyMap = PermissionMetadata::getReverseLegacyMapping();
             foreach($template['permissions'] as $permName) {
                 if (isset($permissionMap[$permName])) {
                     $ids[] = $permissionMap[$permName];
+                } elseif (isset($legacyMap[$permName]) && isset($permissionMap[$legacyMap[$permName]])) {
+                    $ids[] = $permissionMap[$legacyMap[$permName]];
                 }
             }
             return $ids;

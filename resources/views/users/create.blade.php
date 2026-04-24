@@ -168,7 +168,26 @@
                         </div>
 
                         <!-- Companies -->
-                        <input type="hidden" name="companies" value={{ auth()->user()->company()->first()->id}}>
+                        @if(($isSuperAdmin ?? false))
+                            <div class="space-y-2">
+                                <label for="companies" class="block text-sm font-medium text-slate-700">{{ __('Company*') }}</label>
+                                <select id="companies"
+                                    name="companies"
+                                    class="mt-2 block w-full p-3 rounded-md border-slate-200 bg-slate-50 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition duration-150">
+                                    @foreach($companies as $company)
+                                        <option value="{{ $company->id }}" {{ (int) old('companies', $selectedCompanyId ?? $userCompany->id) === (int) $company->id ? 'selected' : '' }}>
+                                            {{ $company->company_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('companies')
+                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                                @enderror
+                                <p class="text-xs text-slate-500 mt-1">Changing company will reload available roles and teams for that company.</p>
+                            </div>
+                        @else
+                            <input type="hidden" name="companies" value="{{ old('companies', $userCompany->id) }}">
+                        @endif
 
                         <!-- Offices -->
                         <div class="space-y-2">
@@ -420,22 +439,15 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const searchOffice = document.getElementById('search-office');
-        const officesSelect = document.getElementById('offices');
-
         const searchRole = document.getElementById('search-role');
         const rolesSelect = document.getElementById('roles');
-
-        // Function to filter offices
-        function filterOffices() {
-            const filter = searchOffice.value.toLowerCase();
-            Array.from(officesSelect.options).forEach(option => {
-                const text = option.text.toLowerCase();
-                option.style.display = text.includes(filter) ? '' : 'none';
-            });
-        }
+        const companySelect = document.getElementById('companies');
 
         function filterRoles() {
+            if (!searchRole || !rolesSelect) {
+                return;
+            }
+
             const filter = searchRole.value.toLowerCase();
             Array.from(rolesSelect.options).forEach(option => {
                 const text = option.text.toLowerCase();
@@ -443,60 +455,27 @@
             });
         }
 
-        // Add event listener to search input
-        searchOffice.addEventListener('input', filterOffices);
-        searchRole.addEventListener('input', filterRoles);
+        if (searchRole) {
+            searchRole.addEventListener('input', filterRoles);
+        }
+
+        if (companySelect && @json($isSuperAdmin ?? false)) {
+            companySelect.addEventListener('change', function() {
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('company_id', this.value);
+                window.location.href = currentUrl.toString();
+            });
+        }
 
         // Initialize select2 for multiple selects if available
         if (typeof $ !== 'undefined' && $.fn.select2) {
-            $('#roles, #offices').select2({
+            $('#roles').select2({
                 theme: 'classic',
                 width: '100%'
-            });
-
-            // Integrate select2 with the search functionality
-            $('#offices').on('select2:open', function() {
-                setTimeout(function() {
-                    $('.select2-search__field').on('input', function() {
-                        filterOffices();
-                    });
-                }, 0);
             });
         } else {
             console.warn('Select2 is not available. Falling back to native select elements.');
         }
     });
-
-    const searchCompany = document.getElementById('search-company');
-    const companiesSelect = document.getElementById('companies');
-
-    // Function to filter companies
-    function filterCompanies() {
-        const filter = searchCompany.value.toLowerCase();
-        Array.from(companiesSelect.options).forEach(option => {
-            const text = option.text.toLowerCase();
-            option.style.display = text.includes(filter) ? '' : 'none';
-        });
-    }
-
-    // Add event listener to search input
-    searchCompany.addEventListener('input', filterCompanies);
-
-    // Initialize select2 for companies if available
-    if (typeof $ !== 'undefined' && $.fn.select2) {
-        $('#companies').select2({
-            theme: 'classic',
-            width: '100%'
-        });
-
-        // Integrate select2 with the search functionality
-        $('#companies').on('select2:open', function() {
-            setTimeout(function() {
-                $('.select2-search__field').on('input', function() {
-                    filterCompanies();
-                });
-            }, 0);
-        });
-    }
 </script>
 @endsection

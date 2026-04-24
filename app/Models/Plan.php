@@ -32,7 +32,7 @@ class Plan extends Model
     public function features(): BelongsToMany
     {
         return $this->belongsToMany(Feature::class, 'plan_features')
-                    ->withPivot('enabled')
+                    ->withPivot('enabled', 'value')
                     ->withTimestamps();
     }
 
@@ -53,6 +53,19 @@ class Plan extends Model
     public function getEnabledFeatures()
     {
         return $this->features()->wherePivot('enabled', true)->get();
+    }
+
+    /**
+     * Get the stored value for a specific enabled feature.
+     */
+    public function getFeatureValue(string $key): ?string
+    {
+        $feature = $this->features()
+            ->where('key', $key)
+            ->wherePivot('enabled', true)
+            ->first();
+
+        return $feature?->pivot?->value;
     }
 
     /**

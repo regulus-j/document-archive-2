@@ -17,7 +17,7 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-3">
-                    @can('role-create|roles.create')
+                    @canany(['role-create', 'roles.create'])
                         <a href="{{ route('roles.create') }}"
                             class="inline-flex items-center px-4 py-2 bg-[#0066FF] text-white text-sm font-medium rounded-md hover:bg-[#0052CC] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0066FF] transition-colors duration-150">
                             <svg class="h-5 w-5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -26,7 +26,7 @@
                             </svg>
                             Create New Role
                         </a>
-                    @endcan
+                    @endcanany
                 </div>
             </div>
         </div>
@@ -269,15 +269,15 @@
                                             </svg>
                                             {{ __('View') }}
                                         </a>
-                                        @can('role-edit|roles.edit')
+                                        @canany(['role-edit', 'roles.edit'])
                                         <a href="{{ route('roles.edit', $role->id) }}" class="group flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
                                             <svg class="mr-3 h-5 w-5 text-slate-400 group-hover:text-[#0066FF]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                             </svg>
                                             {{ __('Edit') }}
                                         </a>
-                                        @endcan
-                                        @can('role-delete|roles.delete')
+                                        @endcanany
+                                        @canany(['role-delete', 'roles.delete'])
                                         <form action="{{ route('roles.destroy', $role->id) }}" method="POST" class="inline">
                                             @csrf
                                             @method('DELETE')
@@ -291,7 +291,7 @@
                                             </button>
                                             @endif
                                         </form>
-                                        @endcan
+                                        @endcanany
                                     </div>
                                 </div>
                             </div>
@@ -313,7 +313,7 @@
                     </svg>
                     <h3 class="mt-2 text-sm font-medium text-slate-900">No roles found</h3>
                     <p class="mt-1 text-sm text-slate-500">Get started by creating a new role.</p>
-                    @can('role-create|roles.create')
+                    @canany(['role-create', 'roles.create'])
                         <div class="mt-6">
                             <a href="{{ route('roles.create') }}"
                                 class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-indigo-600 hover:from-indigo-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
@@ -326,7 +326,7 @@
                                 Create New Role
                             </a>
                         </div>
-                    @endcan
+                    @endcanany
                 </div>
             @endif
 

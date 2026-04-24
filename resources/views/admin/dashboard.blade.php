@@ -41,6 +41,18 @@
 
         <div class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 mt-6">
 
+            @if (session('success'))
+            <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                {{ session('success') }}
+            </div>
+            @endif
+
+            @if (session('error'))
+            <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {{ session('error') }}
+            </div>
+            @endif
+
             {{-- ━━━ TAB: Overview ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ --}}
             <div x-show="activeTab === 'overview'" x-cloak>
 
@@ -215,6 +227,7 @@
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                 Export Excel
                             </a>
+                            <a href="{{ route('users.create') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition">Add User</a>
                             <a href="{{ route('admin.users-index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition">Manage Users</a>
                         </div>
                     </div>
@@ -331,7 +344,12 @@
                                     <td class="px-5 py-2.5 text-right text-slate-600">{{ $c->employees_count }}</td>
                                     <td class="px-5 py-2.5 text-right text-slate-600">{{ $c->offices_count }}</td>
                                     <td class="px-5 py-2.5 text-right text-slate-600">{{ $c->subscriptions_count }}</td>
-                                    <td class="px-5 py-2.5"><a href="{{ route('companies.show', $c->id) }}" class="text-indigo-600 hover:underline text-xs">View</a></td>
+                                    <td class="px-5 py-2.5">
+                                        <div class="flex items-center gap-3">
+                                            <a href="{{ route('companies.show', $c->id) }}" class="text-indigo-600 hover:underline text-xs">View</a>
+                                            <a href="{{ route('users.create', ['company_id' => $c->id]) }}" class="text-emerald-600 hover:underline text-xs">Add User</a>
+                                        </div>
+                                    </td>
                                 </tr>
                                 @endforeach
                             </tbody>
@@ -377,7 +395,7 @@
                     <div class="overflow-x-auto">
                         <table class="min-w-full text-sm">
                             <thead><tr class="bg-slate-50 text-left text-xs text-slate-500 uppercase">
-                                <th class="px-5 py-2">Company</th><th class="px-5 py-2">Plan</th><th class="px-5 py-2">Status</th><th class="px-5 py-2">Start</th><th class="px-5 py-2">End</th><th class="px-5 py-2">Auto Renew</th>
+                                <th class="px-5 py-2">Company</th><th class="px-5 py-2">Plan</th><th class="px-5 py-2">Status</th><th class="px-5 py-2">Start</th><th class="px-5 py-2">End</th><th class="px-5 py-2">Auto Renew</th><th class="px-5 py-2">Actions</th>
                             </tr></thead>
                             <tbody>
                                 @foreach($subscriptionsTable as $sub)
@@ -385,11 +403,22 @@
                                     <td class="px-5 py-2.5 font-medium text-slate-800">{{ $sub->company->company_name ?? 'N/A' }}</td>
                                     <td class="px-5 py-2.5"><span class="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-700">{{ $sub->plan->plan_name ?? 'N/A' }}</span></td>
                                     <td class="px-5 py-2.5">
-                                        <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium {{ $sub->status === 'active' ? 'bg-emerald-100 text-emerald-700' : ($sub->status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700') }}">{{ ucfirst($sub->status) }}</span>
+                                        <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium {{ $sub->status === 'active' ? 'bg-emerald-100 text-emerald-700' : ($sub->status === 'pending' ? 'bg-amber-100 text-amber-700' : ($sub->status === 'canceled' ? 'bg-rose-100 text-rose-700' : 'bg-slate-200 text-slate-700')) }}">{{ ucfirst($sub->status) }}</span>
                                     </td>
                                     <td class="px-5 py-2.5 text-slate-500 text-xs">{{ $sub->start_date }}</td>
                                     <td class="px-5 py-2.5 text-slate-500 text-xs">{{ $sub->end_date ?? 'N/A' }}</td>
                                     <td class="px-5 py-2.5 text-slate-500 text-xs">{{ $sub->auto_renew ? 'Yes' : 'No' }}</td>
+                                    <td class="px-5 py-2.5">
+                                        <form method="POST" action="{{ route('admin.subscriptions.status.update', $sub->id) }}" class="flex items-center gap-2">
+                                            @csrf
+                                            <select name="status" class="rounded-md border-slate-300 text-xs focus:border-indigo-500 focus:ring-indigo-500">
+                                                @foreach(['active', 'pending', 'canceled', 'expired'] as $statusOption)
+                                                    <option value="{{ $statusOption }}" {{ $sub->status === $statusOption ? 'selected' : '' }}>{{ ucfirst($statusOption) }}</option>
+                                                @endforeach
+                                            </select>
+                                            <button type="submit" class="inline-flex items-center rounded-md bg-indigo-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-indigo-700">Save</button>
+                                        </form>
+                                    </td>
                                 </tr>
                                 @endforeach
                             </tbody>

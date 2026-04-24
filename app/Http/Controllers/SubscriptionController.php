@@ -161,6 +161,47 @@ class SubscriptionController extends Controller
     }
 
     /**
+     * Update subscription status from super-admin dashboard controls.
+     */
+    public function updateStatus(Request $request, CompanySubscription $subscription)
+    {
+        if (!auth()->user()->hasRole('super-admin')) {
+            return redirect()->back()->with('error', 'Unauthorized access.');
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|in:active,pending,canceled,expired',
+        ]);
+
+        $newStatus = $validated['status'];
+        $updates = ['status' => $newStatus];
+
+        // Keep status transitions consistent with date-based visibility rules.
+        if (in_array($newStatus, ['canceled', 'expired'], true)) {
+            $updates['auto_renew'] = false;
+        }
+
+        if (
+            $newStatus === 'active' &&
+            !empty($subscription->end_date) &&
+            Carbon::parse($subscription->end_date)->lt(now()->startOfDay())
+        ) {
+            $updates['end_date'] = now()->toDateString();
+        }
+
+        if (
+            $newStatus === 'expired' &&
+            (empty($subscription->end_date) || Carbon::parse($subscription->end_date)->gt(now()->startOfDay()))
+        ) {
+            $updates['end_date'] = now()->toDateString();
+        }
+
+        $subscription->update($updates);
+
+        return redirect()->back()->with('success', 'Subscription status updated successfully.');
+    }
+
+    /**
      * Handle automated subscription renewals
      * This should be called via a scheduled command
      */

@@ -68,23 +68,60 @@
                         </div>
 
                         <div class="mt-6 border-t border-slate-200 pt-6">
-                            <h3 class="text-lg font-medium text-slate-900">Plan Features</h3>
-                            <p class="mt-1 text-sm text-slate-500">Select the features included in this plan</p>
-                            
-                            @foreach($features as $feature)
-                                <div class="flex items-center mt-4">
-                                    <input type="checkbox" name="features[]" id="feature_{{ $feature->id }}" 
-                                           value="{{ $feature->id }}"
-                                           class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                                           {{ in_array($feature->id, $planFeatures) ? 'checked' : '' }}>
-                                    <label for="feature_{{ $feature->id }}" class="ml-2 block text-sm text-slate-700">
-                                        {{ $feature->name }}
-                                    </label>
-                                    @if($feature->description)
-                                        <span class="ml-2 text-xs text-slate-500">{{ $feature->description }}</span>
-                                    @endif
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <h3 class="text-lg font-medium text-slate-900">Plan Features</h3>
+                                    <p class="mt-1 text-sm text-slate-500">Update which catalog features are enabled and adjust their plan-specific values.</p>
                                 </div>
-                            @endforeach
+                            </div>
+
+                            <div class="mt-5 space-y-4">
+                                @foreach($features as $feature)
+                                    @php
+                                        $featureEnabled = old('features.' . $feature->id . '.enabled', data_get($planFeatures, $feature->id . '.enabled'));
+                                        $featureValue = old('features.' . $feature->id . '.value', data_get($planFeatures, $feature->id . '.value'));
+                                        $isEnabled = filter_var($featureEnabled, FILTER_VALIDATE_BOOLEAN);
+                                    @endphp
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 shadow-sm" data-feature-row>
+                                        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                                            <div class="space-y-1">
+                                                <div class="flex items-center gap-3">
+                                                    <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-sm font-bold text-white">
+                                                        {{ strtoupper(substr($feature->name, 0, 1)) }}
+                                                    </span>
+                                                    <div>
+                                                        <h4 class="text-base font-semibold text-slate-900">{{ $feature->name }}</h4>
+                                                        <p class="text-sm text-slate-500">{{ $feature->description ?: 'No description provided.' }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] lg:w-[420px]">
+                                                <div>
+                                                    <label for="feature_value_{{ $feature->id }}" class="block text-sm font-medium text-slate-700">Custom value / limit</label>
+                                                    <input type="text" name="features[{{ $feature->id }}][value]" id="feature_value_{{ $feature->id }}"
+                                                        value="{{ $featureValue }}"
+                                                        class="mt-1 block w-full rounded-xl border-slate-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-slate-100"
+                                                        placeholder="Example: 10 users, 50 GB, Unlimited"
+                                                        data-feature-value
+                                                        {{ $isEnabled ? '' : 'disabled' }}>
+                                                    @error('features.' . $feature->id . '.value')
+                                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+
+                                                <label class="inline-flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm">
+                                                    <input type="checkbox" name="features[{{ $feature->id }}][enabled]" value="1"
+                                                        {{ $isEnabled ? 'checked' : '' }}
+                                                        class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                                        data-feature-toggle>
+                                                    Enabled
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -103,4 +140,20 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('[data-feature-row]').forEach(function(row) {
+            const toggle = row.querySelector('[data-feature-toggle]');
+            const valueInput = row.querySelector('[data-feature-value]');
+
+            function syncFeatureState() {
+                valueInput.disabled = !toggle.checked;
+            }
+
+            toggle.addEventListener('change', syncFeatureState);
+            syncFeatureState();
+        });
+    });
+</script>
 @endsection
