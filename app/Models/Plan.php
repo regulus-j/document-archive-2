@@ -32,7 +32,7 @@ class Plan extends Model
     public function features(): BelongsToMany
     {
         return $this->belongsToMany(Feature::class, 'plan_features')
-                    ->withPivot('enabled', 'value')
+                    ->withPivot('enabled', 'amount', 'value')
                     ->withTimestamps();
     }
 
@@ -65,7 +65,29 @@ class Plan extends Model
             ->wherePivot('enabled', true)
             ->first();
 
+        if (!$feature) {
+            return null;
+        }
+
+        if ($feature->pivot->amount !== null) {
+            $unitLabel = trim((string) ($feature->unit_label ?? ''));
+            return trim($feature->pivot->amount . ' ' . $unitLabel);
+        }
+
         return $feature?->pivot?->value;
+    }
+
+    /**
+     * Get the numeric amount for a specific enabled feature.
+     */
+    public function getFeatureAmount(string $key): ?int
+    {
+        $feature = $this->features()
+            ->where('key', $key)
+            ->wherePivot('enabled', true)
+            ->first();
+
+        return $feature?->pivot?->amount !== null ? (int) $feature->pivot->amount : null;
     }
 
     /**

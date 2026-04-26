@@ -1,6 +1,7 @@
 @extends('layouts.app')
+@push('main-classes', 'bg-gradient-to-b from-indigo-50 to-white')
 @section('content')
-<div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white" x-data="{ showDeleteModal: false, deleteId: null }">
+<div x-data="{ showDeleteModal: false, deleteId: null }">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="bg-white rounded-lg p-6 border border-slate-200 mb-8 mt-8">
@@ -67,7 +68,10 @@
                         @endif
                     </div>
                 </div>
-            </div>        @if (session('success'))
+            </div>
+        </form>
+
+        @if (session('success'))
         <div class="bg-white border-l-4 border-emerald-500 text-emerald-700 p-4 mb-6 rounded-r-lg shadow-md">
             <div class="flex">
                 <div class="flex-shrink-0">

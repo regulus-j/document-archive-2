@@ -43,7 +43,7 @@
         @endisset
 
         <!-- Page Content -->
-        <main class="flex-1">
+        <main class="flex-1 @stack('main-classes')">
             @isset($slot)
                 {{ $slot }}
             @endisset

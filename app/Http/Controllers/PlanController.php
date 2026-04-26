@@ -5,14 +5,44 @@ namespace App\Http\Controllers;
 use App\Models\Plan;
 use App\Models\Feature;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class PlanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $plans = Plan::where('is_active', 1)->paginate(15);
+        $isAdmin = auth()->check() && auth()->user()->isAdmin();
 
-        if (auth()->check() && auth()->user()->isAdmin()) {
+        $plansQuery = Plan::with(['features' => function ($query) {
+            $query->orderBy('name');
+        }]);
+
+        if (!$isAdmin) {
+            $plansQuery->where('is_active', 1);
+        }
+
+        $search = trim((string) $request->input('search', ''));
+        $status = $request->input('status');
+
+        if ($search !== '') {
+            $plansQuery->where(function ($query) use ($search) {
+                $query->where('plan_name', 'like', '%' . $search . '%')
+                    ->orWhere('description', 'like', '%' . $search . '%')
+                    ->orWhere('billing_cycle', 'like', '%' . $search . '%')
+                    ->orWhereHas('features', function ($featureQuery) use ($search) {
+                        $featureQuery->where('name', 'like', '%' . $search . '%')
+                            ->orWhere('description', 'like', '%' . $search . '%');
+                    });
+            });
+        }
+
+        if ($isAdmin && in_array($status, ['active', 'inactive'], true)) {
+            $plansQuery->where('is_active', $status === 'active');
+        }
+
+        $plans = $plansQuery->orderBy('plan_name')->paginate(15)->withQueryString();
+
+        if ($isAdmin) {
             return view('admin.plans-index', compact('plans'));
         }
         return view('plans.index', compact('plans'));
@@ -45,8 +75,11 @@ class PlanController extends Controller
             'is_active' => 'nullable|boolean',
             'features' => 'nullable|array',
             'features.*.enabled' => 'nullable|boolean',
-            'features.*.value' => 'nullable|string|max:255',
+            'features.*.amount' => 'nullable|integer|min:0',
+            'features.*.unit_label' => 'nullable|string|max:50',
         ]);
+
+        $this->ensureNumericFeatureAmounts($validated['features'] ?? []);
     
         // Create the plan without features first
         $plan = Plan::create([
@@ -77,6 +110,7 @@ class PlanController extends Controller
                 return [
                     $feature->id => [
                         'enabled' => (bool) $feature->pivot->enabled,
+                        'amount' => $feature->pivot->amount,
                         'value' => $feature->pivot->value,
                     ],
                 ];
@@ -96,8 +130,11 @@ class PlanController extends Controller
             'is_active' => 'nullable|boolean',
             'features' => 'nullable|array',
             'features.*.enabled' => 'nullable|boolean',
-            'features.*.value' => 'nullable|string|max:255',
+            'features.*.amount' => 'nullable|integer|min:0',
+            'features.*.unit_label' => 'nullable|string|max:50',
         ]);
+
+        $this->ensureNumericFeatureAmounts($validated['features'] ?? []);
 
         $plan->update([
             'plan_name' => $validated['plan_name'],
@@ -123,14 +160,44 @@ class PlanController extends Controller
         foreach (Feature::orderBy('name')->get() as $feature) {
             $featureConfig = $features[$feature->id] ?? [];
             $enabled = filter_var($featureConfig['enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
-            $value = isset($featureConfig['value']) ? trim((string) $featureConfig['value']) : null;
+            $amount = isset($featureConfig['amount']) && $featureConfig['amount'] !== ''
+                ? (int) $featureConfig['amount']
+                : null;
+            $unitLabel = isset($featureConfig['unit_label']) ? trim((string) $featureConfig['unit_label']) : null;
+
+            if ($unitLabel !== null && $unitLabel !== '' && $feature->unit_label !== $unitLabel) {
+                $feature->forceFill(['unit_label' => $unitLabel])->save();
+            }
 
             $syncData[$feature->id] = [
                 'enabled' => $enabled,
-                'value' => $enabled && $value !== '' ? $value : null,
+                'amount' => $enabled ? $amount : null,
+                'value' => null,
             ];
         }
 
         $plan->features()->sync($syncData);
+    }
+
+    /**
+     * Ensure enabled features always submit a numeric amount.
+     */
+    protected function ensureNumericFeatureAmounts(array $features): void
+    {
+        $errors = [];
+
+        foreach (Feature::orderBy('name')->get() as $feature) {
+            $featureConfig = $features[$feature->id] ?? [];
+            $enabled = filter_var($featureConfig['enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            $amount = $featureConfig['amount'] ?? null;
+
+            if ($enabled && ($amount === null || $amount === '')) {
+                $errors["features.{$feature->id}.amount"] = "{$feature->name} requires a numeric limit.";
+            }
+        }
+
+        if (!empty($errors)) {
+            throw ValidationException::withMessages($errors);
+        }
     }
 }

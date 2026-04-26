@@ -16,9 +16,29 @@ class SubscriptionController extends Controller
         return response()->json($subscriptions);
     }
 
-    public function indexAdmin()
+    public function indexAdmin(Request $request)
     {
-        $subscriptions = CompanySubscription::with(['company', 'plan'])->paginate(15);
+        $subscriptionsQuery = CompanySubscription::withoutGlobalScope('unexpired')->with(['company', 'plan']);
+
+        $search = trim((string) $request->input('search', ''));
+
+        if ($search !== '') {
+            $subscriptionsQuery->where(function ($query) use ($search) {
+                $query->whereHas('company', function ($companyQuery) use ($search) {
+                    $companyQuery->where('company_name', 'like', "%{$search}%")
+                        ->orWhere('registered_name', 'like', "%{$search}%");
+                })->orWhereHas('plan', function ($planQuery) use ($search) {
+                    $planQuery->where('plan_name', 'like', "%{$search}%");
+                })->orWhere('status', 'like', "%{$search}%");
+            });
+        }
+
+        $status = $request->input('status');
+        if (in_array($status, ['active', 'pending', 'canceled', 'expired'], true)) {
+            $subscriptionsQuery->where('status', $status);
+        }
+
+        $subscriptions = $subscriptionsQuery->orderByDesc('start_date')->paginate(15)->withQueryString();
         return view('admin.subscriptions-index', compact('subscriptions'));
     }
 

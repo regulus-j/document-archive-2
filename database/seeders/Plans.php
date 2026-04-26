@@ -43,44 +43,31 @@ class Plans extends Seeder
             ]
         );
 
-        $users10 = Feature::where('key', 'users-10')->first();
-        $users30 = Feature::where('key', 'users-30')->first();
-        $users100 = Feature::where('key', 'users-100')->first();
-        $teams3 = Feature::where('key', 'teams-3')->first();
-        $teams10 = Feature::where('key', 'teams-10')->first();
-        $teams20 = Feature::where('key', 'teams-20')->first();
-        $storage2gb = Feature::where('key', 'storage-2gb')->first();
-        $storage10gb = Feature::where('key', 'storage-10gb')->first();
-        $storage50gb = Feature::where('key', 'storage-50gb')->first();
+        $userLimits = Feature::where('key', 'user-limits')->first();
+        $teamLimits = Feature::where('key', 'team-limits')->first();
+        $customRoles = Feature::where('key', 'custom-roles')->first();
+        $storageLimits = Feature::where('key', 'storage-limits')->first();
 
-        if ($users10) {
-            $basicPlan->features()->syncWithoutDetaching([$users10->id => ['enabled' => true, 'value' => '10 users']]);
-        }
-        if ($teams3) {
-            $basicPlan->features()->syncWithoutDetaching([$teams3->id => ['enabled' => true, 'value' => '3 teams']]);
-        }
-        if ($storage2gb) {
-            $basicPlan->features()->syncWithoutDetaching([$storage2gb->id => ['enabled' => true, 'value' => '2 GB']]);
-        }
+        $this->attachPlanFeature($basicPlan, $userLimits, ['enabled' => true, 'amount' => 10]);
+        $this->attachPlanFeature($basicPlan, $teamLimits, ['enabled' => true, 'amount' => 3]);
+        $this->attachPlanFeature($basicPlan, $customRoles, ['enabled' => false, 'value' => null]);
+        $this->attachPlanFeature($basicPlan, $storageLimits, ['enabled' => true, 'amount' => 2]);
 
-        if ($users30) {
-            $standardPlan->features()->syncWithoutDetaching([$users30->id => ['enabled' => true, 'value' => '30 users']]);
-        }
-        if ($teams10) {
-            $standardPlan->features()->syncWithoutDetaching([$teams10->id => ['enabled' => true, 'value' => '10 teams']]);
-        }
-        if ($storage10gb) {
-            $standardPlan->features()->syncWithoutDetaching([$storage10gb->id => ['enabled' => true, 'value' => '10 GB']]);
-        }
+        $this->attachPlanFeature($standardPlan, $userLimits, ['enabled' => true, 'amount' => 30]);
+        $this->attachPlanFeature($standardPlan, $teamLimits, ['enabled' => true, 'amount' => 10]);
+        $this->attachPlanFeature($standardPlan, $customRoles, ['enabled' => true, 'amount' => 5]);
+        $this->attachPlanFeature($standardPlan, $storageLimits, ['enabled' => true, 'amount' => 10]);
 
-        if ($users100) {
-            $premiumPlan->features()->syncWithoutDetaching([$users100->id => ['enabled' => true, 'value' => '100 users']]);
-        }
-        if ($teams20) {
-            $premiumPlan->features()->syncWithoutDetaching([$teams20->id => ['enabled' => true, 'value' => '20 teams']]);
-        }
-        if ($storage50gb) {
-            $premiumPlan->features()->syncWithoutDetaching([$storage50gb->id => ['enabled' => true, 'value' => '50 GB']]);
+        $this->attachPlanFeature($premiumPlan, $userLimits, ['enabled' => true, 'amount' => 100]);
+        $this->attachPlanFeature($premiumPlan, $teamLimits, ['enabled' => true, 'amount' => 20]);
+        $this->attachPlanFeature($premiumPlan, $customRoles, ['enabled' => true, 'amount' => 20]);
+        $this->attachPlanFeature($premiumPlan, $storageLimits, ['enabled' => true, 'amount' => 50]);
+    }
+
+    private function attachPlanFeature(Plan $plan, ?Feature $feature, array $pivotData): void
+    {
+        if ($feature) {
+            $plan->features()->syncWithoutDetaching([$feature->id => $pivotData]);
         }
     }
 }

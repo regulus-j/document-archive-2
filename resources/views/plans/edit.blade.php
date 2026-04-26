@@ -71,7 +71,7 @@
                             <div class="flex items-start justify-between gap-4">
                                 <div>
                                     <h3 class="text-lg font-medium text-slate-900">Plan Features</h3>
-                                    <p class="mt-1 text-sm text-slate-500">Update which catalog features are enabled and adjust their plan-specific values.</p>
+                                    <p class="mt-1 text-sm text-slate-500">Update which catalog features are enabled and adjust their numeric limits.</p>
                                 </div>
                             </div>
 
@@ -79,8 +79,9 @@
                                 @foreach($features as $feature)
                                     @php
                                         $featureEnabled = old('features.' . $feature->id . '.enabled', data_get($planFeatures, $feature->id . '.enabled'));
-                                        $featureValue = old('features.' . $feature->id . '.value', data_get($planFeatures, $feature->id . '.value'));
+                                        $featureAmount = old('features.' . $feature->id . '.amount', data_get($planFeatures, $feature->id . '.amount'));
                                         $isEnabled = filter_var($featureEnabled, FILTER_VALIDATE_BOOLEAN);
+                                        $unitLabel = $feature->unit_label ?: 'units';
                                     @endphp
                                     <div class="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 shadow-sm" data-feature-row>
                                         <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -96,18 +97,28 @@
                                                 </div>
                                             </div>
 
-                                            <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] lg:w-[420px]">
+                                            <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] lg:w-[520px]">
                                                 <div>
-                                                    <label for="feature_value_{{ $feature->id }}" class="block text-sm font-medium text-slate-700">Custom value / limit</label>
-                                                    <input type="text" name="features[{{ $feature->id }}][value]" id="feature_value_{{ $feature->id }}"
-                                                        value="{{ $featureValue }}"
-                                                        class="mt-1 block w-full rounded-xl border-slate-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-slate-100"
-                                                        placeholder="Example: 10 users, 50 GB, Unlimited"
-                                                        data-feature-value
-                                                        {{ $isEnabled ? '' : 'disabled' }}>
-                                                    @error('features.' . $feature->id . '.value')
+                                                    <label for="feature_amount_{{ $feature->id }}" class="block text-sm font-medium text-slate-700">Amount</label>
+                                                    <div class="mt-1 flex gap-2">
+                                                        <input type="number" name="features[{{ $feature->id }}][amount]" id="feature_amount_{{ $feature->id }}"
+                                                            value="{{ $featureAmount }}"
+                                                            min="0" step="1"
+                                                            class="block w-full rounded-xl border-slate-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-slate-100"
+                                                            data-feature-amount
+                                                            {{ $isEnabled ? '' : 'disabled' }}>
+                                                    </div>
+                                                    @error('features.' . $feature->id . '.amount')
                                                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                                     @enderror
+                                                </div>
+
+                                                <div>
+                                                    <label for="feature_unit_label_{{ $feature->id }}" class="block text-sm font-medium text-slate-700">Unit label</label>
+                                                    <input type="text" name="features[{{ $feature->id }}][unit_label]" id="feature_unit_label_{{ $feature->id }}"
+                                                        value="{{ old('features.' . $feature->id . '.unit_label', $feature->unit_label) }}"
+                                                        placeholder="{{ $unitLabel }}"
+                                                        class="mt-1 block w-full rounded-xl border-slate-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                                 </div>
 
                                                 <label class="inline-flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm">
@@ -145,10 +156,10 @@
     document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('[data-feature-row]').forEach(function(row) {
             const toggle = row.querySelector('[data-feature-toggle]');
-            const valueInput = row.querySelector('[data-feature-value]');
+            const amountInput = row.querySelector('[data-feature-amount]');
 
             function syncFeatureState() {
-                valueInput.disabled = !toggle.checked;
+                amountInput.disabled = !toggle.checked;
             }
 
             toggle.addEventListener('change', syncFeatureState);

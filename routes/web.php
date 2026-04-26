@@ -124,6 +124,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
 //--------------------------------------------------------------------------------------------------------------------
 
 Route::middleware(['auth', 'verified', 'role:super-admin'])->prefix('admin')->name('admin.')->group(function () {
+    // Company management hub actions
+    Route::post('/companies', [CompanyController::class, 'adminCreateCompany'])->name('companies.store');
+    Route::put('/companies/{company}/details', [CompanyController::class, 'adminUpdateDetails'])->name('companies.details.update');
+    Route::post('/companies/{company}/members', [CompanyController::class, 'adminAddMember'])->name('companies.members.add');
+    Route::post('/companies/{company}/members/create', [CompanyController::class, 'adminCreateMember'])->name('companies.members.create');
+    Route::delete('/companies/{company}/members/{user}', [CompanyController::class, 'adminRemoveMember'])->name('companies.members.remove');
+    Route::post('/companies/{company}/subscription/plan', [CompanyController::class, 'adminUpdateSubscriptionPlan'])->name('companies.subscription.plan.update');
+    Route::post('/companies/{company}/subscription/renew', [CompanyController::class, 'adminManualRenew'])->name('companies.subscription.renew');
+
     // Subscription Management
     Route::get('/subscriptions', [SubscriptionController::class, 'indexAdmin'])->name('subscriptions.index');
     Route::get('/subscriptions/assign', [SubscriptionController::class, 'assignForm'])->name('subscriptions.assign.form');

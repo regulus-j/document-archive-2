@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CompanySubscription;
 use App\Models\User;
+use App\Models\Plan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use App\Models\CompanyAccount;
 use App\Models\CompanyAddress;
@@ -18,19 +22,44 @@ class CompanyController extends Controller
         $this->authorize('viewAny', CompanyAccount::class);
 
         if (auth()->user()->isSuperAdmin()) {
-            $companies = CompanyAccount::with(['subscriptions.plan', 'user'])
-                ->paginate(15)
-                ->through(function ($company) {
-                    $subscription = $company->subscriptions->first();
-                    return (object) [
-                        'id' => $company->id,
-                        'name' => $company->company_name,
-                        'owner' => $company->user->first_name . ' ' . $company->user->last_name,
-                        'status' => $subscription ? $subscription->status : 'No subscription',
-                        'plan' => $subscription ? $subscription->plan->plan_name : 'No plan'
-                    ];
+            $query = CompanyAccount::with([
+                'user',
+                'users',
+                'subscriptions' => function ($subscriptionQuery) {
+                    $subscriptionQuery->withoutGlobalScope('unexpired')
+                        ->orderByDesc('start_date')
+                        ->with('plan');
+                },
+            ]);
+
+            $search = trim((string) request('search', ''));
+            if ($search !== '') {
+                $query->where(function ($companyQuery) use ($search) {
+                    $companyQuery->where('company_name', 'like', "%{$search}%")
+                        ->orWhere('registered_name', 'like', "%{$search}%")
+                        ->orWhere('company_email', 'like', "%{$search}%")
+                        ->orWhereHas('user', function ($ownerQuery) use ($search) {
+                            $ownerQuery->where('first_name', 'like', "%{$search}%")
+                                ->orWhere('last_name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%");
+                        });
                 });
-            return view('admin.companies-index', compact('companies'));
+            }
+
+            $status = request('status');
+            if ($status === 'no_subscription') {
+                $query->whereDoesntHave('subscriptions');
+            } elseif (in_array($status, ['active', 'pending', 'canceled', 'expired'], true)) {
+                $query->whereHas('subscriptions', function ($subscriptionQuery) use ($status) {
+                    $subscriptionQuery->withoutGlobalScope('unexpired')->where('status', $status);
+                });
+            }
+
+            $companies = $query->orderBy('company_name')->paginate(15)->withQueryString();
+            $plans = Plan::where('is_active', true)->orderBy('plan_name')->get();
+            $availableUsers = User::orderBy('first_name')->orderBy('last_name')->get();
+
+            return view('admin.companies-index', compact('companies', 'plans', 'availableUsers'));
         }
 
         // Regular users should only see their own company
@@ -190,6 +219,182 @@ class CompanyController extends Controller
     {
         $companies = CompanyAccount::where('user_id', $userId)->with('address')->get();
         return view('companies.userManaged', compact('companies'));
+    }
+
+    public function adminCreateCompany(Request $request)
+    {
+        abort_unless(auth()->user()?->isSuperAdmin(), 403);
+
+        $validated = $request->validate([
+            'company_name' => 'required|string|max:255',
+            'registered_name' => 'required|string|max:255',
+            'company_email' => 'nullable|email|max:255',
+            'company_phone' => 'nullable|string|max:50',
+            'owner_id' => 'required|exists:users,id',
+        ]);
+
+        DB::transaction(function () use ($validated) {
+            $company = CompanyAccount::create([
+                'user_id' => $validated['owner_id'],
+                'company_name' => $validated['company_name'],
+                'registered_name' => $validated['registered_name'],
+                'company_email' => $validated['company_email'] ?? null,
+                'company_phone' => $validated['company_phone'] ?? null,
+            ]);
+
+            CompanyUser::firstOrCreate([
+                'company_id' => $company->id,
+                'user_id' => $validated['owner_id'],
+            ]);
+        });
+
+        return redirect()->route('companies.index')->with('success', 'Company created successfully.');
+    }
+
+    public function adminUpdateDetails(Request $request, CompanyAccount $company)
+    {
+        abort_unless(auth()->user()?->isSuperAdmin(), 403);
+
+        $validated = $request->validate([
+            'company_name' => 'required|string|max:255',
+            'registered_name' => 'required|string|max:255',
+            'company_email' => 'nullable|email|max:255',
+            'company_phone' => 'nullable|string|max:50',
+            'owner_id' => 'required|exists:users,id',
+        ]);
+
+        $company->update([
+            'company_name' => $validated['company_name'],
+            'registered_name' => $validated['registered_name'],
+            'company_email' => $validated['company_email'] ?? null,
+            'company_phone' => $validated['company_phone'] ?? null,
+            'user_id' => $validated['owner_id'],
+        ]);
+
+        CompanyUser::firstOrCreate([
+            'company_id' => $company->id,
+            'user_id' => $validated['owner_id'],
+        ]);
+
+        return redirect()->route('companies.index')->with('success', 'Company details updated successfully.');
+    }
+
+    public function adminAddMember(Request $request, CompanyAccount $company)
+    {
+        abort_unless(auth()->user()?->isSuperAdmin(), 403);
+
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+
+        CompanyUser::firstOrCreate([
+            'company_id' => $company->id,
+            'user_id' => $validated['user_id'],
+        ]);
+
+        return redirect()->route('companies.index')->with('success', 'Company member added successfully.');
+    }
+
+    public function adminCreateMember(Request $request, CompanyAccount $company)
+    {
+        abort_unless(auth()->user()?->isSuperAdmin(), 403);
+
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8',
+        ]);
+
+        DB::transaction(function () use ($validated, $company) {
+            $user = User::create([
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+            ]);
+
+            CompanyUser::firstOrCreate([
+                'company_id' => $company->id,
+                'user_id' => $user->id,
+            ]);
+        });
+
+        return redirect()->route('companies.index')->with('success', 'New user created and added to company.');
+    }
+
+    public function adminRemoveMember(CompanyAccount $company, User $user)
+    {
+        abort_unless(auth()->user()?->isSuperAdmin(), 403);
+
+        if ((int) $company->user_id === (int) $user->id) {
+            return redirect()->route('companies.index')->with('error', 'Cannot remove the current company owner.');
+        }
+
+        CompanyUser::where('company_id', $company->id)
+            ->where('user_id', $user->id)
+            ->delete();
+
+        return redirect()->route('companies.index')->with('success', 'Company member removed successfully.');
+    }
+
+    public function adminUpdateSubscriptionPlan(Request $request, CompanyAccount $company)
+    {
+        abort_unless(auth()->user()?->isSuperAdmin(), 403);
+
+        $validated = $request->validate([
+            'plan_id' => 'required|exists:plans,id',
+        ]);
+
+        $latestSubscription = $company->subscriptions()
+            ->withoutGlobalScope('unexpired')
+            ->orderByDesc('start_date')
+            ->first();
+
+        if ($latestSubscription) {
+            $latestSubscription->update(['plan_id' => $validated['plan_id']]);
+        } else {
+            CompanySubscription::create([
+                'company_id' => $company->id,
+                'plan_id' => $validated['plan_id'],
+                'start_date' => now()->toDateString(),
+                'end_date' => now()->addMonth()->toDateString(),
+                'status' => 'active',
+                'auto_renew' => false,
+            ]);
+        }
+
+        return redirect()->route('companies.index')->with('success', 'Subscription plan updated successfully.');
+    }
+
+    public function adminManualRenew(Request $request, CompanyAccount $company)
+    {
+        abort_unless(auth()->user()?->isSuperAdmin(), 403);
+
+        $validated = $request->validate([
+            'plan_id' => 'required|exists:plans,id',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            'auto_renew' => 'nullable|boolean',
+        ]);
+
+        DB::transaction(function () use ($company, $validated) {
+            CompanySubscription::where('company_id', $company->id)
+                ->withoutGlobalScope('unexpired')
+                ->where('status', 'active')
+                ->update(['status' => 'canceled', 'auto_renew' => false]);
+
+            CompanySubscription::create([
+                'company_id' => $company->id,
+                'plan_id' => $validated['plan_id'],
+                'start_date' => $validated['start_date'],
+                'end_date' => $validated['end_date'],
+                'status' => 'active',
+                'auto_renew' => (bool) ($validated['auto_renew'] ?? false),
+            ]);
+        });
+
+        return redirect()->route('companies.index')->with('success', 'Manual renewal completed successfully.');
     }
 
 }

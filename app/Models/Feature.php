@@ -10,7 +10,7 @@ class Feature extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'description', 'key'];
+    protected $fillable = ['name', 'description', 'key', 'unit_label'];
 
     /**
      * Get the plans that have this feature
@@ -18,7 +18,7 @@ class Feature extends Model
     public function plans(): BelongsToMany
     {
         return $this->belongsToMany(Plan::class, 'plan_features')
-                    ->withPivot('enabled', 'value')
+                    ->withPivot('enabled', 'amount', 'value')
                     ->withTimestamps();
     }
 }

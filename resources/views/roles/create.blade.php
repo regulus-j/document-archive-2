@@ -1,7 +1,8 @@
 @extends('layouts.app')
+@push('main-classes', 'bg-gradient-to-b from-indigo-50 to-white')
 
 @section('content')
-    <div class="min-h-screen bg-gradient-to-b from-indigo-50 to-white py-12">
+    <div class="py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Header Box -->
             <div class="bg-white rounded-xl mb-8 border border-indigo-200/80 overflow-hidden">

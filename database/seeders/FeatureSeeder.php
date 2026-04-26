@@ -13,91 +13,34 @@ class FeatureSeeder extends Seeder
     public function run(): void
     {
         $features = [
-            // User limits
             [
-                'name' => '3 Users',
-                'key' => 'users-3',
-                'description' => 'Maximum of 3 users',
+                'name' => 'User Limits',
+                'key' => 'user-limits',
+                'description' => 'Set the maximum number of users included in the plan',
+                'unit_label' => 'users',
             ],
             [
-                'name' => '10 Users',
-                'key' => 'users-10',
-                'description' => 'Maximum of 10 users',
+                'name' => 'Team Limits',
+                'key' => 'team-limits',
+                'description' => 'Set the maximum number of teams or offices included in the plan',
+                'unit_label' => 'teams',
             ],
             [
-                'name' => '30 Users',
-                'key' => 'users-30',
-                'description' => 'Maximum of 30 users',
+                'name' => 'Custom Roles',
+                'key' => 'custom-roles',
+                'description' => 'Control how many custom roles or role templates are available',
+                'unit_label' => 'roles',
             ],
             [
-                'name' => '100 Users',
-                'key' => 'users-100',
-                'description' => 'Maximum of 100 users',
+                'name' => 'Storage Limits',
+                'key' => 'storage-limits',
+                'description' => 'Set the document storage capacity included in the plan',
+                'unit_label' => 'GB',
             ],
-
-            // Team limits
-            [
-                'name' => '1 Team',
-                'key' => 'teams-1',
-                'description' => 'Maximum of 1 team',
-            ],
-            [
-                'name' => '3 Teams',
-                'key' => 'teams-3',
-                'description' => 'Maximum of 3 teams',
-            ],
-            [
-                'name' => '10 Teams',
-                'key' => 'teams-10',
-                'description' => 'Maximum of 10 teams',
-            ],
-            [
-                'name' => '20 Teams',
-                'key' => 'teams-20',
-                'description' => 'Maximum of 20 teams',
-            ],
-
-            // Storage limits
-            [
-                'name' => '500 MB Storage',
-                'key' => 'storage-500mb',
-                'description' => '500 MB storage capacity',
-            ],
-            [
-                'name' => '2 GB Storage',
-                'key' => 'storage-2gb',
-                'description' => '2 GB storage capacity',
-            ],
-            [
-                'name' => '10 GB Storage',
-                'key' => 'storage-10gb',
-                'description' => '10 GB storage capacity',
-            ],
-            [
-                'name' => '50 GB Storage',
-                'key' => 'storage-50gb',
-                'description' => '50 GB storage capacity',
-            ],
-            // [
-            //     'name' => 'Document Storage',
-            //     'key' => 'document-storage',
-            //     'description' => 'Store and manage documents in the system',
-            // ],
-            // [
-            //     'name' => 'Advanced Sharing',
-            //     'key' => 'advanced-sharing',
-            //     'description' => 'Share documents with advanced permission controls',
-            // ],
-            // [
-            //     'name' => 'Analytics',
-            //     'key' => 'analytics',
-            //     'description' => 'View detailed analytics on document usage',
-            // ],
-
         ];
 
         foreach ($features as $feature) {
-            Feature::firstOrCreate(['key' => $feature['key']], $feature);
+            Feature::updateOrCreate(['key' => $feature['key']], $feature);
         }
     }
 }
