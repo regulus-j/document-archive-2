@@ -114,7 +114,7 @@
                         <iframe data-role="preview-frame"
                                 class="hidden w-full h-full border-0 absolute inset-0"
                                 style="min-height:400px; height:560px;"
-                                sandbox="allow-same-origin allow-scripts"></iframe>
+                            sandbox="allow-same-origin allow-scripts allow-popups allow-downloads"></iframe>
 
                         {{-- Image preview --}}
                         <img data-role="preview-img"

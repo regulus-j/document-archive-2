@@ -1960,43 +1960,78 @@ class DocumentWorkflowController extends Controller
     }
 
     /**
-     * Delete an archived version uploaded by the current user.
+     * Deleting archived versions is disabled. Only current version deletion is allowed.
      */
     public function deleteReviewVersion($workflowId, $versionId): RedirectResponse
     {
         $accessCheck = $this->ensureWorkflowAccess($workflowId);
         if ($accessCheck) return $accessCheck;
 
+        return redirect()->route('documents.review', $workflowId)
+            ->with('error', 'Only the current version can be deleted. Previous versions are preserved.');
+    }
+
+    /**
+     * Delete the current active version and revert to the latest archived version.
+     */
+    public function deleteCurrentReviewVersion($workflowId): RedirectResponse
+    {
+        $accessCheck = $this->ensureWorkflowAccess($workflowId);
+        if ($accessCheck) return $accessCheck;
+
         $workflow = DocumentWorkflow::findOrFail($workflowId);
-        $version = DocumentVersion::findOrFail($versionId);
+        $document = $workflow->document;
 
-        if ((int)$version->doc_id !== (int)$workflow->document_id) {
-            return redirect()->back()->with('error', 'Version does not belong to this document.');
+        // Keep workflows immutable after processing steps are finalized.
+        if (!in_array($workflow->status, ['received', 'pending'])) {
+            return redirect()->route('documents.review', $workflow->id)
+                ->with('error', 'Current version can only be deleted while the workflow is pending or received.');
         }
 
-        $isOwner = (int)$version->uploaded_by === (int)auth()->id();
-        $isAdmin = auth()->user()->hasRole('super-admin') || auth()->user()->hasRole('company-admin');
-        if (!$isOwner && !$isAdmin) {
-            return redirect()->back()->with('error', 'You may only delete versions that you uploaded.');
+        $latestArchivedVersion = $document->versions()
+            ->orderByDesc('version_number')
+            ->first();
+
+        if (!$latestArchivedVersion) {
+            return redirect()->route('documents.review', $workflow->id)
+                ->with('error', 'No previous version is available to restore.');
         }
 
-        if ($version->file_path) {
-            Storage::disk('public')->delete($version->file_path);
+        $currentUploaderId = $latestArchivedVersion->uploaded_by ?: $document->uploader;
+        if ((int)$currentUploaderId !== (int)auth()->id()) {
+            return redirect()->route('documents.review', $workflow->id)
+                ->with('error', 'You may only delete the current version that you uploaded.');
         }
 
-        $deletedVersionNumber = $version->version_number;
-        $version->delete();
+        if (!$latestArchivedVersion->file_path || !Storage::disk('public')->exists($latestArchivedVersion->file_path)) {
+            return redirect()->route('documents.review', $workflow->id)
+                ->with('error', 'Cannot restore previous version because its file is missing.');
+        }
+
+        $currentPath = $document->path;
+        $restoredVersionNumber = $latestArchivedVersion->version_number;
+
+        $document->update([
+            'path' => $latestArchivedVersion->file_path,
+            'uploader' => $latestArchivedVersion->uploaded_by ?: $document->uploader,
+        ]);
+
+        $latestArchivedVersion->delete();
+
+        if ($currentPath && $currentPath !== $document->path) {
+            Storage::disk('public')->delete($currentPath);
+        }
 
         DocumentAudit::logDocumentAction(
             $workflow->document_id,
             auth()->id(),
-            'version_deleted',
+            'current_version_deleted',
             'deleted',
-            "Archived version v{$deletedVersionNumber} deleted during review"
+            "Current document version deleted during review and restored to v{$restoredVersionNumber}"
         );
 
         return redirect()->route('documents.review', $workflow->id)
-            ->with('success', "Version v{$deletedVersionNumber} deleted successfully.");
+            ->with('success', "Current version deleted. Document restored to v{$restoredVersionNumber}.");
     }
 
     /**

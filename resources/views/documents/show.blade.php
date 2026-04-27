@@ -899,7 +899,7 @@
                 <!-- Barcode Overlay (supported document types) -->
                 @php
                     $docExt = strtolower(pathinfo($document->path, PATHINFO_EXTENSION));
-                    $barcodeSupportedExts = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'doc', 'docx', 'xls', 'xlsx', 'ods'];
+                    $barcodeSupportedExts = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
                     $canApplyBarcode = $canUploadVersion;
                 @endphp
                 @if($canApplyBarcode && in_array($docExt, $barcodeSupportedExts))
@@ -924,7 +924,7 @@
                         </button>
                     </div>
 
-                    <p class="text-xs text-slate-500 mb-3">Overlay the tracking barcode directly onto the document. Supported: PDF, images (JPG/PNG/GIF/WebP/BMP), Word documents (DOC/DOCX), and spreadsheets (XLS/XLSX/ODS).</p>
+                    <p class="text-xs text-slate-500 mb-3">Overlay the tracking barcode directly onto the document. Supported: PDF and images (JPG/PNG/GIF/WebP/BMP).</p>
 
                     <form id="barcode-overlay-form" action="{{ route('documents.barcodeOverlay', $document->id) }}" method="POST">
                         @csrf

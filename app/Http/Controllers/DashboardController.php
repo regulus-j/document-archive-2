@@ -204,10 +204,7 @@ class DashboardController extends Controller
                 ->count();
         } else {
             $pendingDocuments = DocumentWorkflow::where('status', 'pending')
-                ->where(function ($query) use ($user) {
-                    $query->where('sender_id', $user->id)
-                        ->orWhere('recipient_id', $user->id);
-                })
+                ->where('recipient_id', $user->id)
                 ->count();
         }
 
@@ -221,11 +218,8 @@ class DashboardController extends Controller
             ->whereDate('created_at', today())
             ->count();
         $countPendingDocs = $pendingDocuments;
-        $countRecentDocs = Document::where('uploader', $user->id)
-            ->orWhereHas('workflow', function($query) use ($user) {
-                $query->where('recipient_id', $user->id)
-                    ->whereIn('status', ['approved', 'rejected']);
-            })
+        $countRecentDocs = DocumentWorkflow::where('recipient_id', $user->id)
+            ->whereIn('status', ['approved', 'rejected'])
             ->count();
         $countOffices = $userCompany ? Office::where('company_id', $userCompany->id)->count() : "No Offices Found";
 

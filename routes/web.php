@@ -267,6 +267,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::delete('/{workflow}/versions/{version}', [DocumentWorkflowController::class, 'deleteReviewVersion'])
                 ->name('documents.reviewVersionDelete');
 
+            Route::delete('/{workflow}/current-version', [DocumentWorkflowController::class, 'deleteCurrentReviewVersion'])
+                ->name('documents.reviewCurrentVersionDelete');
+
             // Workflow deletion (restricted to uploader/sender)
             Route::delete('/{workflow}/delete', [DocumentWorkflowController::class, 'deleteWorkflow'])
                 ->name('documents.workflows.delete');

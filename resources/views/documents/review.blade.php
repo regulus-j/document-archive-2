@@ -70,6 +70,9 @@
             // Use max version_number (not count) so the current version label is always
             // one above the highest archived version, regardless of any deletions.
             $currentVersionNum = ($document->versions->max('version_number') ?? 0) + 1;
+            $latestArchivedVersion = $document->versions->sortByDesc('version_number')->first();
+            $currentVersionUploaderId = $latestArchivedVersion?->uploaded_by ?? $document->uploader;
+            $canDeleteCurrentVersion = $latestArchivedVersion && ((int) $currentVersionUploaderId === (int) auth()->id());
         @endphp
         <div class="space-y-6">
 
@@ -368,8 +371,25 @@
                                 <a href="{{ route('documents.download', $document->id) }}" class="p-1.5 rounded-lg hover:bg-indigo-100 text-indigo-600" title="Download">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                 </a>
+                                @if($canDeleteCurrentVersion)
+                                <form action="{{ route('documents.reviewCurrentVersionDelete', $workflow->id) }}"
+                                      method="POST"
+                                      onsubmit="return confirm('Delete the current version and restore the previous one? This cannot be undone.');"
+                                      class="inline-flex">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                            class="p-1.5 rounded-lg hover:bg-red-100 text-red-600"
+                                            title="Delete Current Version">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h8"/></svg>
+                                    </button>
+                                </form>
+                                @endif
                             </div>
                         </div>
+                        @if(!$latestArchivedVersion)
+                            <p class="mt-2 text-xs text-slate-400">Current version cannot be deleted until at least one previous version exists.</p>
+                        @endif
                     </div>
 
                     {{-- Previous Versions --}}
@@ -412,6 +432,11 @@
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         </button>
                                         @endif
+                                        <a href="{{ route('documents.reviewVersionDownload', [$workflow->id, $ver->id]) }}"
+                                           class="p-1.5 rounded-lg hover:bg-indigo-100 text-indigo-600"
+                                           title="Download v{{ $ver->version_number }}">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                        </a>
                                     </div>
                                 </div>
                             @endforeach
