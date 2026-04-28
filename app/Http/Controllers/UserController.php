@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\userInvite;
+use App\Mail\verificationMail;
 use App\Models\Office;
 use App\Models\User;
 use App\Models\CompanyAccount;
@@ -349,6 +350,22 @@ class UserController extends Controller
                 ));
         } catch (\Exception $e) {
             \Log::error('Failed to send invitation email: ' . $e->getMessage());
+        }
+
+        if (!$user->hasVerifiedEmail()) {
+            try {
+                $verificationCode = $user->generateVerificationCode();
+
+                Mail::to($user->email)
+                    ->send(new verificationMail(
+                        $user->first_name,
+                        $user->last_name,
+                        $verificationCode,
+                        route('login')
+                    ));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send verification email: ' . $e->getMessage());
+            }
         }
 
         return redirect()->route('users.index')
