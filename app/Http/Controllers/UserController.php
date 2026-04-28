@@ -329,39 +329,27 @@ class UserController extends Controller
 
         $roleNames = $user->roles->pluck('name')->implode(', ');
 
-        // Send email only for new users or when adding existing user to new company
-        if ($isNewUser) {
-            try {
-                Mail::to($user->email)
-                    ->send(new UserInvite(
-                        $user->first_name,
-                        $user->email,
-                        $temp_pass,
-                        $roleNames,
-                        route('login')
-                    ));
-            } catch (\Exception $e) {
-                \Log::error('Failed to send invitation email: ' . $e->getMessage());
-            }
-            $temp_pass = null;
-        } else {
-            // Notify existing user they were added to a new company
-            try {
-                // You may want to create a different email template for this case
-                \Log::info('Existing user added to new company - notification email should be sent', [
-                    'user_id' => $user->id,
-                    'company_id' => $companyId
-                ]);
-            } catch (\Exception $e) {
-                \Log::error('Failed to notify user about new company: ' . $e->getMessage());
-            }
-        }
-
         // Add user to company
         CompanyUser::create([
             'company_id' => $companyId,
             'user_id'     => $user->id,
         ]);
+
+        // Always send an invitation email, even for existing users.
+        $invitePassword = $isNewUser ? $temp_pass : null;
+
+        try {
+            Mail::to($user->email)
+                ->send(new UserInvite(
+                    $user->first_name,
+                    $user->email,
+                    $invitePassword,
+                    $roleNames,
+                    route('login')
+                ));
+        } catch (\Exception $e) {
+            \Log::error('Failed to send invitation email: ' . $e->getMessage());
+        }
 
         return redirect()->route('users.index')
             ->with('success', 'User created successfully');

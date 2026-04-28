@@ -22,7 +22,7 @@ class userInvite extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct($name, $email, $password, $role, $loginLink)
+    public function __construct($name, $email, $password = null, $role = null, $loginLink = null)
     {
         $this->name = $name;
         $this->email = $email;
